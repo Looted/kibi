@@ -101,6 +101,18 @@ describe("kibi KB merge action", () => {
     expect(fx.tip("feature/one")).not.toBe(before);
   });
 
+  test("runs sync and the check on the merged tree without the token that pushes", () => {
+    const fx = new Fixture();
+    manifestConflict(fx);
+    const run = fx.run({
+      GH_TOKEN: "merge-token",
+      GITHUB_TOKEN: "workflow-token",
+      KB_MERGE_CHECK: 'test -z "$GH_TOKEN$GITHUB_TOKEN" && $KIBI check',
+    });
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.outputs.merged).toEqual(["feature/one"]);
+  });
+
   test("never pushes a merge when kibi sync rewrites a tracked file", () => {
     const fx = new Fixture();
     manifestConflict(fx);

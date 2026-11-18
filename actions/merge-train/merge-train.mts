@@ -271,6 +271,21 @@ export function aggregate(
   return state;
 }
 
+/**
+ * Credentials the commands run in a merged tree never get: the tree holds
+ * pull request content, and the token that pushes and merges stays with the
+ * train.
+ */
+export const VERIFY_UNSET_ENV: readonly string[] = [
+  "GH_TOKEN",
+  "GITHUB_TOKEN",
+  "GH_ENTERPRISE_TOKEN",
+  "GITHUB_ENTERPRISE_TOKEN",
+  "ACTIONS_RUNTIME_TOKEN",
+  "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+  "ACTIONS_ID_TOKEN_REQUEST_URL",
+];
+
 export type Runner = Readonly<{
   /** Runs gh with the arguments; stdin is `input` when given. Throws on failure. */
   gh(args: readonly string[], input?: string): string;
@@ -278,7 +293,8 @@ export type Runner = Readonly<{
   exec(
     command: string,
     args: readonly string[],
-    options?: { cwd?: string; env?: Record<string, string> },
+    /** `env` adds to the process environment; an undefined value removes the name. */
+    options?: { cwd?: string; env?: Record<string, string | undefined> },
   ): { status: number; stdout: string; stderr: string };
   now(): number;
   log(line: string): void;
@@ -616,7 +632,13 @@ export class MergeTrain {
     kibi: string,
     check: string,
   ): string | null {
-    const env = { KIBI: kibi, KIBI_BRANCH: branch };
+    // The tree holds the pull requests' content, so its commands run without
+    // the tokens in the environment (VERIFY_UNSET_ENV).
+    const env: Record<string, string | undefined> = {
+      KIBI: kibi,
+      KIBI_BRANCH: branch,
+      ...Object.fromEntries(VERIFY_UNSET_ENV.map((name) => [name, undefined])),
+    };
     if (
       kibi !== "" &&
       this.run.exec("bash", ["-c", `${kibi} sync`], { cwd: tree, env })
@@ -698,10 +720,13 @@ export const processRunner: Runner = {
     return result.stdout;
   },
   exec(command, args, options = {}) {
+    const env: NodeJS.ProcessEnv = { ...process.env, ...options.env };
+    for (const [name, value] of Object.entries(env))
+      if (value === undefined) delete env[name];
     const result = spawnSync(command, args, {
       encoding: "utf8",
       cwd: options.cwd,
-      env: { ...process.env, ...options.env },
+      env,
       maxBuffer: 64 * 1024 * 1024,
     });
     return {

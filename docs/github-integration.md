@@ -354,7 +354,7 @@ the action's merge commit or push; the `check` input is the gate.
 | `branches` | every open pull request | Head branches to consider: newline or space separated, or a JSON array. |
 | `list-only` | `false` | `true` only lists the branches whose sole conflicts are Kibi manifests (output `branches`) and changes nothing. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. A relative path resolves from the workspace. |
-| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set. `""` runs none. |
+| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the tree holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the tree's copy never runs. `""` runs none. |
 | `attempts` | `3` | Tries per branch when the branch moves while it is being merged. |
 | `skip-label` | `""` | Pull requests with this label are left alone. Set it to your merge train's label (`train`): the train merges the manifests itself, and a push to a boarded pull request would restart its checks. |
 | `github-token` | `github.token` | Token `gh` uses to list pull requests. |
@@ -458,7 +458,7 @@ from, so a later pull request can reuse it in turn.
 | `label` | `train` | Label that boards a pull request. |
 | `max` | `8` | Most pull requests in one train. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. `""` skips `kibi sync`. |
-| `check` | `$KIBI check` | Shell command run in the train after each merge. `$KIBI` and `$KIBI_BRANCH` are set. `""` runs none. |
+| `check` | `$KIBI check` | Shell command run in the train after each merge. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the train holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the train's copy never runs. `""` runs none. |
 | `prefix` | `merge-train/` | Branch prefix of train branches. |
 | `github-token` | `github.token` | Token `gh` uses. |
 

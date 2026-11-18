@@ -46247,3 +46247,58 @@ symbols:
         target: REQ-agent-hosts-firm-edit-ask
       - type: implements
         target: REQ-claude-firm-edit-confirmation
+  - id: SYM-merge-train-merge-train-assemble
+    title: MergeTrain.assemble
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:11:57.200Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-merge-train-process-runner
+    title: processRunner
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:11:59.267Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-merge-train-verify-unset-env
+    title: VERIFY_UNSET_ENV
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:12:44.408Z
+  - id: SYM-merge-train-runner
+    title: Runner
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:12:47.239Z
+  - id: SYM-merge-train-merge-train
+    title: MergeTrain
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:23:03.300Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run

@@ -20,6 +20,7 @@ import {
   type Settings,
   type Train,
   type TrainMeta,
+  VERIFY_UNSET_ENV,
   aggregate,
   main,
   plan,
@@ -416,6 +417,7 @@ if (cmd === "merge-driver") {
 }
 if (cmd === "sync") {
   fs.appendFileSync(process.env.FAKE_LOG, "sync " + process.env.KIBI_BRANCH + "\\n");
+  if (process.env.GH_TOKEN || process.env.GITHUB_TOKEN) process.exit(4);
   if (fs.existsSync("SYNC_FAILS")) process.exit(1);
   if (fs.existsSync("SYNC_REWRITES")) fs.appendFileSync("README.md", "rewritten\\n");
   process.exit(0);
@@ -800,6 +802,29 @@ describe("merge train step", () => {
       expect(w.pulls.find((p) => p.number === pr)?.labels).toEqual([]);
   });
 
+  test("kibi sync and the check in the merged tree run without the train's tokens", () => {
+    const w = new World();
+    w.open(1, { "one.txt": "1\n" });
+    const saved = {
+      GH_TOKEN: process.env.GH_TOKEN,
+      GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+    };
+    process.env.GH_TOKEN = "merge-token";
+    process.env.GITHUB_TOKEN = "workflow-token";
+    try {
+      // The fake sync fails when it sees either token, which would eject.
+      expect(
+        kinds(w.step({ check: 'test -z "$GH_TOKEN$GITHUB_TOKEN"' }).actions),
+      ).toEqual(["assemble 1"]);
+      expect(readMeta(w.trainPull().body)).toMatchObject({ prs: [1] });
+    } finally {
+      for (const [name, value] of Object.entries(saved))
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+    }
+    expect(VERIFY_UNSET_ENV).toContain("ACTIONS_ID_TOKEN_REQUEST_TOKEN");
+  });
+
   test("a failing sync ejects, and nothing is opened when no pull request merged", () => {
     const w = new World();
     w.open(1, { SYNC_FAILS: "x\n" });
@@ -980,6 +1005,21 @@ describe("merge train step", () => {
     expect(
       processRunner.exec("sh", ["-c", "echo $X"], { env: { X: "ok" } }),
     ).toEqual({ status: 0, stdout: "ok\n", stderr: "" });
+    // An undefined value removes the name from the environment.
+    process.env.MERGE_TRAIN_TEST_SECRET = "leak";
+    try {
+      expect(
+        processRunner.exec(
+          "sh",
+          ["-c", "echo ${MERGE_TRAIN_TEST_SECRET:-gone}"],
+          {
+            env: { MERGE_TRAIN_TEST_SECRET: undefined },
+          },
+        ).stdout,
+      ).toBe("gone\n");
+    } finally {
+      delete process.env.MERGE_TRAIN_TEST_SECRET;
+    }
     expect(processRunner.exec("/nonexistent/command", []).status).toBe(1);
     expect(processRunner.now()).toBeGreaterThan(0);
   });
@@ -1007,7 +1047,9 @@ describe("merge train workflow and action", () => {
       "ci-required",
       "proof-required",
     ]);
-    expect(step.with.check).toBe("sh scripts/proof-gate.sh");
+    expect(step.with.check).toBe(
+      "KIBI_RUNNER=node sh ${{ github.workspace }}/scripts/proof-gate.sh",
+    );
     // use-bundled-swipl downloads the archive the same run built, so the
     // train job needs the bundle job, under the same label condition.
     expect(

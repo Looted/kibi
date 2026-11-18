@@ -208,6 +208,10 @@ verify_one() {
   local head="$1"
   (
     cd "$TREE"
+    # The tree holds pull request content: its commands never get the token
+    # that pushes.
+    unset GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN \
+      ACTIONS_RUNTIME_TOKEN ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
     export KIBI="$KIBI" KIBI_BRANCH="$head"
     if ! bash -c "$KIBI sync" >&2; then
       echo "kibi sync failed on the merged tree"

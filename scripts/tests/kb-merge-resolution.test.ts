@@ -80,7 +80,10 @@ describe("KB merge workflow", () => {
 
   test("runs the proof gate as the check the action passes before pushing", () => {
     const merge = index(resolve, isAction);
-    expect(resolve[merge]?.with?.check).toBe("sh scripts/proof-gate.sh");
+    // develop's copy of the gate, run with node, never the merged tree's.
+    expect(resolve[merge]?.with?.check).toBe(
+      "KIBI_RUNNER=node sh ${{ github.workspace }}/scripts/proof-gate.sh",
+    );
     expect(resolve[merge]?.env?.KIBI_CLI).toBe(
       "${{ github.workspace }}/packages/cli/bin/kibi",
     );
@@ -120,25 +123,20 @@ describe("KB merge workflow", () => {
   function runWithProofGate(syncState: "fresh" | "stale") {
     const fx = new Fixture();
     manifestConflict(fx);
-    // The gate is the merged tree's own scripts/proof-gate.sh.
-    addProofGate(fx);
+    // The gate is the base checkout's scripts/proof-gate.sh; a copy in the
+    // merged tree that would pass everything is never run.
+    fx.commit("develop", { "scripts/proof-gate.sh": "exit 0\n" });
     const before = fx.tip("feature/one");
     const merge = resolve[index(resolve, isAction)] as Step;
     const run = fx.run({
-      KB_MERGE_CHECK: merge.with?.check ?? "",
+      KB_MERGE_CHECK: (merge.with?.check ?? "").replace(
+        "${{ github.workspace }}",
+        ROOT,
+      ),
       KIBI_CLI: fx.kibi,
       FAKE_SYNC_STATE: syncState,
     });
     return { run, pushed: fx.tip("feature/one") !== before };
-  }
-
-  function addProofGate(fx: Fixture): void {
-    fx.commit("develop", {
-      "scripts/proof-gate.sh": readFileSync(
-        path.join(ROOT, "scripts", "proof-gate.sh"),
-        "utf8",
-      ),
-    });
   }
 
   test("a merge that fails the proof gate is never pushed", () => {
