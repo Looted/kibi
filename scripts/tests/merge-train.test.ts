@@ -453,6 +453,8 @@ class World {
   >();
   runs = new Map<string, Array<{ id: number; conclusion: string | null }>>();
   calls: string[] = [];
+  /** Calls made with the checks token. */
+  checksCalls: string[] = [];
   comments: Array<[number, string]> = [];
   next = 100;
   clock = 1000;
@@ -557,11 +559,13 @@ class World {
     return pr;
   }
 
-  gh(args: readonly string[], input?: string): string {
+  gh(args: readonly string[], input?: string, as?: "checks"): string {
     const method = args[2] as string;
     const url = args[3] as string;
     const body = input === undefined ? {} : JSON.parse(input);
     this.calls.push(`${method} ${url.replace(/\?.*$/, "")}`);
+    if (as === "checks")
+      this.checksCalls.push(`${method} ${url.replace(/\?.*$/, "")}`);
     for (const [verb, pattern, handle] of this.routes()) {
       const match = pattern.exec(url);
       if (match && (verb === "*" || verb === method)) {
@@ -680,7 +684,7 @@ class World {
 
   runner(): Runner {
     return {
-      gh: (args, input) => this.gh(args, input),
+      gh: (args, input, as) => this.gh(args, input, as),
       exec: (command, args, options) =>
         processRunner.exec(command, args, {
           ...options,
@@ -823,6 +827,20 @@ describe("merge train step", () => {
         else process.env[name] = value;
     }
     expect(VERIFY_UNSET_ENV).toContain("ACTIONS_ID_TOKEN_REQUEST_TOKEN");
+    expect(VERIFY_UNSET_ENV).toContain("MERGE_TRAIN_CHECKS_TOKEN");
+  });
+
+  test("check runs are read with the checks token, and nothing else is", () => {
+    const w = new World();
+    w.open(1, { "one.txt": "1\n" });
+    w.step();
+    expect(w.checksCalls.length).toBeGreaterThan(0);
+    expect(w.checksCalls.every((call) => /\/check-runs$/.test(call))).toBe(
+      true,
+    );
+    expect(w.calls.filter((call) => /\/check-runs$/.test(call)).length).toBe(
+      w.checksCalls.length,
+    );
   });
 
   test("a failing sync ejects, and nothing is opened when no pull request merged", () => {
@@ -1021,6 +1039,33 @@ describe("merge train step", () => {
       delete process.env.MERGE_TRAIN_TEST_SECRET;
     }
     expect(processRunner.exec("/nonexistent/command", []).status).toBe(1);
+    // Check runs go out with the checks token; everything else with GH_TOKEN.
+    const bin = mkdtempSync(path.join(os.tmpdir(), "merge-train-gh-"));
+    writeFileSync(path.join(bin, "gh"), '#!/bin/sh\necho "$GH_TOKEN"\n');
+    chmodSync(path.join(bin, "gh"), 0o755);
+    const saved = {
+      PATH: process.env.PATH,
+      GH_TOKEN: process.env.GH_TOKEN,
+      MERGE_TRAIN_CHECKS_TOKEN: process.env.MERGE_TRAIN_CHECKS_TOKEN,
+    };
+    process.env.PATH = `${bin}${path.delimiter}${saved.PATH}`;
+    process.env.GH_TOKEN = "merge-token";
+    try {
+      process.env.MERGE_TRAIN_CHECKS_TOKEN = "";
+      expect(processRunner.gh(["api"], undefined, "checks")).toBe(
+        "merge-token\n",
+      );
+      process.env.MERGE_TRAIN_CHECKS_TOKEN = "workflow-token";
+      expect(processRunner.gh(["api"], undefined, "checks")).toBe(
+        "workflow-token\n",
+      );
+      expect(processRunner.gh(["api"])).toBe("merge-token\n");
+    } finally {
+      for (const [name, value] of Object.entries(saved))
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      rmSync(bin, { recursive: true, force: true });
+    }
     expect(processRunner.now()).toBeGreaterThan(0);
   });
 });

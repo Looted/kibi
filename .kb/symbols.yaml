@@ -45433,6 +45433,8 @@ symbols:
       - type: covered_by
         target: TEST-ci-merge-train
       - type: implements
+        target: REQ-ci-merge-train-checks-token
+      - type: implements
         target: REQ-ci-merge-train-train-checks
   - id: SYM-merge-train-action
     title: Kibi merge train action inputs (actions/merge-train/action.yml)
@@ -45449,6 +45451,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-checks-token
       - type: implements
         target: REQ-ci-merge-train-train-checks
   - id: SYM-ci-proof-reuse-tree-precheck
@@ -46229,6 +46233,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-checks-token
       - type: implements
         target: REQ-merge-train-kb-merge-actions-run
   - id: SYM-merge-train-verify-unset-env

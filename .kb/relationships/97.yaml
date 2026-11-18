@@ -286,3 +286,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-477da05fcb93
+  - type: constrains
+    from: REQ-ci-merge-train-checks-token
+    to: FACT-SUBJECT-kibi-ci-merge-train
+    created_at: 2026-11-18T14:19:22.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174c579190f0
+  - type: requires_property
+    from: REQ-ci-merge-train-checks-token
+    to: FACT-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:22.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0779dfcf38
+  - type: specified_by
+    from: REQ-ci-merge-train-checks-token
+    to: SCEN-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:22.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9fbcfa89bc7
+  - type: specified_by
+    from: REQ-ci-merge-train-checks-token
+    to: SCEN-NEG-ci-merge-train-checks-token-VIOLATED
+    created_at: 2026-11-18T14:19:22.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bc7c6494592
