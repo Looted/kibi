@@ -11,6 +11,7 @@ rationale: Fine-grained personal access tokens have no Checks permission, yet a 
 origin:
   kind: agent
   ref: 'Maintainer report, 2026-11-18: the merge train token is a fine-grained token, and fine-grained tokens offer no check runs permission.'
+  approved_by: maintainer
   recorded_at: '2026-11-18T14:19:21.469Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
