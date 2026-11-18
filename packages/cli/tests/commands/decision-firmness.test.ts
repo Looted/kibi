@@ -280,7 +280,18 @@ describe("firm decisions are not edited in place", () => {
     expect(await readFile(rulePath, "utf8")).toBe(IMPORTED_RULE);
   }, 120_000);
 
-  test("kb_upsert keeps context and metadata edits open on a firm rule", async () => {
+  test("kb_upsert keeps notes and metadata edits open on a firm rule but not its reason", async () => {
+    const rewritten = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: { title: "Carts hold at most 50 items", status: "open" },
+      document: {
+        body: "Carts hold at most 50 items.\n\n## Context\nLarger carts block the aisle.\n",
+      },
+    });
+    expect(rewritten.exitCode).not.toBe(0);
+    expect(rewritten.stdout).toContain("does not change its reason in place");
+
     const result = await route(workspace, "upsert", {
       type: "req",
       id: "REQ-FIRM-IMPORTED",
@@ -290,7 +301,7 @@ describe("firm decisions are not edited in place", () => {
         tags: ["carts"],
       },
       document: {
-        body: "Carts hold at most 50 items.\n\n## Context\nThe warehouse picker handles one cart per trip, and larger carts block the aisle.\n",
+        body: "Carts hold at most 50 items.\n\n## Context\nThe warehouse picker handles one cart per trip.\n\n## Notes\nLarger carts block the aisle.\n",
       },
     });
     expect(result.exitCode, result.stdout).toBe(0);
