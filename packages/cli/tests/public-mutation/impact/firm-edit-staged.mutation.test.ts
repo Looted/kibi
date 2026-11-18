@@ -328,7 +328,7 @@ describe("stagedFirmEditGateOptions", () => {
     ]);
   });
 
-  test("a requirement counts as restated only when its statement, status or supersede changed", async () => {
+  test("a requirement counts as restated only when its statement or supersede changed", async () => {
     const changed = async (
       base: string | undefined,
       extra: Partial<Parameters<typeof stagedFirmEditGateOptions>[0]> = {},
@@ -351,9 +351,10 @@ describe("stagedFirmEditGateOptions", () => {
       ),
     ).toBe(false);
     expect(await changed(doc("Keys never expire."))).toBe(true);
-    expect(await changed(doc("Keys expire.", "draft"))).toBe(true);
+    // A status that keeps it current is not a restatement.
+    expect(await changed(doc("Keys expire.", "draft"))).toBe(false);
     expect(await changed(undefined)).toBe(true);
-    // A base document that no longer parses has no status to compare.
+    // A base document that no longer parses has no statement to compare.
     expect(await changed("---\ntitle: [\n---\n")).toBe(true);
     const superseding = result(
       { id: "REQ-b", type: "req", source: ".kb/requirements/REQ-b.md" },

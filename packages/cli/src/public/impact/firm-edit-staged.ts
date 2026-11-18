@@ -1,9 +1,6 @@
 import { firmEditFileHash } from "kibi-agent-core/firm-edit-review";
 import { isRetiredStatus } from "kibi-agent-core/snippets";
-import {
-  type ExtractionResult,
-  extractFromMarkdownString,
-} from "../../extractors/markdown.js";
+import type { ExtractionResult } from "../../extractors/markdown.js";
 import {
   type StagedFile,
   parseDeletionPoints,
@@ -54,15 +51,6 @@ export type StagedFirmEditInput = {
 };
 
 const SYMBOL_MANIFESTS = new Set([".kb/symbols.yaml", ".kb/symbols.yml"]);
-
-function statusOf(text: string, source: string): unknown {
-  try {
-    return extractFromMarkdownString(text, source).entity.status;
-  } catch {
-    // A base document that no longer parses has no status to compare.
-  }
-  return undefined;
-}
 
 /** A symbol record's source file, as removedSymbolRecords reads it. */
 function recordFile(result: ExtractionResult): string {
@@ -227,10 +215,6 @@ export async function stagedFirmEditGateOptions(
         requirement,
         documentText: input.readChanged(requirement.source),
         baseText,
-        baseStatus:
-          baseText === undefined
-            ? undefined
-            : String(statusOf(baseText, requirement.source)),
         supersededInChange: supersededInChange(requirement.id),
       });
     },

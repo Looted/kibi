@@ -181,7 +181,7 @@ describe("helpers", () => {
     );
   });
 
-  test("a requirement is restated only by a new statement, status or supersede", () => {
+  test("a requirement is restated only by a new statement or supersede", () => {
     const doc = (text: string) => `---\nsemantic_text: ${text}\n---\n`;
     const restated = (
       extra: Partial<Parameters<typeof firmRequirementRestated>[0]>,
@@ -190,14 +190,16 @@ describe("helpers", () => {
         requirement: req("REQ-a"),
         documentText: `${doc(STATEMENT)}\n## Notes\n\nA note.\n`,
         baseText: doc(STATEMENT),
-        baseStatus: "open",
         supersededInChange: false,
         ...extra,
       });
     // A note, tag or link is not a restatement.
     expect(restated({})).toBe(false);
     expect(restated({ baseText: doc("Keys never expire.") })).toBe(true);
-    expect(restated({ baseStatus: "draft" })).toBe(true);
+    // A status change is not: a closed or in-progress requirement still guards.
+    expect(
+      restated({ requirement: { ...req("REQ-a"), status: "closed" } }),
+    ).toBe(false);
     expect(restated({ baseText: undefined })).toBe(true);
     expect(restated({ supersededInChange: true })).toBe(true);
   });

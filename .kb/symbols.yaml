@@ -46206,3 +46206,29 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-entity-context-is-retired-authored-status
+    title: isRetiredAuthoredStatus
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:43:41.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-entity-context-is-current-authored-entity
+    title: isCurrentAuthoredEntity
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:43:44.494Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context

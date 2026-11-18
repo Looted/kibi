@@ -277,6 +277,18 @@ describe("firm decisions are not edited in place", () => {
       "does not change its firmness in place",
     );
 
+    // Retiring it drops the rule, so it needs the person's words too.
+    const deprecated = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: {
+        title: "Carts hold at most 50 items",
+        status: "deprecated",
+      },
+    });
+    expect(deprecated.exitCode).not.toBe(0);
+    expect(deprecated.stdout).toContain("does not change its status in place");
+
     expect(await readFile(rulePath, "utf8")).toBe(IMPORTED_RULE);
   }, 120_000);
 

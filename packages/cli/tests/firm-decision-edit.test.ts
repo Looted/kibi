@@ -248,14 +248,47 @@ describe("firm decision edits", () => {
     expect(
       evaluateFirmDecisionEdits([current], new Map(), new Set(), read),
     ).toEqual([]);
+    // Retiring a firm decision is a change of its claim.
     expect(
       evaluateFirmDecisionEdits(
         [{ ...current, data: { ...current.data, status: "deprecated" } }],
         new Map(),
         new Set([current.path]),
         read,
+      ).map((finding) => finding.evidence),
+    ).toEqual([{ type: "req", changed: ["title", "statement", "status"] }]);
+    // Retired at HEAD and still retired: not judged.
+    const retired = committed.replace("status: open", "status: deprecated");
+    expect(
+      evaluateFirmDecisionEdits(
+        [{ ...current, data: { ...current.data, status: "deprecated" } }],
+        new Map(),
+        new Set([current.path]),
+        () => retired,
       ),
     ).toEqual([]);
+    // Reopened after an edit made while it was retired: judged.
+    expect(
+      evaluateFirmDecisionEdits(
+        [current],
+        new Map(),
+        new Set([current.path]),
+        () => retired,
+      ).map((finding) => finding.evidence),
+    ).toEqual([{ type: "req", changed: ["title", "statement", "status"] }]);
+  });
+
+  test("retiring or reopening a firm requirement changes its claim; closing it does not", () => {
+    const status = (value: string) => ({
+      ...RULE,
+      data: { ...RULE.data, status: value },
+    });
+    expect(unapprovedFirmEdit(RULE, status("deprecated"))).toEqual(["status"]);
+    expect(unapprovedFirmEdit(status("retired"), RULE)).toEqual(["status"]);
+    expect(unapprovedFirmEdit(RULE, status("closed"))).toEqual([]);
+    expect(unapprovedFirmEdit(status("deprecated"), status("retired"))).toEqual(
+      [],
+    );
   });
 
   test("the guidance names the reference fields each decision type accepts", () => {

@@ -56,9 +56,9 @@ export function requirementStatement(
 /**
  * Whether a change restates a requirement, so the firmness and supersede
  * checks judge it instead of the firm-edit gate: the requirement is new, its
- * statement or status changed, or a requirement the change adds or edits
- * supersedes it. Any other edit of its document (a note, a tag, a link) does
- * not.
+ * statement changed, or a requirement the change adds or edits supersedes
+ * it. Any other edit of its document (a note, a tag, a link, its status)
+ * does not: a status that keeps it current leaves it guarding its code.
  */
 export function firmRequirementRestated(input: {
   requirement: ExtractedEntity;
@@ -66,14 +66,10 @@ export function firmRequirementRestated(input: {
   documentText: string | undefined;
   /** The document's text before the change; undefined when it is new. */
   baseText: string | undefined;
-  /** The requirement's status before the change. */
-  baseStatus: string | undefined;
   /** The requirements the change adds or edits that supersede this one. */
   supersededInChange: boolean;
 }): boolean {
   if (input.supersededInChange || input.baseText === undefined) return true;
-  if (String(input.requirement.status) !== String(input.baseStatus))
-    return true;
   return (
     requirementStatement(input.requirement, input.documentText) !==
     requirementStatementFromDocument(input.baseText)

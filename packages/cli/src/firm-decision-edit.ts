@@ -18,6 +18,7 @@
 
 import { effectiveFirmness, firmnessRef } from "./decision-firmness.js";
 import { requirementSemanticText } from "./extractors/markdown.js";
+import { isRetiredAuthoredStatus } from "./public/operations/entity-context.js";
 import { markdownSections, requirementReason } from "./search-answer.js";
 
 /** A requirement or ADR as authored: front matter and Markdown body. */
@@ -34,6 +35,7 @@ export type DecisionClaimField =
   | "reason"
   | "source"
   | "body"
+  | "status"
   | "firmness";
 
 function normalized(value: unknown): string {
@@ -78,7 +80,8 @@ function sourceSection(document: DecisionDocument): string {
  * requirement's claim is its title, its stated meaning, the statement its
  * body derives and its recorded reason (other context may change freely);
  * an ADR's claim is its
- * title and whole body. Lowering a firm decision's firmness changes it too.
+ * title and whole body. Lowering a firm decision's firmness changes it too,
+ * and so does retiring it or bringing it back from a retired status.
  */
 export function decisionClaimChanges(
   before: DecisionDocument,
@@ -106,6 +109,13 @@ export function decisionClaimChanges(
   } else if (normalized(before.body) !== normalized(after.body)) {
     changed.push("body");
   }
+  // Retiring a rule drops it, and reopening one brings back whatever was
+  // written while it was retired.
+  if (
+    isRetiredAuthoredStatus(before.data.status) !==
+    isRetiredAuthoredStatus(after.data.status)
+  )
+    changed.push("status");
   if (
     effectiveFirmness(before.type, before.data.firmness, before.data.origin) ===
       "firm" &&
