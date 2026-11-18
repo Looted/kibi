@@ -87,9 +87,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
   another way (another tool, a shell write, another file).
 - **Nobody could answer the confirmation, or the commit gate reports
   `firm_edit_unreviewed`:** read the changed code against the rule. If it
-  still does what the rule says, pipe the input the finding prints, with a
-  one-line note on why, to `kibi review-firm-edit --input -`, then stage the
-  receipt under `.kb/firm-edit-reviews/`. A `keeps` receipt recorded after
+  still does what the rule says, send the input the finding prints, with a
+  one-line note on why, to `kb_review_firm_edit` (without MCP, pipe it to
+  `kibi review-firm-edit --input -`), then stage the receipt under
+  `.kb/firm-edit-reviews/`. A `keeps` receipt recorded after
   the Claude Code question lets the retry of that edit through in the same
   session; a later session is asked again. Record it again after a later
   edit, because a receipt stops matching once the code changes. When the
@@ -109,7 +110,7 @@ name the missing capability. Never read or edit `.kb/` files directly.
   the `code` that enforces it. That one call writes a firm requirement with
   their words as `origin.ref`, their reason as its `why`, and the
   `implements` links; then follow its `nextActions` for the scenario and
-  test. Use `kb_compile_intent` (full MCP profile only; CLI `kibi compile-intent --input -`) first when the rule may touch several
+  test. Use `kb_compile_intent` (core MCP profile: CLI `kibi compile-intent --input -`) first when the rule may touch several
   requirements, and `kb_upsert` for anything `kb_record` does not take.
   When the person said why, put their reason in `why`, in their words. When
   they gave none, write "Reason not stated" and never a reason of your own;

@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4274b95f441a
+  - type: implements
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: REQ-kibi-firm-edit-finding-names-tool
+    created_at: 2026-11-17T15:35:48.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06633719b03c

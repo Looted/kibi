@@ -417,7 +417,7 @@ describe("createFirmEditGateDiagnostics", () => {
       files: ["src/keys.ts"],
       docs: ["docs/entity-schema.md"],
       message: `The change edits code that implements REQ-key-expiry, a firm rule the person set, without a current review of that code: expireKey in src/keys.ts (no review recorded); renderKey in src/keys.ts (no review recorded). Statement: "${STATEMENT}"`,
-      suggestion: `Read the changed code against REQ-key-expiry. If it still does what REQ-key-expiry says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(
+      suggestion: `Read the changed code against REQ-key-expiry. If it still does what REQ-key-expiry says, write a one-line note on why into this input and send it to kb_review_firm_edit (without MCP: pipe it to kibi review-firm-edit --input -), then stage the receipt it writes: ${JSON.stringify(
         {
           reviews: [
             {

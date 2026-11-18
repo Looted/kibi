@@ -4135,6 +4135,214 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Record a firm-edit review"
+      },
+      "description": "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "dryRun": {
+            "type": "boolean"
+          },
+          "reviews": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "note": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "requestQuote": {
+                  "type": "string"
+                },
+                "requirementId": {
+                  "pattern": "^REQ-[A-Za-z0-9._-]+$",
+                  "type": "string"
+                },
+                "sourceFile": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "verdict": {
+                  "enum": ["keeps", "changes"],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "requirementId",
+                "sourceFile",
+                "symbol",
+                "verdict",
+                "note"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "staged": {
+            "type": "boolean"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
+            "type": "string"
+          }
+        },
+        "required": ["reviews"],
+        "type": "object"
+      },
+      "name": "kb_review_firm_edit",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "dryRun": {
+                "type": "boolean"
+              },
+              "receipts": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "minItems": 2,
+            "type": "array"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1,
+            "type": "number"
+          },
+          "nextActions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_review_firm_edit",
+            "type": "string"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_review_firm_edit.v1",
+            "type": "string"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
         "readOnlyHint": true,
         "title": "Prepare an impact review"
       },

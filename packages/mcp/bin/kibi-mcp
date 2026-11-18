@@ -90,8 +90,9 @@ Starts the Kibi MCP server over stdio.
 
 Options:
   --diagnostic-mode  enable diagnostic logging to .kb/usage.log
-  --tools <profile>  tools to list: default (six core tools, plus the
-                     bootstrap tools while the KB is empty) or full
+  --tools <profile>  tools to list: full (every tool, the default) or
+                     core (eight core tools, plus the bootstrap tools
+                     while the KB is empty)
   --print-resolution print kibi-mcp startup resolution JSON and exit
   -h, --help         show help
 `);
@@ -112,11 +113,11 @@ if (args.includes("-h") || args.includes("--help")) {
     const value = args[toolsAt].startsWith("--tools=")
       ? args[toolsAt].slice("--tools=".length)
       : args[toolsAt + 1];
-    if (value === "default" || value === "full") {
+    if (value === "full" || value === "core") {
       process.env.KIBI_MCP_TOOLS = value;
     } else {
       process.stderr.write(
-        `[KIBI-MCP] --tools takes default or full, got ${value ?? "nothing"}\n`,
+        `[KIBI-MCP] --tools takes full or core, got ${value ?? "nothing"}\n`,
       );
       process.exit(2);
     }

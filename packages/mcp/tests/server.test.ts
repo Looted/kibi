@@ -313,10 +313,10 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
-  test("lists the seven core tools by default in a workspace with knowledge", async () => {
+  test("lists the seven core tools and the receipt tool under --tools core in a workspace with knowledge", async () => {
     // This repository's own knowledge base is not empty, so the bootstrap
     // tools stay out too.
-    const proc = startServer();
+    const proc = startServer({ args: ["--tools", "core"] });
     try {
       await sendRequest(proc, {
         jsonrpc: "2.0",
@@ -342,6 +342,7 @@ describe("MCP Server", () => {
         "kb_upsert",
         "kb_record",
         "kb_check",
+        "kb_review_firm_edit",
       ]);
     } finally {
       proc.kill();
@@ -349,8 +350,8 @@ describe("MCP Server", () => {
   });
 
   test("should handle tools/list request", async () => {
-    // --tools full lists the whole catalog.
-    const proc = startServer({ args: ["--tools", "full"] });
+    // With no profile chosen the server lists the whole catalog.
+    const proc = startServer();
 
     // Initialize first
     await sendRequest(proc, {
@@ -374,7 +375,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(17);
+    expect(tools.length).toBe(18);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -388,6 +389,7 @@ describe("MCP Server", () => {
       "kb_record",
       "kb_delete",
       "kb_check",
+      "kb_review_firm_edit",
       "kb_prepare_impact_review",
       "kb_plan_bootstrap",
       "kb_compile_intent",

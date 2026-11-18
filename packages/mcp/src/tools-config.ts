@@ -56,6 +56,7 @@ const MCP_TOOL_ORDER = [
   "kb_record",
   "kb_delete",
   "kb_check",
+  "kb_review_firm_edit",
   "kb_prepare_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
@@ -64,9 +65,10 @@ const MCP_TOOL_ORDER = [
 ] as const satisfies readonly OperationName[];
 
 /**
- * The tools a session lists unless the `full` profile is chosen: the ones an
- * agent uses on every change. Every other operation stays on the CLI peer
- * route (`kibi <route> --input -`) and in the `full` profile.
+ * The tools the opt-in `core` profile lists: the ones an agent uses on every
+ * change, plus the firm-edit receipt that a blocking kb_check finding asks
+ * for, so the agent can answer it without a shell. Under `core` every other
+ * operation runs through the CLI peer route (`kibi <route> --input -`).
  */
 export const DEFAULT_PROFILE_TOOLS = [
   "kb_search",
@@ -76,15 +78,16 @@ export const DEFAULT_PROFILE_TOOLS = [
   "kb_check",
   "kb_status",
   "kb_skills",
+  "kb_review_firm_edit",
 ] as const satisfies readonly OperationName[];
 
-/** Listed in the default profile too while the knowledge base is empty. */
+/** Listed in the core profile too while the knowledge base is empty. */
 export const BOOTSTRAP_TOOLS = [
   "kb_plan_bootstrap",
   "kb_apply_plan",
 ] as const satisfies readonly OperationName[];
 
-export const TOOL_PROFILES = ["default", "full"] as const;
+export const TOOL_PROFILES = ["full", "core"] as const;
 export type ToolProfile = (typeof TOOL_PROFILES)[number];
 
 const TOOL_PROFILE_ENV = "KIBI_MCP_TOOLS";
@@ -124,7 +127,9 @@ function recordedToolProfile(workspaceRoot: string): ToolProfile | undefined {
 /**
  * The tool profile for this server: `KIBI_MCP_TOOLS` (which `kibi-mcp
  * --tools <profile>` sets) when it names one, else the project's recorded
- * choice, else `default`.
+ * choice, else `full`. Every tool is listed by default so an agent never
+ * depends on a CLI it may not be able to run; `core` is for a project that
+ * wants a shorter list on a host that loads every tool schema up front.
  */
 export function resolveToolProfile(
   workspaceRoot: string,
@@ -132,7 +137,7 @@ export function resolveToolProfile(
 ): ToolProfile {
   const requested = env[TOOL_PROFILE_ENV]?.trim().toLowerCase();
   if (isToolProfile(requested)) return requested;
-  return recordedToolProfile(workspaceRoot) ?? "default";
+  return recordedToolProfile(workspaceRoot) ?? "full";
 }
 
 /** Whether the workspace's `.kb/` holds no entity yet (or does not exist). */
@@ -157,8 +162,8 @@ export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
 
 /**
  * The catalog tools a session lists: every one in the `full` profile; the
- * default seven otherwise, plus the bootstrap tools while the knowledge base
- * is empty.
+ * core eight in the `core` profile, plus the bootstrap tools while the
+ * knowledge base is empty.
  */
 export function profileToolNames(
   profile: ToolProfile,
@@ -214,6 +219,7 @@ const TOOL_TITLES: Readonly<
   kb_record: "Record a stated rule",
   kb_delete: "Delete a Kibi entity",
   kb_check: "Validate Kibi knowledge base",
+  kb_review_firm_edit: "Record a firm-edit review",
   kb_prepare_impact_review: "Prepare an impact review",
   kb_compile_intent: "Compile Kibi change intent",
   kb_plan_bootstrap: "Plan Kibi bootstrap",

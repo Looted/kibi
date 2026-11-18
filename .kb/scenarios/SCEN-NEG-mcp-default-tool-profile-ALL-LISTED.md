@@ -1,5 +1,5 @@
 ---
-title: A server that lists every tool by default, hides bootstrap on an empty knowledge base, or leaves tools out of the full profile is rejected
+title: A server that leaves tools out without the core profile, lists every tool under core, or hides bootstrap on an empty knowledge base is rejected
 status: active
 expects: rejection
 origin:
@@ -11,4 +11,4 @@ tags:
 id: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
 type: scenario
 ---
-Given an MCP server that lists all 17 tools without the full profile, that leaves out the bootstrap tools on an empty knowledge base, or whose full profile still leaves ten tools unlisted, when its tool list is checked, then it is rejected.
+Given an MCP server that leaves ten tools unlisted without the core profile, whose core profile lists every tool, or whose core profile leaves out the bootstrap tools on an empty knowledge base, when its tool list is checked, then it is rejected.

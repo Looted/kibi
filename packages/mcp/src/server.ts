@@ -77,7 +77,7 @@ export function serverInstructions(
             )
             .join(
               ", ",
-            )}) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+            )}) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -).`,
         ]),
   ]);
 }
@@ -93,7 +93,7 @@ export async function startServer(): Promise<void> {
   startMcpTelemetry();
 
   // The tool profile decides what the session lists; the knowledge base
-  // being empty adds the bootstrap tools to the default profile.
+  // being empty adds the bootstrap tools to the core profile.
   const workspaceRoot = resolveWorkspaceRoot();
   const listed = profileToolNames(
     resolveToolProfile(workspaceRoot),

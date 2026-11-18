@@ -1,5 +1,5 @@
 ---
-title: MCP server that lists every tool without the full profile
+title: Core tool profile that lists every tool
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
