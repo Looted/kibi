@@ -27,16 +27,15 @@ bunx changeset publish
 ## Package Dependency Chain
 
 ```
-kibi-core (0.7.0)
+kibi-core
     ↓
-kibi-cli (0.14.2) ──→ uses kibi-core ^0.7.0
+kibi-cli ──→ uses kibi-core
     ↓
-kibi-mcp (0.19.0) ──→ uses kibi-cli ^0.14.0, kibi-core ^0.7.0
+kibi-mcp ──→ uses kibi-cli, kibi-core and kibi-runtime
 
-kibi-opencode (0.18.1) ──→ uses kibi-cli ^0.14.1
-kibi-codex (0.17.1) ──→ optional plugin adapter
-kibi-cursor (0.3.1) ──→ optional plugin adapter
-kibi-vscode (0.4.7) ──→ uses kibi-cli ^0.14.0
+kibi-opencode ──→ uses kibi-cli
+kibi-codex, kibi-cursor, kibi-claude, kibi-zcode ──→ host plugin adapters
+kibi-vscode ──→ uses kibi-cli
 ```
 
 When `kibi-core` is bumped, `kibi-cli` and `kibi-mcp` will automatically update their dependency ranges. `kibi-opencode` is versioned independently and receives changelog updates through Changesets like the other npm packages.

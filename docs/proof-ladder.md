@@ -287,9 +287,12 @@ see [Component-scope proof](#component-scope-proof-for-ui-patterns).
 **Checks:** the production symbols that implement the requirement are covered
 by the passing E2E tests (`covered_by`).
 
-- `passed`: every production symbol is covered.
-- `missing`: no production symbol implements the requirement, or some lack
-  `covered_by` links; `uncoveredSymbols` lists them.
+- `passed`: every production symbol is covered, or no symbol implements the
+  requirement and a passing source proof proves every applicable claim
+  (`scope: source_proof`, below).
+- `missing`: no production symbol implements the requirement and source proofs
+  do not prove every applicable claim, or some symbols lack `covered_by` links;
+  `uncoveredSymbols` lists them.
 - `blocked`: there is no passing E2E evidence in the current snapshot
   (usually stale or missing receipts), so coverage cannot be evaluated.
   `reason` says so and points at `kibi prove`.
@@ -301,6 +304,17 @@ passing E2E test or a unit test with a current passing receipt; an authored
 symbol is in `uncoveredSymbols` with the reason
 `structural_unit_receipt_not_current`, and `kibi prove` on the unit test (or
 `kibi prove --stale`) clears it.
+
+A rule about what a set of files never does ("files under `src/ui/` never
+import `x`") has no function that decides it, and an `implements` link to one
+of the files would claim that one file implements the rule. Such a requirement
+needs no implementing symbol: when every applicable claim has a derived binding
+of scope `source` from a passing receipt whose certificate re-checks, the stage
+passes with `scope: source_proof` and names the proving tests in
+`sourceProofTests`, because the files the proof reads are what the rule
+constrains. A claim bound only by another proof kind, or not bound, still needs
+an implementing symbol, and a requirement that some symbol implements is judged
+as above. See [Proving requirements](./proving-requirements.md).
 
 `explanations[]` gives each symbol a rollup reason and, for each rejected
 `covered_by` candidate, a primary rejection code plus optional secondary codes.
