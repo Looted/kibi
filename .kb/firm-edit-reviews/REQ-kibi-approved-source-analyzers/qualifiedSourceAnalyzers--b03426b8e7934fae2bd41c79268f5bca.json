@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/plugins/approved-source-analyzers.generated.ts",
   "symbol": "qualifiedSourceAnalyzers",
   "verdict": "keeps",
-  "note": "Regenerated file hashes for the tree-sitter plugin after its Go reader change; only qualified analyzers whose files match still run.",
+  "note": "Regenerated approval for kibi-plugin-treesitter 4.0.1 with the new file digests; the host still runs only approved analyzers whose files match.",
   "statementHash": "sha256:0e292e9e37e185c701bafe608c6aacea467e0f894951a88b429bd879e18b2c33",
-  "codeHash": "sha256:5fef7c658c4319099861b6ca1092356c5c1b583e90b0fa80237fb9e0f3da9b23",
+  "codeHash": "sha256:b99253fdc9f0943cf8cb003d52e915939745cf539e38e7107efb315bcd4acdfd",
   "startLine": 3,
   "endLine": 106,
-  "recordedAt": "2026-11-18T10:20:34.970Z"
+  "recordedAt": "2026-11-18T11:03:12.048Z"
 }

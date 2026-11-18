@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-search-hints",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Offline meaning-based hints for weak Kibi search answers",
   "type": "module",
   "main": "./dist/index.js",

@@ -247,7 +247,7 @@
     },
     "packages/plugin-search-hints": {
       "name": "kibi-plugin-search-hints",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "devDependencies": {
         "@types/node": "25.9.8",
         "kibi-plugin-sdk": "^0.8.0",
@@ -259,7 +259,7 @@
     },
     "packages/plugin-treesitter": {
       "name": "kibi-plugin-treesitter",
-      "version": "4.0.0",
+      "version": "4.0.1",
       "dependencies": {
         "web-tree-sitter": "0.27.0",
       },

@@ -432,7 +432,8 @@ function requirementStages(
     // A source proof of every claim scopes the requirement to the files it
     // reads, so no symbol owns it.
     implementationState = "passed";
-    implementationDetail = "No owning symbol needed: a source proof covers every claim";
+    implementationDetail =
+      "No owning symbol needed: a source proof covers every claim";
   } else if (
     stageStatus(productionSymbols) === "passed" &&
     stageStatus(sourceCoordinatesStage) === "passed"

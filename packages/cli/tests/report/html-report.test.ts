@@ -279,7 +279,9 @@ describe("renderHtmlReport", () => {
       branch: "main",
       generatedAt: new Date("2026-08-15T12:00:00.000Z"),
     });
-    expect(html).toContain("No owning symbol needed: a source proof covers every claim");
+    expect(html).toContain(
+      "No owning symbol needed: a source proof covers every claim",
+    );
     expect(html).not.toContain("owned and E2E-covered");
   });
 

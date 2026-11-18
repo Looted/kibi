@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-treesitter",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Offline multi-language Tree-sitter symbol extraction; each language's grammar installs as a kibi-lang-* pack",
   "type": "module",
   "main": "./dist/index.js",
