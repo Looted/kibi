@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dadbd4a72a8
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-steps-text
+    to: REQ-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-18T07:47:37.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abccb74b2f0d
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-steps-text
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-18T07:47:37.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e7949098ddb

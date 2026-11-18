@@ -264,6 +264,59 @@ import { createHash as createHash2 } from "node:crypto";
 import fs6 from "node:fs";
 import path6 from "node:path";
 
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = String(toolName).trim();
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+function effectiveKbOperation(operation, payload) {
+  const write = operation === "kb_record" ? "kb_upsert" : operation;
+  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
+}
+var KIBI_CLI_ROUTES = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  record: "kb_upsert",
+  sync: "kb_sync"
+};
+function kibiCliOperation(command) {
+  if (typeof command !== "string")
+    return;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+
 // ../agent-core/dist/path-policy.js
 import path3 from "node:path";
 var codeExtensions = new Set([
@@ -350,7 +403,7 @@ var explicitPathKeys = new Set([
   "relative_path",
   "target_path"
 ]);
-function isRecord(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeWorkspacePath(candidate) {
@@ -361,7 +414,7 @@ function pathSegments(candidate) {
 }
 var patchTextKeys = ["command", "patch", "input", "patchText"];
 function extractPatchTexts(toolInput) {
-  const fields = isRecord(toolInput) ? toolInput : {};
+  const fields = isRecord2(toolInput) ? toolInput : {};
   return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
 }
 function canonicalizeWorkspacePath(workspaceRoot, options) {
@@ -1523,7 +1576,10 @@ function focusedSymbols(symbols, focus) {
 function editFocus(absolutePath, toolInput) {
   const input = toolInput ?? {};
   const edits = Array.isArray(input.edits) ? input.edits : [];
-  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString]).filter((needle) => typeof needle === "string" && needle.length > 0);
+  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString].map((needle) => ({
+    needle,
+    all: record.replace_all === true || record.replaceAll === true
+  }))).filter((entry) => typeof entry.needle === "string" && entry.needle.length > 0);
   if (usable.length === 0)
     return;
   let content;
@@ -1535,14 +1591,17 @@ function editFocus(absolutePath, toolInput) {
     return;
   }
   const ranges = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0)
-      continue;
-    const start = content.slice(0, offset).split(`
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split(`
 `).length;
-    ranges.push({ start, end: start + needle.split(`
+      ranges.push({ start, end: start + needle.split(`
 `).length - 1 });
+      if (!all)
+        break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }
@@ -2335,6 +2394,13 @@ function record(value) {
 }
 function isRequirementUpsert(toolInput) {
   const input = record(toolInput);
+  if (typeof input?.command === "string") {
+    const command = input.command;
+    const route = kibiCliOperation(command);
+    if (route !== "kb_upsert" || /--dry-run\b|"dryRun"\s*:\s*true/.test(command))
+      return false;
+    return /(?:^|[\s;&|(/])kibi\s+record\b/.test(command) || /"type"\s*:\s*"req"/.test(command);
+  }
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
   const recorded = typeof args?.statement === "string" && typeof args.saidBy === "string";
   if (!args || args.type !== "req" && !recorded)
@@ -2539,59 +2605,6 @@ function readText2(file) {
   } catch {}
   return "";
 }
-
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function canonicalKbToolName(toolName) {
-  const trimmed = String(toolName).trim();
-  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return operation.startsWith("kb_") ? operation : undefined;
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = String(toolName).trim();
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord2(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-function effectiveKbOperation(operation, payload) {
-  const write = operation === "kb_record" ? "kb_upsert" : operation;
-  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
-}
-var KIBI_CLI_ROUTES = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  record: "kb_upsert",
-  sync: "kb_sync"
-};
-function kibiCliOperation(command) {
-  if (typeof command !== "string")
-    return;
-  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
-  return route ? KIBI_CLI_ROUTES[route] : undefined;
-}
-var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
@@ -4059,6 +4072,9 @@ function postToolUse(input, workspace, trace = {}) {
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);
+    if (isRequirementUpsert({ command })) {
+      markDecisionFlag({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "requirement-recorded");
+    }
     const changed = bashChanges(workspace, events, trace, editFingerprint("Bash", command));
     const note = changed ?? captureTemplateNote(workspace, events);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {

@@ -20,7 +20,10 @@ import {
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
 import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
-import { stagedFirmEditGateOptions } from "./firm-edit-staged.js";
+import {
+  currentSuccessor,
+  stagedFirmEditGateOptions,
+} from "./firm-edit-staged.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -210,6 +213,10 @@ export async function analyzeChangedFileImpact(
             symbolsByFile,
             readRequirement,
             requirementChanged,
+            supersededBy: (id) =>
+              snapshotKnowledge
+                ? currentSuccessor(snapshotKnowledge, id)
+                : supersedingRequirement(workspaceRoot, id),
           }),
           ...createFirmEditGateDiagnostics(
             snapshot

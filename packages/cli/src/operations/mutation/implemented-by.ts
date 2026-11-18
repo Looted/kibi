@@ -371,21 +371,37 @@ function mergedPayload(
   };
 }
 
+/** The property a partial failure names the requirement it already wrote by. */
+export const WRITTEN_REQUIREMENT = "writtenRequirement";
+
+/** The requirement a failed write already wrote, if the failure says so. */
+export function writtenRequirementOf(error: unknown): string | undefined {
+  const value =
+    error !== null && typeof error === "object"
+      ? (error as Record<string, unknown>)[WRITTEN_REQUIREMENT]
+      : undefined;
+  return typeof value === "string" ? value : undefined;
+}
+
 /**
  * A symbol write that failed after the requirement was written, reported
  * with what is left to do. A coded failure keeps its code and whether a
- * retry may succeed, and a refusal stays a refusal.
+ * retry may succeed, and a refusal stays a refusal; each carries the id it
+ * wrote (writtenRequirementOf), so a caller that would write a new
+ * requirement on a retry, such as kb_record, does not offer one.
  */
-function partialFailure(message: string, error: unknown): Error {
-  if (error instanceof KbRejection)
-    return new KbRejection(error.code, message, error.issues);
+function partialFailure(id: string, message: string, error: unknown): Error {
   const coded = codedErrorOf(error);
-  if (coded === null) return new Error(message, { cause: error });
   const failure =
-    (error as Error).name === "InputError"
-      ? new InputError(coded.code, message)
-      : new OperationError(coded.code, message, coded.retryable);
-  failure.cause = error;
+    error instanceof KbRejection
+      ? new KbRejection(error.code, message, error.issues)
+      : coded === null
+        ? new Error(message, { cause: error })
+        : (error as Error).name === "InputError"
+          ? new InputError(coded.code, message)
+          : new OperationError(coded.code, message, coded.retryable);
+  if (coded !== null && !(error instanceof KbRejection)) failure.cause = error;
+  Object.defineProperty(failure, WRITTEN_REQUIREMENT, { value: id });
   return failure;
 }
 
@@ -551,6 +567,7 @@ async function executeLinkedUpsert(
     } catch (error) {
       const remaining = steps.slice(written.length).map((left) => left.input);
       throw partialFailure(
+        input.id,
         `${input.id} was written, and ${written.length} of ${steps.length} implementedBy link(s) with it; linking ${step.link.symbol} in ${step.link.sourceFile} failed: ${error instanceof Error ? error.message : String(error)}. Upsert the remaining symbol payloads to finish: ${JSON.stringify(remaining)}`,
         error,
       );

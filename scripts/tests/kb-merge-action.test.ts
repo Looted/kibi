@@ -241,6 +241,23 @@ git push -q origin HEAD:refs/heads/feature/one
     );
   });
 
+  test("a malformed KB_MERGE_BRANCHES fails, and an empty list handles no PR", () => {
+    const fx = new Fixture();
+    manifestConflict(fx, "feature/one");
+    const before = fx.tip("feature/one");
+
+    const malformed = fx.run({ KB_MERGE_BRANCHES: "[oops" });
+    expect(malformed.status).not.toBe(0);
+    expect(malformed.stderr).toContain(
+      "::error::KB_MERGE_BRANCHES is not a JSON list of branch names",
+    );
+    expect(fx.tip("feature/one")).toBe(before);
+
+    const none = fx.run({ KB_MERGE_BRANCHES: "[]" });
+    expect(none.status, none.stderr).toBe(0);
+    expect(fx.tip("feature/one")).toBe(before);
+  });
+
   test("leaves PRs with KB_MERGE_SKIP_LABEL alone", () => {
     const fx = new Fixture();
     manifestConflict(fx, "feature/one");

@@ -101,11 +101,17 @@ export function editFocus(
   // fields read as undefined, so the empty list cannot be told apart.
   // Stryker disable next-line ArrayDeclaration
   const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  // An edit with replace_all (replaceAll) changes every occurrence.
   const usable = [input, ...edits.map((edit) => (edit ?? {}) as Fields)]
-    .flatMap((record) => [record.old_string, record.oldString])
+    .flatMap((record) =>
+      [record.old_string, record.oldString].map((needle) => ({
+        needle,
+        all: record.replace_all === true || record.replaceAll === true,
+      })),
+    )
     .filter(
-      (needle): needle is string =>
-        typeof needle === "string" && needle.length > 0,
+      (entry): entry is { needle: string; all: boolean } =>
+        typeof entry.needle === "string" && entry.needle.length > 0,
     );
   // rationale: without needles the scan below finds nothing either; the
   // early return only saves reading the file.
@@ -121,11 +127,14 @@ export function editFocus(
   }
 
   const ranges: LineRange[] = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0) continue;
-    const start = content.slice(0, offset).split("\n").length;
-    ranges.push({ start, end: start + needle.split("\n").length - 1 });
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split("\n").length;
+      ranges.push({ start, end: start + needle.split("\n").length - 1 });
+      if (!all) break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }

@@ -89,11 +89,15 @@ describe("firm decision edits", () => {
     expect(
       decisionClaimChanges(upstream, reasoned("  Upstream   rate limits ")),
     ).toEqual([]);
-    // Giving a reason where none, or the placeholder, was recorded does not.
-    expect(decisionClaimChanges(bare, upstream)).toEqual([]);
+    // So does giving a reason where none, or the placeholder, was recorded:
+    // the reason is credited to the person.
+    expect(decisionClaimChanges(bare, upstream)).toEqual(["reason"]);
     expect(
       decisionClaimChanges(reasoned("Reason not stated"), upstream),
-    ).toEqual([]);
+    ).toEqual(["reason"]);
+    expect(decisionClaimChanges(bare, reasoned("Reason not stated"))).toEqual(
+      [],
+    );
     // A firm requirement's reason is guarded like its statement, and new
     // human words release it.
     expect(

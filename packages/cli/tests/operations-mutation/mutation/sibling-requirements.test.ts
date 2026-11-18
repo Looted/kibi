@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { siblingRequirements } from "../../../src/operations/mutation/sibling-requirements.js";
+import {
+  siblingRequirements,
+  siblingStepsText,
+} from "../../../src/operations/mutation/sibling-requirements.js";
 
 /**
  * A value fact write that changes the value lists every other current
@@ -162,6 +165,23 @@ describe("sibling requirements of a value fact write", () => {
         required: true as const,
       })),
     ]);
+  });
+
+  test("the siblings' steps are spelled out in the result text for text-only hosts", () => {
+    const report = run(400);
+    const [block] = siblingStepsText(report);
+    const lines = (block?.text ?? "").split("\n");
+    expect(lines[0]).toBe(
+      "Requirements on the same quantity: 4 required step(s), also in nextActions:",
+    );
+    expect(lines[1]).toBe(
+      `1. kb_query: ${report.warnings[0]} Input: {"id":"REQ-banner","includeBody":true}`,
+    );
+    expect(lines[2]).toStartWith(`2. kb_upsert: ${report.warnings[1]} Input: `);
+    expect(lines).toHaveLength(5);
+    expect(
+      siblingStepsText({ siblings: [], warnings: [], nextActions: [] }),
+    ).toEqual([]);
   });
 
   test("a sibling's upsert input keeps its own status", () => {

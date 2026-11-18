@@ -70,7 +70,10 @@ import {
   withStoredRequirementSemantics,
 } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
-import { siblingRequirements } from "./sibling-requirements.js";
+import {
+  siblingRequirements,
+  siblingStepsText,
+} from "./sibling-requirements.js";
 import {
   readFileTimes,
   restoreFileTimes,
@@ -1293,6 +1296,7 @@ export async function executeUpsert(
           type: "text",
           text: `Upserted ${input.id} (${created > 0 ? "created" : "updated"}) with ${relationships.length} relationship(s).`,
         },
+        ...siblingStepsText(siblings),
       ],
       structuredContent: payload,
     };

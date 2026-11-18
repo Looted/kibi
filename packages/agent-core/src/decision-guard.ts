@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { kibiCliOperation } from "./kb-mcp-tools.js";
 import type { EntitySummary, IndexedSymbol } from "./knowledge-index.js";
 import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
 import { requestTopicWords } from "./requirement-candidates.js";
@@ -1040,6 +1041,21 @@ function record(value: unknown): Record<string, unknown> | null | undefined {
  */
 export function isRequirementUpsert(toolInput: unknown): boolean {
   const input = record(toolInput);
+  // A shell tool running the project-local CLI: `kibi record` always writes
+  // a requirement, `kibi upsert` when its inline JSON is one.
+  if (typeof input?.command === "string") {
+    const command = input.command;
+    const route = kibiCliOperation(command);
+    if (
+      route !== "kb_upsert" ||
+      /--dry-run\b|"dryRun"\s*:\s*true/.test(command)
+    )
+      return false;
+    return (
+      /(?:^|[\s;&|(/])kibi\s+record\b/.test(command) ||
+      /"type"\s*:\s*"req"/.test(command)
+    );
+  }
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
   const recorded =
     typeof args?.statement === "string" && typeof args.saidBy === "string";

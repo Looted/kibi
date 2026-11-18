@@ -860,6 +860,13 @@ function postToolUse(
     const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage) recordUsage(usage);
+    // A requirement written through the CLI asks for a signoff view too.
+    if (isRequirementUpsert({ command })) {
+      markDecisionFlag(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        "requirement-recorded",
+      );
+    }
     const changed = bashChanges(
       workspace,
       events,

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import * as path from "node:path";
+import { isRetiredStatus } from "kibi-agent-core/snippets";
 import { type Firmness, effectiveFirmness } from "../../decision-firmness.js";
 import {
   type ExtractedEntity,
@@ -18,8 +19,6 @@ import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
 
 const MAX_STATEMENT = 400;
 const MAX_NAMED_SYMBOLS = 4;
-const RETIRED_STATUS =
-  /supersed|deprecat|reject|obsolete|retired|archived|removed|closed/i;
 
 export type RequirementStatementDiagnosticsOptions = {
   readonly workspaceRoot: string;
@@ -28,6 +27,11 @@ export type RequirementStatementDiagnosticsOptions = {
   readonly readRequirement: (id: string) => ExtractedEntity | undefined;
   /** Whether the requirement's document changed in this change. */
   readonly requirementChanged: (requirement: ExtractedEntity) => boolean;
+  /**
+   * The current requirement that supersedes a requirement, if any: a closed
+   * requirement still governs unless one does.
+   */
+  readonly supersededBy?: (id: string) => string | undefined;
 };
 
 function implementedRequirementIds(symbol: ExtractedSymbol): string[] {
@@ -77,8 +81,10 @@ export function createRequirementStatementDiagnostics(
   for (const id of [...symbolsByRequirement.keys()].sort()) {
     const requirement = options.readRequirement(id);
     if (requirement === undefined || requirement.type !== "req") continue;
-    // A missing status reads as "undefined", which no retired word matches.
-    if (RETIRED_STATUS.test(String(requirement.status))) continue;
+    // A missing status reads as "undefined", which no retired word matches;
+    // a closed requirement is done and still governs unless superseded.
+    if (isRetiredStatus(requirement.status as string | undefined)) continue;
+    if (options.supersededBy?.(id) !== undefined) continue;
     if (options.requirementChanged(requirement)) continue;
     // id is one of the map's own keys.
     const entry = symbolsByRequirement.get(id) as {

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { requestTopicWords } from "kibi-agent-core/requirement-candidates";
 import { KbRejection } from "../../cli-errors.js";
+import { effectiveFirmness } from "../../decision-firmness.js";
 import {
   parseBodySections,
   reviseRequirementBody,
@@ -180,7 +181,8 @@ function hasSourceSection(body: string): boolean {
  * The requirement payload with `why` applied and its statement recorded:
  * `why` becomes `rationale` and the body's reason section (its Context, Why
  * or Rationale section, a new Context section when it has none), and the
- * origin.ref text becomes the Source section of a body that has none. A
+ * origin.ref text becomes the Source section of a body that has none, or
+ * replaces it when the payload sends a new origin.ref. A
  * requirement whose semantic_text is not sent gets its body's statement as
  * semantic_text when none is stored or the sent body states another one, so
  * its proposition inventory is derived from the statement its file will
@@ -215,13 +217,23 @@ export async function withRequirementCapture(
       `Upsert of ${input.id} rejected: why and rationale disagree; send the reason once, in why.`,
     );
   const sentBody = input.document?.body;
+  const sentRef = text((properties.origin as Entity | undefined)?.ref);
   const stored =
     why !== undefined ||
+    sentRef !== "" ||
     (sentBody !== undefined && properties.semantic_text === undefined)
       ? await reads?.entity(input.id, "req")
       : undefined;
+  // A new origin.ref in place of a stored one is new words of the person's:
+  // the Source section quotes them, unless the sent body brings its own.
+  const storedRef = text((stored?.origin as Entity | undefined)?.ref);
+  const refreshSource =
+    storedRef !== "" &&
+    sentRef !== "" &&
+    sentRef !== storedRef &&
+    (sentBody === undefined || !hasSourceSection(sentBody));
   let body = sentBody;
-  if (why !== undefined) {
+  if (why !== undefined || refreshSource) {
     const base =
       sentBody ??
       readBody(context.workspaceRoot, input.document?.path ?? stored?.source) ??
@@ -234,7 +246,9 @@ export async function withRequirementCapture(
       context: why,
       contextHeading: reasonHeading(base),
       source:
-        ref !== "" && !hasSourceSection(base) ? { excerpt: ref } : undefined,
+        ref !== "" && (refreshSource || !hasSourceSection(base))
+          ? { excerpt: ref }
+          : undefined,
     });
   }
   // A sent body that states something new replaces the stored statement, so
@@ -243,13 +257,25 @@ export async function withRequirementCapture(
     properties.semantic_text === undefined && body !== undefined
       ? requirementSemanticText(body)
       : "";
+  // The sent body restates the requirement only when its statement differs
+  // from the one the body on disk holds: a semantic_text written apart from
+  // the body (an upsert that sent both) is kept while the body's statement
+  // stays the same. Without a readable stored body, semantic_text is compared.
   const storedStatement = text(stored?.semantic_text);
+  const storedBody =
+    sentBody === undefined || storedStatement === ""
+      ? undefined
+      : readBody(context.workspaceRoot, input.document?.path ?? stored?.source);
+  const previousStatement =
+    storedBody === undefined
+      ? storedStatement
+      : requirementSemanticText(storedBody).trim();
   const statement =
     storedStatement === "" ||
-    (sentBody !== undefined && derived.trim() !== storedStatement.trim())
+    (sentBody !== undefined && derived.trim() !== previousStatement)
       ? derived
       : "";
-  if (why === undefined && statement === "") return rest;
+  if (why === undefined && statement === "" && !refreshSource) return rest;
   return {
     ...rest,
     properties: {
@@ -284,6 +310,10 @@ function contextWarningPrefix(id: string): string {
 /** The `why` placeholder of a step that asks for the reason. */
 export const WHY_PLACEHOLDER =
   "<why the person wants it, in their words; 'Reason not stated' if they gave none>";
+
+/** The `origin.ref` placeholder of a step that asks for the person's words. */
+export const REF_PLACEHOLDER =
+  "<the person's words or where they said them, quoted>";
 
 const SUBJECT_PLACEHOLDER = "<subject_key>";
 
@@ -375,12 +405,32 @@ export async function captureFollowUp(
   ) =>
     actions.push({ operation, code, input: stepInput, reason, required: true });
 
-  if (drop((warning) => warning.startsWith(contextWarningPrefix(id))))
+  if (drop((warning) => warning.startsWith(contextWarningPrefix(id)))) {
+    // A firm requirement's reason is credited to the person and is not
+    // written in place, so the step asks for their words with it.
+    const firmReason =
+      effectiveFirmness("req", entity.firmness, entity.origin) === "firm";
     step(
       "entity-context-missing",
-      { type: "req", id, properties: head, why: WHY_PLACEHOLDER },
-      `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why, in their words. Never pad it to reach 12 words; cite their words as origin.ref, which the body keeps as its Source.`,
+      firmReason
+        ? {
+            type: "req",
+            id,
+            properties: {
+              ...head,
+              origin: {
+                ...(entity.origin as Entity | undefined),
+                ref: REF_PLACEHOLDER,
+              },
+            },
+            why: WHY_PLACEHOLDER,
+          }
+        : { type: "req", id, properties: head, why: WHY_PLACEHOLDER },
+      firmReason
+        ? `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source. ${id} is firm and its reason is credited to the person, so ask the person: send their fuller reason as why and their words as origin.ref, which the body keeps as its Source. Never pad their reason to reach 12 words.`
+        : `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why, in their words. Never pad it to reach 12 words; cite their words as origin.ref, which the body keeps as its Source.`,
     );
+  }
 
   const gaps = await reads.subjectGaps(entity);
   if (gaps.length > 0) {

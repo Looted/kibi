@@ -1,6 +1,11 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { InputError } from "../../cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+  codedErrorOf,
+} from "../../cli-errors.js";
 import { prepareOperationInput } from "../../cli-validate.js";
 import type { ChangedCheckContent } from "../../public/operations/changed-check.js";
 import type {
@@ -11,6 +16,7 @@ import { checkSpec } from "../../public/operations/specs/check.js";
 import { upsertSpec } from "../../public/operations/specs/upsert.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { prologCaptureReads } from "./capture.js";
+import { writtenRequirementOf } from "./implemented-by.js";
 import {
   type RecordInput,
   assertRecordFields,
@@ -92,6 +98,29 @@ function texts(result: OperationResult): string[] {
 }
 
 /**
+ * A failure after the requirement was written is never offered as
+ * retryable: kb_record run again would record the rule a second time under
+ * a new id. The failure says which payloads finish the write instead.
+ */
+function notRetried(error: unknown): never {
+  const id = writtenRequirementOf(error);
+  const coded = codedErrorOf(error);
+  if (
+    id === undefined ||
+    error instanceof KbRejection ||
+    coded?.retryable === false
+  )
+    throw error;
+  const failure = new OperationError(
+    coded?.code ?? "OPERATION_FAILED",
+    `${coded?.message ?? (error as Error).message} Do not run kb_record again: it would record ${id} a second time under a new id.`,
+    false,
+  );
+  failure.cause = error;
+  throw failure;
+}
+
+/**
  * kb_record: translate the input into one kb_upsert payload and run it
  * through kb_upsert; a committed write is then judged by kb_check
  * changed:true over the recorded code. dryRun:true returns the payload and
@@ -108,7 +137,7 @@ export async function executeRecord(
   const upsertInput = validatedUpsert(
     input.dryRun === true ? { ...payload, dryRun: true } : payload,
   );
-  const result = await deps.upsert(upsertInput, context);
+  const result = await deps.upsert(upsertInput, context).catch(notRetried);
   const written = result.structuredContent as UpsertPayload;
   if (input.dryRun === true) {
     const preview = written as unknown as Record<string, unknown>;

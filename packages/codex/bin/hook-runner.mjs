@@ -202,6 +202,133 @@ import { createHash as createHash3 } from "node:crypto";
 import fs6 from "node:fs";
 import path7 from "node:path";
 
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return;
+}
+function readBoolean(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "boolean") {
+      return value;
+    }
+  }
+  return;
+}
+function readStringArray(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    return value.filter((item) => typeof item === "string" && item.length > 0);
+  }
+  return [];
+}
+function readRecord(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (isRecord(value)) {
+      return value;
+    }
+  }
+  return;
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = String(toolName).trim();
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+function effectiveKbOperation(operation, payload) {
+  const write = operation === "kb_record" ? "kb_upsert" : operation;
+  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
+}
+var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
+function extractKbMcpToolCall(toolName, toolInput) {
+  const input = isRecord(toolInput) ? toolInput : {};
+  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
+  if (!name?.startsWith("kb_")) {
+    const nested = input.arguments ?? input.args;
+    const nestedTool = isRecord(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
+    return nestedTool?.startsWith("kb_") ? {
+      toolName: effectiveKbOperation(nestedTool, nested),
+      impactCheckRun: false,
+      sourceFiles: []
+    } : undefined;
+  }
+  const payload = readRecord(input, ["arguments", "args"]) ?? input;
+  name = effectiveKbOperation(name, payload);
+  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
+  return {
+    toolName: name,
+    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
+      "includeImpactDiagnostics",
+      "include_impact_diagnostics"
+    ]) === true && readBoolean(payload, [
+      "includeWorkingTreeDiff",
+      "include_working_tree_diff"
+    ]) === true) && sourceFiles.length > 0,
+    sourceFiles
+  };
+}
+var KIBI_CLI_ROUTES = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  record: "kb_upsert",
+  sync: "kb_sync"
+};
+function kibiCliOperation(command) {
+  if (typeof command !== "string")
+    return;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+function hostKbOperation(toolName, toolInput) {
+  const mcp = canonicalKbToolName(toolName);
+  if (/kb_[a-z_]+$/.test(String(mcp)))
+    return mcp;
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
+    return;
+  }
+  return kibiCliOperation(toolInput.command);
+}
+
 // ../agent-core/dist/path-policy.js
 import path3 from "node:path";
 var codeExtensions = new Set([
@@ -288,7 +415,7 @@ var explicitPathKeys = new Set([
   "relative_path",
   "target_path"
 ]);
-function isRecord(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeWorkspacePath(candidate) {
@@ -315,7 +442,7 @@ function visitExplicitPathFields(value, output) {
       visitExplicitPathFields(item, output);
     return;
   }
-  if (!isRecord(value))
+  if (!isRecord2(value))
     return;
   for (const [key, child] of Object.entries(value)) {
     if (explicitPathKeys.has(key.toLowerCase()))
@@ -341,12 +468,12 @@ function extractPatchFilePaths(patch) {
   return [...new Set(paths)];
 }
 function extractPatchTexts(toolInput) {
-  const fields = isRecord(toolInput) ? toolInput : {};
+  const fields = isRecord2(toolInput) ? toolInput : {};
   return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
 }
 function extractEditedPaths(toolInput) {
   const paths = extractExplicitPathFields(toolInput);
-  if (isRecord(toolInput)) {
+  if (isRecord2(toolInput)) {
     for (const key of patchTextKeys) {
       const value = toolInput[key];
       if (typeof value === "string") {
@@ -1540,7 +1667,10 @@ function focusedSymbols(symbols, focus) {
 function editFocus(absolutePath, toolInput) {
   const input = toolInput ?? {};
   const edits = Array.isArray(input.edits) ? input.edits : [];
-  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString]).filter((needle) => typeof needle === "string" && needle.length > 0);
+  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString].map((needle) => ({
+    needle,
+    all: record.replace_all === true || record.replaceAll === true
+  }))).filter((entry) => typeof entry.needle === "string" && entry.needle.length > 0);
   if (usable.length === 0)
     return;
   let content;
@@ -1552,14 +1682,17 @@ function editFocus(absolutePath, toolInput) {
     return;
   }
   const ranges = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0)
-      continue;
-    const start = content.slice(0, offset).split(`
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split(`
 `).length;
-    ranges.push({ start, end: start + needle.split(`
+      ranges.push({ start, end: start + needle.split(`
 `).length - 1 });
+      if (!all)
+        break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }
@@ -2416,6 +2549,13 @@ function record(value) {
 }
 function isRequirementUpsert(toolInput) {
   const input = record(toolInput);
+  if (typeof input?.command === "string") {
+    const command = input.command;
+    const route = kibiCliOperation(command);
+    if (route !== "kb_upsert" || /--dry-run\b|"dryRun"\s*:\s*true/.test(command))
+      return false;
+    return /(?:^|[\s;&|(/])kibi\s+record\b/.test(command) || /"type"\s*:\s*"req"/.test(command);
+  }
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
   const recorded = typeof args?.statement === "string" && typeof args.saidBy === "string";
   if (!args || args.type !== "req" && !recorded)
@@ -2462,10 +2602,10 @@ function settleFirmRequirements(session, ids) {
 }
 
 // ../agent-core/dist/hook-input.js
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function readString(record, keys) {
+function readString2(record, keys) {
   for (const key of keys) {
     const value = record[key];
     if (typeof value === "string") {
@@ -2475,24 +2615,24 @@ function readString(record, keys) {
   return;
 }
 function parseHookInput(input) {
-  if (!isRecord2(input)) {
+  if (!isRecord3(input)) {
     return { event: "" };
   }
-  const event = readString(input, [
+  const event = readString2(input, [
     "hook_event_name",
     "event",
     "hook_event",
     "hookEvent",
     "name"
   ]) ?? "";
-  const cwd = readString(input, [
+  const cwd = readString2(input, [
     "cwd",
     "current_working_directory",
     "workspace"
   ]);
-  const toolName = readString(input, ["toolName", "tool_name", "tool"]);
+  const toolName = readString2(input, ["toolName", "tool_name", "tool"]);
   const toolInput = input.toolInput ?? input.tool_input ?? input.input;
-  const sessionId = readString(input, ["session_id", "sessionId"]);
+  const sessionId = readString2(input, ["session_id", "sessionId"]);
   const parsed = { event };
   if (cwd !== undefined) {
     parsed.cwd = cwd;
@@ -2506,7 +2646,7 @@ function parseHookInput(input) {
   if (sessionId !== undefined) {
     parsed.sessionId = sessionId;
   }
-  const prompt = readString(input, ["prompt"]);
+  const prompt = readString2(input, ["prompt"]);
   if (prompt !== undefined) {
     parsed.prompt = prompt;
   }
@@ -2534,133 +2674,6 @@ function parseStdinJson(rawInput) {
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs9 from "node:fs";
 import path10 from "node:path";
-
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord3(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function readString2(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string") {
-      return value;
-    }
-  }
-  return;
-}
-function readBoolean(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "boolean") {
-      return value;
-    }
-  }
-  return;
-}
-function readStringArray(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    return value.filter((item) => typeof item === "string" && item.length > 0);
-  }
-  return [];
-}
-function readRecord(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (isRecord3(value)) {
-      return value;
-    }
-  }
-  return;
-}
-function canonicalKbToolName(toolName) {
-  const trimmed = String(toolName).trim();
-  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return operation.startsWith("kb_") ? operation : undefined;
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = String(toolName).trim();
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord3(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-function effectiveKbOperation(operation, payload) {
-  const write = operation === "kb_record" ? "kb_upsert" : operation;
-  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
-}
-var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
-function extractKbMcpToolCall(toolName, toolInput) {
-  const input = isRecord3(toolInput) ? toolInput : {};
-  let name = canonicalKbToolName(toolName) ?? readString2(input, TOOL_NAME_KEYS);
-  if (!name?.startsWith("kb_")) {
-    const nested = input.arguments ?? input.args;
-    const nestedTool = isRecord3(nested) ? readString2(nested, TOOL_NAME_KEYS) : undefined;
-    return nestedTool?.startsWith("kb_") ? {
-      toolName: effectiveKbOperation(nestedTool, nested),
-      impactCheckRun: false,
-      sourceFiles: []
-    } : undefined;
-  }
-  const payload = readRecord(input, ["arguments", "args"]) ?? input;
-  name = effectiveKbOperation(name, payload);
-  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
-  return {
-    toolName: name,
-    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
-      "includeImpactDiagnostics",
-      "include_impact_diagnostics"
-    ]) === true && readBoolean(payload, [
-      "includeWorkingTreeDiff",
-      "include_working_tree_diff"
-    ]) === true) && sourceFiles.length > 0,
-    sourceFiles
-  };
-}
-var KIBI_CLI_ROUTES = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  record: "kb_upsert",
-  sync: "kb_sync"
-};
-function kibiCliOperation(command) {
-  if (typeof command !== "string")
-    return;
-  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
-  return route ? KIBI_CLI_ROUTES[route] : undefined;
-}
-var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
-function hostKbOperation(toolName, toolInput) {
-  const mcp = canonicalKbToolName(toolName);
-  if (/kb_[a-z_]+$/.test(String(mcp)))
-    return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord3(toolInput)) {
-    return;
-  }
-  return kibiCliOperation(toolInput.command);
-}
 
 // ../agent-core/dist/telemetry-signals.js
 import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";

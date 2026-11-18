@@ -2,7 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { InputError, KbRejection } from "../../../src/cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+} from "../../../src/cli-errors.js";
+import { WRITTEN_REQUIREMENT } from "../../../src/operations/mutation/implemented-by.js";
 import {
   RECORD_DEPS,
   type RecordDeps,
@@ -299,6 +304,56 @@ describe("kb_record runs its one payload through kb_upsert, then kb_check change
       /\/implementedBy\/0\/sourceFile[^;]*; [^;]*\/implementedBy\/1\/sourceFile/,
     );
     expect(calls.upserts).toEqual([]);
+  });
+
+  test("a symbol link that fails after the requirement was written is never retryable", async () => {
+    const partial = (error: Error) => {
+      Object.defineProperty(error, WRITTEN_REQUIREMENT, {
+        value: "REQ-keys-rotate-yearly-2",
+      });
+      return deps({
+        upsert: async () => {
+          throw error;
+        },
+      }).deps;
+    };
+    const run = (error: Error) =>
+      executeRecord(INPUT, CONTEXT, partial(error)).catch(
+        (caught: unknown) => caught,
+      );
+    for (const cause of [
+      new OperationError("SOURCE_HELD", "held.", true),
+      new Error("broken yaml."),
+    ]) {
+      const error = (await run(cause)) as OperationError;
+      expect(error).toBeInstanceOf(OperationError);
+      expect(error.retryable).toBe(false);
+      expect(error.code).toBe(
+        cause instanceof OperationError ? "SOURCE_HELD" : "OPERATION_FAILED",
+      );
+      expect(error.detail).toEndWith(
+        "Do not run kb_record again: it would record REQ-keys-rotate-yearly-2 a second time under a new id.",
+      );
+      expect(error.cause).toBe(cause);
+    }
+    // A refusal, a failure already not retryable, and one before any write
+    // pass through as they are.
+    const refusal = new KbRejection("VALIDATION_FAILED", "no", []);
+    expect(await run(refusal)).toBe(refusal);
+    const final = new OperationError("SOURCE_HELD", "held.", false);
+    expect(await run(final)).toBe(final);
+    const before = new OperationError("SOURCE_HELD", "held.", true);
+    expect(
+      await executeRecord(
+        INPUT,
+        CONTEXT,
+        deps({
+          upsert: async () => {
+            throw before;
+          },
+        }).deps,
+      ).catch((caught: unknown) => caught),
+    ).toBe(before);
   });
 
   test("a check that fails after the write returns the write and says not to record it again", async () => {

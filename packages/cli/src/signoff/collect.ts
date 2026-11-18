@@ -5,6 +5,8 @@ import {
   FIRM_EDIT_REVIEWS_DIR,
   parseFirmEditReceipt,
 } from "kibi-agent-core/firm-edit-review";
+import { supersedingRequirement } from "kibi-agent-core/knowledge-index";
+import { isRetiredStatus } from "kibi-agent-core/snippets";
 import { effectiveFirmness } from "../decision-firmness.js";
 import {
   type ExtractedEntity,
@@ -28,8 +30,6 @@ import {
 const REQUIREMENTS_DIR = ".kb/requirements";
 const SCENARIOS_DIR = ".kb/scenarios";
 const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
-const RETIRED_STATUS =
-  /supersed|deprecat|reject|obsolete|retired|archived|removed|closed/i;
 const REQUIREMENT_ID = /^REQ-[A-Za-z0-9._-]+$/;
 
 export type SignoffScope = "staged" | "working";
@@ -272,6 +272,13 @@ export async function collectSignoffSummary(
   const notes: string[] = [];
   const base = headExists(git) ? "HEAD" : EMPTY_TREE;
   const readRequirement = workspaceRequirements(workspaceRoot);
+  // A closed requirement is done and still governs, unless a current
+  // requirement supersedes it.
+  const superseded = (id: string) =>
+    supersedingRequirement(workspaceRoot, id) !== undefined;
+  const retired = (entity: { id: string; status?: string }) =>
+    isRetiredStatus(entity.status) ||
+    (entity.status === "closed" && superseded(entity.id));
   const relationships = readRelationships(workspaceRoot);
   const outgoing = (id: string, type: string) =>
     relationships
@@ -352,11 +359,17 @@ export async function collectSignoffSummary(
       file,
     );
     if (entity?.type !== "req") continue;
-    const retired =
-      RETIRED_STATUS.test(entity.status) &&
-      (before === undefined || !RETIRED_STATUS.test(before.status));
+    // A requirement that kept its status is not newly retired by a
+    // supersede written elsewhere.
+    const retiredNow =
+      retired(entity) &&
+      (before === undefined ||
+        !(
+          isRetiredStatus(before.status) ||
+          (before.status === entity.status && superseded(entity.id))
+        ));
     const change: SignoffChange =
-      status === "A" ? "new" : retired ? "retired" : "changed";
+      status === "A" ? "new" : retiredNow ? "retired" : "changed";
     drafts.set(entity.id, draftFor(entity, change, file, before));
   }
 
@@ -372,7 +385,7 @@ export async function collectSignoffSummary(
         continue;
       }
       const entity = readRequirement(id);
-      if (!entity || RETIRED_STATUS.test(entity.status)) continue;
+      if (!entity || retired(entity)) continue;
       drafts.set(id, {
         ...draftFor(entity, "affected", `${REQUIREMENTS_DIR}/${id}.md`),
         symbols: [...symbols].sort(),
@@ -397,7 +410,7 @@ export async function collectSignoffSummary(
         continue;
       }
       const entity = readRequirement(id);
-      if (!entity || RETIRED_STATUS.test(entity.status)) continue;
+      if (!entity || retired(entity)) continue;
       drafts.set(id, {
         ...draftFor(entity, "affected", `${REQUIREMENTS_DIR}/${id}.md`),
         firmEditReviews: reviews,

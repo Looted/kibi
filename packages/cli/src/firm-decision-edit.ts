@@ -97,11 +97,11 @@ export function decisionClaimChanges(
         normalized(requirementSemanticText(after.body))
     )
       changed.push("statement");
-    // The recorded reason is quoted as the person's, wherever it is kept
-    // (the field or a body section), so rewriting it changes the decision
-    // too; giving a reason where none was recorded does not.
-    const reason = quotedReason(before);
-    if (reason !== "" && reason !== quotedReason(after)) changed.push("reason");
+    // The reason is quoted as the person's, wherever it is kept (the field
+    // or a body section), so rewriting it changes the decision too, and so
+    // does giving one where none was recorded ("Reason not stated"): search
+    // would credit the person with words they never said.
+    if (quotedReason(before) !== quotedReason(after)) changed.push("reason");
     // The Source section quotes the person's words.
     const source = sourceSection(before);
     if (source !== "" && source !== sourceSection(after))

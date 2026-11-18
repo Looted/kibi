@@ -46302,3 +46302,53 @@ symbols:
         target: TEST-ci-merge-train
       - type: implements
         target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-cli-sibling-requirements-sibling-steps-text
+    title: siblingStepsText
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:37.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+  - id: SYM-implemented-by-written-requirement-of
+    title: writtenRequirementOf
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:39.800Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-implemented-by-written-requirement
+    title: WRITTEN_REQUIREMENT
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:42.168Z
+  - id: SYM-capture-ref-placeholder
+    title: REF_PLACEHOLDER
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:44.928Z
+  - id: SYM-requirement-statements-requirement-statement-diagnostics-options
+    title: RequirementStatementDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:47.629Z
