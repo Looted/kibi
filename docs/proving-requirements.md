@@ -1151,6 +1151,14 @@ into `node_modules`). Change any of them and the receipt is stale. A claim a
 source proof derives is bound with scope `source`, so coverage and signoff
 show that the proof rests on project files Kibi read.
 
+A rule about what a set of files never does ("files under `src/ui/` never
+import `x`") needs no `implements` link. When a passing source proof proves
+every applicable claim, the production-symbol stage of the proof ladder passes
+with `scope: source_proof` and lists the proving tests in `sourceProofTests`,
+because the files the proof reads are what the rule constrains. Do not link one
+of those files to the requirement: that would claim the one file implements
+the rule. See [Production symbols](./proof-ladder.md#8-production-symbols).
+
 The certificate builders (`sourceCertificate`, `readProjectSource`) are in
 `kibi-cli/proof-certificates` from kibi-cli 2.33.0; a project that pins an
 older kibi-cli has to upgrade before its tests can import them.

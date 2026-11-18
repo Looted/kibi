@@ -204,6 +204,24 @@ If `kibi sync` or `kibi query` produce errors:
    kibi branch recover --apply
    ```
 
+## `kibi: repaired branch store` on stderr
+
+Kibi releases before 2026.11.5 could save a branch store snapshot that held some triples twice. That showed up as superseded `kb_search` answers, `strict-fact-shape` reporting several value fields on one fact, doubled relationships, or fields missing from entities, and it came and went with SWI-Prolog's garbage-collection timing. The first time a current engine attaches such a store, it keeps one copy of each duplicated triple, rewrites the snapshot, prints
+
+```text
+kibi: repaired branch store <path>: removed <n> duplicate copies of <m> triples (<k> loaded)
+```
+
+on stderr and records the repair in the store's `.kibi-store-repair.json`. Nothing needs fixing. For seven days after the repair, `kb_status` lists a `branch_store_repaired` notice and `kibi doctor` shows its Branch store check as a warning, so that you can recheck answers or check results obtained before the repair. The notice and the warning go away on their own.
+
+## One engine daemon for several clients
+
+CLI commands and MCP calls for one workspace and branch share one detached engine daemon, which exits after ten idle minutes (see [`kibi engine`](cli-reference.md#kibi-engine-statusstopjanitor)). A client uses the running daemon only when it was started with the same Kibi package versions, the same Prolog core (compared by a digest of its sources) and the same SWI-Prolog; otherwise the client stops that daemon and starts its own. Two installs of the same release, such as a project-local and a global one, therefore share a daemon, while an older install started from a git hook is replaced by the newer one.
+
+- `kibi engine status` shows the daemon that serves this workspace and branch, and `kibi doctor` reports its package versions.
+- A `rdf/lock` file while a daemon is alive is expected, not stale. `kibi engine stop` releases it now; a lock whose process is gone is reclaimed by the next engine, and `kb_status` then lists a `store_lock_taken_over` notice for 24 hours.
+- Clients find the daemon through a socket in `KIBI_RUNTIME_DIR`, else `XDG_RUNTIME_DIR`, else a per-user temp directory. Two processes with different values (for example an agent sandbox and your terminal) cannot see each other's daemon and contend for the store lock; give them the same runtime directory.
+
 ## Configuration Issues
 
 Kibi does not accept user-configured entity paths or persistent check disabling. Knowledge lives under canonical `.kb/` lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`, plus `symbols.yaml`).
