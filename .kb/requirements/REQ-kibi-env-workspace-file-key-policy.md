@@ -19,7 +19,8 @@ semantic_clauses:
   - The user env file and the process environment stay unrestricted.
 origin:
   kind: agent
-  ref: 'Security fix, 2026-11-16: a committed .env.kibi or .env could set KIBI_NODE_PATH and make the next engine command run a file of the repository''s choosing. Pre-release review, 2026-11-18: a committed .env.kibi could set TYPESAFE_BASE_URL and receive the API key kept in the user env file. Statement awaiting maintainer approval: "The project env file and the legacy .env file must not set a KIBI_ key other than a KIBI_JEV_ provider setting. The project env file and the legacy .env file must not set a process-level variable such as PATH, NODE_OPTIONS or LD_PRELOAD. The project env file and the legacy .env file must not set a provider endpoint such as TYPESAFE_BASE_URL. Kibi must name the ignored Kibi and process keys on stderr without their values. The user env file and the process environment stay unrestricted."'
+  approved_by: maintainer
+  ref: 'Security fix, 2026-11-16: a committed .env.kibi or .env could set KIBI_NODE_PATH and make the next engine command run a file of the repository''s choosing. Pre-release review, 2026-11-18: a committed .env.kibi could set TYPESAFE_BASE_URL and receive the API key kept in the user env file. Maintainer-approved statement (2026-11-18, "Approve all"): "The project env file and the legacy .env file must not set a KIBI_ key other than a KIBI_JEV_ provider setting. The project env file and the legacy .env file must not set a process-level variable such as PATH, NODE_OPTIONS or LD_PRELOAD. The project env file and the legacy .env file must not set a provider endpoint such as TYPESAFE_BASE_URL. Kibi must name the ignored Kibi and process keys on stderr without their values. The user env file and the process environment stay unrestricted."'
   recorded_at: '2026-11-16T20:52:57.284Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

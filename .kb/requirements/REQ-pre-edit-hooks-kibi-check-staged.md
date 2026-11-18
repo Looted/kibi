@@ -4,7 +4,8 @@ status: open
 firmness: default
 origin:
   kind: agent
-  ref: 'Statement awaiting maintainer approval: "The pre-edit hooks and kibi check --staged must guard code that implements a firm requirement unless its status is superseded, deprecated, rejected, obsolete, retired, archived or removed, or a current requirement supersedes it."'
+  approved_by: maintainer
+  ref: 'Maintainer-approved statement (2026-11-18, "Approve all"): "The pre-edit hooks and kibi check --staged must guard code that implements a firm requirement unless its status is superseded, deprecated, rejected, obsolete, retired, archived or removed, or a current requirement supersedes it."'
   recorded_at: '2026-11-17T19:22:32.274Z'
 rationale: A replaced requirement must be closed, so reading closed as current without the supersedes edge gated code against the old rule and left an honest changes review with no way out.
 semantic_text: The pre-edit hooks and kibi check --staged must guard code that implements a firm requirement unless its status is superseded, deprecated, rejected, obsolete, retired, archived or removed, or a current requirement supersedes it.

@@ -4,6 +4,8 @@ status: open
 firmness: default
 origin:
   kind: agent
+  approved_by: maintainer
+  ref: 'Maintainer-approved statement (2026-11-18, "Approve all"): "The merge-train and kb-merge actions must run kibi sync and the check command in the merged tree without GH_TOKEN, GITHUB_TOKEN or the GitHub Actions runtime tokens in their environment."'
   recorded_at: '2026-11-18T07:11:55.585Z'
 rationale: The merged tree holds pull request content, and the token that pushes merges and starts workflows must not reach the commands that run on it. A pull request could otherwise read the merge token from the environment of its own check script.
 semantic_text: The merge-train and kb-merge actions must run kibi sync and the check command in the merged tree without GH_TOKEN, GITHUB_TOKEN or the GitHub Actions runtime tokens in their environment.
