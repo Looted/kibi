@@ -10,6 +10,7 @@ import * as sourceChanges from "../../../src/plugins/source-change-analysis.js";
 import * as impactDiagnostics from "../../../src/public/impact-diagnostics.js";
 import * as firmEditGate from "../../../src/public/impact/firm-edit-gate.js";
 import * as firmEditStaged from "../../../src/public/impact/firm-edit-staged.js";
+import * as impactManifest from "../../../src/public/impact/manifest.js";
 import * as commitAmend from "../../../src/traceability/commit-amend.js";
 import * as snapshotModule from "../../../src/traceability/git-change-snapshot.js";
 import * as impactEvaluator from "../../../src/traceability/impact-evaluator.js";
@@ -189,6 +190,7 @@ export function stagedHarness() {
       `violations ${violations.length}`,
     collectOwnerFindings: () => [],
     coveringTests: () => [],
+    readImpactManifestResults: () => [],
     withoutOwnedCauses: (
       _findings: unknown[],
       diagnostics: unknown[],
@@ -248,6 +250,7 @@ export function stagedHarness() {
     [validate, "validateStagedSymbolCoverage"],
     [validate, "formatCoverageViolations"],
     [validate, "formatViolations"],
+    [impactManifest, "readImpactManifestResults"],
     [ownerFindings, "collectOwnerFindings"],
     [ownerFindings, "coveringTests"],
     [ownerFindings, "withoutOwnedCauses"],

@@ -334,10 +334,19 @@ describe("files a command writes in place", () => {
     ]);
     expect(commandEditPaths("echo x>'d.ts'", root)).toStrictEqual([at("d.ts")]);
     expect(commandEditPaths(">e.ts", root)).toStrictEqual([at("e.ts")]);
+    // `&>` writes stdout too, and `>|` clobbers.
+    expect(commandEditPaths("cat a.ts &>b.ts", root)).toStrictEqual([
+      at("b.ts"),
+    ]);
+    expect(commandEditPaths("echo x &>> c.ts", root)).toStrictEqual([
+      at("c.ts"),
+    ]);
+    expect(commandEditPaths("echo x >| d.ts", root)).toStrictEqual([
+      at("d.ts"),
+    ]);
     // Descriptor redirections, here-strings and quoted `>` are not writes.
     for (const command of [
       "cat a.ts 2>b.ts",
-      "cat a.ts &>b.ts",
       "cat a.ts >&2 b.ts",
       "cat <<b.ts",
       "echo '> a.ts'",
@@ -390,6 +399,24 @@ describe("files a command writes in place", () => {
       "cat a.ts && sed -n p b.ts",
     ]) {
       expect(commandEditPaths(command, root)).toStrictEqual([]);
+    }
+  });
+
+  test("wrapped, grouped and prefixed edits are found", () => {
+    const root = workspace(["src/calc.ts"]);
+    const calc = [path.join(root, "src/calc.ts")];
+    for (const command of [
+      "bash -lc 'cd src && sed -i s/3/999/ calc.ts'",
+      'bash -lc "cd src; sed -i s/3/999/ calc.ts"',
+      "(sed -i s/3/999/ src/calc.ts)",
+      "{ sed -i s/3/999/ src/calc.ts; }",
+      "if true; then sed -i s/3/999/ src/calc.ts; fi",
+      "time sed -i s/3/999/ src/calc.ts",
+      "timeout 5 sed -i s/3/999/ src/calc.ts",
+      "echo src/calc.ts | xargs -0 sed -i s/3/999/ src/calc.ts",
+      "! sed -i s/3/999/ src/calc.ts",
+    ]) {
+      expect(commandEditPaths(command, root), command).toStrictEqual(calc);
     }
   });
 

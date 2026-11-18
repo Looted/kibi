@@ -205,6 +205,28 @@ describe("prepareChangedIndex", () => {
     }
   });
 
+  test("a named path whose deletion or rename is already staged is judged", () => {
+    git(["rm", "-q", "--cached", "gone.ts"]);
+    git(["mv", "b.ts", "moved.ts"]);
+    const changed = prepareChangedIndex(root, ["gone.ts", "b.ts", "moved.ts"]);
+    try {
+      const paths = changedIn(changed.indexFile);
+      expect(paths).toContain("D\tgone.ts");
+      expect(paths).toContain("D\tb.ts");
+      expect(paths).toContain("A\tmoved.ts");
+    } finally {
+      changed.dispose();
+    }
+    // Before the first commit, a path that is nowhere is still refused.
+    rmSync(root, { recursive: true, force: true });
+    root = mkdtempSync(path.join(tmpdir(), "kibi-changed-index-"));
+    git(["init", "-q", "-b", "main"]);
+    write("first.ts", "export const first = 1;\n");
+    expect(() => prepareChangedIndex(root, ["never-existed.ts"])).toThrow(
+      "never-existed.ts is neither in the working tree",
+    );
+  });
+
   test("with only .kb named and no .kb, the index is copied as it is", () => {
     rmSync(path.join(root, ".kb"), { recursive: true });
     git(["rm", "-q", "-r", "--cached", ".kb"]);

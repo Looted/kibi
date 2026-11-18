@@ -12,7 +12,7 @@ var MAX_COMMAND_CHARS = 20000;
 var MAX_CANDIDATES = 200;
 var TOKEN_SEPARATOR = /[\s;|&<>()'"`,=[\]{}]/;
 var PATH_LIKE = /^[\w@.~/+-]*[\w-]\.[A-Za-z0-9]{1,8}$|^[\w@.~+-]*\/[\w@.~/+-]*$/;
-var CD_TARGET = /(?:^|[\s;&|(])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
+var CD_TARGET = /(?:^|[\s;&|('"])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
 function unquote(value) {
   return value.replace(/^["']|["']$/g, "");
 }
@@ -49,10 +49,25 @@ function commandFilePaths(command, cwd) {
   return [...found];
 }
 var SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
-var REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*([^\s;&|<>()]+)/g;
+var REDIRECT_TARGET = /(?:^|[^0-9&<>])(?:&>>?|>>?\|?)\s*([^\s;&|<>()]+)/g;
 var IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 var IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
-var COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+var COMMAND_PREFIXES = new Set([
+  "sudo",
+  "env",
+  "command",
+  "exec",
+  "nice",
+  "time",
+  "xargs",
+  "timeout",
+  "(",
+  "{",
+  "then",
+  "do",
+  "else",
+  "!"
+]);
 var SHELLS = new Set(["sh", "bash", "zsh", "dash", "ksh"]);
 var SCRIPT_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
 function shellScript(words) {
@@ -100,6 +115,26 @@ function* simpleCommandWords(command, masked) {
 function isCommandWord(word) {
   return !COMMAND_PREFIXES.has(word) && !/^\w+=/.test(word);
 }
+function commandStart(words) {
+  let afterPrefix = false;
+  for (const [index, word] of words.entries()) {
+    if (!isCommandWord(word)) {
+      afterPrefix = afterPrefix || COMMAND_PREFIXES.has(word);
+      continue;
+    }
+    if (afterPrefix && (/^-/.test(word) || /^\d+(?:\.\d+)?[smhd]?$/.test(word)))
+      continue;
+    return index;
+  }
+  return -1;
+}
+function unbracketed(words) {
+  return words.flatMap((word) => {
+    const opened = /^\(+./.test(word) ? word.replace(/^\(+/, "") : word;
+    const closed = /.\)+$/.test(opened) ? opened.replace(/\)+$/, "") : opened;
+    return closed === ")" || closed === "}" ? [] : [closed];
+  });
+}
 function* writtenNames(command) {
   const masked = maskQuoted(command);
   for (const match of masked.matchAll(REDIRECT_TARGET)) {
@@ -107,7 +142,8 @@ function* writtenNames(command) {
     yield unquote(command.slice(end - match[1].length, end));
   }
   for (const words of simpleCommandWords(command, masked)) {
-    const commandWords = words.slice(words.findIndex(isCommandWord));
+    const plain = unbracketed(words);
+    const commandWords = plain.slice(commandStart(plain));
     const script = shellScript(commandWords);
     if (script !== undefined) {
       yield* writtenNames(unquote(script));
@@ -203,6 +239,139 @@ import { createHash as createHash2 } from "node:crypto";
 import fs5 from "node:fs";
 import path6 from "node:path";
 
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return;
+}
+function readBoolean(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "boolean") {
+      return value;
+    }
+  }
+  return;
+}
+function readStringArray(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    return value.filter((item) => typeof item === "string" && item.length > 0);
+  }
+  return [];
+}
+function readRecord(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (isRecord(value)) {
+      return value;
+    }
+  }
+  return;
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = String(toolName).trim();
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+function effectiveKbOperation(operation, payload) {
+  const write = operation === "kb_record" ? "kb_upsert" : operation;
+  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
+}
+function resolveKibiInterface(mcpState, workspaceTrusted) {
+  if (mcpState === "observed") {
+    return "mcp";
+  }
+  return workspaceTrusted ? "cli" : "setup";
+}
+var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
+function extractKbMcpToolCall(toolName, toolInput) {
+  const input = isRecord(toolInput) ? toolInput : {};
+  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
+  if (!name?.startsWith("kb_")) {
+    const nested = input.arguments ?? input.args;
+    const nestedTool = isRecord(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
+    return nestedTool?.startsWith("kb_") ? {
+      toolName: effectiveKbOperation(nestedTool, nested),
+      impactCheckRun: false,
+      sourceFiles: []
+    } : undefined;
+  }
+  const payload = readRecord(input, ["arguments", "args"]) ?? input;
+  name = effectiveKbOperation(name, payload);
+  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
+  return {
+    toolName: name,
+    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
+      "includeImpactDiagnostics",
+      "include_impact_diagnostics"
+    ]) === true && readBoolean(payload, [
+      "includeWorkingTreeDiff",
+      "include_working_tree_diff"
+    ]) === true) && sourceFiles.length > 0,
+    sourceFiles
+  };
+}
+var KIBI_CLI_ROUTES = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  record: "kb_upsert",
+  sync: "kb_sync"
+};
+function kibiCliOperation(command) {
+  if (typeof command !== "string")
+    return;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+function hostKbOperation(toolName, toolInput) {
+  const mcp = canonicalKbToolName(toolName);
+  if (/kb_[a-z_]+$/.test(String(mcp)))
+    return mcp;
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
+    return;
+  }
+  return kibiCliOperation(toolInput.command);
+}
+
 // ../agent-core/dist/path-policy.js
 import path3 from "node:path";
 var codeExtensions = new Set([
@@ -289,7 +458,7 @@ var explicitPathKeys = new Set([
   "relative_path",
   "target_path"
 ]);
-function isRecord(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeWorkspacePath(candidate) {
@@ -316,7 +485,7 @@ function visitExplicitPathFields(value, output) {
       visitExplicitPathFields(item, output);
     return;
   }
-  if (!isRecord(value))
+  if (!isRecord2(value))
     return;
   for (const [key, child] of Object.entries(value)) {
     if (explicitPathKeys.has(key.toLowerCase()))
@@ -331,7 +500,7 @@ function extractExplicitPathFields(input) {
 }
 var patchTextKeys = ["command", "patch", "input", "patchText"];
 function extractPatchTexts(toolInput) {
-  const fields = isRecord(toolInput) ? toolInput : {};
+  const fields = isRecord2(toolInput) ? toolInput : {};
   return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
 }
 function classifyPath(relativePath) {
@@ -984,6 +1153,66 @@ function shardLinksFrom(workspaceRoot, entityId) {
   }
   return cached.byFrom.get(entityId) ?? [];
 }
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+function isRetiredStatus(status) {
+  return RETIRED_STATUS.test(String(status));
+}
+function isCurrentFirmSummary(summary) {
+  return summary.firmness === "firm" && !isRetiredStatus(summary.status) && summary.supersededBy === undefined;
+}
+function shardSupersedes(text) {
+  const pick = (records) => records.flatMap(({ type, from, to }) => type === "supersedes" && typeof from === "string" && typeof to === "string" ? [{ from, to }] : []);
+  if (!/^relationships:\s*\[/m.test(text)) {
+    const blocks = text.split(/\n(?=\s*- )/).filter((block) => block.includes("supersedes"));
+    const records = scanRecordSequence(`relationships:
+${blocks.map((block) => block.replace(/^relationships:\s*\n/, "")).join(`
+`)}
+`, "relationships");
+    const found = pick(records);
+    if (found.length === records.filter((record) => record.type === "supersedes").length)
+      return found;
+  }
+  return pick(scanRecordSequence(text, "relationships"));
+}
+function currentSuccessors(workspaceRoot) {
+  const edges = [];
+  const list = (dir, suffix) => {
+    try {
+      return fs3.readdirSync(path4.join(workspaceRoot, dir)).filter((name) => name.endsWith(suffix)).sort();
+    } catch {}
+    return [];
+  };
+  for (const name of list(".kb/requirements", ".md")) {
+    const id = name.slice(0, -3);
+    const text = readText(path4.join(workspaceRoot, ".kb/requirements", name));
+    if (text === undefined || !text.includes("supersedes"))
+      continue;
+    for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
+      if (link.type === "supersedes")
+        edges.push({ from: id, to: link.target });
+  }
+  for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
+    const text = readText(path4.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    if (text === undefined || !text.includes("supersedes"))
+      continue;
+    for (const { from, to } of shardSupersedes(text))
+      edges.push({ from, to });
+  }
+  const successors = new Map;
+  const retired = new Map;
+  for (const { from, to } of edges) {
+    if (from === to || successors.has(to) || !from.startsWith("REQ-"))
+      continue;
+    if (!retired.has(from))
+      retired.set(from, isRetiredStatus(readSummaryHead(workspaceRoot, from, false).status));
+    if (retired.get(from) === false)
+      successors.set(to, from);
+  }
+  return successors;
+}
+function supersedingRequirement(workspaceRoot, requirementId) {
+  return currentSuccessors(workspaceRoot).get(requirementId);
+}
 function flushLink(links, pending) {
   if (pending?.target !== undefined) {
     links.push({ type: pending.type ?? "relates_to", target: pending.target });
@@ -992,6 +1221,15 @@ function flushLink(links, pending) {
   }
 }
 function readEntitySummary(workspaceRoot, entityId) {
+  const summary = readSummaryHead(workspaceRoot, entityId);
+  if (summary.status === "closed" && entityId.startsWith("REQ-")) {
+    const successor = supersedingRequirement(workspaceRoot, entityId);
+    if (successor !== undefined)
+      summary.supersededBy = successor;
+  }
+  return summary;
+}
+function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
     return { id: entityId };
@@ -1116,7 +1354,7 @@ function readEntitySummary(workspaceRoot, entityId) {
   const seen = new Set;
   for (const link of [
     ...authored,
-    ...shardLinksFrom(workspaceRoot, entityId)
+    ...withShardLinks ? shardLinksFrom(workspaceRoot, entityId) : []
   ]) {
     const key = `${link.type}\x00${link.target}`;
     if (link.target.length === 0 || seen.has(key))
@@ -1340,7 +1578,10 @@ function focusedSymbols(symbols, focus) {
 function editFocus(absolutePath, toolInput) {
   const input = toolInput ?? {};
   const edits = Array.isArray(input.edits) ? input.edits : [];
-  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString]).filter((needle) => typeof needle === "string" && needle.length > 0);
+  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString].map((needle) => ({
+    needle,
+    all: record.replace_all === true || record.replaceAll === true
+  }))).filter((entry) => typeof entry.needle === "string" && entry.needle.length > 0);
   if (usable.length === 0)
     return;
   let content;
@@ -1352,14 +1593,17 @@ function editFocus(absolutePath, toolInput) {
     return;
   }
   const ranges = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0)
-      continue;
-    const start = content.slice(0, offset).split(`
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split(`
 `).length;
-    ranges.push({ start, end: start + needle.split(`
+      ranges.push({ start, end: start + needle.split(`
 `).length - 1 });
+      if (!all)
+        break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }
@@ -1367,12 +1611,9 @@ function formatList(items, limit) {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-function isRetiredStatus(status) {
-  return RETIRED_STATUS.test(String(status));
-}
 function describeEntity(summary, supersededBy) {
-  const retired = supersededBy ? ` (${summary.status ?? "closed"}, superseded by ${supersededBy})` : isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const successor = supersededBy ?? summary.supersededBy;
+  const retired = successor ? ` (${summary.status ?? "closed"}, superseded by ${successor})` : isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
   const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
   const title = displayTitle(summary);
@@ -1487,7 +1728,7 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
   const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
-  if (isRetiredStatus(requirement.status))
+  if (isRetiredStatus(requirement.status) || requirement.supersededBy !== undefined)
     return [];
   const links = requirement.links ?? [];
   const facts = [
@@ -1535,6 +1776,8 @@ function replacedAmong(requirementIds, summarize) {
   const replaced = new Map;
   for (const id of requirementIds) {
     const summary = summarize(id);
+    if (summary.supersededBy !== undefined && !replaced.has(id))
+      replaced.set(id, summary.supersededBy);
     if (summary.status === "closed" || isRetiredStatus(summary.status))
       continue;
     for (const link of summary.links ?? [])
@@ -1660,15 +1903,52 @@ function confirmFirmEdits(env) {
   const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
   return !(value === "0" || value === "false" || value === "off");
 }
+var MAX_LOCATE_BYTES = 2 * 1024 * 1024;
+var CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
+var NAME_LOOKAHEAD_LINES = 5;
+function readSmallText(absolutePath) {
+  try {
+    if (fs5.statSync(absolutePath).size > MAX_LOCATE_BYTES)
+      return;
+    return fs5.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+}
+function unlocatedSymbols(symbols, content) {
+  const lines = content?.split(`
+`);
+  return symbols.filter((symbol) => {
+    if (symbol.line === undefined)
+      return true;
+    if (lines === undefined)
+      return false;
+    const end = symbol.endLine ?? symbol.line;
+    if (end > lines.length)
+      return true;
+    if (!CODE_NAME.test(symbol.title))
+      return false;
+    if (symbol.line === 1 && end >= lines.length - 1)
+      return false;
+    const name = symbol.title.split(/[.#:]/).pop();
+    const window = lines.slice(symbol.line - 1, Math.min(end, symbol.line + NAME_LOOKAHEAD_LINES)).join(`
+`);
+    return !window.includes(name);
+  });
+}
 function firmRequirementsTouched(input) {
   if (input.commentOnly === true)
     return { ids: [], symbol: undefined };
-  const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
+  const unlocated = input.wholeFile ? [] : unlocatedSymbols(input.symbols, input.absolutePath === undefined ? undefined : readSmallText(input.absolutePath));
+  const touched = input.wholeFile ? input.symbols : [
+    ...focusedSymbols(input.symbols.filter((symbol) => !unlocated.includes(symbol)), input.focus),
+    ...unlocated
+  ];
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id))
       return false;
     const summary = input.summarize(id);
-    if (summary.firmness !== "firm" || isRetiredStatus(summary.status))
+    if (!isCurrentFirmSummary(summary))
       return false;
     const reviewed = input.reviewed;
     if (reviewed === undefined)
@@ -1811,7 +2091,16 @@ function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
   return pairs.every(([before, after]) => removesOnlyDeadComments(before, after));
 }
 var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
-var DESCRIBING_FRAME = /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$|\bI\s+$/i;
+var DESCRIBING_FRAME = /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$/i;
+var SPEAKER_FRAME = /\bI\s+$/;
+var SPEAKER_PHRASE = /^ha(?:s|ve) to$/i;
+var CLAUSE_BREAK = /[;:]|,\s*(?:(?:and|but|so)\s+)?|\b(?:and|but)\s+/gi;
+function currentClause(prefix) {
+  let start = 0;
+  for (const match of prefix.matchAll(CLAUSE_BREAK))
+    start = match.index + match[0].length;
+  return prefix.slice(start);
+}
 var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
 var ASKING_ADVERB = /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
 var DESCRIBING_NEXT_WORD = /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
@@ -1819,8 +2108,13 @@ var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i
 var ASKS_TO_BE_TOLD = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
 var CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
 var LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
-var PASTED_OUTPUT_LINE = /^\s*(?:[\w.$]*(?:Error|Exception)\b|(?:error|warning|fatal|panic)\b\s*[:[]|at\s+\S+\s+\()/i;
+var PASTED_OUTPUT_LINE = /^\s*(?:[\w.$]*Error:|[\w.$]+Exception:|(?:[Ee]rror|ERROR|[Ww]arning|WARNING|[Ff]atal|FATAL|[Pp]anic|PANIC)\s*[:[]|at\s+\S+\s+\(\S*:\d+)/;
 var QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
+var MIN_QUOTED_RULE_WORDS = 4;
+function quotedRule(span) {
+  const words = span.split(/\s+/).filter((word) => /\w/.test(word));
+  return words.length >= MIN_QUOTED_RULE_WORDS && new RegExp(RULE_PHRASES.source, "i").test(span);
+}
 var EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
 function requestLines(text) {
   const lines = [];
@@ -1839,7 +2133,7 @@ function requestLines(text) {
   return lines;
 }
 function requestSentences(prompt) {
-  return requestLines(prompt.replace(CODE_SPANS, " ")).map((line) => line.replace(QUOTED_WORDS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
+  return requestLines(prompt.replace(CODE_SPANS, " ")).map((line) => line.replace(QUOTED_WORDS, (span) => quotedRule(span) ? span : " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
 }
 function instructingAdverb(sentence) {
   const asked = ASKING_ADVERB.exec(sentence);
@@ -1859,8 +2153,12 @@ function ruleMatch(prompt) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
-      if (!DESCRIBING_FRAME.test(sentence.slice(0, match.index)))
-        return { phrase: match[0].toLowerCase(), sentences, index };
+      const clause = currentClause(sentence.slice(0, match.index));
+      if (DESCRIBING_FRAME.test(clause))
+        continue;
+      if (SPEAKER_PHRASE.test(match[0]) && SPEAKER_FRAME.test(clause))
+        continue;
+      return { phrase: match[0].toLowerCase(), sentences, index };
     }
     const adverb = instructingAdverb(sentence);
     if (adverb)
@@ -2086,6 +2384,13 @@ function record(value) {
 }
 function isRequirementUpsert(toolInput) {
   const input = record(toolInput);
+  if (typeof input?.command === "string") {
+    const command = input.command;
+    const route = kibiCliOperation(command);
+    if (route !== "kb_upsert" || /--dry-run\b|"dryRun"\s*:\s*true/.test(command))
+      return false;
+    return /(?:^|[\s;&|(/])kibi\s+record\b/.test(command) || /"type"\s*:\s*"req"/.test(command);
+  }
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
   const recorded = typeof args?.statement === "string" && typeof args.saidBy === "string";
   if (!args || args.type !== "req" && !recorded)
@@ -2165,139 +2470,6 @@ function parseStdinJson(rawInput) {
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs8 from "node:fs";
 import path9 from "node:path";
-
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function readString(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string") {
-      return value;
-    }
-  }
-  return;
-}
-function readBoolean(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "boolean") {
-      return value;
-    }
-  }
-  return;
-}
-function readStringArray(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    return value.filter((item) => typeof item === "string" && item.length > 0);
-  }
-  return [];
-}
-function readRecord(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (isRecord2(value)) {
-      return value;
-    }
-  }
-  return;
-}
-function canonicalKbToolName(toolName) {
-  const trimmed = String(toolName).trim();
-  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return operation.startsWith("kb_") ? operation : undefined;
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = String(toolName).trim();
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord2(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-function effectiveKbOperation(operation, payload) {
-  const write = operation === "kb_record" ? "kb_upsert" : operation;
-  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
-}
-function resolveKibiInterface(mcpState, workspaceTrusted) {
-  if (mcpState === "observed") {
-    return "mcp";
-  }
-  return workspaceTrusted ? "cli" : "setup";
-}
-var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
-function extractKbMcpToolCall(toolName, toolInput) {
-  const input = isRecord2(toolInput) ? toolInput : {};
-  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
-  if (!name?.startsWith("kb_")) {
-    const nested = input.arguments ?? input.args;
-    const nestedTool = isRecord2(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
-    return nestedTool?.startsWith("kb_") ? {
-      toolName: effectiveKbOperation(nestedTool, nested),
-      impactCheckRun: false,
-      sourceFiles: []
-    } : undefined;
-  }
-  const payload = readRecord(input, ["arguments", "args"]) ?? input;
-  name = effectiveKbOperation(name, payload);
-  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
-  return {
-    toolName: name,
-    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
-      "includeImpactDiagnostics",
-      "include_impact_diagnostics"
-    ]) === true && readBoolean(payload, [
-      "includeWorkingTreeDiff",
-      "include_working_tree_diff"
-    ]) === true) && sourceFiles.length > 0,
-    sourceFiles
-  };
-}
-var KIBI_CLI_ROUTES = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  record: "kb_upsert",
-  sync: "kb_sync"
-};
-function kibiCliOperation(command) {
-  if (typeof command !== "string")
-    return;
-  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
-  return route ? KIBI_CLI_ROUTES[route] : undefined;
-}
-var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
-function hostKbOperation(toolName, toolInput) {
-  const mcp = canonicalKbToolName(toolName);
-  if (/kb_[a-z_]+$/.test(String(mcp)))
-    return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord2(toolInput)) {
-    return;
-  }
-  return kibiCliOperation(toolInput.command);
-}
 
 // ../agent-core/dist/telemetry-signals.js
 import { createHash as createHash3, randomUUID as randomUUID2 } from "node:crypto";
@@ -3648,6 +3820,7 @@ function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
+    absolutePath: path13.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly
@@ -3779,6 +3952,16 @@ async function runHook(rawInput, environment = {}) {
             permission: "allow",
             agent_message: DIRECT_KB_EDIT_WARNING
           };
+        }
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const env = environment.env ?? process.env;
+          for (const absolute of shellToolEditPaths(input.toolName, input.toolInput, input.cwd ?? cwd)) {
+            const notice = firmNotice(cwd, getSourceLinkedSymbols(cwd, absolute, stateDir), undefined, session, env, false);
+            if (notice === undefined)
+              continue;
+            trace.action = "edit_snippet";
+            return { permission: "allow", agent_message: notice };
+          }
         }
         const primaryPath = resolvePrimaryPath(input);
         if (!primaryPath || !kibiReady || !isKnownEditableTool(input.toolName)) {

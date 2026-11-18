@@ -113,15 +113,27 @@ function readJsonFields(file: string): Record<string, unknown> {
  * `kibi.mcpTools` in the root package.json, else `mcpTools` in
  * `.kb/setup.json`.
  */
-function recordedToolProfile(workspaceRoot: string): ToolProfile | undefined {
+function recordedToolProfile(
+  workspaceRoot: string,
+  warn: (message: string) => void,
+): ToolProfile | undefined {
   const fromPackage = Object(
     readJsonFields(path.join(workspaceRoot, "package.json")).kibi,
   ).mcpTools;
   if (isToolProfile(fromPackage)) return fromPackage;
+  if (fromPackage !== undefined)
+    warn(unknownProfile("kibi.mcpTools in package.json", fromPackage));
   const fromSetup = readJsonFields(
     path.join(workspaceRoot, ".kb", "setup.json"),
   ).mcpTools;
-  return isToolProfile(fromSetup) ? fromSetup : undefined;
+  if (isToolProfile(fromSetup)) return fromSetup;
+  if (fromSetup !== undefined)
+    warn(unknownProfile("mcpTools in .kb/setup.json", fromSetup));
+  return undefined;
+}
+
+function unknownProfile(where: string, value: unknown): string {
+  return `[KIBI-MCP] ${where} is ${JSON.stringify(value)}, which names no tool profile (${TOOL_PROFILES.join(" or ")}); it is ignored.\n`;
 }
 
 /**
@@ -134,10 +146,16 @@ function recordedToolProfile(workspaceRoot: string): ToolProfile | undefined {
 export function resolveToolProfile(
   workspaceRoot: string,
   env: NodeJS.ProcessEnv = process.env,
+  // An unknown value is named on stderr; stdout carries the protocol.
+  warn: (message: string) => void = (message) => {
+    process.stderr.write(message);
+  },
 ): ToolProfile {
   const requested = env[TOOL_PROFILE_ENV]?.trim().toLowerCase();
   if (isToolProfile(requested)) return requested;
-  return recordedToolProfile(workspaceRoot) ?? "full";
+  if (requested !== undefined && requested !== "")
+    warn(unknownProfile(TOOL_PROFILE_ENV, env[TOOL_PROFILE_ENV]));
+  return recordedToolProfile(workspaceRoot, warn) ?? "full";
 }
 
 /** Whether the workspace's `.kb/` holds no entity yet (or does not exist). */

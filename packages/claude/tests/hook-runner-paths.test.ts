@@ -437,7 +437,12 @@ describe("tool inputs", () => {
     const h = hooks(fixture);
     await h.post("NotebookEdit", { notebook_path: h.at("src/checkout.ts") });
     expect(h.journal()).toStrictEqual([
-      { kind: "edited", path: "src/checkout.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/checkout.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
     ]);
   });
 
@@ -447,7 +452,12 @@ describe("tool inputs", () => {
       const h = hooks(fixture, `edit-${tool}`);
       await h.post(tool, { file_path: h.at("src/helper.ts") });
       expect(h.journal()).toStrictEqual([
-        { kind: "edited", path: "src/helper.ts", pathKind: "source" },
+        {
+          kind: "edited",
+          path: "src/helper.ts",
+          pathKind: "source",
+          edit: expect.any(String),
+        },
       ]);
     }
   });
@@ -971,11 +981,31 @@ describe("shell changes after they run", () => {
       },
     });
     expect(h.journal().slice(1)).toStrictEqual([
-      { kind: "edited", path: "src/checkout.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/checkout.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
       { kind: "shown", surface: "edit", path: "src/checkout.ts" },
-      { kind: "edited", path: "src/helper.ts", pathKind: "source" },
-      { kind: "edited", path: "src/two.ts", pathKind: "source" },
-      { kind: "edited", path: "tests/other.test.ts", pathKind: "test" },
+      {
+        kind: "edited",
+        path: "src/helper.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
+      {
+        kind: "edited",
+        path: "src/two.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
+      {
+        kind: "edited",
+        path: "tests/other.test.ts",
+        pathKind: "test",
+        edit: expect.any(String),
+      },
     ]);
     expect(h.lastRow()).toStrictEqual(
       row({
@@ -998,7 +1028,12 @@ describe("shell changes after they run", () => {
     expect(h.rows()).toStrictEqual([]);
     expect(h.journal()).toStrictEqual([
       { kind: "command_started", at: "at" },
-      { kind: "edited", path: "tests/other.test.ts", pathKind: "test" },
+      {
+        kind: "edited",
+        path: "tests/other.test.ts",
+        pathKind: "test",
+        edit: expect.any(String),
+      },
     ]);
     await h.pre("Bash", { command: "true" });
     fs.appendFileSync(h.at("src/helper.ts"), "\n");
@@ -1150,7 +1185,12 @@ describe("Kibi MCP usage after it runs", () => {
         paths: ["src/two.ts", "src/mixed.ts"],
         ids: ["REQ-two-a"],
       },
-      { kind: "edited", path: "src/helper.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/helper.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
       { kind: "kb", operation: "kb_check", paths: ["src/helper.ts"], ids: [] },
       { kind: "checked", paths: ["src/helper.ts"], all: false },
     ]);

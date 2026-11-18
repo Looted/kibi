@@ -451,7 +451,7 @@ describe("collectSignoffSummary with a scripted git", () => {
 
   test("keeps only added, modified and deleted Markdown files", async () => {
     const root = workspace();
-    writeReq(root, "REQ-m", "Now retired.", { status: "closed" });
+    writeReq(root, "REQ-m", "Now retired.", { status: "deprecated" });
     writeReq(root, "REQ-r", "Renamed.");
     const calls: string[] = [];
     const git = scripted(
@@ -640,11 +640,33 @@ describe("collectSignoffSummary with a scripted git", () => {
     ]);
   });
 
+  test("a closed requirement still governs its code unless a current one supersedes it", async () => {
+    const { root, git } = repo();
+    writeReq(root, "REQ-done", "Keys expire.", { status: "closed" });
+    writeReq(root, "REQ-replaced", "Keys never expire.", { status: "closed" });
+    writeReq(root, "REQ-next", "Keys expire weekly.");
+    relationships(root, [["supersedes", "REQ-next", "REQ-replaced"]]);
+    write(root, "README.md", "x\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "base");
+    const summary = await collectSignoffSummary(root, "working", {
+      now,
+      loadAffected: async () =>
+        new Map([
+          ["REQ-done", ["f"]],
+          ["REQ-replaced", ["g"]],
+        ]),
+    });
+    expect(
+      summary.requirements.map((row) => [row.id, row.change, row.symbols]),
+    ).toStrictEqual([["REQ-done", "affected", ["f"]]]);
+  });
+
   test("lists the firm-edit receipts the change records, as the agent's judgment", async () => {
     const { root, git } = repo();
     writeReq(root, "REQ-kept", "Keys expire.");
     writeReq(root, "REQ-new", "Keys rotate.");
-    writeReq(root, "REQ-old", "Keys never expire.", { status: "closed" });
+    writeReq(root, "REQ-old", "Keys never expire.", { status: "deprecated" });
     write(root, "README.md", "x\n");
     git("add", ".");
     git("commit", "-q", "-m", "base");

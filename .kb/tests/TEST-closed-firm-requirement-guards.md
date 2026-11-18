@@ -21,17 +21,17 @@ id: TEST-closed-firm-requirement-guards
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f534e5ce64262146682d241f
+    receipt_id: PR-d7042e2cca86518cac44710a
     test_id: TEST-closed-firm-requirement-guards
     scope: end_to_end
     outcome: passed
-    code_snapshot: db8cfa1e2f309f0b25b2601f21d38211d4f63e761a778ad2caba846c1df8826c
+    code_snapshot: 7ede2eafea086a2463c8e63d2a86400a3891540e6e3cf3f91bc86344bc717279
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T19:23:43.963Z'
-    finished_at: '2026-11-17T19:23:44.065Z'
-    artifact_digest: 5245f462bee4ebce7ef9404ffb5d34ec8859ef2c16d4b465df73b85e5f816b75
+    started_at: '2026-11-18T08:38:24.179Z'
+    finished_at: '2026-11-18T08:38:25.021Z'
+    artifact_digest: 50b6cbbb89884ee29f273d23ab72f2d3f3ae138ad0799f0c01c5cfa19c3c440d
     contract_hash: 587a3b588af621570aafe4c8d42669c35af5a8cec33133b45303f1c43d2bb49a
-    binding_hash: 4ad833f43ae0c66afe3cf8bb09a94c55fef3b205cbc8b9dbf55b1d6b73dee6cf
+    binding_hash: d482cf0b55114f64d2485209ceb4f9968fe6db2b808559cca16e5eb25728a525
     fingerprint: d50b9dbdf26407407523f11e359190a9a7f90c0ba18cd84b4af831ecc35cd565
     fingerprint_components:
       contract: 587a3b588af621570aafe4c8d42669c35af5a8cec33133b45303f1c43d2bb49a
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Checks the shared retired-status test: closed, open and in_progress requirements stay current, superseded, deprecated, retired, archived and removed ones do not, and the commit gate's current firm requirement test agrees (packages/agent-core/tests/snippets-contract.test.ts, packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts).
+Checks the shared retired-status test: closed, open and in_progress requirements stay current, superseded, deprecated, retired, archived and removed ones do not, and a closed requirement that a current requirement supersedes guards nothing. The hooks' current firm summary, the snippet, the commit gate's current firm requirement test with the change's successors, and kibi review-firm-edit all agree (packages/agent-core/tests/snippets-contract.test.ts, knowledge-index-contract.test.ts, decision-guard.test.ts, packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts, firm-edit-staged.mutation.test.ts, operations/firm-edit-review.mutation.test.ts).

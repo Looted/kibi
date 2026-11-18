@@ -76,21 +76,22 @@ export async function assertFirmDecisionUnchanged(
     // Stryker disable next-line StringLiteral
     body: input.document?.body ?? "",
   };
-  if (
-    !isCurrentAuthoredEntity(
-      // rationale: with an empty superseded set only data.status decides
-      // currency, so the path placeholder is never read.
-      // Stryker disable next-line StringLiteral
-      { id: input.id, path: "", ...before, data: { ...before.data } },
-      new Set(),
-    )
-  )
-    return;
   const after: DecisionDocument = {
     type: input.type,
     data: { ...before.data, ...input.properties },
     body: input.document?.body ?? before.body,
   };
+  // A decision retired before and after the write is not guarded; retiring
+  // a firm one, or bringing it back, is a change of its claim.
+  const current = (document: DecisionDocument) =>
+    isCurrentAuthoredEntity(
+      // rationale: with an empty superseded set only data.status decides
+      // currency, so the path placeholder is never read.
+      // Stryker disable next-line StringLiteral
+      { id: input.id, path: "", ...document, data: { ...document.data } },
+      new Set(),
+    );
+  if (!current(before) && !current(after)) return;
   const changed = unapprovedFirmEdit(before, after);
   if (changed.length === 0) return;
   throw new KbRejection(

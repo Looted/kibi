@@ -1000,6 +1000,7 @@ describe("firm requirement confirmation", () => {
     file_path: "src/checkout.ts",
     old_string: "let total = 0;",
   };
+  const SHELL_EDIT = "sed -i s/total/sum/ src/checkout.ts";
 
   test("an edit inside a firm requirement's symbol is put to the person, with the requirement named to both", async () => {
     const fixture = createKibiWorkspace();
@@ -1050,7 +1051,7 @@ describe("firm requirement confirmation", () => {
 
   test("a keeps receipt lets only the retry of the edit this session asked about through", async () => {
     const fixture = createKibiWorkspace();
-    const { raw } = firmSession(fixture);
+    const { raw, post } = firmSession(fixture);
     const content = fs.readFileSync(
       path.join(fixture.root, "src/checkout.ts"),
       "utf8",
@@ -1096,11 +1097,25 @@ describe("firm requirement confirmation", () => {
     expect(
       (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
-    // It judged the code before that edit, so another edit of the same
-    // symbol is asked about.
+    // The retried edit lands, but the receipt passed it, not the person, so
+    // it judged only the code before that edit: another edit of the same
+    // symbol, a whole-file write and a shell edit are asked about.
+    await post("Edit", editTotal);
     expect(
       (await raw("Edit", { ...editTotal, new_string: "  let total = 2;" }))
         .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    expect(
+      (
+        await raw("Write", {
+          file_path: "src/checkout.ts",
+          content: "export {};\n",
+        })
+      ).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    expect(
+      (await raw("Bash", { command: SHELL_EDIT })).hookSpecificOutput
+        ?.permissionDecision,
     ).toBe("ask");
     // A new session editing the symbol is asked again.
     expect(
@@ -1122,6 +1137,39 @@ describe("firm requirement confirmation", () => {
     await post("Edit", editTotal);
     expect(
       (await raw("Edit", { ...editTotal, old_string: "return Math.round" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+  });
+
+  test("a declined edit is not approved by another edit of the same file landing", async () => {
+    const fixture = createKibiWorkspace();
+    // A real work tree, so the shell edit's changed file is seen.
+    commitAll(fixture);
+    const { raw, post } = firmSession(fixture);
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // Declined; then an edit that changes no firm code lands in the file.
+    await post("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "return `$${total.toFixed(2)}`;",
+    });
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // An allowed shell edit confirms the requirements its question named.
+    const shell = { command: SHELL_EDIT };
+    expect(
+      (await raw("Bash", shell)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    const file = path.join(fixture.root, "src/checkout.ts");
+    fs.writeFileSync(
+      file,
+      fs.readFileSync(file, "utf8").replaceAll("total", "sum"),
+    );
+    await post("Bash", shell);
+    expect(
+      (await raw("Edit", { ...editTotal, old_string: "let sum = 0;" }))
         .hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
   });

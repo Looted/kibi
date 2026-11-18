@@ -17,7 +17,10 @@ import {
 } from "./contradictions.js";
 import { quantityWarnings } from "./quantity-warnings.js";
 import { validateRelationshipSources } from "./relationships.js";
-import { siblingRequirements } from "./sibling-requirements.js";
+import {
+  siblingRequirements,
+  siblingStepsText,
+} from "./sibling-requirements.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
 import { subjectLayerWarnings } from "./subject-warnings.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
@@ -447,6 +450,7 @@ export async function executeValidateUpsert(
           type: "text",
           text: `kb_validate_upsert: payload is valid for kb_upsert preflight checks. No mutation was performed.${stagedNote}`,
         },
+        ...siblingStepsText(siblings),
       ],
       structuredContent: payload,
     };

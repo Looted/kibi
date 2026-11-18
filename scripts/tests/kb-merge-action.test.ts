@@ -101,6 +101,18 @@ describe("kibi KB merge action", () => {
     expect(fx.tip("feature/one")).not.toBe(before);
   });
 
+  test("runs sync and the check on the merged tree without the token that pushes", () => {
+    const fx = new Fixture();
+    manifestConflict(fx);
+    const run = fx.run({
+      GH_TOKEN: "merge-token",
+      GITHUB_TOKEN: "workflow-token",
+      KB_MERGE_CHECK: 'test -z "$GH_TOKEN$GITHUB_TOKEN" && $KIBI check',
+    });
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.outputs.merged).toEqual(["feature/one"]);
+  });
+
   test("never pushes a merge when kibi sync rewrites a tracked file", () => {
     const fx = new Fixture();
     manifestConflict(fx);
@@ -227,6 +239,23 @@ git push -q origin HEAD:refs/heads/feature/one
     expect(run.stderr).toContain(
       "fork/branch: skipped, the pull request comes from a fork",
     );
+  });
+
+  test("a malformed KB_MERGE_BRANCHES fails, and an empty list handles no PR", () => {
+    const fx = new Fixture();
+    manifestConflict(fx, "feature/one");
+    const before = fx.tip("feature/one");
+
+    const malformed = fx.run({ KB_MERGE_BRANCHES: "[oops" });
+    expect(malformed.status).not.toBe(0);
+    expect(malformed.stderr).toContain(
+      "::error::KB_MERGE_BRANCHES is not a JSON list of branch names",
+    );
+    expect(fx.tip("feature/one")).toBe(before);
+
+    const none = fx.run({ KB_MERGE_BRANCHES: "[]" });
+    expect(none.status, none.stderr).toBe(0);
+    expect(fx.tip("feature/one")).toBe(before);
   });
 
   test("leaves PRs with KB_MERGE_SKIP_LABEL alone", () => {

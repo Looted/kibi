@@ -146,8 +146,19 @@ export function collectOwnerFindings(input: {
   testsFor?: (file: string, requirementId: string) => readonly string[];
   /** Every entity id the KB holds, so a type's new record never reuses one. */
   takenIds?: Iterable<string>;
+  /**
+   * Records already written for a declaration but not staged: offered again
+   * under their own id, so applying the offer updates them.
+   */
+  writtenRecords?: Iterable<{ id: string; file: string; name: string }>;
 }): OwnerFinding[] {
   const taken = new Set(input.takenIds ?? []);
+  const written = new Map(
+    [...(input.writtenRecords ?? [])].map((record) => [
+      key(record.file, record.name),
+      record.id,
+    ]),
+  );
   const symbols = new Map(
     input.symbols.map((symbol) => [
       key(symbol.location.file, symbol.name),
@@ -227,7 +238,7 @@ export function collectOwnerFindings(input: {
       ? [
           {
             type: "symbol",
-            id: mintSymbolId(file, name, taken),
+            id: written.get(id) ?? mintSymbolId(file, name, taken),
             properties: {
               title: name,
               status: "active",

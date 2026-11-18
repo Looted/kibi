@@ -131,6 +131,26 @@ test("public staged impact analyzes the previous side of a selected deletion", a
   expect(result.extractedSymbols).toEqual([]);
 });
 
+test("public staged impact judges firm code renamed to a path that is not source as removed", async () => {
+  const f = fixture();
+  f.git("config", "user.name", "Kibi test");
+  f.git("config", "user.email", "kibi-test@example.invalid");
+  f.git("commit", "-q", "-m", "firm baseline");
+  mkdirSync(join(f.root, "docs"));
+  f.git("mv", "service.ts", "docs/service.md");
+  const result = await analyzeChangedFileImpact({
+    workspaceRoot: f.root,
+    staged: true,
+  });
+  expect(
+    result.impactDiagnostics
+      .filter((diagnostic) => diagnostic.id === "firm_edit_unreviewed")
+      .map((diagnostic) => diagnostic.message),
+  ).toEqual([
+    'The change edits code that implements REQ-source, a firm rule the person set, without a current review of that code: execute in service.ts (removed, no review recorded). Statement: "Retain source ownership."',
+  ]);
+});
+
 test("Python indentation changes remain source changes and shell syntax in filenames stays literal", () => {
   const f = fixture();
   const file = "$(untrusted command).py";

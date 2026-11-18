@@ -56,9 +56,9 @@ export function requirementStatement(
 /**
  * Whether a change restates a requirement, so the firmness and supersede
  * checks judge it instead of the firm-edit gate: the requirement is new, its
- * statement or status changed, or a requirement the change adds or edits
- * supersedes it. Any other edit of its document (a note, a tag, a link) does
- * not.
+ * statement changed, or a requirement the change adds or edits supersedes
+ * it. Any other edit of its document (a note, a tag, a link, its status)
+ * does not: a status that keeps it current leaves it guarding its code.
  */
 export function firmRequirementRestated(input: {
   requirement: ExtractedEntity;
@@ -66,28 +66,30 @@ export function firmRequirementRestated(input: {
   documentText: string | undefined;
   /** The document's text before the change; undefined when it is new. */
   baseText: string | undefined;
-  /** The requirement's status before the change. */
-  baseStatus: string | undefined;
   /** The requirements the change adds or edits that supersede this one. */
   supersededInChange: boolean;
 }): boolean {
   if (input.supersededInChange || input.baseText === undefined) return true;
-  if (String(input.requirement.status) !== String(input.baseStatus))
-    return true;
   return (
     requirementStatement(input.requirement, input.documentText) !==
     requirementStatementFromDocument(input.baseText)
   );
 }
 
-/** Whether a requirement is current and firm, so edits of its code are gated. */
+/**
+ * Whether a requirement is current and firm, so edits of its code are gated.
+ * `supersededBy` names the current requirement that replaces it, if any.
+ */
 export function isCurrentFirmRequirement(
   requirement: ExtractedEntity,
+  supersededBy?: (id: string) => string | undefined,
 ): boolean {
   if (requirement.type !== "req") return false;
   // A missing status reads as "undefined", which no retired word matches; a
-  // closed requirement is done and still governs, as in the hooks.
+  // closed requirement is done and still governs, as in the hooks, unless a
+  // current requirement supersedes it.
   if (isRetiredStatus(requirement.status as string | undefined)) return false;
+  if (supersededBy?.(requirement.id) !== undefined) return false;
   return (
     effectiveFirmness("req", requirement.firmness, requirement.origin) ===
     "firm"
@@ -179,40 +181,61 @@ export type RemovedFirmSymbol = {
   readonly sourceFile: string;
   readonly symbol: string;
   readonly requirementIds: readonly string[];
+  /**
+   * The whole file's code hash when the change edits the file of a
+   * file-level record rather than removing it; absent for a removal.
+   */
+  readonly codeHash?: string;
 };
 
 /**
- * The symbol records of `base` that `current` no longer has (by id), with
- * the requirements each implemented in `base`. Records that implemented
- * nothing are left out.
+ * The symbol records of `base` that `current` no longer has (by id), or
+ * has pointed at another symbol, with the requirements each
+ * implemented in `base`; for a record that stays, the requirements it no
+ * longer implements. Records that implemented nothing are left out.
  */
 export function removedSymbolRecords(
   base: readonly ExtractionResult[],
   current: readonly ExtractionResult[],
 ): RemovedFirmSymbol[] {
-  const kept = new Set(
+  const kept = new Map(
     current
       .filter((result) => result.entity.type === "symbol")
-      .map((result) => result.entity.id),
+      .map((result) => [result.entity.id, result]),
   );
+  const implemented = (result: ExtractionResult) => [
+    ...new Set(
+      result.relationships
+        .filter(
+          (relationship) =>
+            relationship.type === "implements" &&
+            relationship.to.startsWith("REQ-"),
+        )
+        .map((relationship) => relationship.to),
+    ),
+  ];
+  const fileOf = (result: ExtractionResult) =>
+    result.sourceFile ?? result.entity.source;
   return base.flatMap((result) => {
-    if (result.entity.type !== "symbol" || kept.has(result.entity.id))
-      return [];
-    const requirementIds = [
-      ...new Set(
-        result.relationships
-          .filter(
-            (relationship) =>
-              relationship.type === "implements" &&
-              relationship.to.startsWith("REQ-"),
-          )
-          .map((relationship) => relationship.to),
-      ),
-    ];
-    const sourceFile = result.sourceFile ?? result.entity.source;
+    if (result.entity.type !== "symbol") return [];
+    const before = implemented(result);
+    const after = kept.get(result.entity.id);
+    // A record that stays but names another symbol, or drops a requirement,
+    // releases that code from the rule as surely as removing it. A record
+    // moved with its file is left to the vanished-declaration check.
+    const requirementIds =
+      after === undefined || after.entity.title !== result.entity.title
+        ? before
+        : before.filter((id) => !implemented(after).includes(id));
     return requirementIds.length === 0
       ? []
-      : [{ sourceFile, symbol: result.entity.title, requirementIds }];
+      : [
+          {
+            sourceFile: fileOf(result),
+            symbol: result.entity.title,
+            requirementIds,
+          },
+        ];
   });
 }
 
@@ -241,6 +264,11 @@ export type FirmEditGateOptions = {
    * supersede checks.
    */
   readonly requirementChanged: (requirement: ExtractedEntity) => boolean;
+  /**
+   * The current requirement that supersedes a requirement, if any: a
+   * replaced requirement no longer guards its code.
+   */
+  readonly supersededBy?: (id: string) => string | undefined;
   /** A receipt file's text, by workspace-relative path; undefined when absent. */
   readonly readReceipt: (relativePath: string) => string | undefined;
   /**
@@ -298,12 +326,15 @@ export function createFirmEditGateDiagnostics(
       gate(id, {
         sourceFile: removed.sourceFile,
         name: removed.symbol,
-        codeHash: () => FIRM_EDIT_REMOVED_CODE_HASH,
+        codeHash: () => removed.codeHash ?? FIRM_EDIT_REMOVED_CODE_HASH,
       });
   const diagnostics: KibiImpactDiagnostic[] = [];
   for (const id of [...symbolsByRequirement.keys()].sort()) {
     const requirement = options.readRequirement(id);
-    if (requirement === undefined || !isCurrentFirmRequirement(requirement))
+    if (
+      requirement === undefined ||
+      !isCurrentFirmRequirement(requirement, options.supersededBy)
+    )
       continue;
     if (options.requirementChanged(requirement)) continue;
     const statement = requirementStatement(

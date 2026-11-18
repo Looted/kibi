@@ -325,6 +325,29 @@ function collectSiblings(
   };
 }
 
+/**
+ * The siblings' steps as text for the write's result: Cursor, Gemini CLI and
+ * other text-only hosts never show the model structuredContent. None when
+ * the write has no siblings.
+ */
+export function siblingStepsText(
+  report: SiblingReport,
+): readonly { type: "text"; text: string }[] {
+  if (report.nextActions.length === 0) return [];
+  return [
+    {
+      type: "text",
+      text: [
+        `Requirements on the same quantity: ${report.nextActions.length} required step(s), also in nextActions:`,
+        ...report.nextActions.map(
+          (action, index) =>
+            `${index + 1}. ${action.operation}: ${action.reason} Input: ${JSON.stringify(action.input)}`,
+        ),
+      ].join("\n"),
+    },
+  ];
+}
+
 function siblingMessage(sibling: SiblingRequirement, change: string): string {
   const link =
     sibling.relation === "shared_fact"

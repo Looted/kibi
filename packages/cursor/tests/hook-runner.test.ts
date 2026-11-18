@@ -932,6 +932,33 @@ function cursorLinkedWorkspace(): string {
 }
 
 describe("Cursor hook command pre-edit knowledge (end to end)", () => {
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-e2e-data-");
+    tempRoots.push(pluginData);
+    const shell = (command: string) =>
+      runCursorHookCommand(
+        "preToolUse",
+        {
+          hook_event_name: "preToolUse",
+          conversation_id: "cursor-shell-1",
+          workspace_roots: [workspace],
+          cwd: workspace,
+          tool_name: "Shell",
+          tool_input: { command },
+        },
+        pluginData,
+      );
+    expect(JSON.parse((await shell("cat src/checkout.ts")).stdout)).toEqual({});
+    const output = JSON.parse(
+      (await shell("sed -i s/100/1000/ src/checkout.ts")).stdout,
+    ) as CursorHookResult;
+    expect(output.permission).toBe("allow");
+    expect(output.agent_message).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+  });
+
   test("the preToolUse command gives an edit of linked code its requirement, what it must keep true and its decision within the snippet budget", async () => {
     const workspace = cursorLinkedWorkspace();
     const pluginData = createTempRoot("kibi-cursor-e2e-data-");

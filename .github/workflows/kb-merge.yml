@@ -140,5 +140,7 @@ jobs:
           base: develop
           branches: ${{ needs.find-conflicts.outputs.branches }}
           kibi: node ${{ github.workspace }}/packages/cli/bin/kibi
-          check: sh scripts/proof-gate.sh
+          # develop's proof gate, not the copy in the merged tree, run with
+          # node so no bunfig.toml in the tree is read.
+          check: KIBI_RUNNER=node sh ${{ github.workspace }}/scripts/proof-gate.sh
           skip-label: train

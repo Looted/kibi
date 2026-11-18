@@ -95,7 +95,7 @@ export function prepareChangedIndex(
  * The repo-relative forms of `paths` that exist in the working tree or in
  * the index: `git add` refuses a path that is neither, and `git add -A`
  * records the deletion of one that is only in the index. A named path that
- * is neither is refused: dropping it would judge none of the changes it
+ * is neither, nor in the last commit (a staged deletion), is refused: dropping it would judge none of the changes it
  * names and report a pass.
  */
 function addablePaths(
@@ -119,11 +119,19 @@ function addablePaths(
     cwd: workspaceRoot,
     env,
   }).split("\0");
-  const missing = relative.filter(
+  const absent = relative.filter(
     (file) =>
       file !== ".kb" &&
       !existsSync(path.join(workspaceRoot, file)) &&
       !tracked.some((t) => t === file || t.startsWith(`${file}/`)),
+  );
+  // A path whose deletion or rename is already staged is in neither, but
+  // the last commit has it: the index copy already holds that change, so
+  // the path is judged with nothing to add.
+  const committed =
+    absent.length === 0 ? [] : inHead(workspaceRoot, absent, git, env);
+  const missing = absent.filter(
+    (file) => !committed.some((t) => t === file || t.startsWith(`${file}/`)),
   );
   if (missing.length > 0)
     throw new Error(
@@ -134,6 +142,23 @@ function addablePaths(
       existsSync(path.join(workspaceRoot, file)) ||
       tracked.some((t) => t === file || t.startsWith(`${file}/`)),
   );
+}
+
+/** The files under `paths` in the last commit; none before the first one. */
+function inHead(
+  workspaceRoot: string,
+  paths: readonly string[],
+  git: GitRunner,
+  env: NodeJS.ProcessEnv,
+): string[] {
+  try {
+    return git(["ls-tree", "-r", "-z", "--name-only", "HEAD", "--", ...paths], {
+      cwd: workspaceRoot,
+      env,
+    }).split("\0");
+  } catch {
+    return [];
+  }
 }
 
 /**

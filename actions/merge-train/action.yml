@@ -47,7 +47,10 @@ inputs:
     description: >-
       Shell command run in the train after each pull request is merged into
       it; a pull request that fails it is ejected before the train is pushed.
-      $KIBI and $KIBI_BRANCH are set. Use "" to run no check.
+      $KIBI and $KIBI_BRANCH are set; the GitHub tokens are removed from its
+      environment, since the train holds pull request content. Run a script
+      from the base checkout by absolute path, not the train's copy. Use ""
+      to run no check.
     required: false
     default: "$KIBI check"
   prefix:

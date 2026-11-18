@@ -867,17 +867,23 @@ in `package.json`.
 The project file and the legacy `.env` come with the checkout, so Kibi lets
 them set only provider secrets and provider settings: `KIBI_JEV_*`, and keys
 named like a provider secret or setting (ending in `_API_KEY`, `_KEY`,
-`_TOKEN`, `_SECRET`, `_PASSWORD`, `_URL`, `_ENDPOINT`, `_MODEL`, `_ORG`,
-`_ORG_ID`, `_ORGANIZATION`, `_PROJECT`, `_PROJECT_ID` or `_REGION`, such as
+`_TOKEN`, `_SECRET`, `_PASSWORD`, `_MODEL`, `_ORG`, `_ORG_ID`,
+`_ORGANIZATION`, `_PROJECT`, `_PROJECT_ID` or `_REGION`, such as
 `TYPESAFE_API_KEY`). Every other key there is ignored, including variables
-that make a process load code, such as `OPENSSL_CONF` or `_JAVA_OPTIONS`.
+that make a process load code, such as `OPENSSL_CONF` or `_JAVA_OPTIONS`, and
+provider endpoints (`_URL`, `_ENDPOINT`, such as `TYPESAFE_BASE_URL`), which
+would let a cloned repository send the API key you keep in the user env file
+to its own server.
 That covers any other `KIBI_*` key, such as
 `KIBI_NODE_PATH`, `KIBI_SWIPL`, `KIBI_KB_PL_PATH`, `KIBI_RUNTIME_DIR`,
 `KIBI_ENV_FILE`, `KIBI_WORKSPACE` or `KIBI_BRANCH`, and process variables such
 as `PATH`, `HOME`, `TMPDIR`, `NODE_OPTIONS`, `NODE_*`, `LD_*`, `DYLD_*`,
 `BUN_*`, `GIT_*`, `XDG_*`, `SWI_HOME_DIR` and the proxy variables, so a cloned
 repository cannot choose what Kibi runs or loads. Each command names the
-ignored keys once on stderr (never their values). Set those keys in the process
+ignored keys once on stderr (never their values; a line that is not a plain
+upper-case variable name is only counted, and a legacy `.env` names only the
+Kibi and process keys it tries to set, not your application's own settings).
+A quoted value may span lines, as a PEM key does. Set those keys in the process
 environment or in `~/.config/kibi/env`, which Kibi applies unfiltered.
 
 Optional settings:

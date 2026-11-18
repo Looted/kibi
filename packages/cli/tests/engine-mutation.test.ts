@@ -4119,6 +4119,45 @@ describe("engine client responses", () => {
     expect(engine.requests.map((r) => r.method)).toStrictEqual(["handshake"]);
   });
 
+  test("send a request a draining daemon refused again on a new connection", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    let refusals = 1;
+    let refusal = "Kibi engine is shutting down; request was not executed";
+    const engine = await fakeEngine(workspace, (request) =>
+      request.method === "query" && refusals-- > 0
+        ? { ok: false, error: refusal }
+        : undefined,
+    );
+    const c = client(workspace);
+    await c.query("kb_a");
+    expect(engine.requests.map((r) => r.method)).toStrictEqual([
+      "handshake",
+      "command",
+      "query",
+      "handshake",
+      "command",
+      "query",
+    ]);
+    expect(engine.sockets).toHaveLength(2);
+    expect(engine.sockets[0]?.destroyed).toBe(true);
+    // A daemon that keeps refusing fails the request after a few attempts.
+    refusals = 99;
+    engine.requests.length = 0;
+    await expect(client(workspace).query("kb_a")).rejects.toThrow(
+      "Kibi engine is shutting down; request was not executed",
+    );
+    expect(engine.requests.filter((r) => r.method === "query")).toHaveLength(4);
+    // Any other failure is not retried.
+    refusals = 1;
+    refusal = "Kibi engine is shutting down";
+    engine.requests.length = 0;
+    await expect(client(workspace).query("kb_a")).rejects.toThrow(
+      "Kibi engine is shutting down",
+    );
+    expect(engine.requests.filter((r) => r.method === "query")).toHaveLength(1);
+  });
+
   test("retry the handshakes when the write to a draining daemon fails", async () => {
     const workspace = tempDir();
     prepareStore(workspace);

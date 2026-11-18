@@ -181,7 +181,7 @@ describe("helpers", () => {
     );
   });
 
-  test("a requirement is restated only by a new statement, status or supersede", () => {
+  test("a requirement is restated only by a new statement or supersede", () => {
     const doc = (text: string) => `---\nsemantic_text: ${text}\n---\n`;
     const restated = (
       extra: Partial<Parameters<typeof firmRequirementRestated>[0]>,
@@ -190,14 +190,16 @@ describe("helpers", () => {
         requirement: req("REQ-a"),
         documentText: `${doc(STATEMENT)}\n## Notes\n\nA note.\n`,
         baseText: doc(STATEMENT),
-        baseStatus: "open",
         supersededInChange: false,
         ...extra,
       });
     // A note, tag or link is not a restatement.
     expect(restated({})).toBe(false);
     expect(restated({ baseText: doc("Keys never expire.") })).toBe(true);
-    expect(restated({ baseStatus: "draft" })).toBe(true);
+    // A status change is not: a closed or in-progress requirement still guards.
+    expect(
+      restated({ requirement: { ...req("REQ-a"), status: "closed" } }),
+    ).toBe(false);
     expect(restated({ baseText: undefined })).toBe(true);
     expect(restated({ supersededInChange: true })).toBe(true);
   });
@@ -269,15 +271,46 @@ describe("helpers", () => {
     ];
     expect(
       removedSymbolRecords(base, [
-        record("SYM-kept", []),
+        record("SYM-kept", [implementsReq("REQ-a")]),
         { entity: req("SYM-gone"), relationships: [] } as ExtractionResult,
+        record("SYM-nofile", [implementsReq("REQ-c")], {
+          sourceFile: undefined,
+        }),
       ]),
     ).toEqual([
       { sourceFile: "src/keys.ts", symbol: "gone", requirementIds: ["REQ-a"] },
+    ]);
+    // A kept record that drops a link, or now names another symbol, releases
+    // that code from the rule too; one moved with its file does not.
+    const two = [
+      record("SYM-narrowed", [implementsReq("REQ-a"), implementsReq("REQ-b")]),
+      record("SYM-retitled", [implementsReq("REQ-a")]),
+      record("SYM-moved", [implementsReq("REQ-a")]),
+    ];
+    expect(
+      removedSymbolRecords(two, [
+        record("SYM-narrowed", [implementsReq("REQ-b")]),
+        {
+          ...record("SYM-retitled", [implementsReq("REQ-a")]),
+          entity: {
+            ...record("SYM-retitled", []).entity,
+            title: "helper",
+          } as ExtractedEntity,
+        },
+        record("SYM-moved", [implementsReq("REQ-a")], {
+          sourceFile: "src/other.ts",
+        }),
+      ]),
+    ).toEqual([
       {
-        sourceFile: ".kb/symbols.yaml",
-        symbol: "nofile",
-        requirementIds: ["REQ-c"],
+        sourceFile: "src/keys.ts",
+        symbol: "narrowed",
+        requirementIds: ["REQ-a"],
+      },
+      {
+        sourceFile: "src/keys.ts",
+        symbol: "retitled",
+        requirementIds: ["REQ-a"],
       },
     ]);
   });
@@ -307,6 +340,10 @@ describe("helpers", () => {
       ),
     ).toBe(true);
     expect(isCurrentFirmRequirement(req("ADR-a", { type: "adr" }))).toBe(false);
+    // A closed requirement a current one supersedes no longer guards.
+    const closed = req("REQ-a", { status: "closed" });
+    expect(isCurrentFirmRequirement(closed, () => "REQ-b")).toBe(false);
+    expect(isCurrentFirmRequirement(closed, () => undefined)).toBe(true);
   });
 });
 
@@ -519,6 +556,28 @@ describe("createFirmEditGateDiagnostics", () => {
     );
   });
 
+  test("a requirement a current one supersedes is not gated", () => {
+    const expire = symbol("expireKey");
+    const requirements = {
+      "REQ-key-expiry": req("REQ-key-expiry", { status: "closed" }),
+    };
+    expect(
+      gate([expire], {
+        requirements,
+        extra: {
+          supersededBy: (id) =>
+            id === "REQ-key-expiry" ? "REQ-key-expiry-v2" : undefined,
+        },
+      }),
+    ).toEqual([]);
+    expect(
+      gate([expire], {
+        requirements,
+        extra: { supersededBy: () => undefined },
+      }).map((diagnostic) => diagnostic.id),
+    ).toEqual(["firm_edit_unreviewed"]);
+  });
+
   test("judges any changed code of current firm requirements, whatever its role", () => {
     for (const role of ["structural", "unknown"] as const)
       expect(
@@ -621,6 +680,43 @@ describe("createFirmEditGateDiagnostics", () => {
         extra: { removedSymbols: [removed] },
       })[0]?.evidence?.reviews,
     ).toHaveLength(1);
+  });
+
+  test("an edited file-level record is judged by its whole file's hash", () => {
+    const removed = {
+      sourceFile: "config/limits.json",
+      symbol: "limits.json",
+      requirementIds: ["REQ-key-expiry"],
+      codeHash: "sha256:file",
+    };
+    const keeps = (codeHash: string) =>
+      receipts({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-key-expiry",
+        sourceFile: "config/limits.json",
+        symbol: "limits.json",
+        verdict: "keeps",
+        note: "n",
+        statementHash: firmEditStatementHash(STATEMENT),
+        codeHash,
+        startLine: 1,
+        endLine: 1,
+        recordedAt: "2026-11-18T00:00:00.000Z",
+      });
+    expect(
+      gate([], {
+        extra: { removedSymbols: [removed] },
+        readReceipt: keeps("sha256:file"),
+      }),
+    ).toEqual([]);
+    expect(
+      gate([], {
+        extra: { removedSymbols: [removed] },
+        readReceipt: keeps(FIRM_EDIT_REMOVED_CODE_HASH),
+      }).map((diagnostic) => diagnostic.message),
+    ).toEqual([
+      `The change edits code that implements REQ-key-expiry, a firm rule the person set, without a current review of that code: limits.json in config/limits.json (the code changed after the review). Statement: "${STATEMENT}"`,
+    ]);
   });
 
   test("files with unstaged edits get a staged review input", () => {

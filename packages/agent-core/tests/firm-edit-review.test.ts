@@ -11,6 +11,7 @@ import {
   FIRM_EDIT_REVIEWS_DIR,
   type FirmEditReceipt,
   firmEditCodeHash,
+  firmEditFileHash,
   firmEditLegacyReceiptPath,
   firmEditReceiptMismatch,
   firmEditReceiptPath,
@@ -90,6 +91,13 @@ describe("hashes", () => {
       sha("export function renderKey(key: string): string {"),
     );
     expect(firmEditCodeHash(SOURCE, 7, 7)).toBe(sha("}"));
+  });
+
+  test("a file hash covers every line of the file", () => {
+    expect(firmEditFileHash(SOURCE)).toBe(
+      firmEditCodeHash(SOURCE, 1, SOURCE.split("\n").length) as string,
+    );
+    expect(firmEditFileHash("")).toBe(sha(""));
   });
 
   test("a span outside the text has no hash", () => {

@@ -42,7 +42,6 @@ import {
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
-import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -50,6 +49,7 @@ import {
   fileKnowledgeSnippet,
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput } from "./hook-input.js";
 import {
@@ -143,6 +143,7 @@ function firmNotice(
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
+    absolutePath: path.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
@@ -381,6 +382,29 @@ export async function runHook(
           };
         }
 
+        // A shell call that writes files in place gets the firm notice an
+        // edit of those files would, read as a whole-file write.
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const env = environment.env ?? process.env;
+          for (const absolute of shellToolEditPaths(
+            input.toolName,
+            input.toolInput,
+            input.cwd ?? cwd,
+          )) {
+            const notice = firmNotice(
+              cwd,
+              getSourceLinkedSymbols(cwd, absolute, stateDir),
+              undefined,
+              session,
+              env,
+              false,
+            );
+            if (notice === undefined) continue;
+            trace.action = "edit_snippet";
+            return { permission: "allow", agent_message: notice };
+          }
+        }
+
         const primaryPath = resolvePrimaryPath(input);
         if (
           !primaryPath ||
@@ -498,13 +522,7 @@ export async function runHook(
         // Nothing is tracked in a workspace that never adopted Kibi.
         if (!kibiReady) return emptyResult();
         try {
-          recordToolTelemetry(
-            input,
-            cwd,
-            stateDir,
-            startedAt,
-            environment.env,
-          );
+          recordToolTelemetry(input, cwd, stateDir, startedAt, environment.env);
         } catch {
           // Telemetry is best effort and must never change the hook's output.
         }

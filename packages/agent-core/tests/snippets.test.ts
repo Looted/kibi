@@ -338,6 +338,51 @@ describe("shared file knowledge snippet", () => {
     expect(snippet?.join("\n")).not.toContain("Finance imports");
   });
 
+  test("a closed requirement superseded by an unlisted one is marked, listed last and not grounded", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-csv-old": {
+        id: "REQ-csv-old",
+        title: "Reports export as CSV with comma separators",
+        status: "closed",
+        firmness: "firm",
+        supersededBy: "REQ-csv-new",
+        statement: "Reports export as CSV with comma separators.",
+        why: { recorded: true, text: "Finance imports.", from: "rationale" },
+      },
+      "REQ-audit": {
+        id: "REQ-audit",
+        title: "Exports are audited",
+        status: "open",
+        firmness: "default",
+        why: { recorded: false },
+      },
+    };
+    const snippet = fileKnowledgeSnippet({
+      relativePath: "src/x.ts",
+      symbols: [
+        {
+          id: "SYM-export",
+          title: "exportCsv",
+          line: 1,
+          endLine: 5,
+          implements: ["REQ-csv-old", "REQ-audit"],
+          coveredBy: [],
+          executableFor: [],
+        },
+      ],
+      surface: "edit",
+      summarize: (id) => summaries[id] ?? { id },
+    })?.split("\n");
+    expect(snippet?.slice(1, 3)).toEqual([
+      "- REQ-audit: Exports are audited — exportCsv",
+      "- REQ-csv-old (closed, superseded by REQ-csv-new): Reports export as CSV with comma separators — exportCsv",
+    ]);
+    expect(snippet?.join("\n")).not.toContain("Finance imports");
+    expect(
+      requirementGroundingLines("REQ-csv-old", (id) => summaries[id] ?? { id }),
+    ).toEqual([]);
+  });
+
   test("a superseded lead requirement gets no grounding lines", () => {
     const snippet = fileKnowledgeSnippet({
       relativePath: "src/checkout.ts",

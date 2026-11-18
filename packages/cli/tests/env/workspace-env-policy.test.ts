@@ -120,8 +120,6 @@ describe("isWorkspaceEnvKeyAllowed", () => {
       "kibi_jev_model",
       "PROXY_TOKEN",
       "NODEPOOL_TOKEN",
-      "ANTHROPIC_BASE_URL",
-      "AZURE_OPENAI_ENDPOINT",
       "OPENAI_ORG_ID",
       "VENDOR_MODEL",
       "typesafe_api_key",
@@ -147,6 +145,10 @@ describe("isWorkspaceEnvKeyAllowed", () => {
       "NODE_AUTH_TOKEN",
       "GIT_TOKEN",
       "SSH_KEY",
+      // An endpoint could send the user's own key to the repository's server.
+      "ANTHROPIC_BASE_URL",
+      "TYPESAFE_BASE_URL",
+      "AZURE_OPENAI_ENDPOINT",
     ]) {
       expect([key, isWorkspaceEnvKeyAllowed(key)]).toEqual([key, false]);
     }
@@ -295,6 +297,44 @@ describe("bootstrapKibiEnvironment workspace policy", () => {
       "KIBI_SWIPL",
     ]);
     expect(result.keysIgnoredFromLegacy).toEqual(["KIBI_RUNTIME_DIR"]);
+  });
+
+  test("a notice never prints a malformed line, and a legacy .env names only Kibi and process keys", () => {
+    const notices = (files: { project?: string; legacy?: string }) => {
+      const { root, xdg } = workspace(files);
+      const seen: string[] = [];
+      bootstrapKibiEnvironment({
+        env: { KIBI_WORKSPACE: root },
+        xdgConfigHome: xdg,
+        warn: (m) => seen.push(m.replace(` from ${root}`, " from <ws>")),
+      });
+      return seen;
+    };
+    // An application's own settings in a legacy .env are not Kibi's.
+    expect(notices({ legacy: "PORT=3000\nDATABASE_HOST=db\n" })).toEqual([]);
+    expect(
+      notices({ legacy: "PORT=3000\nKIBI_BRANCH=main\nNODE_OPTIONS=-r x\n" }),
+    ).toEqual([
+      "[kibi] Ignored KIBI_BRANCH, NODE_OPTIONS from <ws>/.env: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.",
+    ]);
+    // A line that is not a conventional variable name may be part of a
+    // secret value: it is counted, never printed.
+    expect(
+      notices({ project: "PORT=3000\nc2VjcmV0LXRhaWw==\n{x=1\n" }),
+    ).toEqual([
+      "[kibi] Ignored PORT and 2 other lines from <ws>/.env.kibi: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.",
+    ]);
+    expect(notices({ project: "{x=1\n" })).toEqual([
+      "[kibi] Ignored 1 other line from <ws>/.env.kibi: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.",
+    ]);
+    expect(notices({ legacy: "{x=1\n" })).toEqual([]);
+    // A multi-line quoted value is one value, not a list of keys.
+    expect(
+      notices({
+        project:
+          'JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nc2VjcmV0LXRhaWw==\n-----END PRIVATE KEY-----"\n',
+      }),
+    ).toEqual([]);
   });
 
   test("an injected env prints no notice unless a sink is given", () => {

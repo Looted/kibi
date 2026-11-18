@@ -733,6 +733,11 @@ export type EntitySummary = {
   why?: EntityReason;
   /** The claim a fact models, from its typed front matter fields. */
   claim?: FactClaim;
+  /**
+   * The current requirement that supersedes this closed requirement, so it
+   * no longer guards its code.
+   */
+  supersededBy?: string;
 };
 
 /**
@@ -997,6 +1002,124 @@ function shardLinksFrom(workspaceRoot: string, entityId: string): EntityLink[] {
   return cached.byFrom.get(entityId) ?? [];
 }
 
+const RETIRED_STATUS =
+  /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+
+/**
+ * True for a status that marks an entity as no longer current policy. The
+ * hooks and the commit gate share it, so they agree on which firm
+ * requirements still guard their code. `closed` is not retired: a closed
+ * requirement is done and still governs, unless a current requirement
+ * supersedes it (see `supersedingRequirement`).
+ */
+export function isRetiredStatus(status: string | undefined): boolean {
+  // `String(undefined)` is "undefined", which names no retired status.
+  return RETIRED_STATUS.test(String(status));
+}
+
+/**
+ * Whether a requirement summary is a current firm rule: firm, not retired,
+ * and not replaced by a current requirement. The hooks ask before an edit of
+ * its code; the commit gate applies the same rule.
+ */
+export function isCurrentFirmSummary(summary: EntitySummary): boolean {
+  return (
+    summary.firmness === "firm" &&
+    !isRetiredStatus(summary.status) &&
+    summary.supersededBy === undefined
+  );
+}
+
+/**
+ * The `supersedes` records of a relationship shard. A shard can be large, so
+ * only the block records that mention `supersedes` are parsed; a flow-style
+ * shard, or a block record the cut cannot read whole, is parsed in full.
+ */
+function shardSupersedes(text: string): { from: string; to: string }[] {
+  const pick = (records: RawRecord[]) =>
+    records.flatMap(({ type, from, to }) =>
+      type === "supersedes" &&
+      typeof from === "string" &&
+      typeof to === "string"
+        ? [{ from, to }]
+        : [],
+    );
+  if (!/^relationships:\s*\[/m.test(text)) {
+    const blocks = text
+      .split(/\n(?=\s*- )/)
+      .filter((block) => block.includes("supersedes"));
+    const records = scanRecordSequence(
+      `relationships:\n${blocks.map((block) => block.replace(/^relationships:\s*\n/, "")).join("\n")}\n`,
+      "relationships",
+    );
+    const found = pick(records);
+    if (
+      found.length ===
+      records.filter((record) => record.type === "supersedes").length
+    )
+      return found;
+  }
+  return pick(scanRecordSequence(text, "relationships"));
+}
+
+/**
+ * Requirement id -> the current requirement that supersedes it, read from
+ * the front matter links of every requirement and the relationship-shard
+ * records. A retired successor replaces nothing, so it is not listed. Only
+ * documents and shards that mention `supersedes` are parsed.
+ */
+function currentSuccessors(workspaceRoot: string): Map<string, string> {
+  const edges: { from: string; to: string }[] = [];
+  const list = (dir: string, suffix: string) => {
+    try {
+      return fs
+        .readdirSync(path.join(workspaceRoot, dir))
+        .filter((name) => name.endsWith(suffix))
+        .sort();
+    } catch {
+      // A missing directory holds nothing.
+    }
+    return [];
+  };
+  for (const name of list(".kb/requirements", ".md")) {
+    const id = name.slice(0, -3);
+    const text = readText(path.join(workspaceRoot, ".kb/requirements", name));
+    if (text === undefined || !text.includes("supersedes")) continue;
+    // Shard records are read once below, not per document.
+    for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
+      if (link.type === "supersedes") edges.push({ from: id, to: link.target });
+  }
+  for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
+    const text = readText(path.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    if (text === undefined || !text.includes("supersedes")) continue;
+    for (const { from, to } of shardSupersedes(text)) edges.push({ from, to });
+  }
+  const successors = new Map<string, string>();
+  const retired = new Map<string, boolean>();
+  for (const { from, to } of edges) {
+    if (from === to || successors.has(to) || !from.startsWith("REQ-")) continue;
+    if (!retired.has(from))
+      retired.set(
+        from,
+        isRetiredStatus(readSummaryHead(workspaceRoot, from, false).status),
+      );
+    if (retired.get(from) === false) successors.set(to, from);
+  }
+  return successors;
+}
+
+/**
+ * The current requirement that supersedes `requirementId`, or undefined. A
+ * replaced requirement must be `closed`, which alone reads as current, so
+ * the hooks, the commit gate and the review command all ask this.
+ */
+export function supersedingRequirement(
+  workspaceRoot: string,
+  requirementId: string,
+): string | undefined {
+  return currentSuccessors(workspaceRoot).get(requirementId);
+}
+
 /** One frontmatter `links:` entry, collected fully before it is typed. */
 type PendingLink = { type?: string; target?: string; bare?: string };
 
@@ -1017,6 +1140,21 @@ function flushLink(links: EntityLink[], pending: PendingLink | undefined) {
 export function readEntitySummary(
   workspaceRoot: string,
   entityId: string,
+): EntitySummary {
+  const summary = readSummaryHead(workspaceRoot, entityId);
+  // Only a closed requirement can be a replaced one (an open one is flagged
+  // by superseded-requirement-open), so only it pays for the scan.
+  if (summary.status === "closed" && entityId.startsWith("REQ-")) {
+    const successor = supersedingRequirement(workspaceRoot, entityId);
+    if (successor !== undefined) summary.supersededBy = successor;
+  }
+  return summary;
+}
+
+function readSummaryHead(
+  workspaceRoot: string,
+  entityId: string,
+  withShardLinks = true,
 ): EntitySummary {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId)) return { id: entityId };
@@ -1154,7 +1292,7 @@ export function readEntitySummary(
   const seen = new Set<string>();
   for (const link of [
     ...authored,
-    ...shardLinksFrom(workspaceRoot, entityId),
+    ...(withShardLinks ? shardLinksFrom(workspaceRoot, entityId) : []),
   ]) {
     const key = `${link.type}\u0000${link.target}`;
     if (link.target.length === 0 || seen.has(key)) continue;

@@ -18,6 +18,8 @@
 
 import { effectiveFirmness, firmnessRef } from "./decision-firmness.js";
 import { requirementSemanticText } from "./extractors/markdown.js";
+import { isRetiredAuthoredStatus } from "./public/operations/entity-context.js";
+import { markdownSections, requirementReason } from "./search-answer.js";
 
 /** A requirement or ADR as authored: front matter and Markdown body. */
 export type DecisionDocument = Readonly<{
@@ -31,11 +33,10 @@ export type DecisionClaimField =
   | "title"
   | "statement"
   | "reason"
+  | "source"
   | "body"
+  | "status"
   | "firmness";
-
-/** The reason a requirement records when the person gave none. */
-const NO_REASON = "reason not stated";
 
 function normalized(value: unknown): string {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
@@ -53,11 +54,34 @@ function requirementStatement(document: DecisionDocument): string {
 }
 
 /**
+ * The reason readers quote for a requirement: its `rationale` field, else
+ * its Why, Rationale or Context section, else its "Why this changed"
+ * section, as kb_search and the hooks read it; "" when none is recorded
+ * ("Reason not stated" records none).
+ */
+function quotedReason(document: DecisionDocument): string {
+  const reason = requirementReason(
+    { rationale: document.data.rationale },
+    document.body,
+    [],
+  );
+  return reason.recorded ? normalized(reason.text) : "";
+}
+
+/** The requirement's Source section: the person's words it was recorded from. */
+function sourceSection(document: DecisionDocument): string {
+  return normalized(
+    (markdownSections(document.body).sections.get("source") ?? []).join(" "),
+  );
+}
+
+/**
  * The claim fields that differ between two versions of one decision. A
  * requirement's claim is its title, its stated meaning, the statement its
  * body derives and its recorded reason (other context may change freely);
  * an ADR's claim is its
- * title and whole body. Lowering a firm decision's firmness changes it too.
+ * title and whole body. Lowering a firm decision's firmness changes it too,
+ * and so does retiring it or bringing it back from a retired status.
  */
 export function decisionClaimChanges(
   before: DecisionDocument,
@@ -73,18 +97,25 @@ export function decisionClaimChanges(
         normalized(requirementSemanticText(after.body))
     )
       changed.push("statement");
-    // The recorded reason is quoted as the person's, so rewriting it changes
-    // the decision too; giving a reason where none was recorded does not.
-    const reason = normalized(before.data.rationale);
-    if (
-      reason !== "" &&
-      reason.toLowerCase() !== NO_REASON &&
-      reason !== normalized(after.data.rationale)
-    )
-      changed.push("reason");
+    // The reason is quoted as the person's, wherever it is kept (the field
+    // or a body section), so rewriting it changes the decision too, and so
+    // does giving one where none was recorded ("Reason not stated"): search
+    // would credit the person with words they never said.
+    if (quotedReason(before) !== quotedReason(after)) changed.push("reason");
+    // The Source section quotes the person's words.
+    const source = sourceSection(before);
+    if (source !== "" && source !== sourceSection(after))
+      changed.push("source");
   } else if (normalized(before.body) !== normalized(after.body)) {
     changed.push("body");
   }
+  // Retiring a rule drops it, and reopening one brings back whatever was
+  // written while it was retired.
+  if (
+    isRetiredAuthoredStatus(before.data.status) !==
+    isRetiredAuthoredStatus(after.data.status)
+  )
+    changed.push("status");
   if (
     effectiveFirmness(before.type, before.data.firmness, before.data.origin) ===
       "firm" &&

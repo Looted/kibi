@@ -222,6 +222,28 @@ describe("collectOwnerFindings", () => {
       ["lib/newmod.ts", "SYM-lib-newmod-limit"],
       ["src/newmod.ts", "SYM-src-newmod-limit"],
     ]);
+    // A record written for the declaration but not staged is offered again
+    // under its own id.
+    const again = collectOwnerFindings({
+      traceability: [],
+      diagnostics: [
+        manifest("lib/newmod.ts", [{ title: "LIMIT", line: 1 }]),
+        manifest("src/newmod.ts", [{ title: "LIMIT", line: 1 }]),
+      ],
+      symbols: [shape("lib/newmod.ts"), shape("src/newmod.ts")],
+      candidatesByFile: new Map(),
+      readRequirement,
+      takenIds: ["SYM-newmod-limit"],
+      writtenRecords: [
+        { id: "SYM-newmod-limit", file: "src/newmod.ts", name: "LIMIT" },
+      ],
+    });
+    expect(
+      again.map((finding) => [finding.file, finding.payloads[0]?.id]),
+    ).toEqual([
+      ["lib/newmod.ts", "SYM-lib-newmod-limit"],
+      ["src/newmod.ts", "SYM-newmod-limit"],
+    ]);
   });
 
   test("falls back to the extracted line, then to 0", () => {

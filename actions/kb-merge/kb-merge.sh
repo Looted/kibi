@@ -105,8 +105,15 @@ open_pulls() {
 }
 
 candidates() {
-  local wanted pulls head cross labels
-  wanted=$(wanted_branches)
+  local wanted pulls head cross labels filtered=""
+  # A malformed list fails here rather than dropping the filter and handling
+  # every open pull request; a list that names none handles none.
+  local requested="${KB_MERGE_BRANCHES:-}"
+  if [ -n "${requested//[[:space:]]/}" ]; then filtered=1; fi
+  if ! wanted=$(wanted_branches); then
+    echo "::error::KB_MERGE_BRANCHES is not a JSON list of branch names or a space-separated list: $requested" >&2
+    return 1
+  fi
   # A command substitution does not inherit `set -e`, so a failed listing
   # (a token without pull-requests: read) is caught here, not read as "none".
   if ! pulls=$(open_pulls); then
@@ -115,7 +122,7 @@ candidates() {
   fi
   while IFS=$'\t' read -r head cross labels; do
     [ -n "$head" ] || continue
-    if [ -n "$wanted" ] && ! grep -Fxq -- "$head" <<<"$wanted"; then continue; fi
+    if [ -n "$filtered" ] && ! grep -Fxq -- "$head" <<<"$wanted"; then continue; fi
     if [ "$cross" = "true" ]; then
       echo "$head: skipped, the pull request comes from a fork and cannot be pushed to" >&2
       continue
@@ -208,6 +215,10 @@ verify_one() {
   local head="$1"
   (
     cd "$TREE"
+    # The tree holds pull request content: its commands never get the token
+    # that pushes.
+    unset GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN \
+      ACTIONS_RUNTIME_TOKEN ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
     export KIBI="$KIBI" KIBI_BRANCH="$head"
     if ! bash -c "$KIBI sync" >&2; then
       echo "kibi sync failed on the merged tree"
