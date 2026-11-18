@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Passes every staged entry to the firm-edit gate and analyzes the base text of unread files; validation rules and scope are unchanged.",
+  "note": "Only adds working-tree record ids to the type-shape id offer; rules, staged focus and exit codes are unchanged.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:53a8e6d36331f2d61db6e2b551c052191831061981c5531045062bb236349739",
-  "startLine": 822,
-  "endLine": 1821,
-  "recordedAt": "2026-11-18T06:17:58.271Z"
+  "codeHash": "sha256:1c01ccf95d4b7c2d01683ff57c0a0c500b3011f16d28e5c49442d7c2b6fcaa9c",
+  "startLine": 823,
+  "endLine": 1829,
+  "recordedAt": "2026-11-18T08:08:37.686Z"
 }

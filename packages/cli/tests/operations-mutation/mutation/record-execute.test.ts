@@ -11,6 +11,7 @@ import { WRITTEN_REQUIREMENT } from "../../../src/operations/mutation/implemente
 import {
   RECORD_DEPS,
   type RecordDeps,
+  authoredRequirementIds,
   executeRecord,
 } from "../../../src/operations/mutation/record-execute.js";
 import type { RecordInput } from "../../../src/operations/mutation/record.js";
@@ -132,6 +133,29 @@ describe("kb_record runs its one payload through kb_upsert, then kb_check change
       expect(goals).toEqual([]);
       expect(await exists("REQ-elsewhere")).toBe(false);
       expect(goals).toEqual(["once((kb_entity('REQ-elsewhere', _, _)))"]);
+      // A document filed in a subdirectory, under another name, holds its id
+      // in its front matter.
+      mkdirSync(path.join(root, ".kb", "requirements", "billing"));
+      writeFileSync(
+        path.join(root, ".kb", "requirements", "billing", "other.md"),
+        "---\ntitle: x\nid: 'REQ-other-return-one'\n---\n\nbody\n",
+      );
+      writeFileSync(
+        path.join(root, ".kb", "requirements", "billing", "notes.txt"),
+        "id: REQ-not-markdown\n",
+      );
+      const fresh = RECORD_DEPS.exists({
+        workspaceRoot: root,
+        prolog: { query: async () => ({ success: false, bindings: {} }) },
+      } as unknown as OperationContext);
+      expect(await fresh("REQ-other-return-one")).toBe(true);
+      expect(await fresh("REQ-not-markdown")).toBe(false);
+      expect(authoredRequirementIds(root)).toEqual(
+        new Set(["REQ-on-disk", "REQ-other-return-one"]),
+      );
+      expect(authoredRequirementIds(path.join(root, "missing"))).toEqual(
+        new Set(),
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

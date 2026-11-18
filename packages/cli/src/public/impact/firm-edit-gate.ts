@@ -189,37 +189,53 @@ export type RemovedFirmSymbol = {
 };
 
 /**
- * The symbol records of `base` that `current` no longer has (by id), with
- * the requirements each implemented in `base`. Records that implemented
- * nothing are left out.
+ * The symbol records of `base` that `current` no longer has (by id), or
+ * has pointed at another symbol, with the requirements each
+ * implemented in `base`; for a record that stays, the requirements it no
+ * longer implements. Records that implemented nothing are left out.
  */
 export function removedSymbolRecords(
   base: readonly ExtractionResult[],
   current: readonly ExtractionResult[],
 ): RemovedFirmSymbol[] {
-  const kept = new Set(
+  const kept = new Map(
     current
       .filter((result) => result.entity.type === "symbol")
-      .map((result) => result.entity.id),
+      .map((result) => [result.entity.id, result]),
   );
+  const implemented = (result: ExtractionResult) => [
+    ...new Set(
+      result.relationships
+        .filter(
+          (relationship) =>
+            relationship.type === "implements" &&
+            relationship.to.startsWith("REQ-"),
+        )
+        .map((relationship) => relationship.to),
+    ),
+  ];
+  const fileOf = (result: ExtractionResult) =>
+    result.sourceFile ?? result.entity.source;
   return base.flatMap((result) => {
-    if (result.entity.type !== "symbol" || kept.has(result.entity.id))
-      return [];
-    const requirementIds = [
-      ...new Set(
-        result.relationships
-          .filter(
-            (relationship) =>
-              relationship.type === "implements" &&
-              relationship.to.startsWith("REQ-"),
-          )
-          .map((relationship) => relationship.to),
-      ),
-    ];
-    const sourceFile = result.sourceFile ?? result.entity.source;
+    if (result.entity.type !== "symbol") return [];
+    const before = implemented(result);
+    const after = kept.get(result.entity.id);
+    // A record that stays but names another symbol, or drops a requirement,
+    // releases that code from the rule as surely as removing it. A record
+    // moved with its file is left to the vanished-declaration check.
+    const requirementIds =
+      after === undefined || after.entity.title !== result.entity.title
+        ? before
+        : before.filter((id) => !implemented(after).includes(id));
     return requirementIds.length === 0
       ? []
-      : [{ sourceFile, symbol: result.entity.title, requirementIds }];
+      : [
+          {
+            sourceFile: fileOf(result),
+            symbol: result.entity.title,
+            requirementIds,
+          },
+        ];
   });
 }
 

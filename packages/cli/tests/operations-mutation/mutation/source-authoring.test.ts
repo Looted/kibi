@@ -346,6 +346,31 @@ describe("source paths", () => {
     );
     expect(self.code).toBe("SOURCE_PATH_INVALID");
     expect(self.message).toContain("without traversal");
+    for (const target of [
+      ".git/hooks/x.md",
+      "node_modules/x.md",
+      "a\\.git\\x.md",
+    ]) {
+      const refused = failure(() =>
+        canonicalSourcePath(
+          ctx,
+          input("req", "R-1", { document: { path: target } }),
+          { id: "R-1" },
+        ),
+      );
+      expect(refused.code).toBe("SOURCE_PATH_INVALID");
+      expect(refused.message).toContain("cannot target .git or node_modules");
+    }
+    // A backslash separates, as the receipt reports it.
+    expect(
+      canonicalSourcePath(
+        ctx,
+        input("adr", "ADR-1", {
+          document: { path: ".kb\\adr\\use-postgres.md" },
+        }),
+        { id: "ADR-1" },
+      ),
+    ).toBe(".kb/adr/use-postgres.md");
   });
 
   test("name the document a new entity would be written to", () => {

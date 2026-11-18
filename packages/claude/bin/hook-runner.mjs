@@ -16,7 +16,7 @@ var MTIME_TOLERANCE_MS = 1000;
 var TOKEN_SEPARATOR = /[\s;|&<>()'"`,=[\]{}]/;
 var PATH_LIKE = /^[\w@.~/+-]*[\w-]\.[A-Za-z0-9]{1,8}$|^[\w@.~+-]*\/[\w@.~/+-]*$/;
 var SEARCH_COMMAND = /(^|[\s;|&(])(grep|egrep|rg|ag|ack|find|fd|git\s+(grep|ls-files))(\s|$)/;
-var CD_TARGET = /(?:^|[\s;&|(])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
+var CD_TARGET = /(?:^|[\s;&|('"])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
 function unquote(value) {
   return value.replace(/^["']|["']$/g, "");
 }
@@ -72,10 +72,25 @@ function filesChangedSince(root, sinceMs) {
   return [...changed];
 }
 var SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
-var REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*([^\s;&|<>()]+)/g;
+var REDIRECT_TARGET = /(?:^|[^0-9&<>])(?:&>>?|>>?\|?)\s*([^\s;&|<>()]+)/g;
 var IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 var IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
-var COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+var COMMAND_PREFIXES = new Set([
+  "sudo",
+  "env",
+  "command",
+  "exec",
+  "nice",
+  "time",
+  "xargs",
+  "timeout",
+  "(",
+  "{",
+  "then",
+  "do",
+  "else",
+  "!"
+]);
 var SHELLS = new Set(["sh", "bash", "zsh", "dash", "ksh"]);
 var SCRIPT_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
 function shellScript(words) {
@@ -123,6 +138,26 @@ function* simpleCommandWords(command, masked) {
 function isCommandWord(word) {
   return !COMMAND_PREFIXES.has(word) && !/^\w+=/.test(word);
 }
+function commandStart(words) {
+  let afterPrefix = false;
+  for (const [index, word] of words.entries()) {
+    if (!isCommandWord(word)) {
+      afterPrefix = afterPrefix || COMMAND_PREFIXES.has(word);
+      continue;
+    }
+    if (afterPrefix && (/^-/.test(word) || /^\d+(?:\.\d+)?[smhd]?$/.test(word)))
+      continue;
+    return index;
+  }
+  return -1;
+}
+function unbracketed(words) {
+  return words.flatMap((word) => {
+    const opened = /^\(+./.test(word) ? word.replace(/^\(+/, "") : word;
+    const closed = /.\)+$/.test(opened) ? opened.replace(/\)+$/, "") : opened;
+    return closed === ")" || closed === "}" ? [] : [closed];
+  });
+}
 function* writtenNames(command) {
   const masked = maskQuoted(command);
   for (const match of masked.matchAll(REDIRECT_TARGET)) {
@@ -130,7 +165,8 @@ function* writtenNames(command) {
     yield unquote(command.slice(end - match[1].length, end));
   }
   for (const words of simpleCommandWords(command, masked)) {
-    const commandWords = words.slice(words.findIndex(isCommandWord));
+    const plain = unbracketed(words);
+    const commandWords = plain.slice(commandStart(plain));
     const script = shellScript(commandWords);
     if (script !== undefined) {
       yield* writtenNames(unquote(script));

@@ -446,6 +446,16 @@ export function addTool<TProlog>(
       if (routing.kind !== "local") return routing.result;
       args = routing.args;
       workspaceNotice = routing.notice;
+      // A write meant for another workspace is refused rather than applied
+      // to this one: a receipt or record in the wrong KB clears nothing.
+      if (
+        workspaceNotice !== undefined &&
+        (spec?.effects ?? []).some((effect) => !effect.endsWith("-read"))
+      ) {
+        throw new Error(
+          `${name} writes, so it was not run in ${workspaceNotice.detail.answeredFrom} for the requested workspace ${workspaceNotice.detail.requested} (${workspaceNotice.detail.reason}). Drop workspaceRoot to write to ${workspaceNotice.detail.answeredFrom}, or run the Kibi CLI from the requested workspace.`,
+        );
+      }
       ({ businessArgs, telemetry } = diagnosticModeEnabled
         ? runtime.extractToolCallPayload(args)
         : { businessArgs: args, telemetry: null });

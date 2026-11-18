@@ -202,9 +202,9 @@ describe("stagedFirmEditGateOptions", () => {
       changedPaths: new Set([".kb/relationships/ab.yaml"]),
       readBaseKnowledge: () => {
         reads += 1;
-        return [record("hidden", "src/a.ts")];
+        return [record("hidden", "src/other.ts")];
       },
-      knowledge: [result(requirement())],
+      knowledge: [result(requirement()), record("hidden", "src/other.ts")],
       extractBase: async (file) => {
         asked.push(file.path);
         return [];
@@ -213,6 +213,24 @@ describe("stagedFirmEditGateOptions", () => {
     expect(shard.removedSymbols).toEqual([]);
     expect(reads).toBe(1);
     expect(asked).toEqual([]);
+    // A shard change that drops a record's link to the firm requirement
+    // releases its code, so it is judged as removed.
+    const unlinked = await options({
+      changedPaths: new Set([".kb/relationships/ab.yaml"]),
+      readBaseKnowledge: () => [record("hidden", "src/a.ts")],
+      knowledge: [
+        result(requirement()),
+        result(
+          { id: "SYM-hidden", type: "symbol", title: "hidden" },
+          [],
+          "src/a.ts",
+        ),
+      ],
+      extractBase: async () => [],
+    });
+    expect(unlinked.removedSymbols).toEqual([
+      { sourceFile: "src/a.ts", symbol: "hidden", requirementIds: ["REQ-a"] },
+    ]);
   });
 
   test("a record in a file the gate cannot read after the change is judged as removed", async () => {

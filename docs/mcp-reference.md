@@ -1240,8 +1240,12 @@ attached workspace with a `workspace_mismatch` diagnostic:
 ```
 
 `reason` is one of `pinned`, `not_a_kibi_workspace`, `not_routable`, or
-`unavailable`. A successful route adds nothing to the result; the tool list is
-always the attached server's.
+`unavailable`. A tool that writes (`kb_upsert`, `kb_record`,
+`kb_review_firm_edit` and the other writes) is not answered from the attached
+workspace in these cases: the call fails with an error naming both workspaces
+and the reason, so a record or receipt never lands in the wrong knowledge base.
+A successful route adds nothing to the result; the tool list is always the
+attached server's.
 
 `KIBI_WORKSPACE` (or `KIBI_PROJECT_ROOT`, `KIBI_ROOT`) pins the server to one
 workspace and disables routing; `KIBI_MCP_ROUTING=0` disables it without

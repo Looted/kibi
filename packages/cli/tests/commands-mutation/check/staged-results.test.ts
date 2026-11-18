@@ -563,9 +563,11 @@ describe("staged verdicts", () => {
         readRequirement: (id: string) => unknown;
         testsFor: (file: string, req: string) => unknown;
         takenIds: unknown;
+        writtenRecords: unknown;
       },
     ];
     expect(input.traceability).toBe(raw);
+    expect(input.writtenRecords).toEqual([]);
     expect(input.takenIds).toEqual(
       (h.world.entities as Array<{ entity: { id: string } }>).map(
         (result) => result.entity.id,

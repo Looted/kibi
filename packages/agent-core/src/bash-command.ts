@@ -26,7 +26,8 @@ const PATH_LIKE =
   /^[\w@.~/+-]*[\w-]\.[A-Za-z0-9]{1,8}$|^[\w@.~+-]*\/[\w@.~/+-]*$/;
 const SEARCH_COMMAND =
   /(^|[\s;|&(])(grep|egrep|rg|ag|ack|find|fd|git\s+(grep|ls-files))(\s|$)/;
-const CD_TARGET = /(?:^|[\s;&|(])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
+// A quote may open the script around it (`bash -lc 'cd src && ...'`).
+const CD_TARGET = /(?:^|[\s;&|('"])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
 
 function unquote(value: string): string {
   return value.replace(/^["']|["']$/g, "");
@@ -109,15 +110,32 @@ export function filesChangedSince(root: string, sinceMs: number): string[] {
 
 // Simple commands of a command line: `;`, `&&`, `||`, `|` and newlines end one.
 const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
-// `> file`, `>> file` (not `2>&1`, `&>`, `>&2` or a here-document marker).
-// It runs on the masked copy, where a quoted target is a run of `_`.
-const REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*([^\s;&|<>()]+)/g;
+// `> file`, `>> file`, `>| file`, `&> file` and `&>> file` (not `2>&1`,
+// `>&2` or a here-document marker). It runs on the masked copy, where a
+// quoted target is a run of `_`.
+const REDIRECT_TARGET = /(?:^|[^0-9&<>])(?:&>>?|>>?\|?)\s*([^\s;&|<>()]+)/g;
 // sed and perl edit in place with -i (alone, bundled as -pi or -ni, or with a
 // backup suffix as -i.bak) or sed's --in-place.
 const IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 const IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
-// Words that run the next word as the command.
-const COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+// Words that run the next word as the command, and the shell keywords and
+// grouping that open a command (`(sed ...)`, `{ sed ...; }`, `then sed ...`).
+const COMMAND_PREFIXES = new Set([
+  "sudo",
+  "env",
+  "command",
+  "exec",
+  "nice",
+  "time",
+  "xargs",
+  "timeout",
+  "(",
+  "{",
+  "then",
+  "do",
+  "else",
+  "!",
+]);
 // Shells whose `-c` script is a command line of its own (`bash -lc "..."`).
 const SHELLS = new Set(["sh", "bash", "zsh", "dash", "ksh"]);
 const SCRIPT_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
@@ -181,6 +199,33 @@ function isCommandWord(word: string): boolean {
   return !COMMAND_PREFIXES.has(word) && !/^\w+=/.test(word);
 }
 
+/**
+ * Where the command word starts. A flag (`xargs -0`) or a
+ * duration (`timeout 5`, `5s`) right after a prefix belongs to the prefix.
+ */
+function commandStart(words: readonly string[]): number {
+  let afterPrefix = false;
+  for (const [index, word] of words.entries()) {
+    if (!isCommandWord(word)) {
+      afterPrefix = afterPrefix || COMMAND_PREFIXES.has(word);
+      continue;
+    }
+    if (afterPrefix && (/^-/.test(word) || /^\d+(?:\.\d+)?[smhd]?$/.test(word)))
+      continue;
+    return index;
+  }
+  return -1;
+}
+
+/** The words with a subshell's or group's brackets taken off. */
+function unbracketed(words: readonly string[]): string[] {
+  return words.flatMap((word) => {
+    const opened = /^\(+./.test(word) ? word.replace(/^\(+/, "") : word;
+    const closed = /.\)+$/.test(opened) ? opened.replace(/\)+$/, "") : opened;
+    return closed === ")" || closed === "}" ? [] : [closed];
+  });
+}
+
 /** Names a command line writes: redirection targets and editor/tee operands. */
 function* writtenNames(command: string): Generator<string> {
   const masked = maskQuoted(command);
@@ -192,7 +237,8 @@ function* writtenNames(command: string): Generator<string> {
   for (const words of simpleCommandWords(command, masked)) {
     // Without a command word (an empty or all-prefix command) this is the
     // last word or none, which never names an editor or tee.
-    const commandWords = words.slice(words.findIndex(isCommandWord));
+    const plain = unbracketed(words);
+    const commandWords = plain.slice(commandStart(plain));
     const script = shellScript(commandWords);
     if (script !== undefined) {
       yield* writtenNames(unquote(script));

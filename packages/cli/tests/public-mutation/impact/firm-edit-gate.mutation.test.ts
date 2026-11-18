@@ -271,15 +271,46 @@ describe("helpers", () => {
     ];
     expect(
       removedSymbolRecords(base, [
-        record("SYM-kept", []),
+        record("SYM-kept", [implementsReq("REQ-a")]),
         { entity: req("SYM-gone"), relationships: [] } as ExtractionResult,
+        record("SYM-nofile", [implementsReq("REQ-c")], {
+          sourceFile: undefined,
+        }),
       ]),
     ).toEqual([
       { sourceFile: "src/keys.ts", symbol: "gone", requirementIds: ["REQ-a"] },
+    ]);
+    // A kept record that drops a link, or now names another symbol, releases
+    // that code from the rule too; one moved with its file does not.
+    const two = [
+      record("SYM-narrowed", [implementsReq("REQ-a"), implementsReq("REQ-b")]),
+      record("SYM-retitled", [implementsReq("REQ-a")]),
+      record("SYM-moved", [implementsReq("REQ-a")]),
+    ];
+    expect(
+      removedSymbolRecords(two, [
+        record("SYM-narrowed", [implementsReq("REQ-b")]),
+        {
+          ...record("SYM-retitled", [implementsReq("REQ-a")]),
+          entity: {
+            ...record("SYM-retitled", []).entity,
+            title: "helper",
+          } as ExtractedEntity,
+        },
+        record("SYM-moved", [implementsReq("REQ-a")], {
+          sourceFile: "src/other.ts",
+        }),
+      ]),
+    ).toEqual([
       {
-        sourceFile: ".kb/symbols.yaml",
-        symbol: "nofile",
-        requirementIds: ["REQ-c"],
+        sourceFile: "src/keys.ts",
+        symbol: "narrowed",
+        requirementIds: ["REQ-a"],
+      },
+      {
+        sourceFile: "src/keys.ts",
+        symbol: "retitled",
+        requirementIds: ["REQ-a"],
       },
     ]);
   });

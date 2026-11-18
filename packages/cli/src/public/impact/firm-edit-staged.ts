@@ -184,9 +184,9 @@ export async function stagedFirmEditGateOptions(
     baseKnowledge ??= input.readBaseKnowledge();
     return baseKnowledge;
   };
-  // Removing a record needs a manifest change.
+  // Removing a record, or its link, needs a manifest or shard change.
   const removedSymbols = [
-    ...(manifestChanged
+    ...(manifestChanged || shardChanged
       ? removedSymbolRecords(readBaseRecords(), input.knowledge)
       : []),
     ...(await vanishedDeclarations(input, symbolsByFile, readBaseRecords)),

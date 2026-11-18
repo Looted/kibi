@@ -64,13 +64,35 @@ describe("MCP tool profile", () => {
     expect(profileToolNames("full", false)).toBeUndefined();
   });
 
+  test("a value that names no profile is ignored and named on stderr", () => {
+    const warnings: string[] = [];
+    const warn = (message: string) => {
+      warnings.push(message);
+    };
+    const recorded = workspace({
+      "package.json": JSON.stringify({ kibi: { mcpTools: "default" } }),
+      ".kb/setup.json": JSON.stringify({ mcpTools: "minimal" }),
+    });
+    expect(
+      resolveToolProfile(recorded, { KIBI_MCP_TOOLS: "Default" }, warn),
+    ).toBe("full");
+    expect(warnings).toStrictEqual([
+      '[KIBI-MCP] KIBI_MCP_TOOLS is "Default", which names no tool profile (full or core); it is ignored.\n',
+      '[KIBI-MCP] kibi.mcpTools in package.json is "default", which names no tool profile (full or core); it is ignored.\n',
+      '[KIBI-MCP] mcpTools in .kb/setup.json is "minimal", which names no tool profile (full or core); it is ignored.\n',
+    ]);
+    warnings.length = 0;
+    expect(resolveToolProfile(workspace(), { KIBI_MCP_TOOLS: " " }, warn)).toBe(
+      "full",
+    );
+    expect(warnings).toStrictEqual([]);
+  });
+
   test("KIBI_MCP_TOOLS wins, then the recorded choice, then full", () => {
     const plain = workspace();
     // Every host gets every tool unless a profile is chosen.
     expect(resolveToolProfile(plain, {})).toBe("full");
-    expect(resolveToolProfile(plain, { KIBI_MCP_HOST: "cursor" })).toBe(
-      "full",
-    );
+    expect(resolveToolProfile(plain, { KIBI_MCP_HOST: "cursor" })).toBe("full");
     expect(resolveToolProfile(plain, { KIBI_MCP_TOOLS: " CORE " })).toBe(
       "core",
     );

@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import {
   InputError,
@@ -65,14 +65,51 @@ export const RECORD_DEPS: RecordDeps = {
   // file sync has not compiled yet would otherwise be overwritten.
   exists: (context) => {
     const stored = prologCaptureReads(context.prolog as PrologPort).exists;
-    return async (id) =>
-      existsSync(
-        path.join(context.workspaceRoot, ".kb", "requirements", `${id}.md`),
-      ) || (await stored(id));
+    let authored: ReadonlySet<string> | undefined;
+    return async (id) => {
+      if (
+        existsSync(
+          path.join(context.workspaceRoot, ".kb", "requirements", `${id}.md`),
+        )
+      )
+        return true;
+      // A document filed elsewhere under .kb/requirements holds its id in
+      // its front matter.
+      authored ??= authoredRequirementIds(context.workspaceRoot);
+      return authored.has(id) || (await stored(id));
+    };
   },
   upsert: upsertSpec.execute,
   check: checkSpec.execute as unknown as RecordDeps["check"],
 };
+
+/**
+ * The ids in the front matter of every Markdown document under
+ * `.kb/requirements`, at any depth; none when the directory is missing.
+ */
+export function authoredRequirementIds(workspaceRoot: string): Set<string> {
+  const ids = new Set<string>();
+  const root = path.join(workspaceRoot, ".kb", "requirements");
+  let files: string[];
+  try {
+    files = readdirSync(root, { recursive: true, encoding: "utf8" });
+  } catch {
+    return ids;
+  }
+  for (const file of files) {
+    if (!file.endsWith(".md")) continue;
+    let text: string;
+    try {
+      text = readFileSync(path.join(root, file), "utf8");
+    } catch {
+      continue;
+    }
+    const head = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? "";
+    const id = /^id:\s*["']?([^"'\s]+)["']?\s*$/m.exec(head)?.[1];
+    if (id !== undefined) ids.add(id);
+  }
+  return ids;
+}
 
 /**
  * The payload through the same schema validation kb_upsert's own CLI and
