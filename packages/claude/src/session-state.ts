@@ -20,8 +20,12 @@ export type SessionEvent =
   | { kind: "notice"; name: string }
   /** The agent used Kibi; paths/ids it explored. */
   | { kind: "kb"; operation: string; paths: string[]; ids: string[] }
-  /** A file was changed by an edit tool or a shell command. */
-  | { kind: "edited"; path: string; pathKind: string }
+  /**
+   * A file was changed by an edit tool or a shell command. `edit`
+   * fingerprints the edit that landed (absent in older journals): only the
+   * edit the person was asked about confirms its firm requirements.
+   */
+  | { kind: "edited"; path: string; pathKind: string; edit?: string }
   /** A shell command started (epoch milliseconds), to attribute its writes. */
   | { kind: "command_started"; at: number }
   /** A check acknowledged pending edits (all of them when `all`). */
@@ -57,7 +61,13 @@ export type SessionEvent =
       ids: string[];
       at?: number;
       edit?: string;
-    };
+    }
+  /**
+   * The retried edit of `path` passed because a keeps receipt covered these
+   * requirements, not because the person allowed it, so landing it confirms
+   * nothing.
+   */
+  | { kind: "firm_reviewed"; path: string; ids: string[] };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -165,10 +175,16 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       for (const id of event.ids) state.exploredIds.add(id);
       return;
     case "edited": {
-      // An edit that reached PostToolUse was allowed, so the person accepted
-      // the firm requirements its confirmation named.
+      // The asked edit reached PostToolUse, so the person allowed it and
+      // accepted the firm requirements its confirmation named. Any other
+      // edit of the file (one that changes no firm code, after the person
+      // declined the asked one) confirms nothing.
       for (const id of state.firmAsked.get(event.path) ?? []) {
-        state.firmConfirmed.add(id);
+        if (
+          event.edit !== undefined &&
+          state.firmAskedEdit.get(id) === event.edit
+        )
+          state.firmConfirmed.add(id);
       }
       state.firmAsked.delete(event.path);
       if (event.pathKind !== "source") return;
@@ -211,6 +227,14 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
         if (event.edit === undefined) state.firmAskedEdit.delete(id);
         else state.firmAskedEdit.set(id, event.edit);
       return;
+    case "firm_reviewed": {
+      const left = (state.firmAsked.get(event.path) ?? []).filter(
+        (id) => !event.ids.includes(id),
+      );
+      if (left.length > 0) state.firmAsked.set(event.path, left);
+      else state.firmAsked.delete(event.path);
+      return;
+    }
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no
       // longer in context, so they may be shown again. Pending edits and

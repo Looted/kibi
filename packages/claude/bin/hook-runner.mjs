@@ -3445,7 +3445,8 @@ function applyEvent(state, event) {
       return;
     case "edited": {
       for (const id of state.firmAsked.get(event.path) ?? []) {
-        state.firmConfirmed.add(id);
+        if (event.edit !== undefined && state.firmAskedEdit.get(id) === event.edit)
+          state.firmConfirmed.add(id);
       }
       state.firmAsked.delete(event.path);
       if (event.pathKind !== "source")
@@ -3488,6 +3489,14 @@ function applyEvent(state, event) {
         else
           state.firmAskedEdit.set(id, event.edit);
       return;
+    case "firm_reviewed": {
+      const left = (state.firmAsked.get(event.path) ?? []).filter((id) => !event.ids.includes(id));
+      if (left.length > 0)
+        state.firmAsked.set(event.path, left);
+      else
+        state.firmAsked.delete(event.path);
+      return;
+    }
     case "context_reset":
       state.shownRead.clear();
       state.shownEdit.clear();
@@ -3630,14 +3639,22 @@ function editFingerprint(toolName, toolInput) {
 function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace, edit) {
   if (!workspace.confirmFirm)
     return;
-  const { ids, symbol } = firmRequirementsTouched({
+  const touched = {
     symbols,
     focus,
     wholeFile,
     summarize: workspace.summarize,
-    confirmed: state.firmConfirmed,
+    confirmed: state.firmConfirmed
+  };
+  const { ids, symbol } = firmRequirementsTouched({
+    ...touched,
     reviewed: firmEditReviewed(workspace.root, relativePath, (id) => state.firmAskedEdit.get(id) === edit ? state.firmAskedAt.get(id) : undefined)
   });
+  const reviewedIds = firmRequirementsTouched(touched).ids.filter((id) => !ids.includes(id));
+  if (reviewedIds.length > 0)
+    appendSessionEvents(workspace.stateDir, [
+      { kind: "firm_reviewed", path: relativePath, ids: reviewedIds }
+    ]);
   if (ids.length === 0)
     return;
   return {
@@ -3888,7 +3905,7 @@ function bashContext(input, workspace, state, trace, command, edited, events, em
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
-function bashChanges(workspace, events, trace) {
+function bashChanges(workspace, events, trace, edit) {
   const state = loadSessionState(workspace.stateDir);
   if (state.commandStartedAt === undefined)
     return;
@@ -3897,7 +3914,7 @@ function bashChanges(workspace, events, trace) {
     const pathKind = classifyPath2(relative);
     if (pathKind === "kb" || pathKind === "other")
       continue;
-    events.push({ kind: "edited", path: relative, pathKind });
+    events.push({ kind: "edited", path: relative, pathKind, edit });
     const symbols = symbolsFor(workspace, relative);
     const owners = requirementIds(symbols);
     if (trace.action === undefined && owners.length > 0) {
@@ -3965,7 +3982,12 @@ function postToolUse(input, workspace, trace = {}) {
     const target = rawPath ? toWorkspacePath2(workspace.root, rawPath, input.cwd) : undefined;
     if (target) {
       const pathKind = classifyPath2(target.relative);
-      events.push({ kind: "edited", path: target.relative, pathKind });
+      events.push({
+        kind: "edited",
+        path: target.relative,
+        pathKind,
+        edit: editFingerprint(toolName, input.toolInput)
+      });
       if (pathKind !== "other") {
         trace.kbUsedBefore = kbUsedBefore();
         trace.action = "edited";
@@ -3981,7 +4003,7 @@ function postToolUse(input, workspace, trace = {}) {
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);
-    const changed = bashChanges(workspace, events, trace);
+    const changed = bashChanges(workspace, events, trace, editFingerprint("Bash", command));
     const note = changed ?? captureTemplateNote(workspace, events);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
