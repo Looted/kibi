@@ -396,7 +396,22 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
 provides the `/kibi-bootstrap` convenience command when the host supports it, and runs
 background sync/check maintenance. When the file being edited implements a
 requirement, the guidance names it, what it must keep true, and the decision
-behind it. Canonical bootstrap behavior lives in the
+behind it.
+
+On OpenCode v1 the plugin also runs the decision hooks the other host plugins
+run. A message that states a rule is noted, and the note and a fill-in
+`kb_record` capture template are added to the result of the session's first
+source edit. An edit of code that implements a firm requirement is stopped once
+with the notice to ask the person first and, after the edit, to record a verdict
+with `kb_review_firm_edit` (the same edit tried again goes through;
+`KIBI_CONFIRM_FIRM_EDITS=0` turns the stop off, never the commit gate). When a
+session that changed source and recorded nothing goes idle, the plugin asks once
+for the capture, or for `kibi signoff` after requirement writes. Shell in-place
+edits (`sed -i`, `>`, `tee`) count as source edits. These need the v1 plugin
+hooks `chat.message`, `tool.execute.before` and `session.idle`, which the v2
+plugin API does not expose yet, so they are off under OpenCode v2.
+
+Canonical bootstrap behavior lives in the
 bundled `kibi-bootstrap` skill (`kb_plan_bootstrap`, preview, apply via the approved plan).
 Generic MCP agents should start from
 [generic-agent onboarding](generic-agent-onboarding.md). The plugin does **not**
@@ -459,7 +474,9 @@ Without `tui.js`, that install reports the server plugin only.
 On OpenCode v2:
 
 - Kibi guidance, background sync/check maintenance, and `/kibi-bootstrap`
-  work as on v1. Syncs triggered by file changes come from completed `edit`,
+  work as on v1. The decision hooks (stated-rule capture, the firm-edit stop
+  and the idle capture request) are off, because v2 exposes none of the hooks
+  they need. Syncs triggered by file changes come from completed `edit`,
   `write`, and `patch` tool calls. On OpenCode v2.0.32 a plugin can async-iterate
   `event.subscribe()` and will see public bus events, including
   `filesystem.changed`, but the host publishes that event only for the VCS HEAD
