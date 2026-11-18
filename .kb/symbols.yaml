@@ -46232,3 +46232,18 @@ symbols:
         target: TEST-kb-entity-body-context
       - type: implements
         target: REQ-kb-entity-body-context
+  - id: SYM-agent-core-decision-guard-unlocated-symbols
+    title: unlocatedSymbols
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:49:40.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-hosts-firm-edit-ask
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation

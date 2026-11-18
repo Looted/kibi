@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-codex-hook-limits",
+  "sourceFile": "packages/codex/src/hook-runner.ts",
+  "symbol": "main",
+  "verdict": "keeps",
+  "note": "Bundle rebuild and a reformatted line; the hooks still only add notices and never deny or write to .kb.",
+  "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
+  "codeHash": "sha256:cbb489899f0a08a3c11565118d15932a271799a6cd68594591ed90d2eb775d24",
+  "startLine": 1,
+  "endLine": 764,
+  "recordedAt": "2026-11-18T06:51:23.613Z"
+}

@@ -29,16 +29,69 @@ export function confirmFirmEdits(env: NodeJS.ProcessEnv): boolean {
   return !(value === "0" || value === "false" || value === "off");
 }
 
+/** Files larger than this are not read to check symbol coordinates. */
+const MAX_LOCATE_BYTES = 2 * 1024 * 1024;
+
+/** A declaration name, optionally qualified (`Class.member`, `mod:pred`). */
+const CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
+
+/** Lines after a symbol's first line where its name may still appear. */
+const NAME_LOOKAHEAD_LINES = 5;
+
+function readSmallText(absolutePath: string): string | undefined {
+  try {
+    if (fs.statSync(absolutePath).size > MAX_LOCATE_BYTES) return undefined;
+    return fs.readFileSync(absolutePath, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The symbols whose recorded coordinates do not locate them in the file:
+ * no line at all (`.kb/symbol-coordinates.yaml` is a local cache, missing in
+ * a fresh clone, and a file-level record has none), or, with the file's
+ * `content`, a line range past its end or a first line whose next few lines
+ * do not name the symbol (the file changed since the coordinates were
+ * written).
+ */
+export function unlocatedSymbols(
+  symbols: readonly IndexedSymbol[],
+  content: string | undefined,
+): IndexedSymbol[] {
+  const lines = content?.split("\n");
+  return symbols.filter((symbol) => {
+    if (symbol.line === undefined) return true;
+    if (lines === undefined) return false;
+    const end = symbol.endLine ?? symbol.line;
+    if (end > lines.length) return true;
+    // A title that is no code name (a test suite's description, a module's
+    // summary), or a record spanning the whole file, is checked by its
+    // range only.
+    if (!CODE_NAME.test(symbol.title)) return false;
+    if (symbol.line === 1 && end >= lines.length - 1) return false;
+    const name = symbol.title.split(/[.#:]/).pop() as string;
+    const window = lines
+      .slice(symbol.line - 1, Math.min(end, symbol.line + NAME_LOOKAHEAD_LINES))
+      .join("\n");
+    return !window.includes(name);
+  });
+}
+
 /**
  * The current firm requirements an edit changes that are not in `confirmed`:
  * those implemented by the symbols the edit lands in, or by every symbol of
- * the file for a whole-file write. An edit whose location is unknown, or
- * outside every symbol, changes none.
+ * the file for a whole-file write. A symbol the coordinates do not locate in
+ * the file at `absolutePath` (see `unlocatedSymbols`) counts as touched by
+ * any edit of the file, since where the edit lands in it is unknown. An edit
+ * outside every located symbol changes none of them.
  */
 export function firmRequirementsTouched(input: {
   symbols: readonly IndexedSymbol[];
   focus: readonly LineRange[] | undefined;
   wholeFile: boolean;
+  /** The edited file, read to check the coordinates against it. */
+  absolutePath?: string | undefined;
   summarize: Summarize;
   confirmed?: ReadonlySet<string>;
   /** The edit only removes dead `implements` comments, so it changes none. */
@@ -51,9 +104,23 @@ export function firmRequirementsTouched(input: {
   reviewed?: (requirementId: string, symbol: IndexedSymbol) => boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
   if (input.commentOnly === true) return { ids: [], symbol: undefined };
+  const unlocated = input.wholeFile
+    ? []
+    : unlocatedSymbols(
+        input.symbols,
+        input.absolutePath === undefined
+          ? undefined
+          : readSmallText(input.absolutePath),
+      );
   const touched = input.wholeFile
     ? input.symbols
-    : focusedSymbols(input.symbols, input.focus);
+    : [
+        ...focusedSymbols(
+          input.symbols.filter((symbol) => !unlocated.includes(symbol)),
+          input.focus,
+        ),
+        ...unlocated,
+      ];
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id)) return false;
     const summary = input.summarize(id);

@@ -246,6 +246,7 @@ function firmNotice(
       symbols: files[target.relative] ?? [],
       focus,
       wholeFile: focus === undefined,
+      absolutePath: target.absolute,
       summarize,
       confirmed: settled,
       commentOnly: removesOnlyDeadImplementsComments(

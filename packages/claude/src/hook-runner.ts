@@ -252,6 +252,7 @@ function firmEdit(
     symbols,
     focus,
     wholeFile,
+    absolutePath: path.join(workspace.root, relativePath),
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
   };

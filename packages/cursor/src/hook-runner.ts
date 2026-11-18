@@ -42,7 +42,6 @@ import {
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
-import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -50,6 +49,7 @@ import {
   fileKnowledgeSnippet,
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput } from "./hook-input.js";
 import {
@@ -143,6 +143,7 @@ function firmNotice(
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
+    absolutePath: path.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
@@ -498,13 +499,7 @@ export async function runHook(
         // Nothing is tracked in a workspace that never adopted Kibi.
         if (!kibiReady) return emptyResult();
         try {
-          recordToolTelemetry(
-            input,
-            cwd,
-            stateDir,
-            startedAt,
-            environment.env,
-          );
+          recordToolTelemetry(input, cwd, stateDir, startedAt, environment.env);
         } catch {
           // Telemetry is best effort and must never change the hook's output.
         }

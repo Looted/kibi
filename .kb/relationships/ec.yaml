@@ -223,3 +223,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d064b018069
+  - type: implements
+    from: SYM-agent-core-decision-guard-unlocated-symbols
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-18T06:49:41.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df84f5508c84
+  - type: implements
+    from: SYM-agent-core-decision-guard-unlocated-symbols
+    to: REQ-agent-hosts-firm-edit-ask
+    created_at: 2026-11-18T06:49:41.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6a52ad17fe7
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-unlocated-symbols
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-18T06:49:41.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27c8df10288a

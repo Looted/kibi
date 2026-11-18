@@ -316,6 +316,7 @@ function firmNotice(
       symbols: files[target.relative] ?? [],
       focus,
       wholeFile: focus === undefined,
+      absolutePath: target.absolute,
       summarize,
       confirmed: settled,
       commentOnly: removesOnlyDeadImplementsComments(
@@ -587,7 +588,9 @@ export async function runHook(
         // kb_check the hooks suggest names them in, whatever form the edit used.
         const shellEdits = shellEditedPaths(workspace.root, input);
         const dirtyPaths = [
-          ...editTargets(workspace.root, input).map((target) => target.relative),
+          ...editTargets(workspace.root, input).map(
+            (target) => target.relative,
+          ),
           ...shellEdits,
         ].filter(isMeaningfulTrackedPath);
 

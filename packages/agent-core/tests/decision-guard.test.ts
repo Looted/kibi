@@ -37,6 +37,7 @@ import {
   statedReason,
   statedRule,
   takeRuleNote,
+  unlocatedSymbols,
 } from "../src/decision-guard";
 import type { EntitySummary, IndexedSymbol } from "../src/knowledge-index";
 
@@ -597,7 +598,86 @@ describe("dead implements comments", () => {
   });
 });
 
+describe("unlocatedSymbols", () => {
+  const named = (title: string, line?: number, endLine?: number) => ({
+    ...symbol(`SYM-${title}`, 1, 1, ["REQ-firm"]),
+    title,
+    line,
+    endLine,
+  });
+  const content = [
+    "// header",
+    "export const MAX = 3;",
+    "export function retry(n: number) {",
+    "  return n < MAX;",
+    "}",
+    "class Box {",
+    "  @dec()",
+    "  open() {}",
+    "}",
+  ].join("\n");
+
+  test("a symbol without coordinates is unlocated", () => {
+    const loose = named("limits.json");
+    expect(unlocatedSymbols([loose], undefined)).toEqual([loose]);
+    expect(unlocatedSymbols([named("retry", 3, 5)], undefined)).toEqual([]);
+  });
+
+  test("coordinates that no longer name the symbol in the file are unlocated", () => {
+    const fresh = [
+      named("retry", 3, 5),
+      named("MAX", 2, 2),
+      named("Box.open", 7, 8),
+      // A description, or a record spanning the whole file, is judged by
+      // its range only.
+      named("retry helpers suite", 4, 4),
+      named("whole", 1, 9),
+    ];
+    expect(unlocatedSymbols(fresh, content)).toEqual([]);
+    const shifted = named("retry", 1, 2);
+    const past = named("MAX", 2, 12);
+    const elsewhere = named("Box.open", 2, 3);
+    expect(unlocatedSymbols([shifted, past, elsewhere], content)).toEqual([
+      shifted,
+      past,
+      elsewhere,
+    ]);
+    // The name is looked for in the first few lines only.
+    const long = `${"x\n".repeat(7)}`;
+    expect(
+      unlocatedSymbols([named("late", 2, 9)], `${long}late\nmore\n`),
+    ).toEqual([named("late", 2, 9)]);
+  });
+});
+
 describe("firmRequirementsTouched", () => {
+  test("an edit of a file whose firm symbol is unlocated asks about it", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    const file = path.join(dir, "calc.ts");
+    fs.writeFileSync(file, "// a\n// b\nexport function retry() {}\n");
+    const stale = {
+      ...symbol("SYM-retry", 1, 1, ["REQ-firm"]),
+      title: "retry",
+    };
+    const located = { ...stale, line: 3, endLine: 3 };
+    const touched = (target: IndexedSymbol, absolutePath?: string) =>
+      firmRequirementsTouched({
+        symbols: [target],
+        focus: [{ start: 2, end: 2 }],
+        wholeFile: false,
+        summarize,
+        absolutePath,
+      }).ids;
+    // Line 2 is outside retry, but the coordinates are stale.
+    expect(touched(stale, file)).toEqual(["REQ-firm"]);
+    expect(touched(located, file)).toEqual([]);
+    // Unread, only a missing line counts as unlocated.
+    expect(touched(stale)).toEqual([]);
+    expect(touched({ ...stale, line: undefined })).toEqual(["REQ-firm"]);
+    expect(touched(stale, path.join(dir, "gone.ts"))).toEqual([]);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
   const symbols = [
     symbol("SYM-outer", 1, 40, ["REQ-default", "REQ-other-firm"]),
     symbol("SYM-inner", 10, 12, ["REQ-firm", "REQ-retired"]),

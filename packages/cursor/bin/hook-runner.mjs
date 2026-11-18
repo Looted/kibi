@@ -1728,10 +1728,47 @@ function confirmFirmEdits(env) {
   const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
   return !(value === "0" || value === "false" || value === "off");
 }
+var MAX_LOCATE_BYTES = 2 * 1024 * 1024;
+var CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
+var NAME_LOOKAHEAD_LINES = 5;
+function readSmallText(absolutePath) {
+  try {
+    if (fs5.statSync(absolutePath).size > MAX_LOCATE_BYTES)
+      return;
+    return fs5.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+}
+function unlocatedSymbols(symbols, content) {
+  const lines = content?.split(`
+`);
+  return symbols.filter((symbol) => {
+    if (symbol.line === undefined)
+      return true;
+    if (lines === undefined)
+      return false;
+    const end = symbol.endLine ?? symbol.line;
+    if (end > lines.length)
+      return true;
+    if (!CODE_NAME.test(symbol.title))
+      return false;
+    if (symbol.line === 1 && end >= lines.length - 1)
+      return false;
+    const name = symbol.title.split(/[.#:]/).pop();
+    const window = lines.slice(symbol.line - 1, Math.min(end, symbol.line + NAME_LOOKAHEAD_LINES)).join(`
+`);
+    return !window.includes(name);
+  });
+}
 function firmRequirementsTouched(input) {
   if (input.commentOnly === true)
     return { ids: [], symbol: undefined };
-  const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
+  const unlocated = input.wholeFile ? [] : unlocatedSymbols(input.symbols, input.absolutePath === undefined ? undefined : readSmallText(input.absolutePath));
+  const touched = input.wholeFile ? input.symbols : [
+    ...focusedSymbols(input.symbols.filter((symbol) => !unlocated.includes(symbol)), input.focus),
+    ...unlocated
+  ];
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id))
       return false;
@@ -3716,6 +3753,7 @@ function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
+    absolutePath: path13.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly
