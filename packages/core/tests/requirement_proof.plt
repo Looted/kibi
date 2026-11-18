@@ -1623,9 +1623,15 @@ rqp_full_binding(_{claim_key: "K-P", requirement_id: "REQ-P", fact_id: "F-PP", b
           scope: "code", obligation: _{kind: "set_equals", members: ["a", "b"]}}).
 
 rqp_full_proof(Cert, Bindings, Proof) :-
+    rqp_full_proof(Cert, Bindings, [], Proof).
+
+% rqp_full_proof(+Cert, +Bindings, +Unlinked, -Proof): Unlinked lists the
+% fixture's Type-From-To relationships to remove before the proof runs.
+rqp_full_proof(Cert, Bindings, Unlinked, Proof) :-
     code_certificates:code_certificate_digest(Cert, Digest),
     rqp_kb((
         rqp_full_fixture(Cert, Digest, Bindings),
+        forall(member(Type-From-To, Unlinked), rqp_unlink(Type, From, To)),
         rqp_hash(0'a, Snap),
         requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, Ctx),
         kb:kb_entity('REQ-P', req, Props),
@@ -1633,6 +1639,14 @@ rqp_full_proof(Cert, Bindings, Proof) :-
         once(requirement_proof:requirement_proof('REQ-P', Props, Ctx, Again)),
         rqp_canon(Again, A), rqp_canon(Proof, P), A == P)).
 
+
+rqp_unlink(Type, From, To) :-
+    kb:kb_graph(Graph),
+    kb:kb_uri(Base),
+    atom_concat(Base, Type, RelUri),
+    format(atom(FromUri), 'kb:entity/~w', [From]),
+    format(atom(ToUri), 'kb:entity/~w', [To]),
+    kb:with_kb_mutex(rdf11:rdf_retractall(FromUri, RelUri, ToUri, Graph)).
 
 rqp_golden(
   proved,
@@ -2461,6 +2475,64 @@ test(binding_variants_leave_the_claim_tested) :-
                ;   format(user_error, "~q gave ~q~n", [Name, View]), fail
                )
            )).
+
+rqp_unimplemented(['implements'-'SYM-PROD'-'REQ-P', covered_by-'SYM-PROD'-'T-E2E']).
+
+test(a_source_proof_of_every_claim_needs_no_production_symbol) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding0),
+    put_dict(scope, Binding0, "source", Binding),
+    rqp_unimplemented(Unlinked),
+    rqp_full_proof(Cert, [Binding], Unlinked, Proof),
+    Stage = Proof.proofStages.productionSymbols,
+    Stage.status == passed,
+    Stage.scope == source_proof,
+    Stage.sourceProofTests == ['T-CERT'],
+    Stage.symbols == [],
+    \+ get_dict(reason, Stage, _),
+    Proof.proofStatus == tested,
+    Proof.proofGaps == [],
+    Proof.evidenceLevel == proved.
+
+test(a_source_proof_drops_only_the_missing_symbol_gap) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding0),
+    put_dict(scope, Binding0, "source", Binding),
+    rqp_unimplemented(Unlinked),
+    rqp_full_proof(Cert, [Binding], [executable_for-'SYM-E2E'-'T-E2E'|Unlinked], Proof),
+    Proof.proofStages.productionSymbols.scope == source_proof,
+    Proof.proofGaps == [missing_executable_test_symbol],
+    Proof.proofStatus == missing.
+
+test(a_code_proof_without_an_implementing_symbol_still_needs_one) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding),
+    rqp_unimplemented(Unlinked),
+    rqp_full_proof(Cert, [Binding], Unlinked, Proof),
+    Stage = Proof.proofStages.productionSymbols,
+    Stage.status == missing,
+    \+ get_dict(scope, Stage, _),
+    Proof.proofStatus == missing,
+    memberchk(missing_production_symbol, Proof.proofGaps).
+
+test(a_source_proof_with_an_implementing_symbol_is_judged_as_before) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding0),
+    put_dict(scope, Binding0, "source", Binding),
+    rqp_full_proof(Cert, [Binding], Proof),
+    Stage = Proof.proofStages.productionSymbols,
+    Stage.status == passed,
+    Stage.symbols == ['SYM-PROD'],
+    \+ get_dict(scope, Stage, _).
+
+test(an_unproved_claim_keeps_the_production_symbol_stage_missing) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding0),
+    put_dict(_{scope: "source", binding: "attested"}, Binding0, Binding),
+    rqp_unimplemented(Unlinked),
+    rqp_full_proof(Cert, [Binding], Unlinked, Proof),
+    Proof.proofStages.productionSymbols.status == missing,
+    memberchk(missing_production_symbol, Proof.proofGaps).
 
 :- end_tests(requirement_proof_full_ladder).
 

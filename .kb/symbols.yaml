@@ -46337,3 +46337,26 @@ symbols:
         target: TEST-kb-record
       - type: implements
         target: REQ-kb-record-capture
+  - id: SYM-core-source-proof-scope
+    title: source_proof_scope
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T10:54:40.873Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-scopes-unimplemented-rule
+  - id: SYM-explain-requirement-proof-explain-view
+    title: RequirementProofExplainView
+    status: active
+    sourceFile: packages/cli/src/operations/proof/explain.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T10:54:53.322Z

@@ -272,3 +272,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fc3ad6ec608
+  - type: constrains
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-SUBJECT-kibi-proof-requirement
+    created_at: 2026-11-18T10:54:38.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbae43d0a599
+  - type: requires_property
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-kibi-source-proved-rule-missing-symbol
+    created_at: 2026-11-18T10:54:38.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18df4ad46904
+  - type: specified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    created_at: 2026-11-18T10:54:38.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-850834df4b62
+  - type: specified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    created_at: 2026-11-18T10:54:38.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa3ba0ad2ec
+  - type: verified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:38.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20b5165c7fee

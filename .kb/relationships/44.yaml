@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5a7c00cfbc38
+  - type: verified_by
+    from: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:34.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63ef67e7ae69
+  - type: assumes
+    from: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-kibi-source-proved-rule-missing-symbol
+    created_at: 2026-11-18T11:04:29.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b78063bc44f

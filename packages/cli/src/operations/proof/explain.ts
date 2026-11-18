@@ -124,6 +124,8 @@ export type RequirementProofExplainView = {
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
   readonly structuralSymbols: readonly ProofExplainSymbolBlock[];
+  /** The source-proof tests that scope a requirement no symbol implements. */
+  readonly sourceProofTests?: readonly string[];
 };
 
 export type NegativePathExplain = {
@@ -362,6 +364,9 @@ export function projectRequirementExplain(
     structuralSymbols: explanations.filter((item) =>
       structuralIds.has(item.symbolId),
     ),
+    ...(production.scope === "source_proof"
+      ? { sourceProofTests: asStringArray(production.sourceProofTests) }
+      : {}),
   };
 }
 
@@ -813,7 +818,11 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
     lines.push("");
   }
   lines.push("Production symbols");
-  if (view.productionSymbols.length === 0) lines.push("  (none)");
+  if (view.sourceProofTests !== undefined)
+    lines.push(
+      `  (none needed: a source proof covers every claim: ${view.sourceProofTests.join(", ")})`,
+    );
+  else if (view.productionSymbols.length === 0) lines.push("  (none)");
   for (const symbol of view.productionSymbols) {
     lines.push(renderSymbolCoverage(symbol));
   }

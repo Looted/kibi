@@ -1003,7 +1003,55 @@ function goUndeclaredCall(
   return `${name} may be a function of another file of the package`;
 }
 
+/** Whether `name` is the import-path spelling of an unknown package. */
+function goUnknownAliased(name: string | null): boolean {
+  const quoted = name === null ? null : /^"([^"]*)"\./.exec(name);
+  // A known package used under another known name (`log
+  // "github.com/sirupsen/logrus"`) is listed under its own name.
+  return quoted !== null && goKnownName(quoted[1] as string) === null;
+}
+
+/**
+ * A use of an unknown package under a name another package is known by
+ * (`exec "golang.org/x/sys/execabs"`, `log "github.com/charmbracelet/log"`,
+ * `os "github.com/acme/env"`). The reader spells it by its import path, but
+ * the code reads as the known package's and the package is not followed, so
+ * what it runs or reads is not known here: the row is refused rather than
+ * proved absent.
+ * - For calls and call arguments, a call through it, and a function of it
+ *   used as a value (`run := exec.Command`, `apply(exec.Command)`, a map
+ *   literal), which may be called later under any name.
+ * - For environment reads, a call through it that reads as a getter of the
+ *   environment (`os.Getenv("SECRET")`).
+ */
+function goRefusesAliasedUse(
+  node: Node,
+  callName: string | null,
+  context: FileContext,
+  extract: ReferenceExtract,
+): boolean {
+  if (extract === "env") {
+    if (!goUnknownAliased(callName)) return false;
+    // A quoted name comes only from the chain of a call's function.
+    /* node:coverage disable */
+    const target = GO.callee(node);
+    const spelled = target === null ? "" : (goChain(target) ?? "");
+    /* node:coverage enable */
+    return GO_ENV_GETTERS.has(spelled) || GO_ENV_WHOLE.has(spelled);
+  }
+  if (extract !== "calls" && extract !== "string_args") return false;
+  if (callName !== null) return goUnknownAliased(callName);
+  if (node.type !== "selector_expression") return false;
+  const parent = node.parent;
+  // The callee of a call is judged with its call.
+  if (parent !== null && GO.isCall(parent) && GO.callee(parent)?.id === node.id)
+    return false;
+  return goUnknownAliased(GO.valueReference?.(node, context) ?? null);
+}
+
 const GO: Reader = {
+  refuses: (node, callName, _names, context, extract) =>
+    goRefusesAliasedUse(node, callName, context, extract),
   isCall: (node) =>
     node.type === "call_expression" ||
     (node.type === "type_conversion_expression" &&

@@ -35,7 +35,8 @@ const RUN_NODE_TEST_SUITE =
  * breaks the claim, and once the code reads another environment variable the
  * environment claim is rejected with the variable. "The web app must never
  * import rxjs/operators" is rejected because the app imports it: a member
- * with a slash is compared whole.
+ * with a slash is compared whole. The environment and table rules have no
+ * implementing symbol, and their source proofs stand in for one.
  */
 
 type Step = Readonly<{
@@ -433,6 +434,53 @@ export async function checkSourceProofKinds(
     /- GET \/api\/invoices requireAuth/,
   );
   assert.match(latestReceipt(sandbox, "TEST-API-AUTH"), /scope: source/);
+
+  // No symbol implements the environment or table rules: each says what a
+  // set of files holds, and the source proof of its claim stands in for an
+  // implementing symbol. The import rule's binding is rejected, so it still
+  // reports the missing symbol.
+  const coverage = await kibi(
+    sandbox,
+    ["coverage", "--by", "req", "--include-passing", "--format", "json"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(coverage.exitCode, 0, coverage.stdout + coverage.stderr);
+  const rows = new Map(
+    (
+      JSON.parse(coverage.stdout) as {
+        rows?: {
+          id?: string;
+          proofGaps?: string[];
+          proofStages?: {
+            productionSymbols?: { scope?: string; sourceProofTests?: string[] };
+          };
+        }[];
+      }
+    ).rows?.map((row) => [row.id, row]) ?? [],
+  );
+  for (const [requirement, testId] of [
+    ["REQ-ENV", "TEST-ENV"],
+    ["REQ-TABLES", "TEST-TABLES"],
+  ] as const) {
+    const row = rows.get(requirement);
+    assert.deepStrictEqual(
+      row?.proofStages?.productionSymbols,
+      {
+        ...row?.proofStages?.productionSymbols,
+        scope: "source_proof",
+        sourceProofTests: [testId],
+      },
+      JSON.stringify(row),
+    );
+    assert.ok(
+      !row?.proofGaps?.includes("missing_production_symbol"),
+      JSON.stringify(row),
+    );
+  }
+  assert.ok(
+    rows.get("REQ-IMPORTS")?.proofGaps?.includes("missing_production_symbol"),
+    JSON.stringify(rows.get("REQ-IMPORTS")),
+  );
 
   // A member with a slash stays whole: the web app imports rxjs/operators,
   // so "never import rxjs/operators" is rejected, not decided over
