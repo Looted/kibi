@@ -72,7 +72,7 @@ OpenCode takes the command as a list of tokens, in `opencode.json`:
 }
 ```
 
-The optional `kibi-opencode` plugin adds prompt guidance and background maintenance. It does not replace the server above. See [OpenCode MCP](install.md#opencode-mcp).
+The optional `kibi-opencode` plugin adds prompt guidance, background maintenance and, on OpenCode v1, the decision hooks the other plugins run: a message that states a rule gets a `kb_record` capture template, an edit of code that implements a firm requirement is stopped once so the agent asks the person first, and a session that changed source and recorded nothing is asked once to record the decision. Shell in-place edits count as source edits. It does not replace the server above. See [OpenCode MCP](install.md#opencode-mcp).
 
 ## VS Code
 

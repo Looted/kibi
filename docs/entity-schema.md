@@ -190,6 +190,7 @@ From KB schema 14, `kibi migrate` lists every `closed` requirement that nothing 
 | semantic_source_field | No | string | `semantic_text`, `text_ref`, or `title`, identifying the field that owns ledger byte spans; new authored requirements prefer `semantic_text` |
 | semantic_source_hash | No | string | SHA-256 of the exact semantic source text |
 | semantic_inventory | No | array[object] | Proposition ledger with exact claim text, UTF-8 byte span, role, status, and optional semantic key |
+| pair_reviews[] | No | array[object] | Verdicts on a pair of requirements whose unmodeled claims cannot be modeled, which settle `related-requirement-unmodeled` (see [Related requirements with unmodeled claims](inference-rules.md#related-requirements-with-unmodeled-claims)). Each entry has `with` (the other requirement, linked by a `relates_to` edge), `verdict` (`no_conflict` with `separated_by`, `interacts` with `resolved_by`, or `conflict`, which never settles the pair), `claims` (the `claim_key` of each unmodeled claim) and `origin` (`kind` `human` or `agent`; on a pair with a must or firm requirement, an agent verdict counts only with `approved_by` from a person). Model the claims first; a verdict is the fallback |
 
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
