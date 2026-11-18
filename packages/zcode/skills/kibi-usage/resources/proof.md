@@ -337,6 +337,11 @@ left:
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that
   implements the claim's requirement lies outside them.
+- A rule about what a set of files never does ("files under `src/ui/`
+  never import `x`") needs no `implements` link: when a passing source
+  proof proves every applicable claim, the production-symbol stage passes
+  with `scope: source_proof`, because the files the proof reads are what
+  the rule constrains. Do not link one of those files to the requirement.
 - Reference members match by name segments (`.`, `/`, `::`). `excludes`
   fails on anything that is or may be an excluded item: `java.sql`
   excludes `java.sql.Connection`, `github.com/labstack/echo/v4` excludes
@@ -350,6 +355,14 @@ left:
   `extract: env`: `string_args` on a getter (`os.Getenv`, `env::var`,
   `System.getenv`, `getenv/2`, ...) sees only that getter, so Kibi refuses
   it for `eq`, `subset_of` and `excludes`.
+- `extract: env` sees only the language's known getters. A helper of the
+  project or a library that reads the environment under another name
+  (`config.Get("SECRET")`, `envutil.Getenv("SECRET")`) is not followed and
+  reads as no environment read, so a "never read" claim can prove while
+  the helper reads it. List the files that define such helpers in `files`,
+  or model the claim over the helper. A package imported under a getter's
+  package name that is not that package (`os "github.com/acme/env"`) is
+  refused.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:

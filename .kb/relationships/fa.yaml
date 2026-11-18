@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18df3db6996b
+  - type: assumes
+    from: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    to: FACT-NEG-kibi-source-proved-rule-missing-symbol-VIOLATED
+    created_at: 2026-11-18T10:54:35.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06fd00a8efcb
+  - type: verified_by
+    from: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:36.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43fc53ffa5d8

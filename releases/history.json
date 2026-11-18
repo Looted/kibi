@@ -1,5 +1,50 @@
 [
   {
+    "release": "2026.11.5",
+    "date": "2026-11-18",
+    "packages": {
+      "kibi-core": "0.34.0",
+      "kibi-plugin-sdk": "0.8.0",
+      "kibi-agent-core": "0.15.0",
+      "kibi-plugin-builtin": "0.7.0",
+      "kibi-plugin-jev": "0.3.8",
+      "kibi-plugin-ui": "0.1.4",
+      "kibi-plugin-search-hints": "1.0.1",
+      "kibi-swipl-linux-x64-gnu": "1.0.2",
+      "kibi-swipl-linux-arm64-gnu": "1.0.2",
+      "kibi-swipl-darwin-arm64": "1.0.2",
+      "kibi-swipl-darwin-x64": "1.0.2",
+      "kibi-swipl": "1.0.2",
+      "kibi-lang-go": "1.0.0",
+      "kibi-lang-rust": "1.0.0",
+      "kibi-lang-java": "1.0.0",
+      "kibi-lang-csharp": "1.0.0",
+      "kibi-lang-php": "1.0.0",
+      "kibi-lang-c": "1.0.0",
+      "kibi-lang-cpp": "1.0.0",
+      "kibi-lang-bash": "1.0.0",
+      "kibi-lang-ruby": "1.0.0",
+      "kibi-lang-hcl": "1.0.0",
+      "kibi-lang-python": "1.0.0",
+      "kibi-lang-prolog": "1.1.0",
+      "kibi-plugin-treesitter": "4.0.1",
+      "kibi-runtime": "2.33.0",
+      "kibi-cli": "2.45.0",
+      "kibi-mcp": "3.29.0",
+      "kibi-opencode": "3.4.0",
+      "kibi-codex": "2.14.0",
+      "kibi-cursor": "2.15.0"
+    },
+    "compatibility": {
+      "kbSchema": {
+        "current": 19,
+        "migratesFrom": 1
+      },
+      "operationProtocol": 1,
+      "pluginApi": "kibi.plugin.v1"
+    }
+  },
+  {
     "release": "2026.11.4",
     "date": "2026-11-14",
     "packages": {

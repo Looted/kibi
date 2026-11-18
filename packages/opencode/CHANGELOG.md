@@ -1,5 +1,118 @@
 # kibi-opencode
 
+## 3.4.0
+
+### Minor Changes
+
+- fb98b63: OpenCode now runs the decision hooks the other hosts run. A message that states a rule is noted, and the note and a fill-in `kb_record` capture template are added to the result of the session's first source edit. An edit of code that implements a firm requirement is stopped once with the notice to ask the person first (the same edit tried again goes through; `KIBI_CONFIRM_FIRM_EDITS=0` turns this off). When a session that changed source and recorded nothing goes idle, the plugin sends the capture request once (or the signoff request after requirement writes). Shell in-place edits count as source edits. These need the OpenCode v1 plugin hooks (`chat.message`, `tool.execute.before`, `session.idle`); the v2 plugin API exposes none of them yet, so under v2 these behaviours are off.
+
+  The managed AGENTS.md section now says to ask before editing code that implements a firm requirement and to record the verdict with `kibi review-firm-edit`, so agents without a Kibi plugin learn it before the commit gate refuses the change.
+
+- 192e238: Every Kibi surface now opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run `kibi check --staged` before finishing, and treat a request that would make a recorded requirement or decision false as a question for the person rather than a task. Claude Code, Codex, Cursor, OpenCode and ZCode add it at session start; Codex and Cursor sessions, which started silently before, now get it too. The MCP server returns it in its `initialize` instructions and `kb_status` returns it as `sessionBrief`, so an agent on a host without hooks, such as Gemini CLI or any MCP client, reads the same policy. `kibi init` also writes a managed `GEMINI.md` section that imports `AGENTS.md` (`@./AGENTS.md`), because Gemini CLI reads `GEMINI.md` and not `AGENTS.md` by default.
+
+  Migration: none needed. Run `kibi init` again to add the `GEMINI.md` import to an existing repository; a `GEMINI.md` that already imports `AGENTS.md`, or that is a link to it, is left as it is. Turning off the `agentInstructions` setup choice skips it like the other instruction files.
+
+  Technical summary: `kibi-agent-core/session-brief` exports `SESSION_BRIEF`, `SESSION_BRIEF_LINES` and `sessionBriefWith(hostLines)`, which puts host lines (tool prefixes, skill names, missing-hook notes) after the brief. The Claude Code session-start context is rebuilt on it and shrinks from 1,180 to 830 characters (for one linked file). OpenCode adds the brief to the system prompt when the repository root is an active Kibi workspace (`root_active` or `hybrid_root_plus_vendored`). The MCP `SERVER_INSTRUCTIONS` and the `kb_status` output schema gain the brief; the contract fixtures are regenerated. `writeAgentInstructions` reports a `gemini` outcome next to `agents` and `claude`.
+
+- bf3c060: An agent looking for prior intent now gets what a requirement says and why it exists in the first answer, and the edit hook shows the recorded reason before code that implements a requirement is changed. `kb_search` answers are smaller by default: graph paths and per-fact `kb_query` calls now come only with `fields: "full"`.
+  - Each `kb_search` `answer.governing[]` entry carries `statement` (its `semantic_text`, else the statement its body derives, at most 300 characters). A reason taken from the requirement itself carries `said: { by, on }`: the approver from `origin.approved_by`, else the origin's kind (`human`, `agent` or `import`), and the date the origin was recorded. A migration origin names neither.
+  - Breaking: without `fields: "full"`, `results[].evidence` no longer has `graphPaths`, and answer facts (governing and ungoverned) no longer carry `ask`. `moreFacts.ask`, `abstained` and `ambiguous` are unchanged. To get the old shape, pass `fields: "full"`, which also reloads complete entity bodies.
+  - The shared edit snippet (Claude Code, Codex, Cursor, ZCode, and OpenCode's edit bullet) adds one `Why:` line for the lead requirement: its reason, where it was recorded, and who and when from its origin, or `Why: no reason is recorded.` The line appears once per file per session with the rest of the first edit snippet. A snippet over its 1,200-character budget now lists fewer requirements, fewer claims and a shorter reason before anything is cut, so the Why line and the follow-up calls stay in it.
+  - Entity summaries in `kibi-agent-core` read up to 64 KiB of a requirement document (8 KiB for other entities) and carry `why`.
+  - A requirement's reason, in the search answer and on the Why line, now comes from its `rationale` field, then its Why, Rationale or Context section, then its "Why this changed" section (then, in the search answer, a linked ADR). A line or list item that only notes a split or supersede ("Split from REQ-…", "Superseded by …") is skipped, so the reason is no longer a note about where the text came from.
+
+### Patch Changes
+
+- 7db492d: `kibi check --changed` and `kb_check` with `changed: true` give the pre-commit hook's verdict on every current change before anything is staged, and every finding now says what it stops. The check the hooks used to recommend after an edit looked only at the edit's impact: on a test project it returned no violations for a new function no requirement owned, and `kibi check --staged` then refused the commit of the same diff. The new mode refused it in 35 seconds with the real index untouched.
+  - `kibi check --changed [paths...]` runs the `--staged` gate over a scratch copy of the index with the working tree added (only the named paths and `.kb` when paths are given). The real index is never written and the scratch file is removed.
+  - `kb_check` `changed: true` (with optional `sourceFiles`) runs it in a child process and returns `commitAllowed` and the gate's findings.
+  - Every finding carries `blocks`: `"commit"`, `"merge"` or `"none"`. The full check tags its violations `merge`; the staged and changed gates tag theirs `commit`; advice is `none`.
+  - The post-edit and Stop messages of the Claude Code, Codex, Cursor, OpenCode and ZCode plugins recommend `kb_check` with `changed: true`, and a changed check counts as the impact check they ask for.
+  - The staged gate no longer saves its temporary store after every write batch and evaluates the evidence floor only for the requirements the commit touches. A one-function change on a test project with 8,457 entities went from 7m17s to 48s with the same verdict.
+
+- 9e09a88: A requirement written through the CLI (`kibi record`, or `kibi upsert` of a requirement) now raises the end-of-session signoff reminder on every host, as one written through `kb_record` or `kb_upsert` already did.
+- 0fef7b0: The pre-edit firm-requirement question no longer depends on `.kb/symbol-coordinates.yaml` being present and current. That file is a local cache, missing in a fresh clone and stale once a file changes after the last sync, and without it an edit of firm code got no question or notice on any host. A symbol whose coordinates are missing, run past the end of the file, or no longer name it near its first line now counts as touched by any edit of its file, as do file-level records, so the hooks ask (Claude Code) or tell the agent to ask (Codex, Cursor, ZCode, OpenCode).
+- d5b01c4: Host hook fixes:
+  - Cursor stays quiet in a workspace that never adopted Kibi: no session-start advisory, no `.kb/` warning, no state written. A window opened on a subdirectory of a Kibi project now belongs to it.
+  - Cursor counts in-place shell edits (`sed -i`, `>`, `tee`) as source edits, and the stated-rule note and capture template follow such an edit.
+  - Shell edits run through `bash -c "..."` (string or argv form) are counted on every host.
+  - Codex keeps edited paths workspace-relative, so the `kb_check` the hook suggests clears its Stop reminder after an edit by absolute path.
+  - OpenCode counts a rule recorded through the CLI (`kibi record`, `kibi upsert`) or through a Kibi MCP server under any server key, so it no longer asks to record a decision that was recorded.
+  - Rule detection no longer reads bug reports ("the bug where users have to click twice"), pasted errors, hindsight ("we should never have shipped this"), indirect questions and single-quoted phrases as a rule.
+  - `kb_record` and requirement `kb_upsert` spell out the steps left before `kb_check` passes in the text result, for hosts that show the model only text (Cursor, Gemini CLI).
+  - The kibi-usage skill says how to read its resources (`resources/<name>`), and the managed AGENTS.md section points a stated rule at `kb_record`.
+
+- c180e2d: A rule someone states is now recorded with one small call: `kb_record` (CLI `kibi record --input -`) takes the rule, why it exists, who said it, their words and the code that implements it, and answers with whether a commit would pass. The agent no longer has to read the full `kb_upsert` schema and assemble a requirement payload by hand for a first write: on a test rule the call is 238 characters against a 1,608-character tool definition, where the same write through `kb_upsert` was a 436-character payload against a 10,511-character one.
+  - `kb_record` inputs: `statement`, `why`, `saidBy` (`user`, `maintainer` or `agent`), optional `quote`, `code` (`[{file, symbol}]`), optional `test` and `dryRun`.
+  - It builds exactly one `kb_upsert` payload (a new open requirement, `firm` with a human origin and the quote as `origin.ref` when a person stated it, `default` with an agent origin when the agent chose it; the code as `implementedBy`; a test as `verified_by` and `coveredBy`) and runs it through `kb_upsert` unchanged: the same schema, advisor, firmness, approval and write path. It never sets `origin.approved_by`.
+  - It then runs `kb_check` with `changed: true` for the files the code names and returns that verdict (`commitAllowed`, each finding with `blocks`) and the remaining steps as `nextActions`. The result equals `kb_upsert` of the returned payload followed by that check.
+  - `dryRun: true` returns the payload and `kb_upsert`'s dry run and writes nothing.
+  - Facts, relationships, proof contracts, updates and other modeling stay on `kb_upsert`; `kb_record` refuses those fields and says so.
+  - `kb_record` is an MCP tool in every profile, including `core`. The `kb_upsert` description is shorter and points first writes at `kb_record`.
+  - Advertised MCP schemas are smaller, so the new tool costs less than it saves: every choice among strings is written as `enum` instead of `anyOf` of `const`, and `kb_check` advertises `rules` as plain strings (an unknown rule name is still refused, with the allowed names). The six-tool list's model-facing size went from 26,420 characters to 21,320 with kb_record added (an empty knowledge base: 28,610), and every input is validated exactly as before.
+  - The capture template the plugins show when a person states a rule (Claude Code, Codex, Cursor, OpenCode, ZCode, and the no-harness session brief) is now a `kb_record` call, and the `kibi-usage` and `kibi-decisions` skills record a new rule with `kb_record`. Every plugin counts a `kb_record` call, MCP or CLI, as the requirement write it asks for, and a `kb_record` dry run as a preview.
+
+  Migration: nothing to change. Existing `kb_upsert` calls behave as before. Hosts that pin a tool list by name need to add `kb_record` to it.
+
+- 6ee3801: No user-visible change. Unused internal helpers that no command, tool or hook called any more are removed, with the tests that only exercised them.
+
+  Removed: `copySyncCache`, `extractFromRelationshipShards`, `flattenRelationships`, `termVariables`, `manifestRelationships`, `assertRuleSchemaArity`, `getInvalidTypeError`, `buildQuerySummaryText`, `getKbEvidencePaths`, `getVolatileArtifactPatterns`, the deprecated `resolveDefaultBranch`, `readKbManifestOrDefault` and `DEFAULT_SYMBOLS_PATH` in `kibi-cli`; the deprecated `loadEnvFile` and `getEnvFileName` in `kibi-mcp`; `pushEventHintIfKind` in `kibi-opencode`. None of them is part of a package's public exports.
+
+- 9e09a88: The edit hooks locate an edit sent with `replace_all` (`replaceAll`) at every place it changes, not only its first match, so a firm symbol touched only by a later match is asked about and shown.
+- 3ff13d0: The prompt-time rule note no longer misses rules about errors or rules stated next to a bug report. A line counts as pasted tool output only in the shape tools print (`TypeError: ...`, `Error: ...`, `java.lang.IllegalStateException: ...`, `WARNING [x] ...`, `at fn (file.ts:3:7)`), so "Error messages must never include the stack trace", "ValidationError must always carry the field name" and "At login (and signup) users must accept the terms" are read as rules again. A bug report's frame applies only to its own clause ("Fix the bug where guests can post; from now on only admins are allowed" states a rule), "I must approve each release" is a rule while "I have to leave soon" is not, and a single-quoted clause that states a rule ("Our policy is 'API keys must never be logged'") is kept.
+- bc2df1d: The edit hooks recognize more shell edits of a file: a `cd` inside a quoted `bash -c` script, subshells and `{ ...; }` groups, `if`/`then` and loop bodies, the `time`, `timeout <duration>`, `xargs` and `!` prefixes, and the `>|`, `&>` and `&>>` redirections.
+- 0d48b7f: A shell call that writes firm code in place (`sed -i`, `perl -i`, `>`, `tee`) now gets the firm-requirement notice before it runs on Codex, Cursor, ZCode and OpenCode, as an edit of those files does, read as a whole-file write. Only Claude Code asked before.
+- 98c748b: The `Why:` line of the hooks' edit note now names the requirement its reason belongs to (`Why: ... (REQ-x rationale)`, or `Why: no reason is recorded for REQ-x.`). The line used to follow the whole list of requirements, so it read as the last one's reason. A recorded reason of "Reason not stated", which `why` writes when the person gave none, is no longer shown as a reason with an author and date; the note says no reason is recorded, as `kb_search` already did. When a file's code implements both a requirement and the closed requirement it supersedes, the note lists the current one first and marks the other `(closed, superseded by REQ-y)`.
+- Updated dependencies [42d3197]
+- Updated dependencies [69b636f]
+- Updated dependencies [7db492d]
+- Updated dependencies [d810927]
+- Updated dependencies [9e09a88]
+- Updated dependencies [e4ed60a]
+- Updated dependencies [ff0e920]
+- Updated dependencies [988bca9]
+- Updated dependencies [b23a13a]
+- Updated dependencies [2c2b2f6]
+- Updated dependencies [da9818c]
+- Updated dependencies [4e808b8]
+- Updated dependencies [8386b5c]
+- Updated dependencies [0fef7b0]
+- Updated dependencies [ca23e5f]
+- Updated dependencies [6ef8bd9]
+- Updated dependencies [d5b01c4]
+- Updated dependencies [c180e2d]
+- Updated dependencies [95c1d4b]
+- Updated dependencies [ccda902]
+- Updated dependencies [03b7db4]
+- Updated dependencies [34a1be8]
+- Updated dependencies [fb98b63]
+- Updated dependencies [2725748]
+- Updated dependencies [1ca560b]
+- Updated dependencies [9e09a88]
+- Updated dependencies [0f2ab5b]
+- Updated dependencies [5c0f71b]
+- Updated dependencies [3ff13d0]
+- Updated dependencies [f9e92c5]
+- Updated dependencies [be9cc7c]
+- Updated dependencies [192e238]
+- Updated dependencies [bc2df1d]
+- Updated dependencies [2be11a1]
+- Updated dependencies [c71f2da]
+- Updated dependencies [2b370fe]
+- Updated dependencies [9836469]
+- Updated dependencies [da2a7d9]
+- Updated dependencies [c9b4b90]
+- Updated dependencies [9873d16]
+- Updated dependencies [0c1c6fb]
+- Updated dependencies [1d99b47]
+- Updated dependencies [7a33a36]
+- Updated dependencies [bf3c060]
+- Updated dependencies [98c748b]
+- Updated dependencies [9836469]
+- Updated dependencies [cd1a115]
+  - kibi-agent-core@0.15.0
+  - kibi-runtime@2.33.0
+
 ## 3.3.1
 
 ### Patch Changes

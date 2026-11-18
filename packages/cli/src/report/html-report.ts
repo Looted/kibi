@@ -427,6 +427,15 @@ function requirementStages(
   let implementationDetail = "No production symbol ownership";
   if (
     stageStatus(productionSymbols) === "passed" &&
+    productionSymbols.scope === "source_proof"
+  ) {
+    // A source proof of every claim scopes the requirement to the files it
+    // reads, so no symbol owns it.
+    implementationState = "passed";
+    implementationDetail =
+      "No owning symbol needed: a source proof covers every claim";
+  } else if (
+    stageStatus(productionSymbols) === "passed" &&
     stageStatus(sourceCoordinatesStage) === "passed"
   ) {
     implementationState = "passed";

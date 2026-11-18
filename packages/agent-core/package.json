@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",

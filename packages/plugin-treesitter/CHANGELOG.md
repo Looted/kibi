@@ -1,5 +1,20 @@
 # kibi-plugin-treesitter
 
+## 4.0.1
+
+### Patch Changes
+
+- A Go call through a package imported under a name a known package uses, such as `exec "golang.org/x/sys/execabs"`, `exec "github.com/acme/run"` or `"github.com/charmbracelet/log"`, is now refused instead of read as some other package's call. The code reads as `exec.Command` or `log.Fatal`, but the package is not followed, so a rule such as "never call exec.Command" is no longer proved for that file. Before, it reached `proved` while the file called the aliased `exec.Command("rm")`. A known package under another known name (`log "github.com/sirupsen/logrus"`) is still listed under its own name.
+- A function of such a package used as a value is refused for calls and call arguments too, as the real `os/exec` function is: `run := exec.Command; run("rm")`, `var runner = exec.Command`, `apply(exec.Command)` and a map literal that holds it. A function value can be called later under any name, so "never call exec.Command" no longer proves while the file hands the aliased function on.
+- An environment read through such a package is refused: with `os "github.com/acme/env"` (or `"example.com/unix"`), `os.Getenv("SECRET")`, `os.LookupEnv` and `os.Environ` read what that package decides, so "never read SECRET" is no longer proved for that file. Its other functions are not environment reads. A helper of any other name, such as `config.Get("SECRET")`, is not followed and reads as no environment read.
+
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [69b636f]
+  - kibi-plugin-sdk@0.8.0
+
 ## 3.2.0
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "3.2.0",
+  "version": "4.0.1",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 38421,
-      "sha256": "78f580b019a695d3a5bc6d5b74641d891a76af414a2e2b5ef3e407e73e0bba97"
+      "bytes": 39951,
+      "sha256": "a434cb66911b617a14db15f42df4319e08cb824aad335c9c8a7ac436173ece7e"
     },
     {
       "path": "LICENSE.md",
@@ -27,7 +27,7 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 3981,
-      "sha256": "b4c0aca41c19e795325940b2a4d3d9b2f598d66e7669419f65991929335532b9"
+      "sha256": "c3164a7040d6702dc2e9a001aa1198b969ecf26117e4d1ee9dc2ddabfa5fd7e1"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -122,7 +122,7 @@
     {
       "path": "catalog.json",
       "bytes": 18499,
-      "sha256": "2386c67d39cf2ec1bea926bb3a27a9079d35d80df2e760d4fadb206de84e6fe7"
+      "sha256": "d19ca6caee6cfe5d6589e680fa16e8f088d88c784c15e63d9a5bd76396190f76"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -312,12 +312,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1122,
-      "sha256": "e5a7cc8e031b578df45b9d83740d2695519e4885214485d393f641c593169ddc"
+      "sha256": "b24bc92609f074442643a823f7ff2806b39c8de5613785cbca56b93ff96c6805"
     },
     {
       "path": "dist/references.js",
-      "bytes": 140549,
-      "sha256": "776bd6a506d325eaa1243acd8f16eeeef600d85260ffe62e6fb328698d9ea6d9"
+      "bytes": 142737,
+      "sha256": "5e892bde4b5adc08eaabae58b56059a9b3e8340a459408fceb7c39558d8ba05f"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",
@@ -326,8 +326,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 2967,
-      "sha256": "84cb21b59cb9299de84558f090200296e3134583ac73daae6c5de824b75c3591"
+      "bytes": 2947,
+      "sha256": "e14c7ad4e927f3ab8be6dc48fe259fb7c57d99278b3ef784a203744ed6e9e32d"
     }
   ]
 }
