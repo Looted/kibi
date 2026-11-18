@@ -363,6 +363,11 @@ left:
   or model the claim over the helper. A package imported under a getter's
   package name that is not that package (`os "github.com/acme/env"`) is
   refused.
+- A `calls` claim names members, not behaviours. "never call
+  `exec.Command`" excludes only that member, so `exec.CommandContext`,
+  `&exec.Cmd{...}` and `exec.LookPath` still prove. When the rule is "never
+  run a process", list every member that does it (`os/exec.*` is a prefix)
+  in the claim.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
