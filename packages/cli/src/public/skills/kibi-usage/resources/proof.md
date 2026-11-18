@@ -355,6 +355,14 @@ left:
   `extract: env`: `string_args` on a getter (`os.Getenv`, `env::var`,
   `System.getenv`, `getenv/2`, ...) sees only that getter, so Kibi refuses
   it for `eq`, `subset_of` and `excludes`.
+- `extract: env` sees only the language's known getters. A helper of the
+  project or a library that reads the environment under another name
+  (`config.Get("SECRET")`, `envutil.Getenv("SECRET")`) is not followed and
+  reads as no environment read, so a "never read" claim can prove while
+  the helper reads it. List the files that define such helpers in `files`,
+  or model the claim over the helper. A package imported under a getter's
+  package name that is not that package (`os "github.com/acme/env"`) is
+  refused.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
