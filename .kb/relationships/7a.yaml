@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe8dbea6cc14
+  - type: implements
+    from: SYM-core-source-proof-scope
+    to: REQ-kibi-source-proof-scopes-unimplemented-rule
+    created_at: 2026-11-18T10:54:41.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb51bbb91b44
+  - type: covered_by
+    from: SYM-core-source-proof-scope
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:41.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af9c5f0447c

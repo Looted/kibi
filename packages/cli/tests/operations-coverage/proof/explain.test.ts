@@ -175,6 +175,30 @@ describe("requirement explain", () => {
     );
   });
 
+  test("names the source proofs that stand in for an implementing symbol", () => {
+    const view = projectRequirementExplain({
+      id: "REQ-c",
+      proofStages: {
+        productionSymbols: {
+          status: "passed",
+          scope: "source_proof",
+          sourceProofTests: ["TEST-SRC-1", "TEST-SRC-2"],
+          symbols: [],
+        },
+      },
+    });
+    expect(view.sourceProofTests).toStrictEqual(["TEST-SRC-1", "TEST-SRC-2"]);
+    expect(renderProofExplain(view)).toContain(
+      "Production symbols\n  (none needed: a source proof covers every claim: TEST-SRC-1, TEST-SRC-2)\n",
+    );
+    const plain = projectRequirementExplain({
+      id: "REQ-d",
+      proofStages: { productionSymbols: { status: "missing", symbols: [] } },
+    });
+    expect("sourceProofTests" in plain).toBe(false);
+    expect(renderProofExplain(plain)).toContain("Production symbols\n  (none)\n");
+  });
+
   test("renders an approved failure-side waiver and leaves out empty stages", () => {
     const view = projectRequirementExplain({
       id: "REQ-b",

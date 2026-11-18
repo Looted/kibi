@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-happy-path-gap",
+  "sourceFile": "packages/cli/src/operations/proof/explain.ts",
+  "symbol": "projectRequirementExplain",
+  "verdict": "keeps",
+  "note": "Only adds sourceProofTests from the production-symbol stage; the failure-side projection and its reporting are unchanged.",
+  "statementHash": "sha256:54ea72369971e524795750d12bb4e532d6756e08ac3bf36837ad07b097eb76a4",
+  "codeHash": "sha256:22f31bf581d5a0be94944ac2f997b9f2fa1432fd7a44e5df7a8fdbefa8f88faa",
+  "startLine": 279,
+  "endLine": 371,
+  "recordedAt": "2026-11-18T10:56:54.589Z"
+}

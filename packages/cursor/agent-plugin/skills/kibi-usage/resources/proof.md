@@ -337,6 +337,11 @@ left:
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that
   implements the claim's requirement lies outside them.
+- A rule about what a set of files never does ("files under `src/ui/`
+  never import `x`") needs no `implements` link: when a passing source
+  proof proves every applicable claim, the production-symbol stage passes
+  with `scope: source_proof`, because the files the proof reads are what
+  the rule constrains. Do not link one of those files to the requirement.
 - Reference members match by name segments (`.`, `/`, `::`). `excludes`
   fails on anything that is or may be an excluded item: `java.sql`
   excludes `java.sql.Connection`, `github.com/labstack/echo/v4` excludes
