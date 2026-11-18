@@ -382,6 +382,29 @@ export async function runHook(
           };
         }
 
+        // A shell call that writes files in place gets the firm notice an
+        // edit of those files would, read as a whole-file write.
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const env = environment.env ?? process.env;
+          for (const absolute of shellToolEditPaths(
+            input.toolName,
+            input.toolInput,
+            input.cwd ?? cwd,
+          )) {
+            const notice = firmNotice(
+              cwd,
+              getSourceLinkedSymbols(cwd, absolute, stateDir),
+              undefined,
+              session,
+              env,
+              false,
+            );
+            if (notice === undefined) continue;
+            trace.action = "edit_snippet";
+            return { permission: "allow", agent_message: notice };
+          }
+        }
+
         const primaryPath = resolvePrimaryPath(input);
         if (
           !primaryPath ||

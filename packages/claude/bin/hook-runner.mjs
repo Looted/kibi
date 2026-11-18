@@ -2107,7 +2107,16 @@ function firmEditContext(ids) {
 `);
 }
 var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
-var DESCRIBING_FRAME = /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$|\bI\s+$/i;
+var DESCRIBING_FRAME = /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$/i;
+var SPEAKER_FRAME = /\bI\s+$/;
+var SPEAKER_PHRASE = /^ha(?:s|ve) to$/i;
+var CLAUSE_BREAK = /[;:]|,\s*(?:(?:and|but|so)\s+)?|\b(?:and|but)\s+/gi;
+function currentClause(prefix) {
+  let start = 0;
+  for (const match of prefix.matchAll(CLAUSE_BREAK))
+    start = match.index + match[0].length;
+  return prefix.slice(start);
+}
 var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
 var ASKING_ADVERB = /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
 var DESCRIBING_NEXT_WORD = /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
@@ -2115,8 +2124,13 @@ var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i
 var ASKS_TO_BE_TOLD = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
 var CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
 var LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
-var PASTED_OUTPUT_LINE = /^\s*(?:[\w.$]*(?:Error|Exception)\b|(?:error|warning|fatal|panic)\b\s*[:[]|at\s+\S+\s+\()/i;
+var PASTED_OUTPUT_LINE = /^\s*(?:[\w.$]*Error:|[\w.$]+Exception:|(?:[Ee]rror|ERROR|[Ww]arning|WARNING|[Ff]atal|FATAL|[Pp]anic|PANIC)\s*[:[]|at\s+\S+\s+\(\S*:\d+)/;
 var QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
+var MIN_QUOTED_RULE_WORDS = 4;
+function quotedRule(span) {
+  const words = span.split(/\s+/).filter((word) => /\w/.test(word));
+  return words.length >= MIN_QUOTED_RULE_WORDS && new RegExp(RULE_PHRASES.source, "i").test(span);
+}
 var EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
 function requestLines(text) {
   const lines = [];
@@ -2135,7 +2149,7 @@ function requestLines(text) {
   return lines;
 }
 function requestSentences(prompt) {
-  return requestLines(prompt.replace(CODE_SPANS, " ")).map((line) => line.replace(QUOTED_WORDS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
+  return requestLines(prompt.replace(CODE_SPANS, " ")).map((line) => line.replace(QUOTED_WORDS, (span) => quotedRule(span) ? span : " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
 }
 function instructingAdverb(sentence) {
   const asked = ASKING_ADVERB.exec(sentence);
@@ -2155,8 +2169,12 @@ function ruleMatch(prompt) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
-      if (!DESCRIBING_FRAME.test(sentence.slice(0, match.index)))
-        return { phrase: match[0].toLowerCase(), sentences, index };
+      const clause = currentClause(sentence.slice(0, match.index));
+      if (DESCRIBING_FRAME.test(clause))
+        continue;
+      if (SPEAKER_PHRASE.test(match[0]) && SPEAKER_FRAME.test(clause))
+        continue;
+      return { phrase: match[0].toLowerCase(), sentences, index };
     }
     const adverb = instructingAdverb(sentence);
     if (adverb)

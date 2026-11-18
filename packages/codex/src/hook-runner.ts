@@ -294,6 +294,43 @@ function preEditContext(
 }
 
 /**
+ * A shell call that writes files in place (`sed -i`, `perl -i`, `>`, `tee`)
+ * gets the same firm notice as an edit of those files, read as a whole-file
+ * write since the hook cannot tell which lines it changes.
+ */
+function shellFirmNotice(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  const base = input.cwd ?? workspaceRoot;
+  const targets = shellToolEditPaths(input.toolName, input.toolInput, base)
+    .map((rawPath) =>
+      canonicalizeWorkspacePath(workspaceRoot, {
+        eventCwd: input.cwd,
+        rawPath,
+      }),
+    )
+    .filter((target) => target !== undefined)
+    .map((target) => ({
+      relative: target.workspaceRelative,
+      absolute: target.absolute,
+      base,
+    }));
+  if (targets.length === 0) return undefined;
+  return firmNotice(
+    workspaceRoot,
+    targets,
+    loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    createEntitySummarizer(workspaceRoot),
+    { stateDir, sessionId: input.sessionId },
+    input,
+    env,
+  );
+}
+
+/**
  * Codex's pre-tool hook cannot put a call to the person, so an edit of code
  * that implements a firm requirement gets a notice telling the agent to ask
  * first, once per requirement per session. An edit whose location the hook
@@ -538,7 +575,7 @@ export async function runHook(
         try {
           context = isKnownEditTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : undefined;
+            : shellFirmNotice(workspace.root, stateDir, input, env);
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.

@@ -167,8 +167,8 @@ export function createDecisionHooks(
     },
 
     beforeTool(tool, sessionId, args) {
-      if (tool === undefined || !EDIT_TOOLS.has(tool) || !confirmFirmEdits(env))
-        return;
+      // An edit tool, or a shell call that writes files in place.
+      if (tool === undefined || !confirmFirmEdits(env)) return;
       const relatives = editedRelativePaths(workspaceRoot, tool, args).filter(
         isSourceImpactRelevantPath,
       );
