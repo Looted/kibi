@@ -23,6 +23,8 @@ logic_claims:
 required_evidence: tested
 origin:
   kind: agent
+  ref: 'Maintainer approved this requirement on 2026-11-18 (pre-release host parity review).'
+  approved_by: maintainer
   recorded_at: '2026-11-17T17:02:23.812Z'
 id: REQ-agent-hosts-shell-edits-count
 type: req

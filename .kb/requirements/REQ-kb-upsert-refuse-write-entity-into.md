@@ -5,6 +5,8 @@ firmness: default
 required_evidence: tested
 origin:
   kind: agent
+  ref: 'Maintainer approved this requirement on 2026-11-18 (pre-release host parity review).'
+  approved_by: maintainer
   recorded_at: '2026-11-17T18:13:27.613Z'
 rationale: An upsert with document.path set to an id-less ADR replaced that ADR, and the next sync dropped it from the KB with only an id-style warning.
 semantic_text: kb_upsert must refuse to write an entity into an existing authored document that holds another entity, including a document without an id that the store does not read the written entity from.
