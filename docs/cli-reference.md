@@ -793,7 +793,7 @@ files:
 | Cursor, ZCode | `/kibi-signoff` |
 | OpenCode | The fenced block (`--format md`) drawn as a framed card, `/kibi-signoff`, and a toast for each new view |
 | VS Code (and Cursor with the extension) | The **Kibi: Show Requirements Signoff** panel |
-| Claude Code, Codex, Cursor, ZCode hooks | After a session writes a requirement, the stop hook asks once for `kibi signoff` unless it already ran since |
+| Claude Code, Codex, Cursor, ZCode hooks; OpenCode v1 plugin | After a session writes a requirement, the stop hook (OpenCode: when the session goes idle) asks once for `kibi signoff` unless it already ran since |
 
 **Examples:**
 ```bash
@@ -860,7 +860,9 @@ signoff` shows it as such. Hooks read receipts too: the Claude Code
 PreToolUse hook lets the retry of an edit it asked about through when a
 `keeps` receipt recorded after the question covers every edited symbol (a
 receipt from an earlier session never skips the question), and the Codex,
-Cursor and ZCode notices name this command. `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
+Cursor, ZCode and OpenCode notices name this command (OpenCode v1 stops the
+first attempt of such an edit once and lets the same edit through when it is
+tried again). `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
 the staged gate.
 
 **Example:**

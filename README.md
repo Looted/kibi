@@ -147,7 +147,7 @@ The repository marketplace is not the official OpenAI Plugin Directory; self-ser
 <details>
 <summary>OpenCode</summary>
 
-Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true) and background maintenance:
+Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true), background maintenance and, on OpenCode v1, the decision hooks the other plugins run: a message that states a rule gets a `kb_record` capture template, an edit of code that implements a firm requirement is stopped once so the agent asks the person first, and a session that changed source and recorded nothing is asked once to record the decision:
 
 ```json
 {
