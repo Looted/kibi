@@ -1,5 +1,5 @@
 ---
-title: MCP server that hides the bootstrap tools on an empty knowledge base
+title: Core tool profile that hides the bootstrap tools on an empty knowledge base
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog

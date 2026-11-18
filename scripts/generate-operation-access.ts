@@ -32,8 +32,6 @@ const MCP_CALL: Readonly<Record<string, string>> = {
   kb_model_requirement: '`kb_model` with `mode: "requirement"`',
   kb_suggest_predicates: '`kb_model` with `mode: "predicates"`',
   kb_validate_upsert: "`kb_upsert` with `dryRun: true`",
-  kb_review_firm_edit:
-    "none: CLI only, run the `kibi review-firm-edit` input the `firm_edit_unreviewed` finding prints",
   kb_sparql_remote:
     "`kb_sparql_remote`, registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it",
 };
@@ -64,13 +62,13 @@ ${rows.join("\n")}
 
 ## MCP tools versus catalog operations
 
-The MCP catalog has 17 tools. A session lists seven of them (\`kb_search\`,
-\`kb_query\`, \`kb_record\`, \`kb_upsert\`, \`kb_check\`, \`kb_status\`,
-\`kb_skills\`) unless the \`full\` profile is chosen (\`KIBI_MCP_TOOLS=full\`); the
-others run through their CLI routes with the same input. Most tools carry their
-catalog operation name; the
-operations below are reached through a consolidated MCP call instead, while the
-CLI keeps their dedicated routes. Result payloads (for example
+The MCP catalog has 18 tools, and a session lists all of them. A project that
+chooses the \`core\` profile (\`KIBI_MCP_TOOLS=core\`) lists eight
+(\`kb_search\`, \`kb_query\`, \`kb_record\`, \`kb_upsert\`, \`kb_check\`,
+\`kb_status\`, \`kb_skills\`, \`kb_review_firm_edit\`); the others then run
+through their CLI routes with the same input. Most tools carry their catalog
+operation name; the operations below are reached through a consolidated MCP
+call instead, while the CLI keeps their dedicated routes. Result payloads (for example
 \`recommended_tools\`, \`suggested_next_tool\`, or repair-plan steps) still name
 catalog operations, so translate them with this list.
 

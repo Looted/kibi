@@ -1,25 +1,25 @@
 ---
 title: Codex, Cursor and ZCode pre-edit hooks ask before an edit of firm code
 status: open
-semantic_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
+semantic_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: b53b4b90d6f2b211bcc9b773c14d2993fb1448b57d9516b736e3ad6c73d1c018
+semantic_source_hash: 1a2d9071782f046b5326f8c512dc89cab8aade1d46904fd689c7ed4a1de78427
 semantic_inventory:
-  - claim_key: CLAIM-DD875FBC8AF85498
-    claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit
+  - claim_key: CLAIM-E5D7DA26835ED6C3
+    claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit
     role: normative
     status: modeled
     span:
       start: 0
-      end: 274
+      end: 272
 logic_claims:
-  - CLAIM-DD875FBC8AF85498
+  - CLAIM-E5D7DA26835ED6C3
 origin:
   kind: agent
   approved_by: maintainer
-  ref: 'Maintainer decision, 2026-11-16, approving the firm-edit receipt statements: "Yes, all of them"'
-  recorded_at: '2026-11-16T07:01:32.170Z'
+  ref: 'Maintainer-approved statement (2026-11-17): "Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit."'
+  recorded_at: '2026-11-17T15:06:42.369Z'
 priority: should
 required_evidence: tested
 tags:
@@ -31,9 +31,9 @@ tags:
 id: REQ-agent-hosts-firm-edit-ask
 type: req
 semantic_clauses:
-  - Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
+  - Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit.
 ---
-Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
+Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit.
 
 ## Context
 

@@ -99,7 +99,7 @@ Only when the person said to change that rule (firm), or on evidence (default):
 
 A preference ("this would be cleaner") is not evidence: propose it in the
 report instead of superseding. An authored requirement is never deleted:
-`kb_delete` (full MCP profile only; CLI `kibi delete --input -`) returns `outcome: supersession_required`.
+`kb_delete` (core MCP profile: CLI `kibi delete --input -`) returns `outcome: supersession_required`.
 
 ## Batch approvals
 
@@ -146,7 +146,7 @@ title, statement (or an ADR's body) or to lower its firmness.
 
 ## The kb_compile_intent review loop
 
-`kb_compile_intent` (full MCP profile only; CLI `kibi compile-intent --input -`) (`mode: "create"` or `"update"`, the complete intent,
+`kb_compile_intent` (core MCP profile: CLI `kibi compile-intent --input -`) (`mode: "create"` or `"update"`, the complete intent,
 `context` when creating) is read-only and returns a plan.
 
 - `contradictionAnalysis.outcome`:

@@ -32,7 +32,7 @@ function workspace(files: Record<string, string> = {}): string {
 }
 
 describe("MCP tool profile", () => {
-  test("the default profile names the seven core tools and the bootstrap pair", () => {
+  test("the core profile names the seven core tools, the receipt tool and the bootstrap pair", () => {
     expect([...DEFAULT_PROFILE_TOOLS]).toEqual([
       "kb_search",
       "kb_query",
@@ -41,6 +41,7 @@ describe("MCP tool profile", () => {
       "kb_check",
       "kb_status",
       "kb_skills",
+      "kb_review_firm_edit",
     ]);
     expect([...BOOTSTRAP_TOOLS]).toEqual([
       "kb_plan_bootstrap",
@@ -51,11 +52,11 @@ describe("MCP tool profile", () => {
       expect(catalog).toContain(name);
   });
 
-  test("lists the core tools, adds the bootstrap tools while the KB is empty, and every tool when full", () => {
-    expect([...(profileToolNames("default", false) ?? [])]).toEqual([
+  test("lists every tool when full, and the core tools plus the bootstrap tools while the KB is empty when core", () => {
+    expect([...(profileToolNames("core", false) ?? [])]).toEqual([
       ...DEFAULT_PROFILE_TOOLS,
     ]);
-    expect([...(profileToolNames("default", true) ?? [])]).toEqual([
+    expect([...(profileToolNames("core", true) ?? [])]).toEqual([
       ...DEFAULT_PROFILE_TOOLS,
       ...BOOTSTRAP_TOOLS,
     ]);
@@ -63,44 +64,48 @@ describe("MCP tool profile", () => {
     expect(profileToolNames("full", false)).toBeUndefined();
   });
 
-  test("KIBI_MCP_TOOLS wins, then the recorded choice, then default", () => {
+  test("KIBI_MCP_TOOLS wins, then the recorded choice, then full", () => {
     const plain = workspace();
-    expect(resolveToolProfile(plain, {})).toBe("default");
-    expect(resolveToolProfile(plain, { KIBI_MCP_TOOLS: " FULL " })).toBe(
+    // Every host gets every tool unless a profile is chosen.
+    expect(resolveToolProfile(plain, {})).toBe("full");
+    expect(resolveToolProfile(plain, { KIBI_MCP_HOST: "cursor" })).toBe(
       "full",
     );
-    expect(resolveToolProfile(plain, { KIBI_MCP_TOOLS: "everything" })).toBe(
-      "default",
+    expect(resolveToolProfile(plain, { KIBI_MCP_TOOLS: " CORE " })).toBe(
+      "core",
+    );
+    expect(resolveToolProfile(plain, { KIBI_MCP_TOOLS: "default" })).toBe(
+      "full",
     );
     const fromPackage = workspace({
-      "package.json": JSON.stringify({ kibi: { mcpTools: "full" } }),
-      ".kb/setup.json": JSON.stringify({ mcpTools: "default" }),
+      "package.json": JSON.stringify({ kibi: { mcpTools: "core" } }),
+      ".kb/setup.json": JSON.stringify({ mcpTools: "full" }),
     });
-    expect(resolveToolProfile(fromPackage, {})).toBe("full");
-    expect(resolveToolProfile(fromPackage, { KIBI_MCP_TOOLS: "default" })).toBe(
-      "default",
+    expect(resolveToolProfile(fromPackage, {})).toBe("core");
+    expect(resolveToolProfile(fromPackage, { KIBI_MCP_TOOLS: "full" })).toBe(
+      "full",
     );
     const fromSetup = workspace({
       "package.json": JSON.stringify({ kibi: { mcpTools: "some" } }),
-      ".kb/setup.json": JSON.stringify({ mcpTools: "full" }),
+      ".kb/setup.json": JSON.stringify({ mcpTools: "core" }),
     });
-    expect(resolveToolProfile(fromSetup, {})).toBe("full");
+    expect(resolveToolProfile(fromSetup, {})).toBe("core");
     // A malformed file or a package.json without a kibi block names none.
     expect(
       resolveToolProfile(
         workspace({ "package.json": "{", ".kb/setup.json": "null" }),
         {},
       ),
-    ).toBe("default");
+    ).toBe("full");
     expect(
       resolveToolProfile(
         workspace({
           "package.json": "null",
-          ".kb/setup.json": JSON.stringify({ mcpTools: "full" }),
+          ".kb/setup.json": JSON.stringify({ mcpTools: "core" }),
         }),
         {},
       ),
-    ).toBe("full");
+    ).toBe("core");
     expect(
       resolveToolProfile(
         workspace({
@@ -109,7 +114,7 @@ describe("MCP tool profile", () => {
         }),
         {},
       ),
-    ).toBe("default");
+    ).toBe("full");
     expect(
       resolveToolProfile(
         workspace({
@@ -118,7 +123,7 @@ describe("MCP tool profile", () => {
         }),
         {},
       ),
-    ).toBe("default");
+    ).toBe("full");
   });
 
   test("the KB is empty until a lane holds an entity file", () => {
@@ -172,7 +177,7 @@ describe("MCP tool profile", () => {
     );
     const listed = serverInstructions(new Set(["kb_search", "kb_query"]));
     expect(listed).toBe(
-      `${full}\nThis server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_record, kb_delete, kb_check, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+      `${full}\nThis server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_record, kb_delete, kb_check, kb_review_firm_edit, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -).`,
     );
     // An optional tool enabled by name is listed, so it is not sent to the CLI.
     const withSparql = serverInstructions(
