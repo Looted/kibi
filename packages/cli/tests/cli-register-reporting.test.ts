@@ -180,7 +180,9 @@ describe("kibi check", () => {
     restores.push(() => wrap.mockRestore());
     await run("check", "--changed");
     expect(process.exitCode).toBe(0);
-    generated.mockImplementation((async () => ({ exitCode: 1 })) as never);
+    (
+      generated as unknown as { mockImplementation: (fn: unknown) => void }
+    ).mockImplementation(async () => ({ exitCode: 1 }));
     await run("check", "--changed", "--format", "json");
     expect(process.exitCode).toBe(1);
     expect(plainCalls(generated)).toStrictEqual([

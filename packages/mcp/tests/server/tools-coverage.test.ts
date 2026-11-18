@@ -872,7 +872,7 @@ describe.serial("server tools coverage", () => {
       [0, 1].map((index) =>
         invokeTool(getRegisteredTool(registered, `refused_tool_${index}`), {}),
       ),
-    )) as {
+    )) as unknown as {
       structuredContent: {
         status: string;
         error: { code: string; message: string; retryable: boolean };

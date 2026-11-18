@@ -39,7 +39,6 @@ import {
   resolveKibiInterface,
 } from "../src/kb-mcp-tools";
 import {
-  BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   interfaceAdvisory,
   stopFollowupMessage,

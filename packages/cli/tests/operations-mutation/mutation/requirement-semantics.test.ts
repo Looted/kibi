@@ -728,9 +728,10 @@ describe("withServerSemanticInventory decisions", () => {
       semantic_source_field: "semantic_text",
       semantic_inventory: entries,
     });
+    const first = entries[0] as Record<string, unknown> | undefined;
     expect(result.applied?.[0]).toMatchObject({
-      status: entries[0]?.status,
-      role: entries[0]?.role,
+      status: first?.status,
+      role: first?.role,
     });
   });
 

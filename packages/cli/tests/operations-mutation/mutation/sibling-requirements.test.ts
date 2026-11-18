@@ -144,22 +144,22 @@ describe("sibling requirements of a value fact write", () => {
     // A firm sibling is read for the person to decide on; the others get a
     // ready kb_upsert input the new value is added to.
     const upsert = (id: string) => ({
-      type: "req",
+      type: "req" as const,
       id,
       properties: { title: `${id} title`, status: "open" },
     });
     expect(report.nextActions).toEqual([
       {
-        operation: "kb_query",
-        input: { id: "REQ-banner", includeBody: true },
-        reason: report.warnings[0],
-        required: true,
+        operation: "kb_query" as const,
+        input: { id: "REQ-banner", includeBody: true as const },
+        reason: report.warnings[0] as string,
+        required: true as const,
       },
       ...["REQ-ceiling", "REQ-floor", "REQ-window"].map((id, index) => ({
-        operation: "kb_upsert",
+        operation: "kb_upsert" as const,
         input: upsert(id),
-        reason: report.warnings[index + 1],
-        required: true,
+        reason: report.warnings[index + 1] as string,
+        required: true as const,
       })),
     ]);
   });
