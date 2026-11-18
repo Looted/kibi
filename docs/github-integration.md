@@ -354,7 +354,7 @@ the action's merge commit or push; the `check` input is the gate.
 | `branches` | every open pull request | Head branches to consider: newline or space separated, or a JSON array. |
 | `list-only` | `false` | `true` only lists the branches whose sole conflicts are Kibi manifests (output `branches`) and changes nothing. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. A relative path resolves from the workspace. |
-| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the tree holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the tree's copy never runs. `""` runs none. |
+| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `MERGE_TRAIN_CHECKS_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the tree holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the tree's copy never runs. `""` runs none. |
 | `attempts` | `3` | Tries per branch when the branch moves while it is being merged. |
 | `skip-label` | `""` | Pull requests with this label are left alone. Set it to your merge train's label (`train`): the train merges the manifests itself, and a push to a boarded pull request would restart its checks. |
 | `github-token` | `github.token` | Token `gh` uses to list pull requests. |
@@ -440,7 +440,9 @@ from, so a later pull request can reuse it in turn.
    GitHub App token limited to the repository, with **Contents**,
    **Pull requests**, **Issues**, **Actions** and **Workflows** set to read
    and write. Pull requests and pushes made with the default `GITHUB_TOKEN`
-   start no workflows, so the train's checks would never run.
+   start no workflows, so the train's checks would never run. A fine-grained
+   token cannot read check runs, so the train reads them with the
+   workflow's own token: give the job `checks: read`.
 4. In the default branch's ruleset, require the checks, but do not enable
    "Require branches to be up to date before merging": the train already
    proves the exact tree that lands. To make the train the only way in,
@@ -460,7 +462,8 @@ from, so a later pull request can reuse it in turn.
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. `""` skips `kibi sync`. |
 | `check` | `$KIBI check` | Shell command run in the train after each merge. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the train holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the train's copy never runs. `""` runs none. |
 | `prefix` | `merge-train/` | Branch prefix of train branches. |
-| `github-token` | `github.token` | Token `gh` uses. |
+| `github-token` | `github.token` | Token `gh` uses, except to read check runs. |
+| `checks-token` | `github.token` | Token `gh` reads check runs with. Fine-grained personal access tokens cannot read them; the job needs `checks: read`. |
 
 The action needs Node.js 22.6 or newer, `git` and `gh`. Outside GitHub
 Actions the same logic is `actions/merge-train/merge-train.mts`, configured
