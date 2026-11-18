@@ -1,5 +1,12 @@
 # kibi-plugin-search-hints
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [69b636f]
+  - kibi-plugin-sdk@0.8.0
+
 ## 0.1.3
 
 ### Patch Changes

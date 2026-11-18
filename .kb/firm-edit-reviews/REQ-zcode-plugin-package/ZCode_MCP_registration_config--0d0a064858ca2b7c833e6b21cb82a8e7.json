@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-zcode-plugin-package",
+  "sourceFile": "packages/zcode/.zcode-plugin/plugin.json",
+  "symbol": "ZCode MCP registration config",
+  "verdict": "keeps",
+  "note": "Version bump only; skills, commands, hooks and the bundled MCP launcher are unchanged.",
+  "statementHash": "sha256:68d84c3abd9b5006f3f07a96b47990e591ff7ed3824e2fb193b69970d9cce173",
+  "codeHash": "sha256:9c2048583e709ae78be403996a58cd1dd4a9b4259fc657ddc863f19110b39988",
+  "startLine": 1,
+  "endLine": 22,
+  "recordedAt": "2026-11-18T09:40:16.442Z"
+}

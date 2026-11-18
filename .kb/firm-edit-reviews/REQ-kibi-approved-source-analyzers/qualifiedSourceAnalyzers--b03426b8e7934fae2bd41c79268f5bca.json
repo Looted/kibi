@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-approved-source-analyzers",
+  "sourceFile": "packages/cli/src/plugins/approved-source-analyzers.generated.ts",
+  "symbol": "qualifiedSourceAnalyzers",
+  "verdict": "keeps",
+  "note": "Regenerated release approval for the new tree-sitter plugin version and file hashes; the qualification rule is unchanged.",
+  "statementHash": "sha256:0e292e9e37e185c701bafe608c6aacea467e0f894951a88b429bd879e18b2c33",
+  "codeHash": "sha256:2fdca470c467e3fbb88b74a29aa49e8d9adb7ab2f7e098d930ee264583696404",
+  "startLine": 3,
+  "endLine": 106,
+  "recordedAt": "2026-11-18T09:40:16.442Z"
+}

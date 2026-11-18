@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "3.2.0",
+  "version": "4.0.0",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 38421,
-      "sha256": "78f580b019a695d3a5bc6d5b74641d891a76af414a2e2b5ef3e407e73e0bba97"
+      "bytes": 38510,
+      "sha256": "799cfad9d85b4c9b864b320935b384461c50ae41fa8310f3121dc7c1d33b1f40"
     },
     {
       "path": "LICENSE.md",
@@ -27,7 +27,7 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 3981,
-      "sha256": "b4c0aca41c19e795325940b2a4d3d9b2f598d66e7669419f65991929335532b9"
+      "sha256": "a77635a32ace46d03eda32bcf7e9141fe8b5167ce36c558276b7c9ffa1794f45"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -122,7 +122,7 @@
     {
       "path": "catalog.json",
       "bytes": 18499,
-      "sha256": "2386c67d39cf2ec1bea926bb3a27a9079d35d80df2e760d4fadb206de84e6fe7"
+      "sha256": "8fa437961aec6a14897adcac676f53ad1ac763011552eb590d45c4143f05ec7a"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -326,8 +326,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 2967,
-      "sha256": "84cb21b59cb9299de84558f090200296e3134583ac73daae6c5de824b75c3591"
+      "bytes": 2947,
+      "sha256": "273a1c6ff3fb3f7e153be843470cd9bc228850680dc41494db1f612fecb2486c"
     }
   ]
 }
