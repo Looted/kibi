@@ -433,13 +433,34 @@ const RULE_PHRASES =
   /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
 
 /**
- * Text before a rule phrase that makes it describe rather than set a rule:
- * a bug report's frame ("the bug where users have to click twice"), an
- * indirect question ("tell me which ones are required") or the speaker's own
- * situation ("I have to leave soon").
+ * Text before a rule phrase, in the same clause, that makes it describe
+ * rather than set a rule: a bug report's frame ("the bug where users have to
+ * click twice") or an indirect question ("tell me which ones are required").
  */
 const DESCRIBING_FRAME =
-  /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$|\bI\s+$/i;
+  /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$/i;
+
+/**
+ * "I have to" states the speaker's own situation ("I have to leave soon");
+ * "I must approve each release" still sets a rule.
+ */
+const SPEAKER_FRAME = /\bI\s+$/;
+const SPEAKER_PHRASE = /^ha(?:s|ve) to$/i;
+
+/**
+ * Where a clause starts: a semicolon or colon, or a comma or "and"/"but"
+ * that joins another clause. A frame before it belongs to another clause
+ * ("Fix the bug where guests can post; from now on only admins ...").
+ */
+const CLAUSE_BREAK = /[;:]|,\s*(?:(?:and|but|so)\s+)?|\b(?:and|but)\s+/gi;
+
+/** The text of the clause `prefix` ends in. */
+function currentClause(prefix: string): string {
+  let start = 0;
+  for (const match of prefix.matchAll(CLAUSE_BREAK))
+    start = (match.index as number) + match[0].length;
+  return prefix.slice(start);
+}
 
 /**
  * "never" and "always" set a rule only as an instruction: at the start of a
@@ -478,16 +499,37 @@ const CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
 /** List, heading and number markers before a line's words. */
 const LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
 
-/** A line of pasted tool output: an error, warning or stack frame. */
+/**
+ * A line of pasted tool output: an error or exception with its message
+ * (`TypeError: ...`, `Error: ...`, `java.lang.IllegalStateException: ...`),
+ * a log level (`error: ...`, `WARNING [x] ...`) or a stack frame
+ * (`at fn (file.ts:3:7)`). A sentence about errors ("Error messages must
+ * ...", "ValidationError must ...", "At login (and signup) ...") is the
+ * person's.
+ */
 const PASTED_OUTPUT_LINE =
-  /^\s*(?:[\w.$]*(?:Error|Exception)\b|(?:error|warning|fatal|panic)\b\s*[:[]|at\s+\S+\s+\()/i;
+  /^\s*(?:[\w.$]*Error:|[\w.$]+Exception:|(?:[Ee]rror|ERROR|[Ww]arning|WARNING|[Ff]atal|FATAL|[Pp]anic|PANIC)\s*[:[]|at\s+\S+\s+\(\S*:\d+)/;
 
 /**
  * Words in single quotation marks, which the person names rather than says
  * ("what does 'is not allowed' mean"). A rule quoted in double quotes is
- * often the person's or a stakeholder's own rule, so it is kept.
+ * often the person's or a stakeholder's own rule, so it is kept, and so is a
+ * single-quoted clause that states one ("Our policy is 'API keys must never
+ * be logged'"; see quotedRule).
  */
 const QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
+
+/** Fewest words of a quoted span that states a rule rather than names a phrase. */
+const MIN_QUOTED_RULE_WORDS = 4;
+
+/** Whether a quoted span states a rule (kept) rather than names words (dropped). */
+function quotedRule(span: string): boolean {
+  const words = span.split(/\s+/).filter((word) => /\w/.test(word));
+  return (
+    words.length >= MIN_QUOTED_RULE_WORDS &&
+    new RegExp(RULE_PHRASES.source, "i").test(span)
+  );
+}
 
 /** Emphasis markers around words ("**Never**", "_always_"). */
 const EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
@@ -516,7 +558,9 @@ function requestLines(text: string): string[] {
 function requestSentences(prompt: string): string[] {
   // An empty piece matches no rule phrase, so pieces are not filtered.
   return requestLines(prompt.replace(CODE_SPANS, " "))
-    .map((line) => line.replace(QUOTED_WORDS, " "))
+    .map((line) =>
+      line.replace(QUOTED_WORDS, (span) => (quotedRule(span) ? span : " ")),
+    )
     .flatMap((line) => line.split(/(?<=[.!?])\s/))
     .map((sentence) => sentence.trim());
 }
@@ -546,8 +590,10 @@ function ruleMatch(
     )
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
-      if (!DESCRIBING_FRAME.test(sentence.slice(0, match.index)))
-        return { phrase: match[0].toLowerCase(), sentences, index };
+      const clause = currentClause(sentence.slice(0, match.index));
+      if (DESCRIBING_FRAME.test(clause)) continue;
+      if (SPEAKER_PHRASE.test(match[0]) && SPEAKER_FRAME.test(clause)) continue;
+      return { phrase: match[0].toLowerCase(), sentences, index };
     }
     const adverb = instructingAdverb(sentence);
     if (adverb) return { phrase: adverb, sentences, index };

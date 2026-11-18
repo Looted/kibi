@@ -784,6 +784,42 @@ describe("firm edit texts", () => {
 });
 
 describe("statedRule and notes", () => {
+  test("rules about errors, quoted policies and rules after a bug report are found", () => {
+    for (const rule of [
+      "Error messages must never include the stack trace.",
+      "Error responses must use RFC 7807 from now on.",
+      "ValidationError must always carry the field name.",
+      "Exception: admins must still be able to export.",
+      "At login (and signup) users must accept the terms.",
+      "Deploys are frozen and I must approve each release.",
+      "Our policy is 'API keys must never be logged', apply it here.",
+    ])
+      expect(statedRule(rule)).toBe("must");
+    expect(
+      statedRule(
+        "Fix the bug where guests can post; from now on only admins are allowed.",
+      ),
+    ).toBe("from now on");
+    expect(
+      statedRule(
+        "The error that users see is ugly, and going forward all errors must be localized.",
+      ),
+    ).toBe("going forward");
+    // Pasted output, a named phrase, the speaker's own situation and a bug
+    // report's own clause stay silent.
+    for (const silent of [
+      "TypeError: x must be a string",
+      "Error: value must be positive",
+      "java.lang.IllegalStateException: id must not be null",
+      "WARNING [db] pool size must be raised",
+      "    at run (src/a.ts:3:7) must",
+      "I have to leave soon, fix the build.",
+      "Fix the bug where users have to click twice.",
+      "The flag 'is required' is shown twice.",
+    ])
+      expect(statedRule(silent)).toBeUndefined();
+  });
+
   test("finds the phrase that makes a request read as a rule", () => {
     expect(statedRule("From now on, only admins may delete")).toBe(
       "from now on",
