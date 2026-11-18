@@ -37,7 +37,7 @@
  *
  * Configuration comes from the environment (the action sets it):
  *   MERGE_TRAIN_BASE    base branch (required)
- *   MERGE_TRAIN_CHECKS  required check names, comma or newline separated
+ *   MERGE_TRAIN_CHECKS  required check names, one per line (or comma separated on one line)
  *   MERGE_TRAIN_TRAIN_CHECKS  check names a train must also pass before it
  *                       lands, but a pull request needs not to board, such as
  *                       a slow proof that runs only on trains
@@ -687,11 +687,19 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   if (!base) throw new Error("MERGE_TRAIN_BASE names the base branch");
   if (!repo || !/^[\w.-]+\/[\w.-]+$/.test(repo))
     throw new Error("GH_REPO names the repository as owner/name");
-  const names = (value: string | undefined) =>
-    (value ?? "")
-      .split(/[\n,]/)
-      .map((name) => name.trim())
+  // One name per line when there are several lines, so a check name may hold
+  // a comma ("Secrets, dependencies"); a single line is comma separated.
+  const names = (value: string | undefined) => {
+    const lines = (value ?? "")
+      .split("\n")
+      .map((line) => line.trim())
       .filter(Boolean);
+    const parts =
+      lines.length > 1
+        ? lines.map((line) => line.replace(/,$/, ""))
+        : (lines[0] ?? "").split(",");
+    return parts.map((name) => name.trim()).filter(Boolean);
+  };
   const checks = names(env.MERGE_TRAIN_CHECKS);
   if (checks.length === 0)
     throw new Error("MERGE_TRAIN_CHECKS names at least one required check");
