@@ -24,6 +24,7 @@ logic_claims:
   - CLAIM-6B23D37D973DF854
 id: REQ-merge-train-kb-merge-actions-run
 type: req
+required_evidence: tested
 ---
 The merge-train and kb-merge actions must run kibi sync and the check command in the merged tree without GH_TOKEN, GITHUB_TOKEN or the GitHub Actions runtime tokens in their environment.
 
