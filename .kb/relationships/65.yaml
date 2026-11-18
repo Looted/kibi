@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fbd1c9481ab
+  - type: implements
+    from: SYM-merge-train-merge-train-checks-of
+    to: REQ-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:36.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd3a73e08e6
