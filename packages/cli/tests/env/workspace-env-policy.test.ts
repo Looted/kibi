@@ -120,8 +120,35 @@ describe("isWorkspaceEnvKeyAllowed", () => {
       "kibi_jev_model",
       "PROXY_TOKEN",
       "NODEPOOL_TOKEN",
+      "ANTHROPIC_BASE_URL",
+      "AZURE_OPENAI_ENDPOINT",
+      "OPENAI_ORG_ID",
+      "VENDOR_MODEL",
+      "typesafe_api_key",
     ]) {
       expect([key, isWorkspaceEnvKeyAllowed(key)]).toEqual([key, true]);
+    }
+  });
+
+  test("ignores any other key outside the Kibi names, including ones that load code", () => {
+    for (const key of [
+      "OPENSSL_CONF",
+      "OPENSSL_MODULES",
+      "_JAVA_OPTIONS",
+      "JDK_JAVA_OPTIONS",
+      "RUSTC_WRAPPER",
+      "DOTNET_STARTUP_HOOKS",
+      "CARGO_HOME",
+      "GOFLAGS",
+      "GEM_PATH",
+      "LANG",
+      "TZ",
+      "_TOKEN",
+      "NODE_AUTH_TOKEN",
+      "GIT_TOKEN",
+      "SSH_KEY",
+    ]) {
+      expect([key, isWorkspaceEnvKeyAllowed(key)]).toEqual([key, false]);
     }
   });
 

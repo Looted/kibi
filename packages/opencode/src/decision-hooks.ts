@@ -25,7 +25,10 @@ import {
   statedReason,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
-import { extractKbMcpToolCall } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  hostKbOperation,
+} from "kibi-agent-core/kb-mcp-tools";
 import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
 import {
   canonicalizeWorkspacePath,
@@ -33,6 +36,8 @@ import {
   isSourceImpactRelevantPath,
 } from "kibi-agent-core/path-policy";
 import { createEntitySummarizer, editFocus } from "kibi-agent-core/snippets";
+
+import { kibiToolName } from "./smart-enforcement-events.js";
 
 /**
  * The decision hooks every other host runs, for OpenCode: a prompt that
@@ -203,8 +208,12 @@ export function createDecisionHooks(
     afterTool(tool, sessionId, args) {
       if (tool === undefined) return undefined;
       const session = sessionFor(sessionId);
-      const kbCall = extractKbMcpToolCall(tool, args);
-      if (kbCall?.toolName === "kb_upsert") {
+      // OpenCode names an MCP tool `<server key>_<tool>`, whatever the
+      // server key is; a write through the CLI runs in the bash tool.
+      const kbCall = extractKbMcpToolCall(kibiToolName(tool) ?? tool, args);
+      const kbOperation =
+        kbCall?.toolName ?? (tool === "bash" ? hostKbOperation("Bash", args) : undefined);
+      if (kbOperation === "kb_upsert") {
         markDecisionFlag(session, "kb-recorded");
         if (isRequirementUpsert(args)) {
           markDecisionFlag(session, "requirement-recorded");

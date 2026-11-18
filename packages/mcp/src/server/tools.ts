@@ -27,6 +27,7 @@ import {
   codedErrorOf,
   detachedReadOnlyDiagnostic,
   executeOperation,
+  isKbRejection,
   queryLimitExceededOf,
 } from "kibi-runtime";
 import {
@@ -704,12 +705,22 @@ export function addTool<TProlog>(
             isError: true,
           };
         }
-        const coded = codedErrorOf(error);
+        // A refusal of the input answers like the CLI JSON route does: an
+        // OPERATION_FAILED envelope that says a retry fails the same way.
+        const coded =
+          codedErrorOf(error) ??
+          (isKbRejection(error)
+            ? {
+                code: "OPERATION_FAILED",
+                message: (error as Error).message,
+                retryable: false,
+              }
+            : null);
         if (coded !== null) {
           // An error that carries a Kibi code (VALIDATION_FAILED and the
-          // like) answers with the same error envelope the CLI JSON route
-          // prints, so a client can branch on error.code instead of parsing
-          // the message.
+          // like), or a refusal, answers with the same error envelope the CLI
+          // JSON route prints, so a client can branch on error.code and
+          // retryable instead of parsing the message.
           const envelope = withWorkspaceNotice(
             withWorkspaceNotice(
               toKibiResult(operationSpec, null, {

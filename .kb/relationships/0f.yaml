@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-770eb2c50b08
+  - type: implements
+    from: SYM-firm-edit-gate-is-current-firm-requirement
+    to: REQ-pre-edit-hooks-kibi-check-staged
+    created_at: 2026-11-17T19:22:36.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf20f168afa8
+  - type: covered_by
+    from: SYM-firm-edit-gate-is-current-firm-requirement
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-17T19:22:36.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04b00b92c767

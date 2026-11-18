@@ -57,6 +57,15 @@ const SEARCH_STOP_WORDS = new Set([
   "not",
 ]);
 
+/**
+ * Orders two strings by UTF-16 code units, the same on every machine:
+ * `localeCompare` follows the process locale, so ties between equal scores
+ * came out in another order on another machine.
+ */
+export function compareCodeUnits(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 export async function rankEntities(
   entities: Record<string, unknown>[],
   query: string,
@@ -88,9 +97,10 @@ export async function rankEntities(
     const leftType = String(left.entity.type ?? "");
     const rightType = String(right.entity.type ?? "");
     if (leftType !== rightType) {
-      return leftType.localeCompare(rightType);
+      return compareCodeUnits(leftType, rightType);
     }
-    return String(left.entity.id ?? "").localeCompare(
+    return compareCodeUnits(
+      String(left.entity.id ?? ""),
       String(right.entity.id ?? ""),
     );
   });

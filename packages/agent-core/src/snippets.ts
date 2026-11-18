@@ -131,9 +131,15 @@ function formatList(items: readonly string[], limit: number): string {
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
 
-const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+const RETIRED_STATUS =
+  /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 
-/** True for a status that marks an entity as no longer current policy. */
+/**
+ * True for a status that marks an entity as no longer current policy. The
+ * hooks and the commit gate share it, so they agree on which firm
+ * requirements still guard their code. `closed` is not retired: a closed
+ * requirement is done and still governs.
+ */
 export function isRetiredStatus(status: string | undefined): boolean {
   // `String(undefined)` is "undefined", which names no retired status.
   return RETIRED_STATUS.test(String(status));
@@ -144,10 +150,18 @@ export function isRetiredStatus(status: string | undefined): boolean {
  * retired and the firmness only on a current decision: `[firm: ask before
  * changing]` says what a firm rule asks of the agent where it reads it, and
  * `[exploratory]` marks a guess. An unlabeled current decision is `default`,
- * an agent's choice.
+ * an agent's choice. With `supersededBy`, the status names the successor
+ * (`(closed, superseded by REQ-b)`) and no firmness is shown.
  */
-export function describeEntity(summary: EntitySummary): string {
-  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+export function describeEntity(
+  summary: EntitySummary,
+  supersededBy?: string,
+): string {
+  const retired = supersededBy
+    ? ` (${summary.status ?? "closed"}, superseded by ${supersededBy})`
+    : isRetiredStatus(summary.status)
+      ? ` (${summary.status})`
+      : "";
   // A retired decision binds nothing, however firmly it was once made.
   const firmness =
     !retired &&
@@ -335,20 +349,25 @@ const REASON_LABELS: Readonly<
 /**
  * The `Why:` line for a requirement: its recorded reason, at most
  * `maxChars` characters, labelled with where it was recorded and who it came
- * from and when; or that no reason is recorded. Undefined when the
- * requirement's document could not be read whole.
+ * from and when; or that no reason is recorded. With `requirementId` the line
+ * names the requirement, since a snippet lists several and an unnamed reason
+ * reads as the last one's. Undefined when the requirement's document could
+ * not be read whole.
  */
 export function reasonLine(
   summary: EntitySummary,
   maxChars: number = MAX_WHY_CHARS,
+  requirementId?: string,
 ): string | undefined {
   const why = summary.why;
   if (!why) return undefined;
-  if (!why.recorded) return "Why: no reason is recorded.";
+  const of = requirementId ? ` for ${requirementId}` : "";
+  if (!why.recorded) return `Why: no reason is recorded${of}.`;
   // A recorded reason always holds prose, so the excerpt is never empty.
   const text = proseExcerpt([why.text], maxChars) as string;
   const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
-  return `Why: ${withoutClosingStop(text)} (${REASON_LABELS[why.from]}${said}).`;
+  const owner = requirementId ? `${requirementId} ` : "";
+  return `Why: ${withoutClosingStop(text)} (${owner}${REASON_LABELS[why.from]}${said}).`;
 }
 
 /**
@@ -411,7 +430,8 @@ export function requirementGroundingLines(
       );
     }
   }
-  const why = whyChars > 0 ? reasonLine(requirement, whyChars) : undefined;
+  const why =
+    whyChars > 0 ? reasonLine(requirement, whyChars, requirementId) : undefined;
   if (why) lines.push(why);
   const adr = adrs[0];
   if (adr) lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
@@ -445,6 +465,59 @@ export function createEntitySummarizer(workspaceRoot: string): Summarize {
  * Requirement -> symbol titles, with the requirement IDs ranked so the focus
  * symbols' owners lead, then the requirements with the most symbols.
  */
+/**
+ * The listed requirements that another listed, current requirement
+ * supersedes, each with its successor. A replaced requirement is `closed`,
+ * which alone reads as current, so the snippet names its successor.
+ */
+function replacedAmong(
+  requirementIds: readonly string[],
+  summarize: Summarize,
+): Map<string, string> {
+  const listed = new Set(requirementIds);
+  const replaced = new Map<string, string>();
+  for (const id of requirementIds) {
+    const summary = summarize(id);
+    if (summary.status === "closed" || isRetiredStatus(summary.status))
+      continue;
+    for (const link of summary.links ?? [])
+      if (
+        link.type === "supersedes" &&
+        link.target !== id &&
+        listed.has(link.target) &&
+        !replaced.has(link.target)
+      )
+        replaced.set(link.target, id);
+  }
+  return replaced;
+}
+
+/**
+ * `requirementOwners` with each replaced requirement moved after the current
+ * ones, so the lead requirement, whose grounding and reason the snippet
+ * shows, is the one in force.
+ */
+function currentFirstOwners(
+  symbols: readonly IndexedSymbol[],
+  focus: readonly IndexedSymbol[],
+  summarize: Summarize,
+): {
+  owners: Map<string, string[]>;
+  requirementIds: string[];
+  replaced: Map<string, string>;
+} {
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const replaced = replacedAmong(requirementIds, summarize);
+  return {
+    owners,
+    requirementIds: [
+      ...requirementIds.filter((id) => !replaced.has(id)),
+      ...requirementIds.filter((id) => replaced.has(id)),
+    ],
+    replaced,
+  };
+}
+
 function requirementOwners(
   symbols: readonly IndexedSymbol[],
   focus: readonly IndexedSymbol[],
@@ -522,7 +595,11 @@ function fitLayouts(
 export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const { owners, requirementIds, replaced } = currentFirstOwners(
+    symbols,
+    focus,
+    summarize,
+  );
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy)),
   ].sort();
@@ -542,7 +619,7 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     for (const requirementId of requirementIds.slice(0, layout.requirements)) {
       const symbolTitles = owners.get(requirementId) as string[];
       lines.push(
-        `- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
+        `- ${describeEntity(summarize(requirementId), replaced.get(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
       );
     }
     if (requirementIds.length > layout.requirements) {
@@ -606,7 +683,7 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
 export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
   const { relativePath, symbols, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { requirementIds } = requirementOwners(symbols, focus);
+  const { requirementIds } = currentFirstOwners(symbols, focus, summarize);
   const leadId = requirementIds[0];
   const lines: string[] = [];
   const focused = focusUpdate(relativePath, symbols, input.focus);

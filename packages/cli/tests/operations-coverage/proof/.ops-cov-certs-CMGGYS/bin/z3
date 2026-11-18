@@ -1,3 +1,0 @@
-#!/bin/sh
-cat >/dev/null
-echo "$KIBI_FAKE_Z3"

@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c8e876b8964e
+  - type: assumes
+    from: SCEN-symbol-id-minting
+    to: FACT-minted-symbol-ids-held-elsewhere
+    created_at: 2026-11-17T19:07:16.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a5798410757

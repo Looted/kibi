@@ -25,11 +25,11 @@ beforeEach(() => {
   fs.mkdirSync(path.join(userConfigRoot, "kibi"), { recursive: true });
   fs.writeFileSync(
     path.join(userConfigRoot, "kibi", "env"),
-    "HARNESS_USER=from-user\n",
+    "HARNESS_USER_TOKEN=from-user\n",
   );
   fs.writeFileSync(
     path.join(workspace, ".env.kibi"),
-    "HARNESS_PROJECT=from-project\nHARNESS_USER=project-override\n",
+    "HARNESS_PROJECT_TOKEN=from-project\nHARNESS_USER_TOKEN=project-override\n",
   );
 });
 
@@ -52,11 +52,11 @@ function runBootstrapScript(options: {
       xdgConfigHome: process.env.XDG_CONFIG_HOME,
     });
     process.stdout.write(JSON.stringify({
-      HARNESS_USER: process.env.HARNESS_USER,
-      HARNESS_PROJECT: process.env.HARNESS_PROJECT,
+      HARNESS_USER_TOKEN: process.env.HARNESS_USER_TOKEN,
+      HARNESS_PROJECT_TOKEN: process.env.HARNESS_PROJECT_TOKEN,
       sources: {
-        HARNESS_USER: result.sources?.HARNESS_USER,
-        HARNESS_PROJECT: result.sources?.HARNESS_PROJECT,
+        HARNESS_USER_TOKEN: result.sources?.HARNESS_USER_TOKEN,
+        HARNESS_PROJECT_TOKEN: result.sources?.HARNESS_PROJECT_TOKEN,
       },
       projectEnvPath: result.projectEnvPath,
       userEnvPath: result.userEnvPath,
@@ -86,8 +86,8 @@ describe("harness-independent env bootstrap", () => {
       "KIBI_WORKSPACE",
       "KIBI_PROJECT_ROOT",
       "KIBI_ROOT",
-      "HARNESS_USER",
-      "HARNESS_PROJECT",
+      "HARNESS_USER_TOKEN",
+      "HARNESS_PROJECT_TOKEN",
     ]) {
       Reflect.deleteProperty(env, key);
     }
@@ -105,20 +105,20 @@ describe("harness-independent env bootstrap", () => {
     expect(cli.stderr).toBe("");
     expect(cli.status).toBe(0);
     const cliPayload = JSON.parse(cli.stdout) as {
-      HARNESS_USER: string;
-      HARNESS_PROJECT: string;
-      sources: { HARNESS_USER: string; HARNESS_PROJECT: string };
+      HARNESS_USER_TOKEN: string;
+      HARNESS_PROJECT_TOKEN: string;
+      sources: { HARNESS_USER_TOKEN: string; HARNESS_PROJECT_TOKEN: string };
     };
 
     const mcpScript = `
       import { loadDefaultEnvFile, inspectSecretSource } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
       loadDefaultEnvFile();
       process.stdout.write(JSON.stringify({
-        HARNESS_USER: process.env.HARNESS_USER,
-        HARNESS_PROJECT: process.env.HARNESS_PROJECT,
+        HARNESS_USER_TOKEN: process.env.HARNESS_USER_TOKEN,
+        HARNESS_PROJECT_TOKEN: process.env.HARNESS_PROJECT_TOKEN,
         sources: {
-          HARNESS_USER: inspectSecretSource("HARNESS_USER"),
-          HARNESS_PROJECT: inspectSecretSource("HARNESS_PROJECT"),
+          HARNESS_USER_TOKEN: inspectSecretSource("HARNESS_USER_TOKEN"),
+          HARNESS_PROJECT_TOKEN: inspectSecretSource("HARNESS_PROJECT_TOKEN"),
         },
       }));
     `;
@@ -130,17 +130,17 @@ describe("harness-independent env bootstrap", () => {
     expect(mcpRan.stderr).toBe("");
     expect(mcpRan.status).toBe(0);
     const mcpPayload = JSON.parse(mcpRan.stdout) as {
-      HARNESS_USER: string;
-      HARNESS_PROJECT: string;
-      sources: { HARNESS_USER: string; HARNESS_PROJECT: string };
+      HARNESS_USER_TOKEN: string;
+      HARNESS_PROJECT_TOKEN: string;
+      sources: { HARNESS_USER_TOKEN: string; HARNESS_PROJECT_TOKEN: string };
     };
 
-    expect(cliPayload.HARNESS_USER).toBe("project-override");
-    expect(cliPayload.HARNESS_PROJECT).toBe("from-project");
-    expect(mcpPayload.HARNESS_USER).toBe(cliPayload.HARNESS_USER);
-    expect(mcpPayload.HARNESS_PROJECT).toBe(cliPayload.HARNESS_PROJECT);
-    expect(mcpPayload.sources.HARNESS_PROJECT).toBe("project_env");
-    expect(mcpPayload.sources.HARNESS_USER).toBe("project_env");
+    expect(cliPayload.HARNESS_USER_TOKEN).toBe("project-override");
+    expect(cliPayload.HARNESS_PROJECT_TOKEN).toBe("from-project");
+    expect(mcpPayload.HARNESS_USER_TOKEN).toBe(cliPayload.HARNESS_USER_TOKEN);
+    expect(mcpPayload.HARNESS_PROJECT_TOKEN).toBe(cliPayload.HARNESS_PROJECT_TOKEN);
+    expect(mcpPayload.sources.HARNESS_PROJECT_TOKEN).toBe("project_env");
+    expect(mcpPayload.sources.HARNESS_USER_TOKEN).toBe("project_env");
   });
 
   test("MCP bootstrap with explicit KIBI_WORKSPACE and different cwd", () => {
@@ -155,8 +155,8 @@ describe("harness-independent env bootstrap", () => {
         import { loadDefaultEnvFile, inspectSecretSource } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
         const loaded = loadDefaultEnvFile();
         process.stdout.write(JSON.stringify({
-          HARNESS_PROJECT: process.env.HARNESS_PROJECT,
-          source: inspectSecretSource("HARNESS_PROJECT"),
+          HARNESS_PROJECT_TOKEN: process.env.HARNESS_PROJECT_TOKEN,
+          source: inspectSecretSource("HARNESS_PROJECT_TOKEN"),
           envFilePath: loaded.envFilePath,
         }));
       `;
@@ -168,11 +168,11 @@ describe("harness-independent env bootstrap", () => {
       expect(ran.stderr).toBe("");
       expect(ran.status).toBe(0);
       const payload = JSON.parse(ran.stdout) as {
-        HARNESS_PROJECT: string;
+        HARNESS_PROJECT_TOKEN: string;
         source: string;
         envFilePath: string;
       };
-      expect(payload.HARNESS_PROJECT).toBe("from-project");
+      expect(payload.HARNESS_PROJECT_TOKEN).toBe("from-project");
       expect(payload.source).toBe("project_env");
       expect(payload.envFilePath).toBe(path.join(workspace, ".env.kibi"));
     } finally {

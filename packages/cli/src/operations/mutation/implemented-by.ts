@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-import path from "node:path";
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import {
   InputError,
@@ -21,6 +19,7 @@ import {
   getNonBehavioralSymbolNames,
   getSymbolRole,
 } from "../../public/symbol-granularity.js";
+import { mintSymbolId } from "../../traceability/symbol-id.js";
 import {
   normalizeRepoRelativePath,
   resolveWorkspaceSourceAbsolute,
@@ -32,6 +31,7 @@ import {
   relatedCurrentRequirements,
   withRequirementCapture,
 } from "./capture.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import type {
   ImplementedByInput,
   ImplementedByLink,
@@ -39,6 +39,10 @@ import type {
   UpsertPayload,
 } from "./types.js";
 import { executeUpsert, validateUpsertForCommit } from "./upsert.js";
+
+type ValidatedRequirement = Awaited<
+  ReturnType<typeof validateUpsertForCommit>
+>["validated"];
 
 const ISSUE = { rule: "implemented_by_unresolved", field: "implementedBy" };
 
@@ -52,21 +56,6 @@ function listed(names: readonly string[]): string {
   return names.length === 0
     ? "none"
     : `${shown.join(", ")}${hidden > 0 ? `, and ${hidden} more` : ""}`;
-}
-
-function slug(value: string): string {
-  const ascii = value
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/[^A-Za-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
-  // A name with letters the ASCII slug drops (non-ASCII ones), or with no
-  // letter or digit at all (as `$`), keeps a short hash of itself, so it
-  // never mints an empty id part or one another name shares.
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: the ASCII range.
-  if (ascii !== "" && /^[\x00-\x7F]*$/.test(value)) return ascii;
-  const hash = createHash("sha256").update(value).digest("hex").slice(0, 8);
-  return ascii === "" ? hash : `${ascii}-${hash}`;
 }
 
 function entries(input: UpsertInput): readonly ImplementedByInput[] {
@@ -314,19 +303,7 @@ async function symbolSteps(
       });
       continue;
     }
-    const parsed = path.posix.parse(entry.sourceFile);
-    const directory = path.posix.basename(parsed.dir);
-    const symbol = slug(entry.symbol);
-    const options = [
-      `SYM-${slug(parsed.name)}-${symbol}`,
-      `SYM-${slug(directory)}-${slug(parsed.name)}-${symbol}`,
-      `SYM-${slug(path.posix.join(parsed.dir, parsed.name))}-${symbol}`,
-    ];
-    let id = options.find((option) => !taken.has(option));
-    // The path-qualified id is taken too: number the file-qualified one.
-    for (let suffix = 2; id === undefined; suffix += 1)
-      if (!taken.has(`${options[0]}-${suffix}`)) id = `${options[0]}-${suffix}`;
-    taken.add(id);
+    const id = mintSymbolId(entry.sourceFile, entry.symbol, taken);
     const role = getSymbolRole(entry.candidate);
     steps.push({
       link: {
@@ -421,11 +398,14 @@ export type ImplementedByDeps = Readonly<{
   ) => Promise<readonly Record<string, unknown>[]>;
   /** What the capture steps read; none without a store. */
   captureReads: (context: OperationContext) => CaptureReads | undefined;
+  /** The requirement's quantity-duplicate warnings once its code is linked. */
+  quantityWarnings: typeof quantityWarnings;
 }>;
 
 export const IMPLEMENTED_BY_DEPS: ImplementedByDeps = {
   execute: executeUpsert,
   validate: validateUpsertForCommit,
+  quantityWarnings,
   // kb_upsert requires Prolog, so the operation runtime always supplies it.
   storedSymbols: (context) =>
     loadEntitiesPaged(context.prolog as PrologPort, "symbol"),
@@ -470,7 +450,15 @@ export async function executeUpsertRequest(
         ? [
             {
               type: "text" as const,
-              text: `Left before kb_check passes: ${followUp.nextActions.length} step(s), each in nextActions with its input.`,
+              // Spelled out in the text: Cursor, Gemini CLI and other
+              // text-only hosts never show the model structuredContent.
+              text: [
+                `Left before kb_check passes: ${followUp.nextActions.length} step(s), also in nextActions:`,
+                ...followUp.nextActions.map(
+                  (action, index) =>
+                    `${index + 1}. ${action.operation} (${action.code}): ${action.reason} Input: ${JSON.stringify(action.input)}`,
+                ),
+              ].join("\n"),
             },
           ]
         : []),
@@ -523,8 +511,11 @@ async function executeLinkedUpsert(
 
   const { dryRun: _dryRun, ...commitRequirement } = requirement;
   const links = steps.map((step) => step.link);
+  // Set by validateSymbols, which every write runs before it executes.
+  let checkedRequirement!: ValidatedRequirement;
   const validateSymbols = async () => {
     const checked = await deps.validate(commitRequirement, context);
+    checkedRequirement = checked.validated;
     const staged = {
       entities: new Map([[input.id, checked.validated.entity]]),
       relationships: [...checked.validated.relationships],
@@ -565,6 +556,18 @@ async function executeLinkedUpsert(
       );
     }
   }
+  // The requirement's quantity warnings were read before its symbols linked
+  // it to their code, so a twin that shares that code is named only now.
+  const linkedWarnings = deps.quantityWarnings({
+    type: input.type,
+    id: input.id,
+    entity: checkedRequirement.entity,
+    relationships: checkedRequirement.relationships,
+    workspaceRoot: context.workspaceRoot,
+  });
+  const added = linkedWarnings.filter(
+    (warning) => !merged.warnings.includes(warning),
+  );
   return {
     ...result,
     content: [
@@ -574,6 +577,10 @@ async function executeLinkedUpsert(
         text: `Linked ${written.length} implementing symbol(s): ${written.map((link) => `${link.symbolId}${link.created ? " (new)" : ""}`).join(", ")}.`,
       },
     ],
-    structuredContent: { ...merged, implementedBy: written },
+    structuredContent: {
+      ...merged,
+      ...(added.length > 0 ? { warnings: [...merged.warnings, ...added] } : {}),
+      implementedBy: written,
+    },
   };
 }

@@ -213,9 +213,7 @@ export async function analyzeChangedFileImpact(
           ...createFirmEditGateDiagnostics(
             snapshot
               ? await stagedFirmEditGateOptions({
-                  sourceFiles: (snapshotSources ?? []).filter(
-                    (file) => file.content !== undefined,
-                  ),
+                  sourceFiles: snapshotSources ?? [],
                   // Every declaration, each with the hunks it owns, so a
                   // symbol the change only removes lines from is still seen.
                   extractAll: (file) =>
@@ -228,6 +226,19 @@ export async function analyzeChangedFileImpact(
                             .after,
                       },
                     ),
+                  extractBase: async (file) => {
+                    const basePath = file.oldPath ?? file.path;
+                    const content = readTree(snapshot.baseTree, basePath);
+                    if (content === undefined) return [];
+                    return extractSymbolsFromStagedFileAsync(
+                      { ...file, path: basePath, content, status: "A" },
+                      manifestLookup,
+                      {
+                        analyzeText: async () =>
+                          analyses?.get(file.path)?.before ?? null,
+                      },
+                    );
+                  },
                   changedPaths: new Set(
                     snapshot.inventory.flatMap((file) =>
                       file.oldPath === undefined

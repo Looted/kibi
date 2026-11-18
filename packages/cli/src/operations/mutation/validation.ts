@@ -253,6 +253,9 @@ function formatEntityErrors(
   return [...messages, ...hints].join("; ");
 }
 
+/** The longest id whose `<id>.md` file and its temporary siblings fit a file name. */
+export const MAX_ID_BYTES = 200;
+
 export function validateUpsertInput(
   input: UpsertInput,
   now: Date,
@@ -265,12 +268,21 @@ export function validateUpsertInput(
     );
   }
   // The id names the entity's authored file, so it must be a file-name-safe
-  // token: no whitespace, control characters or path separators.
-  if (/[\s\p{Cc}/\\]/u.test(input.id)) {
+  // token: no whitespace, control characters or path separators, not only
+  // dots (`.` and `..` name directories), and short enough that `<id>.md`
+  // and its temporary siblings fit a 255-byte file name.
+  if (/[\s\p{Cc}/\\]/u.test(input.id) || /^\.+$/.test(input.id)) {
     throw new KbRejection(
       "VALIDATION_FAILED",
-      `'id' must not contain whitespace, control characters or path separators: ${JSON.stringify(input.id)}`,
+      `'id' must not contain whitespace, control characters or path separators, or be only dots: ${JSON.stringify(input.id)}`,
       [{ rule: "id_format", field: "id" }],
+    );
+  }
+  if (Buffer.byteLength(String(input.id), "utf8") > MAX_ID_BYTES) {
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      `'id' must be at most ${MAX_ID_BYTES} bytes, since it names the entity's file: ${JSON.stringify(String(input.id).slice(0, 40))}...`,
+      [{ rule: "id_length", field: "id" }],
     );
   }
   const entity: Record<string, unknown> = {

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-symbol-coordinates-derived-locally",
+  "sourceFile": "packages/cli/src/commands/check-generated.ts",
+  "symbol": "checkGeneratedManifests",
+  "verdict": "keeps",
+  "note": "Only adds a quiet option that suppresses the passing notes; a staged symbol-coordinates file and manifest drift are still refused with the same messages.",
+  "statementHash": "sha256:201c86e5ee4e66d300d6ecf7402f47dd6a2cf6eda6a2e9b0c36ce755586f792c",
+  "codeHash": "sha256:461421129b74de71996cd55eb640fc93c6c7b0c5895a7c0fe935a37aebf26c9a",
+  "startLine": 112,
+  "endLine": 216,
+  "recordedAt": "2026-11-17T18:38:23.037Z"
+}

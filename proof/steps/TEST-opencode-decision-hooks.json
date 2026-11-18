@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-opencode-decision-hooks",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "./packages/opencode/tests/decision-hooks.test.ts"
+    ]
+  ]
+}

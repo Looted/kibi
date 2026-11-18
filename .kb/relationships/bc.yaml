@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73f6feed7289
+  - type: implements
+    from: SYM-symbol-id-symbol-id-slug
+    to: REQ-symbol-id-kb-upsert-implementedby-kibi
+    created_at: 2026-11-17T18:54:27.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5967e83920
+  - type: covered_by
+    from: SYM-symbol-id-symbol-id-slug
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:27.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-614cccece033

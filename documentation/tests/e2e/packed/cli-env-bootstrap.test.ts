@@ -86,7 +86,7 @@ if (RUN_NODE_TEST_SUITE) {
           join(sandbox.repoDir, ".env.kibi"),
           [
             "BOOT_PROCESS=from-project",
-            "BOOT_PROJECT=project-only",
+            "BOOT_PROJECT_TOKEN=project-only",
             "BOOT_BLANK=",
           ].join("\n"),
         );
@@ -105,11 +105,11 @@ if (RUN_NODE_TEST_SUITE) {
         });
 
         assert.strictEqual(env.BOOT_PROCESS, "from-process");
-        assert.strictEqual(env.BOOT_PROJECT, "project-only");
+        assert.strictEqual(env.BOOT_PROJECT_TOKEN, "project-only");
         assert.strictEqual(env.BOOT_USER, "user-only");
         assert.strictEqual(env.BOOT_BLANK, "user-value");
         assert.strictEqual(result.sources.BOOT_PROCESS, "process");
-        assert.strictEqual(result.sources.BOOT_PROJECT, "project_env");
+        assert.strictEqual(result.sources.BOOT_PROJECT_TOKEN, "project_env");
         assert.strictEqual(result.sources.BOOT_USER, "user_env");
         assert.strictEqual(result.sources.BOOT_BLANK, "user_env");
         assert.ok(
@@ -156,7 +156,7 @@ if (RUN_NODE_TEST_SUITE) {
         mkdirSync(harness, { recursive: true });
         writeFileSync(
           join(sandbox.repoDir, ".env.kibi"),
-          "BOOT_NESTED=from-workspace\n",
+          "BOOT_NESTED_TOKEN=from-workspace\n",
         );
         const env: NodeJS.ProcessEnv = {
           PATH: process.env.PATH,
@@ -174,8 +174,8 @@ if (RUN_NODE_TEST_SUITE) {
           xdgConfigHome: join(sandbox.homeDir, ".config"),
         });
         assert.strictEqual(result.workspaceRoot, sandbox.repoDir);
-        assert.strictEqual(env.BOOT_NESTED, "from-workspace");
-        assert.strictEqual(result.sources.BOOT_NESTED, "project_env");
+        assert.strictEqual(env.BOOT_NESTED_TOKEN, "from-workspace");
+        assert.strictEqual(result.sources.BOOT_NESTED_TOKEN, "project_env");
       },
     );
 
@@ -191,7 +191,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         writeFileSync(
           join(sandbox.repoDir, ".env.kibi"),
-          "BOOT_FILE_SECRET=s3cret-from-file\n",
+          "BOOT_FILE_SECRET_TOKEN=s3cret-from-file\n",
         );
         const env: NodeJS.ProcessEnv = {
           PATH: process.env.PATH,
@@ -207,9 +207,9 @@ if (RUN_NODE_TEST_SUITE) {
         });
         // After the bootstrap both keys sit in the process env; attribution
         // still names where each one came from.
-        assert.strictEqual(env.BOOT_FILE_SECRET, "s3cret-from-file");
+        assert.strictEqual(env.BOOT_FILE_SECRET_TOKEN, "s3cret-from-file");
         const fileSource = secretSourceFromBootstrap(
-          "BOOT_FILE_SECRET",
+          "BOOT_FILE_SECRET_TOKEN",
           result,
           env,
         );

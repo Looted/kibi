@@ -160,3 +160,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad8a07667229
+  - type: specified_by
+    from: REQ-agent-hosts-shell-edits-count
+    to: SCEN-agent-hosts-shell-edits-count
+    created_at: 2026-11-17T17:02:45.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c58355ea2b5b
+  - type: verified_by
+    from: REQ-agent-hosts-shell-edits-count
+    to: TEST-agent-hosts-shell-edits-count
+    created_at: 2026-11-17T17:02:45.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e184bd0b2b38
+  - type: requires_property
+    from: REQ-agent-hosts-shell-edits-count
+    to: FACT-shell-in-place-edit-counts
+    created_at: 2026-11-17T17:07:53.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b32528f26934
+  - type: constrains
+    from: REQ-agent-hosts-shell-edits-count
+    to: FACT-SUBJECT-kibi-host-hook-inputs
+    created_at: 2026-11-17T17:20:19.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49a2fed377c7
+  - type: specified_by
+    from: REQ-agent-hosts-shell-edits-count
+    to: SCEN-NEG-agent-hosts-shell-edits-count-VIOLATED
+    created_at: 2026-11-17T19:03:59.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a620b55a5101
+  - type: validates
+    from: TEST-kb-upsert-source-entity-guard
+    to: SCEN-kb-upsert-refuse-write-entity-into
+    created_at: 2026-11-17T19:04:06.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a66aa2f36841
+  - type: validates
+    from: TEST-kb-upsert-source-entity-guard
+    to: SCEN-NEG-kb-upsert-refuse-write-entity-into-VIOLATED
+    created_at: 2026-11-17T19:04:06.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5d688a97c74
+  - type: implements
+    from: SYM-search-ranking-compare-code-units
+    to: REQ-kibi-intent-aware-source-discovery
+    created_at: 2026-11-17T19:48:14.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37e6c75f2c34
+  - type: covered_by
+    from: SYM-search-ranking-compare-code-units
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-11-17T19:48:14.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d064b018069

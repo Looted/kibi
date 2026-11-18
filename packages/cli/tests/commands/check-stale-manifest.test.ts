@@ -273,7 +273,7 @@ export interface GreetOptions {
       // The stale-manifest finding is one of the causes the declaration's
       // block stands for; the block names the declaration and its line.
       expect(output).toContain(
-        "[BLOCKS COMMIT] GreetOptions (src/greet.ts:5) is a new type with no symbol record.",
+        "[BLOCKS COMMIT] GreetOptions (src/greet.ts:5) is new and has no symbol record.",
       );
       expect(output).toContain('"symbol_role":"type-shape"');
       const json = runKibi(

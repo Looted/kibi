@@ -91,7 +91,7 @@ describe("edit guidance grounding", () => {
     assert.match(prompt, /- Existing Kibi links: REQ-checkout-rounding\n/);
     assert.ok(
       prompt.includes(
-        "- REQ-checkout-rounding must keep true: Totals round half up to two decimals. Why: Finance reconciles every order to the cent (rationale). Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
+        "- REQ-checkout-rounding must keep true: Totals round half up to two decimals. Why: Finance reconciles every order to the cent (REQ-checkout-rounding rationale). Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       ),
       prompt,
     );
@@ -105,7 +105,7 @@ describe("edit guidance grounding", () => {
       linkedWorkspace("open", `${sentence}. ${sentence}. ${sentence}.`),
     );
     assert.ok(
-      prompt.includes(`Why: ${sentence}. ${sentence} (rationale). Decision:`),
+      prompt.includes(`Why: ${sentence}. ${sentence} (REQ-checkout-rounding rationale). Decision:`),
       prompt,
     );
     assert.ok(wordCount(prompt) <= 120, `${wordCount(prompt)} words`);

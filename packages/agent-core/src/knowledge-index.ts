@@ -892,7 +892,10 @@ function recordedReason(
     withoutChangeNotes([rationale ?? ""]),
     MAX_REASON_CHARS,
   );
-  if (field) return { text: field, from: "rationale" };
+  // "Reason not stated" in the field is the placeholder `why` writes when the
+  // person gave none, not a reason.
+  if (field && !NO_REASON_STATED.test(field))
+    return { text: field, from: "rationale" };
   // rationale: a placeholder entry in place of the empty list is a string,
   // whose one-character name matches no reason heading.
   // Stryker disable next-line ArrayDeclaration

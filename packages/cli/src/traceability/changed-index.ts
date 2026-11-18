@@ -75,7 +75,8 @@ export function prepareChangedIndex(
       paths === undefined || paths.length === 0
         ? []
         : ["--", ...addablePaths(workspaceRoot, [...paths, ".kb"], git, env)];
-    // Nothing to add when no named path exists or was ever tracked.
+    // Nothing to add when only .kb was named and it neither exists nor was
+    // ever tracked.
     if (scope.length !== 1)
       git(["add", "-A", ...scope], {
         cwd: workspaceRoot,
@@ -93,7 +94,9 @@ export function prepareChangedIndex(
 /**
  * The repo-relative forms of `paths` that exist in the working tree or in
  * the index: `git add` refuses a path that is neither, and `git add -A`
- * records the deletion of one that is only in the index.
+ * records the deletion of one that is only in the index. A named path that
+ * is neither is refused: dropping it would judge none of the changes it
+ * names and report a pass.
  */
 function addablePaths(
   workspaceRoot: string,
@@ -104,7 +107,9 @@ function addablePaths(
   const relative = [
     ...new Set(
       paths.map((file) =>
-        path.isAbsolute(file) ? path.relative(workspaceRoot, file) : file,
+        path.normalize(
+          path.isAbsolute(file) ? path.relative(workspaceRoot, file) : file,
+        ),
       ),
     ),
   ];
@@ -114,6 +119,16 @@ function addablePaths(
     cwd: workspaceRoot,
     env,
   }).split("\0");
+  const missing = relative.filter(
+    (file) =>
+      file !== ".kb" &&
+      !existsSync(path.join(workspaceRoot, file)) &&
+      !tracked.some((t) => t === file || t.startsWith(`${file}/`)),
+  );
+  if (missing.length > 0)
+    throw new Error(
+      `${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} neither in the working tree nor tracked by git, so there is nothing to judge (paths are read from the directory the command runs in).`,
+    );
   return relative.filter(
     (file) =>
       existsSync(path.join(workspaceRoot, file)) ||

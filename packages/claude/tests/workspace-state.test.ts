@@ -208,6 +208,7 @@ describe("session journal replay", () => {
       ruleReason: undefined,
       firmAsked: new Map(),
       firmAskedAt: new Map(),
+      firmAskedEdit: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
       kbRecorded: false,
@@ -246,8 +247,18 @@ describe("session journal replay", () => {
     const state = replay(
       { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"] },
       { kind: "firm_asked", path: "src/a.ts", ids: ["R2", "R3"] },
-      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"], at: 5 },
-      { kind: "firm_asked", path: "src/c.ts", ids: ["R2"], at: 7 },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"], at: 5, edit: "e9" },
+      { kind: "firm_asked", path: "src/c.ts", ids: ["R2"], at: 7, edit: "e2" },
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1"], edit: "e1" },
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1"] },
+    );
+    // Each requirement remembers the edit last asked about; an ask without
+    // one (an older journal) forgets it.
+    expect(state.firmAskedEdit).toStrictEqual(
+      new Map([
+        ["R9", "e9"],
+        ["R2", "e2"],
+      ]),
     );
     // Older journals carry no time: only timed asks are remembered.
     expect(state.firmAskedAt).toStrictEqual(

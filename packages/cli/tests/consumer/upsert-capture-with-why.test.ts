@@ -92,9 +92,7 @@ describe("kb_upsert records why and returns the remaining steps", () => {
     expect(warnings).not.toContain("has no body context");
     expect(warnings).not.toContain("claim-subject-missing");
 
-    const file = workspace.read(
-      ".kb/requirements/REQ-quota-page-call-cap.md",
-    );
+    const file = workspace.read(".kb/requirements/REQ-quota-page-call-cap.md");
     expect(file).toContain(`rationale: ${WHY}`);
     expect(file).toContain(
       "semantic_text: The client quota page must list at most twenty recent client calls.",
@@ -124,11 +122,7 @@ describe("kb_upsert records why and returns the remaining steps", () => {
     expect(steps[0]?.input).toMatchObject({
       properties: {
         semantic_inventory: [
-          {
-            claim_text:
-              "The client quota page must list at most twenty recent client calls",
-            subjects: ["client.call_quota"],
-          },
+          { status: "missing", subjects: ["client.call_quota"] },
         ],
       },
     });
@@ -138,8 +132,30 @@ describe("kb_upsert records why and returns the remaining steps", () => {
       "claim-subject-missing,entity-context-missing,evidence-floor",
     ).filter((violation) => violation.entityId === "REQ-quota-page-call-cap");
     // Only the proof run is left, and it is the last step returned.
-    expect(left.map((violation) => violation.rule)).toEqual([
-      "evidence-floor",
-    ]);
+    expect(left.map((violation) => violation.rule)).toEqual(["evidence-floor"]);
+  }, 300_000);
+
+  test("a new body replaces the statement Kibi checks", () => {
+    const statement =
+      "The client quota page must list the recent client calls of the last hour.";
+    const data = upsert({
+      type: "req",
+      id: "REQ-quota-page-calls",
+      properties: {
+        title: "The quota page lists recent client calls",
+        status: "open",
+        origin: { kind: "human", ref: "Support: list only the last hour" },
+      },
+      document: {
+        body: `${statement}\n\n## Context\n\nSupport asked for it so a client can see which calls used up its quota window.\n`,
+      },
+    });
+    expect(data.updated).toBe(1);
+    const file = workspace.read(".kb/requirements/REQ-quota-page-calls.md");
+    expect(file).toContain(`semantic_text: ${statement}`);
+    expect(file).toContain(
+      "claim_text: The client quota page must list the recent client calls of the last hour",
+    );
+    expect(file).not.toContain("of the quota window");
   }, 300_000);
 });

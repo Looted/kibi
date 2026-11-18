@@ -17,7 +17,7 @@ import {
 } from "./public/operations/discovery-entities.js";
 import type { PrologPort } from "./public/operations/runtime-types.js";
 import type { SearchMatch } from "./search-ranking.js";
-import { loadMarkdownBodySync } from "./search-ranking.js";
+import { compareCodeUnits, loadMarkdownBodySync } from "./search-ranking.js";
 import {
   type SearchTokenCache,
   openSearchTokenCache,
@@ -898,11 +898,13 @@ export async function rankIntentEntities(
       Number(right.negativePath !== undefined);
     if (negativeOrder !== 0) return negativeOrder;
     if (right.score !== left.score) return right.score - left.score;
-    const typeOrder = String(left.entity.type ?? "").localeCompare(
+    const typeOrder = compareCodeUnits(
+      String(left.entity.type ?? ""),
       String(right.entity.type ?? ""),
     );
     if (typeOrder !== 0) return typeOrder;
-    return String(left.entity.id ?? "").localeCompare(
+    return compareCodeUnits(
+      String(left.entity.id ?? ""),
       String(right.entity.id ?? ""),
     );
   });

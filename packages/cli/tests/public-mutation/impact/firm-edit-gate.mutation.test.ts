@@ -295,8 +295,12 @@ describe("helpers", () => {
     expect(
       isCurrentFirmRequirement(req("REQ-a", { firmness: "default" })),
     ).toBe(false);
-    for (const status of ["superseded", "closed", "deprecated", "Retired"])
+    for (const status of ["superseded", "deprecated", "Retired", "archived"])
       expect(isCurrentFirmRequirement(req("REQ-a", { status }))).toBe(false);
+    // A closed requirement is done and still governs, as the hooks treat it.
+    expect(isCurrentFirmRequirement(req("REQ-a", { status: "closed" }))).toBe(
+      true,
+    );
     expect(
       isCurrentFirmRequirement(
         req("REQ-a", { status: undefined as unknown as string }),

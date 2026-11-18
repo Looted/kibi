@@ -115,6 +115,40 @@ describe("resolveWorkspaceCwd", () => {
     });
   });
 
+  test("the files --changed names keep pointing where the user meant", () => {
+    const result = resolveWorkspaceCwd(
+      argv(
+        "check",
+        "--changed",
+        "b c.ts",
+        "/abs/a.ts",
+        "lib/x.ts",
+        "--format",
+        "json",
+        "--changed=y.ts",
+      ),
+      sub,
+      {},
+    );
+    expect(result).toStrictEqual({
+      cwd: root,
+      argv: argv(
+        "check",
+        "--changed",
+        path.join(sub, "b c.ts"),
+        "/abs/a.ts",
+        path.join(sub, "lib/x.ts"),
+        "--format",
+        "json",
+        `--changed=${path.join(sub, "y.ts")}`,
+      ),
+    });
+    // Without files, --changed is left as it is.
+    expect(
+      resolveWorkspaceCwd(argv("check", "--changed"), sub, {}).argv,
+    ).toStrictEqual(argv("check", "--changed"));
+  });
+
   test("the path kibi skills validate takes keeps pointing where the user meant", () => {
     const resolved = (...args: string[]) =>
       resolveWorkspaceCwd(argv(...args), sub, {}).argv;

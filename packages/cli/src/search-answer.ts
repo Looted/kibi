@@ -24,7 +24,7 @@ import type {
   PrologPort,
   PrologQueryResult,
 } from "./public/operations/runtime-types.js";
-import { loadMarkdownBody } from "./search-ranking.js";
+import { compareCodeUnits, loadMarkdownBody } from "./search-ranking.js";
 
 /**
  * The answer layer turns ranked matches into what an agent asking "what
@@ -1312,7 +1312,7 @@ export async function buildSearchAnswer(
   }
   const ordered = [...candidates.entries()].sort(
     ([leftId, left], [rightId, right]) =>
-      right.score - left.score || leftId.localeCompare(rightId),
+      right.score - left.score || compareCodeUnits(leftId, rightId),
   );
   for (const [id, candidate] of ordered) {
     const entity = graph.row(id);

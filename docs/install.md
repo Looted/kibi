@@ -865,8 +865,13 @@ long-running MCP or host processes after changing env files. Do not put secrets
 in `package.json`.
 
 The project file and the legacy `.env` come with the checkout, so Kibi lets
-them set only provider secrets (such as `TYPESAFE_API_KEY`) and provider
-settings (`KIBI_JEV_*`). It ignores any other `KIBI_*` key there, such as
+them set only provider secrets and provider settings: `KIBI_JEV_*`, and keys
+named like a provider secret or setting (ending in `_API_KEY`, `_KEY`,
+`_TOKEN`, `_SECRET`, `_PASSWORD`, `_URL`, `_ENDPOINT`, `_MODEL`, `_ORG`,
+`_ORG_ID`, `_ORGANIZATION`, `_PROJECT`, `_PROJECT_ID` or `_REGION`, such as
+`TYPESAFE_API_KEY`). Every other key there is ignored, including variables
+that make a process load code, such as `OPENSSL_CONF` or `_JAVA_OPTIONS`.
+That covers any other `KIBI_*` key, such as
 `KIBI_NODE_PATH`, `KIBI_SWIPL`, `KIBI_KB_PL_PATH`, `KIBI_RUNTIME_DIR`,
 `KIBI_ENV_FILE`, `KIBI_WORKSPACE` or `KIBI_BRANCH`, and process variables such
 as `PATH`, `HOME`, `TMPDIR`, `NODE_OPTIONS`, `NODE_*`, `LD_*`, `DYLD_*`,

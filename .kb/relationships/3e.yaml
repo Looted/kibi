@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcf97a496296
+  - type: executable_for
+    from: SYM-test-closed-firm-requirement-guards
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-17T19:22:28.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e2e207734fb

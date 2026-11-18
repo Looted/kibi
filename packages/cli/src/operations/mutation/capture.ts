@@ -181,9 +181,10 @@ function hasSourceSection(body: string): boolean {
  * `why` becomes `rationale` and the body's reason section (its Context, Why
  * or Rationale section, a new Context section when it has none), and the
  * origin.ref text becomes the Source section of a body that has none. A
- * requirement whose semantic_text is neither sent nor stored gets its body's
- * statement as semantic_text, so its proposition inventory is derived from
- * the statement its file will hold. Other payloads pass unchanged.
+ * requirement whose semantic_text is not sent gets its body's statement as
+ * semantic_text when none is stored or the sent body states another one, so
+ * its proposition inventory is derived from the statement its file will
+ * hold. Other payloads pass unchanged.
  */
 export async function withRequirementCapture(
   input: UpsertInput,
@@ -236,11 +237,17 @@ export async function withRequirementCapture(
         ref !== "" && !hasSourceSection(base) ? { excerpt: ref } : undefined,
     });
   }
-  const statement =
-    properties.semantic_text === undefined &&
-    text(stored?.semantic_text) === "" &&
-    body !== undefined
+  // A sent body that states something new replaces the stored statement, so
+  // the claims Kibi checks never drift from the file's statement.
+  const derived =
+    properties.semantic_text === undefined && body !== undefined
       ? requirementSemanticText(body)
+      : "";
+  const storedStatement = text(stored?.semantic_text);
+  const statement =
+    storedStatement === "" ||
+    (sentBody !== undefined && derived.trim() !== storedStatement.trim())
+      ? derived
       : "";
   if (why === undefined && statement === "") return rest;
   return {
@@ -280,11 +287,12 @@ export const WHY_PLACEHOLDER =
 
 const SUBJECT_PLACEHOLDER = "<subject_key>";
 
-/** The reason of the claim-subject-missing step. */
 /**
  * The requirement's stored inventory with a subject on each claim that
- * lacks one. The whole inventory goes back: a sent semantic_inventory
- * replaces the stored one, and each entry keeps its text, role and span.
+ * lacks one, as partial entries ({claim_key, status, subjects}). Every claim
+ * goes back, so none loses its status, and Kibi derives the rest of the
+ * ledger from the stored prose: full entries would be judged against the
+ * title, which kb_record sets to the statement's first sentence.
  */
 function inventoryWithSubjects(
   entity: Record<string, unknown>,
@@ -305,11 +313,19 @@ function inventoryWithSubjects(
         typeof entry === "object" && entry !== null,
     )
     .map((entry) => {
+      // The partial shape: Kibi derives the rest of the ledger from the
+      // stored prose, so the step stays valid whatever the title says.
       const added = subjects.get(String(entry.claim_key));
-      return added === undefined ? entry : { ...entry, subjects: added };
+      const kept = added ?? entry.subjects;
+      return {
+        claim_key: entry.claim_key,
+        status: entry.status,
+        ...(Array.isArray(kept) ? { subjects: kept } : {}),
+      };
     });
 }
 
+/** The reason of the claim-subject-missing step. */
 function subjectReason(id: string, gaps: readonly ClaimSubjectGap[]): string {
   const claims =
     gaps.length === 1
@@ -363,7 +379,7 @@ export async function captureFollowUp(
     step(
       "entity-context-missing",
       { type: "req", id, properties: head, why: WHY_PLACEHOLDER },
-      `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why.`,
+      `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why, in their words. Never pad it to reach 12 words; cite their words as origin.ref, which the body keeps as its Source.`,
     );
 
   const gaps = await reads.subjectGaps(entity);

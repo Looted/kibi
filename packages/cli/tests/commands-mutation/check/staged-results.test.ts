@@ -201,8 +201,16 @@ describe("snapshot symbols for granularity", () => {
       src(),
       entry(REQ),
       entry("src/new.ts", { oldPath: "src/old.ts", status: "R" }),
+      entry("src/gone.ts", { status: "D", content: undefined }),
+      entry("src/vendored.ts", {
+        status: "D",
+        disposition: "skipped",
+        content: undefined,
+      }),
     ];
-    h.world.analysis = new Map([["src/a.ts", { after: side("ok") }]]);
+    h.world.analysis = new Map([
+      ["src/a.ts", { after: side("ok"), before: side("was") }],
+    ]);
     const requirement = { id: "REQ-1", type: "req", source: REQ };
     h.world.entities = [{ entity: requirement, relationships: [] }];
     let input: Record<string, (...args: never[]) => unknown> = {};
@@ -228,6 +236,8 @@ describe("snapshot symbols for granularity", () => {
       REQ,
       "src/new.ts",
       "src/old.ts",
+      "src/gone.ts",
+      "src/vendored.ts",
     ]);
     extracted.length = 0;
     await (input.extractAll as (file: unknown) => Promise<unknown>)({
@@ -246,6 +256,12 @@ describe("snapshot symbols for granularity", () => {
     expect((input.readContent as (file: string) => unknown)("src/a.ts")).toBe(
       "content of src/a.ts",
     );
+    // A deleted file the gate checks is judged with no text left.
+    expect(
+      (input.sourceFiles as unknown as Array<Record<string, unknown>>)
+        .filter((file) => file.status === "D")
+        .map((file) => [file.path, file.hunkRanges, "content" in file]),
+    ).toEqual([["src/gone.ts", [], false]]);
     const gitCalls: string[][] = [];
     h.world.git = (args) => {
       gitCalls.push([...args]);
@@ -258,6 +274,20 @@ describe("snapshot symbols for granularity", () => {
     expect(call("readChanged", REQ)).toBe(`blob HEAD:${REQ}`);
     expect(call("readBase", REQ)).toBe(`blob BASE:${REQ}`);
     expect(call("readReceipt", "r.json")).toBe("blob HEAD:r.json");
+    // The base declarations come from the base tree, at the old path of a
+    // rename, analyzed as before the change.
+    extracted.length = 0;
+    const fromBase = input.extractBase as (file: unknown) => Promise<unknown>;
+    await fromBase({ path: "src/a.ts", status: "M" });
+    await fromBase({ path: "src/new.ts", oldPath: "src/old.ts", status: "R" });
+    expect(extracted).toEqual([
+      ["src/a.ts", "A", h.world.analysis.get("src/a.ts")?.before],
+      ["src/old.ts", "A", null],
+    ]);
+    expect(gitCalls.slice(-2)).toEqual([
+      ["show", "BASE:src/a.ts"],
+      ["show", "BASE:src/old.ts"],
+    ]);
     expect(call("hasUnstagedChanges", "src/dirty.ts")).toBe(true);
     expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
     expect(gitCalls.at(-1)).toEqual([
@@ -285,6 +315,7 @@ describe("snapshot symbols for granularity", () => {
     expect(call("readChanged", REQ)).toBeUndefined();
     expect(call("readBase", REQ)).toBeUndefined();
     expect(call("readReceipt", "r.json")).toBeUndefined();
+    expect(await fromBase({ path: "src/a.ts", status: "M" })).toEqual([]);
     expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
   });
 
@@ -513,9 +544,15 @@ describe("staged verdicts", () => {
         candidatesByFile: Map<string, string[]>;
         readRequirement: (id: string) => unknown;
         testsFor: (file: string, req: string) => unknown;
+        takenIds: unknown;
       },
     ];
     expect(input.traceability).toBe(raw);
+    expect(input.takenIds).toEqual(
+      (h.world.entities as Array<{ entity: { id: string } }>).map(
+        (result) => result.entity.id,
+      ),
+    );
     expect([...input.candidatesByFile]).toEqual([["src/a.ts", ["REQ-a"]]]);
     expect(input.readRequirement("REQ-a")).toEqual({
       id: "REQ-a",

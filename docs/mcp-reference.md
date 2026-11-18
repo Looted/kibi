@@ -949,8 +949,11 @@ finding with `blocks`); `commitAllowed`; `status` when the write needed repair;
 and `nextActions`, the steps `kb_upsert` returned (a scenario, a test, a
 claim subject, `kibi prove`). On `dryRun` it returns `id`, `upsert`,
 `preview`, `valid`, `errors` and `dryRun: true`. If the check fails after the
-write, the error (`RECORD_VERDICT_FAILED`, retryable) says the requirement was
-written and which `kb_check` call gives the verdict.
+write (in a workspace without git, for example), the call still succeeds with
+the write and no `verdict`: `verdictError` says the requirement was written,
+not to record it again, and which `kb_check` call gives the verdict. A derived
+id whose requirement file already exists, compiled or not, gets the next
+`-2`, `-3` suffix.
 
 The result is the same as `kb_upsert` of `upsert` followed by `kb_check` with
 `changed: true` for the same files: the same entities, relationships and

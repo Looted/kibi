@@ -351,7 +351,7 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
-      "Why: Finance reconciles every order to the cent (context section).",
+      "Why: Finance reconciles every order to the cent (REQ-checkout-rounding context section).",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
@@ -1096,6 +1096,12 @@ describe("firm requirement confirmation", () => {
     expect(
       (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
+    // It judged the code before that edit, so another edit of the same
+    // symbol is asked about.
+    expect(
+      (await raw("Edit", { ...editTotal, new_string: "  let total = 2;" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
     // A new session editing the symbol is asked again.
     expect(
       (await firmSession(fixture, "later").raw("Edit", editTotal))

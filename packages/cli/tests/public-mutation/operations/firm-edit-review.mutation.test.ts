@@ -116,6 +116,7 @@ const deps: ReviewFirmEditDeps = {
   readStaged: () => undefined,
   indexedSymbols: () => [],
   headKnowledge: () => [],
+  readHead: () => undefined,
   now: () => new Date("2026-11-16T10:00:00.000Z"),
 };
 
@@ -451,6 +452,57 @@ describe("executeReviewFirmEdit", () => {
     ).toBe("src/gone.ts cannot be read.");
   });
 
+  test("a declaration the HEAD file has and the file no longer declares is reviewed as removed", async () => {
+    const root = workspace();
+    const head = "export function oldKey() {}\n";
+    const asked: string[] = [];
+    const moved: ReviewFirmEditDeps = {
+      ...deps,
+      symbolsOf: async (_root, _file, content) =>
+        content === head ? [symbol("oldKey", 1, 1, [])] : SYMBOLS,
+      readHead: (_root, file) => {
+        asked.push(file);
+        return head;
+      },
+    };
+    const result = await executeReviewFirmEdit(
+      { reviews: [entry({ symbol: "oldKey" })] },
+      context(root),
+      moved,
+    );
+    expect(
+      (
+        result.structuredContent as { receipts: Record<string, unknown>[] }
+      ).receipts.map((receipt) => [
+        receipt.symbol,
+        receipt.codeHash,
+        receipt.startLine,
+        receipt.endLine,
+      ]),
+    ).toEqual([["oldKey", FIRM_EDIT_REMOVED_CODE_HASH, 0, 0]]);
+    expect(asked).toEqual(["src/keys.ts"]);
+    // A name HEAD's file does not declare either, or a file HEAD lacks, is
+    // still refused.
+    expect(
+      await refusal(root, [entry({ symbol: "neverKey" })], moved),
+    ).toContain("neverKey in src/keys.ts does not implement REQ-key-expiry.");
+    expect(
+      await refusal(root, [entry({ symbol: "oldKey" })], {
+        ...moved,
+        readHead: () => undefined,
+      }),
+    ).toContain("oldKey in src/keys.ts does not implement REQ-key-expiry.");
+    // A name the file still declares, for another requirement, is not removed.
+    asked.length = 0;
+    expect(
+      await refusal(root, [entry({ symbol: "renderKey" })], {
+        ...moved,
+        symbolsOf: async () => [symbol("renderKey", 5, 7, ["REQ-other"])],
+      }),
+    ).toContain("renderKey in src/keys.ts does not implement REQ-key-expiry.");
+    expect(asked).toEqual([]);
+  });
+
   test("staged reviews read the code and the requirement from the index", async () => {
     const root = workspace();
     const staged = SOURCE.replace("90", "91");
@@ -654,6 +706,7 @@ describe("executeReviewFirmEdit", () => {
       REVIEW_FIRM_EDIT_DEPS.readStaged(root, "src/keys.ts"),
     ).toBeUndefined();
     expect(REVIEW_FIRM_EDIT_DEPS.headKnowledge(root)).toEqual([]);
+    expect(REVIEW_FIRM_EDIT_DEPS.readHead(root, "src/keys.ts")).toBeUndefined();
     git("init", "-q");
     write(
       root,
@@ -697,5 +750,7 @@ describe("executeReviewFirmEdit", () => {
         .filter((result) => result.entity.type === "symbol")
         .map((result) => result.entity.id),
     ).toEqual(["SYM-keys-module"]);
+    expect(REVIEW_FIRM_EDIT_DEPS.readHead(root, "src/keys.ts")).toBe(SOURCE);
+    expect(REVIEW_FIRM_EDIT_DEPS.readHead(root, "src/none.ts")).toBeUndefined();
   });
 });

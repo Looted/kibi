@@ -722,14 +722,14 @@ describe("source-first writes", () => {
         fact(),
         context({ fs: nodeFilesystem }),
       );
-      expect(calls).toStrictEqual([["fact", root, "docs/a.md"]]);
+      expect(calls).toStrictEqual([["fact", root, "docs/a.md", []]]);
       expect(result.structuredContent?.warnings.slice(-2)).toStrictEqual([
         "context",
         "inventory",
       ]);
       sourceWrite = null;
       await executeUpsert(fact(), context({ fs: nodeFilesystem }));
-      expect(calls.at(-1)).toStrictEqual(["fact", root, undefined]);
+      expect(calls.at(-1)).toStrictEqual(["fact", root, undefined, []]);
     } finally {
       spy.mockRestore();
     }

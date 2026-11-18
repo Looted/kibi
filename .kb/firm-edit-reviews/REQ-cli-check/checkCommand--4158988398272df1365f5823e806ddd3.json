@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Merge of develop's firm-edit gate (removed-code detection) into the staged path beside this branch's finding tags; kibi check still runs the selected rules on the branch KB or the staged change and exits non-zero on violations.",
+  "note": "Only passes the KB's entity ids to the owner findings so a type's paste-ready record gets a free id; validation, staged focus and the exit code are unchanged.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:478f2d6a79837c48ecd35c25423e1ad2dbb0d83b9f92e61e0ff1ec73840875fa",
+  "codeHash": "sha256:ddbea6843da593a3aa277809ecd614593df8b7e4ad4f8f059accfa1f1a7a4847",
   "startLine": 822,
-  "endLine": 1785,
-  "recordedAt": "2026-11-17T12:25:25.133Z"
+  "endLine": 1813,
+  "recordedAt": "2026-11-17T19:09:26.110Z"
 }

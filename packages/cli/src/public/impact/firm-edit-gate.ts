@@ -6,6 +6,7 @@ import {
   readFirmEditReceipt,
   requirementStatementFromDocument,
 } from "kibi-agent-core/firm-edit-review";
+import { isRetiredStatus } from "kibi-agent-core/snippets";
 import { effectiveFirmness } from "../../decision-firmness.js";
 import type {
   ExtractedEntity,
@@ -22,9 +23,6 @@ import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
  * receipt keeps it blocked until the requirement is superseded. This runs in
  * `kibi check --staged`, so it holds on every host and without one.
  */
-
-const RETIRED_STATUS =
-  /supersed|deprecat|reject|obsolete|retired|archived|removed|closed/i;
 
 /** The requirement ids a symbol carries an `implements` link to. */
 export function implementedRequirementIds(symbol: ExtractedSymbol): string[] {
@@ -87,8 +85,9 @@ export function isCurrentFirmRequirement(
   requirement: ExtractedEntity,
 ): boolean {
   if (requirement.type !== "req") return false;
-  // A missing status reads as "undefined", which no retired word matches.
-  if (RETIRED_STATUS.test(String(requirement.status))) return false;
+  // A missing status reads as "undefined", which no retired word matches; a
+  // closed requirement is done and still governs, as in the hooks.
+  if (isRetiredStatus(requirement.status as string | undefined)) return false;
   return (
     effectiveFirmness("req", requirement.firmness, requirement.origin) ===
     "firm"
