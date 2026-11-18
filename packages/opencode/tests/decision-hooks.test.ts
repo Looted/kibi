@@ -146,6 +146,19 @@ describe("OpenCode decision hooks", () => {
     expect(() => off.beforeTool("write", "s1", args)).not.toThrow();
   });
 
+  test("a shell call that writes firm code in place is stopped once with the notice", () => {
+    const root = linkedWorkspace();
+    const { decisions } = hooks(root);
+    expect(() =>
+      decisions.beforeTool("bash", "s1", { command: "cat src/checkout.ts" }),
+    ).not.toThrow();
+    const sed = { command: "sed -i s/1/2/ src/checkout.ts" };
+    expect(() => decisions.beforeTool("bash", "s1", sed)).toThrow(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+    expect(() => decisions.beforeTool("bash", "s1", sed)).not.toThrow();
+  });
+
   test("an edit whose location is not found counts as touching the whole file", () => {
     const root = linkedWorkspace();
     const { decisions } = hooks(root);
@@ -192,8 +205,14 @@ describe("OpenCode decision hooks", () => {
   test("a rule recorded through the CLI or under any server key is counted", async () => {
     const root = linkedWorkspace();
     for (const [tool, args] of [
-      ["bash", { command: "printf '{}' | npx --no-install kibi record --input -" }],
-      ["kibi-mcp_kb_record", { statement: "s", why: "w", saidBy: "user", code: [] }],
+      [
+        "bash",
+        { command: "printf '{}' | npx --no-install kibi record --input -" },
+      ],
+      [
+        "kibi-mcp_kb_record",
+        { statement: "s", why: "w", saidBy: "user", code: [] },
+      ],
       ["mykb_kb_upsert", { type: "symbol", id: "SYM-x", properties: {} }],
     ] as const) {
       const { decisions, prompts } = hooks(root);

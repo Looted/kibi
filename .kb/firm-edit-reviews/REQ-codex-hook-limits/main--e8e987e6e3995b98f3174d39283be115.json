@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-codex-hook-limits",
+  "sourceFile": "packages/codex/src/hook-runner.ts",
+  "symbol": "main",
+  "verdict": "keeps",
+  "note": "A shell call that writes firm code now gets an advisory notice in additionalContext; the hook still never denies and never writes to .kb.",
+  "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
+  "codeHash": "sha256:f4888dd8ce2a4a20f830076b51c839127dc2fc202060793b62e6994afcb02a3a",
+  "startLine": 1,
+  "endLine": 801,
+  "recordedAt": "2026-11-18T07:27:51.415Z"
+}

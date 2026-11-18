@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
+import { supersedingRequirement } from "kibi-agent-core/knowledge-index";
 import {
   createMaintenanceSourceAnalysisService,
   readSnapshotSourceConfig,
@@ -19,7 +20,10 @@ import {
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
 import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
-import { stagedFirmEditGateOptions } from "./firm-edit-staged.js";
+import {
+  currentSuccessor,
+  stagedFirmEditGateOptions,
+} from "./firm-edit-staged.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -209,11 +213,25 @@ export async function analyzeChangedFileImpact(
             symbolsByFile,
             readRequirement,
             requirementChanged,
+            supersededBy: (id) =>
+              snapshotKnowledge
+                ? currentSuccessor(snapshotKnowledge, id)
+                : supersedingRequirement(workspaceRoot, id),
           }),
           ...createFirmEditGateDiagnostics(
             snapshot
               ? await stagedFirmEditGateOptions({
                   sourceFiles: snapshotSources ?? [],
+                  // Knowledge documents and manifests too: firm code renamed
+                  // to docs/x.md leaves its declarations behind.
+                  unreadFiles: (snapshotInventory ?? []).map((file) => ({
+                    path: file.path,
+                    ...(file.oldPath === undefined
+                      ? {}
+                      : { oldPath: file.oldPath }),
+                    status: file.status,
+                    hunkRanges: [],
+                  })),
                   // Every declaration, each with the hunks it owns, so a
                   // symbol the change only removes lines from is still seen.
                   extractAll: (file) =>
@@ -234,8 +252,13 @@ export async function analyzeChangedFileImpact(
                       { ...file, path: basePath, content, status: "A" },
                       manifestLookup,
                       {
-                        analyzeText: async () =>
-                          analyses?.get(file.path)?.before ?? null,
+                        // An unread file (skipped, or renamed to a path
+                        // that is not source) was not analyzed.
+                        analyzeText: async (name, text) =>
+                          analyses?.has(file.path)
+                            ? (analyses.get(file.path) as SourceChangeAnalysis)
+                                .before
+                            : service.analyzeTextV2(name, text),
                       },
                     );
                   },
@@ -271,6 +294,8 @@ export async function analyzeChangedFileImpact(
                   readContent: (file) => contentByFile.get(file),
                   readRequirement,
                   requirementChanged,
+                  supersededBy: (id) =>
+                    supersedingRequirement(workspaceRoot, id),
                   readReceipt: (receiptPath) => {
                     try {
                       return readFileSync(

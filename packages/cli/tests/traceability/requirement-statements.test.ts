@@ -37,7 +37,7 @@ function floorWorkspace(): string {
   write(
     root,
     ".kb/requirements/REQ-swipl-old.md",
-    "---\nid: REQ-swipl-old\ntitle: Kibi accepts swipl 8\nstatus: closed\n---\n\nKibi accepts swipl 8.\n",
+    "---\nid: REQ-swipl-old\ntitle: Kibi accepts swipl 8\nstatus: deprecated\n---\n\nKibi accepts swipl 8.\n",
   );
   write(
     root,

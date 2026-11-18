@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1cc3d45e767
+  - type: implements
+    from: SYM-record-execute-authored-requirement-ids
+    to: REQ-kb-record-capture
+    created_at: 2026-11-18T08:08:36.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e30ecc14c8
+  - type: covered_by
+    from: SYM-record-execute-authored-requirement-ids
+    to: TEST-kb-record
+    created_at: 2026-11-18T08:08:36.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cce81c741f9f

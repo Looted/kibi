@@ -573,3 +573,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2f80f635006
+  - type: implements
+    from: SYM-agent-core-superseding-requirement
+    to: REQ-pre-edit-hooks-kibi-check-staged
+    created_at: 2026-11-18T06:04:16.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bab9b0dc6483
+  - type: covered_by
+    from: SYM-agent-core-superseding-requirement
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-18T06:04:16.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6db73a8e84b8

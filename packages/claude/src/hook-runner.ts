@@ -248,12 +248,16 @@ function firmEdit(
   edit: string,
 ): FirmEdit | undefined {
   if (!workspace.confirmFirm) return undefined;
-  const { ids, symbol } = firmRequirementsTouched({
+  const touched = {
     symbols,
     focus,
     wholeFile,
+    absolutePath: path.join(workspace.root, relativePath),
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
+  };
+  const { ids, symbol } = firmRequirementsTouched({
+    ...touched,
     // A receipt counts only for the retry of the edit this session asked
     // about: the receipt judged the code before that edit, so another edit
     // of the same symbol, or a later session's edit, is asked again.
@@ -263,6 +267,15 @@ function firmEdit(
         : undefined,
     ),
   });
+  // The requirements a receipt let through: landing this edit must not read
+  // as the person's approval of later edits.
+  const reviewedIds = firmRequirementsTouched(touched).ids.filter(
+    (id) => !ids.includes(id),
+  );
+  if (reviewedIds.length > 0)
+    appendSessionEvents(workspace.stateDir, [
+      { kind: "firm_reviewed", path: relativePath, ids: reviewedIds },
+    ]);
   if (ids.length === 0) return undefined;
   return {
     path: relativePath,
@@ -686,6 +699,7 @@ function bashChanges(
   workspace: Workspace,
   events: SessionEvent[],
   trace: HookTrace,
+  edit: string,
 ): string | undefined {
   const state = loadSessionState(workspace.stateDir);
   // rationale: without a recorded start the mtime check compares with NaN
@@ -699,7 +713,7 @@ function bashChanges(
   )) {
     const pathKind = classifyPath(relative);
     if (pathKind === "kb" || pathKind === "other") continue;
-    events.push({ kind: "edited", path: relative, pathKind });
+    events.push({ kind: "edited", path: relative, pathKind, edit });
     const symbols = symbolsFor(workspace, relative);
     const owners = requirementIds(symbols);
     if (trace.action === undefined && owners.length > 0) {
@@ -822,7 +836,12 @@ function postToolUse(
       : undefined;
     if (target) {
       const pathKind = classifyPath(target.relative);
-      events.push({ kind: "edited", path: target.relative, pathKind });
+      events.push({
+        kind: "edited",
+        path: target.relative,
+        pathKind,
+        edit: editFingerprint(toolName, input.toolInput),
+      });
       if (pathKind !== "other") {
         trace.kbUsedBefore = kbUsedBefore();
         trace.action = "edited";
@@ -841,7 +860,19 @@ function postToolUse(
     const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage) recordUsage(usage);
-    const changed = bashChanges(workspace, events, trace);
+    // A requirement written through the CLI asks for a signoff view too.
+    if (isRequirementUpsert({ command })) {
+      markDecisionFlag(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        "requirement-recorded",
+      );
+    }
+    const changed = bashChanges(
+      workspace,
+      events,
+      trace,
+      editFingerprint("Bash", command),
+    );
     // A shell edit that already has a note keeps the context within budget:
     // the template waits for the next source edit.
     const note = changed ?? captureTemplateNote(workspace, events);

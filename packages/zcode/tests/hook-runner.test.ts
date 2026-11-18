@@ -1725,6 +1725,26 @@ describe("ZCode decision guard", () => {
     ).toStartWith(FIRM_NOTICE);
   });
 
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const { event } = session();
+    const shell = (command: string) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "Bash",
+      tool_input: { command },
+    });
+    expect(await event(shell("cat src/checkout.ts"))).toEqual({
+      continue: true,
+    });
+    expect(
+      expectAdditionalContext(
+        await event(shell("sed -i s/1/2/ src/checkout.ts")),
+        "PreToolUse",
+      ),
+    ).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+  });
+
   test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
     const { event, edit, fixture } = session();
     writeKeepsReceipt(fixture.cwd);

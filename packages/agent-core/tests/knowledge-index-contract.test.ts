@@ -7,12 +7,14 @@ import path from "node:path";
 import {
   MAX_REASON_CHARS,
   buildKnowledgeIndex,
+  isCurrentFirmSummary,
   loadKnowledgeIndex,
   manifestStateOf,
   proseExcerpt,
   readEntitySummary,
   scanSymbolCoordinates,
   scanSymbolsManifest,
+  supersedingRequirement,
   withoutChangeNotes,
 } from "../src/knowledge-index";
 
@@ -1085,6 +1087,104 @@ describe("readEntitySummary", () => {
       expect(readEntitySummary(root, id).title).toBe(`T ${id}`);
     write(root, ".kb/requirements/SCEN-1.md", "---\ntitle: wrong lane\n---\n");
     expect(readEntitySummary(root, "SCEN-1").title).toBe("T SCEN-1");
+  });
+
+  test("a closed requirement names the current requirement that supersedes it", () => {
+    const root = tempDir();
+    const req = (id: string, status: string, links = "") =>
+      write(
+        root,
+        `.kb/requirements/${id}.md`,
+        `---\ntitle: ${id}\nstatus: ${status}\n${links}---\n`,
+      );
+    const supersedes = (target: string) =>
+      `links:\n  - type: supersedes\n    target: ${target}\n`;
+    req("REQ-old", "closed");
+    req("REQ-new", "open", supersedes("REQ-old"));
+    req("REQ-done", "closed");
+    // A retired successor replaces nothing; a self link is ignored.
+    req("REQ-kept", "closed");
+    req("REQ-dropped", "deprecated", supersedes("REQ-kept"));
+    req("REQ-self", "closed", supersedes("REQ-self"));
+    // A supersede recorded in a relationship shard counts too.
+    req("REQ-shard-old", "closed");
+    req("REQ-shard-new", "open");
+    write(root, ".kb/requirements/notes.txt", "not a requirement\n");
+    write(
+      root,
+      path.relative(root, shardPath(root, "REQ-shard-new")),
+      "relationships:\n  - type: supersedes\n    from: REQ-shard-new\n    to: REQ-shard-old\n",
+    );
+    expect(readEntitySummary(root, "REQ-old").supersededBy).toBe("REQ-new");
+    expect(readEntitySummary(root, "REQ-shard-old").supersededBy).toBe(
+      "REQ-shard-new",
+    );
+    for (const id of ["REQ-done", "REQ-kept", "REQ-self", "REQ-new"])
+      expect(readEntitySummary(root, id).supersededBy).toBeUndefined();
+    expect(supersedingRequirement(root, "REQ-old")).toBe("REQ-new");
+    expect(supersedingRequirement(root, "REQ-kept")).toBeUndefined();
+    // A workspace without requirements supersedes nothing.
+    expect(supersedingRequirement(tempDir(), "REQ-old")).toBeUndefined();
+    expect(
+      isCurrentFirmSummary({ id: "REQ-a", firmness: "firm", status: "closed" }),
+    ).toBe(true);
+    expect(
+      isCurrentFirmSummary({
+        id: "REQ-a",
+        firmness: "firm",
+        status: "closed",
+        supersededBy: "REQ-b",
+      }),
+    ).toBe(false);
+    expect(
+      isCurrentFirmSummary({
+        id: "REQ-a",
+        firmness: "firm",
+        status: "retired",
+      }),
+    ).toBe(false);
+    expect(isCurrentFirmSummary({ id: "REQ-a", firmness: "default" })).toBe(
+      false,
+    );
+  });
+
+  test("supersede records are read from flow shards and from block records cut short", () => {
+    const root = tempDir();
+    for (const id of ["REQ-a", "REQ-b", "REQ-c", "REQ-d"])
+      write(root, `.kb/requirements/${id}.md`, "---\nstatus: closed\n---\n");
+    write(root, ".kb/requirements/REQ-new.md", "---\nstatus: open\n---\n");
+    write(
+      root,
+      ".kb/relationships/aa.yaml",
+      "relationships: [{type: supersedes, from: REQ-new, to: REQ-a}]\n",
+    );
+    // A nested list before from/to splits the record when it is cut, so the
+    // whole shard is read.
+    write(
+      root,
+      ".kb/relationships/bb.yaml",
+      [
+        "relationships:",
+        "  - type: supersedes",
+        "    evidence:",
+        "      - one",
+        "    from: REQ-new",
+        "    to: REQ-b",
+        "  - type: relates_to",
+        "    from: REQ-new",
+        "    to: REQ-c",
+        "  - type: supersedes",
+        "    from: SCEN-x",
+        "    to: REQ-d",
+        "",
+      ].join("\n"),
+    );
+    write(root, ".kb/relationships/cc.yaml", "relationships: []\n");
+    expect(supersedingRequirement(root, "REQ-a")).toBe("REQ-new");
+    expect(supersedingRequirement(root, "REQ-b")).toBe("REQ-new");
+    expect(supersedingRequirement(root, "REQ-c")).toBeUndefined();
+    // Only a requirement supersedes a requirement here.
+    expect(supersedingRequirement(root, "REQ-d")).toBeUndefined();
   });
 
   test("unknown prefixes, unsafe ids, missing or headless documents give the bare id", () => {

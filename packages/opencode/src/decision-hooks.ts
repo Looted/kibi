@@ -167,8 +167,8 @@ export function createDecisionHooks(
     },
 
     beforeTool(tool, sessionId, args) {
-      if (tool === undefined || !EDIT_TOOLS.has(tool) || !confirmFirmEdits(env))
-        return;
+      // An edit tool, or a shell call that writes files in place.
+      if (tool === undefined || !confirmFirmEdits(env)) return;
       const relatives = editedRelativePaths(workspaceRoot, tool, args).filter(
         isSourceImpactRelevantPath,
       );
@@ -184,6 +184,7 @@ export function createDecisionHooks(
           symbols: index.files[relative] ?? [],
           focus,
           wholeFile: focus === undefined,
+          absolutePath: absolute,
           summarize,
           confirmed: settled,
           commentOnly: removesOnlyDeadImplementsComments(
@@ -212,7 +213,8 @@ export function createDecisionHooks(
       // server key is; a write through the CLI runs in the bash tool.
       const kbCall = extractKbMcpToolCall(kibiToolName(tool) ?? tool, args);
       const kbOperation =
-        kbCall?.toolName ?? (tool === "bash" ? hostKbOperation("Bash", args) : undefined);
+        kbCall?.toolName ??
+        (tool === "bash" ? hostKbOperation("Bash", args) : undefined);
       if (kbOperation === "kb_upsert") {
         markDecisionFlag(session, "kb-recorded");
         if (isRequirementUpsert(args)) {

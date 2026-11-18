@@ -30,10 +30,13 @@
  * The policy denies by default on both sides. Inside the `KIBI_` namespace
  * only the provider-setting prefixes below pass. Outside it only a provider
  * secret or setting passes (a name ending in `_API_KEY`, `_TOKEN`,
- * `_SECRET`, `_URL`, `_MODEL` and the like, such as `TYPESAFE_API_KEY`), and
+ * `_SECRET`, `_MODEL` and the like, such as `TYPESAFE_API_KEY`), and
  * never one of the process-level variables below: a process variable that
  * loads code (`OPENSSL_CONF`, `_JAVA_OPTIONS`, `RUSTC_WRAPPER`, ...) has no
- * such name, so a list of them cannot fall behind.
+ * such name, so a list of them cannot fall behind. An endpoint (`_URL`,
+ * `_ENDPOINT`, such as `TYPESAFE_BASE_URL`) never passes: a cloned
+ * repository could point a provider SDK at its own server and receive the
+ * API key the user keeps in the trusted files.
  */
 
 /**
@@ -41,7 +44,7 @@
  * a vendor word, then a secret or setting suffix.
  */
 export const WORKSPACE_PROVIDER_KEY =
-  /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_(?:API_KEY|KEY|TOKEN|SECRET|PASSWORD|URL|ENDPOINT|MODEL|ORG|ORG_ID|ORGANIZATION|PROJECT|PROJECT_ID|REGION)$/;
+  /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_(?:API_KEY|KEY|TOKEN|SECRET|PASSWORD|MODEL|ORG|ORG_ID|ORGANIZATION|PROJECT|PROJECT_ID|REGION)$/;
 
 /** `KIBI_` keys a workspace file may set: first-party provider settings. */
 export const WORKSPACE_ALLOWED_KIBI_PREFIXES: readonly string[] = ["KIBI_JEV_"];
@@ -111,6 +114,20 @@ export const WORKSPACE_DENIED_PROCESS_PREFIXES: readonly string[] = [
 ];
 
 const deniedProcessKeys = new Set(WORKSPACE_DENIED_PROCESS_KEYS);
+
+/**
+ * Whether `key` is a Kibi or process-level variable: the keys a workspace
+ * file must not set that matter to Kibi, as opposed to an application's own
+ * settings in a shared legacy `.env`.
+ */
+export function isKibiOrProcessEnvKey(key: string): boolean {
+  const upper = key.toUpperCase();
+  return (
+    upper.startsWith("KIBI_") ||
+    deniedProcessKeys.has(upper) ||
+    WORKSPACE_DENIED_PROCESS_PREFIXES.some((prefix) => upper.startsWith(prefix))
+  );
+}
 
 /** Whether a workspace env file may set `key`. */
 export function isWorkspaceEnvKeyAllowed(key: string): boolean {

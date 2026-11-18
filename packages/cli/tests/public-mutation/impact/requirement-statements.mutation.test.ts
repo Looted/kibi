@@ -57,12 +57,14 @@ function run(
   symbols: ExtractedSymbol[],
   requirements: Record<string, ExtractedEntity>,
   changed: readonly string[] = [],
+  superseded: Readonly<Record<string, string>> = {},
 ) {
   return createRequirementStatementDiagnostics({
     workspaceRoot: "/ws",
     symbolsByFile: new Map([["all", symbols]]),
     readRequirement: (id) => requirements[id],
     requirementChanged: (requirement) => changed.includes(requirement.id),
+    supersededBy: (id) => superseded[id],
   });
 }
 
@@ -185,6 +187,7 @@ describe("createRequirementStatementDiagnostics", () => {
               "closed",
             ].map((status) => `REQ-${status}`),
             "REQ-nostatus",
+            "REQ-replaced",
           ],
         }),
       ],
@@ -211,10 +214,16 @@ describe("createRequirementStatementDiagnostics", () => {
           ]),
         ),
         "REQ-nostatus": req("REQ-nostatus", { status: undefined } as never),
+        "REQ-replaced": req("REQ-replaced", { status: "closed" }),
       },
       ["REQ-changed"],
+      { "REQ-replaced": "REQ-successor" },
     );
-    expect(diagnostics.map((d) => d.entityId)).toStrictEqual(["REQ-nostatus"]);
+    // A closed requirement is done and still governs, unless superseded.
+    expect(diagnostics.map((d) => d.entityId)).toStrictEqual([
+      "REQ-closed",
+      "REQ-nostatus",
+    ]);
   });
 
   test("orders diagnostics by requirement id", () => {

@@ -62,7 +62,8 @@ jobs:
     steps:
       # The merge driver, the KB compiler and the proof gate come from
       # develop. The boarded heads are merged in a scratch worktree of this
-      # checkout and never installed or built; its credentials push.
+      # checkout and never installed or built; its credentials push, and the
+      # commands run in the worktree get no token in their environment.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: develop
@@ -95,5 +96,7 @@ jobs:
             ci-required
             proof-required
           kibi: node ${{ github.workspace }}/packages/cli/bin/kibi
-          check: sh scripts/proof-gate.sh
+          # develop's proof gate, not the copy in the merged tree, run with
+          # node so no bunfig.toml in the tree is read.
+          check: KIBI_RUNNER=node sh ${{ github.workspace }}/scripts/proof-gate.sh
           github-token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}

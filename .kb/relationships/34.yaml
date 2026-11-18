@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e24d17369cc
+  - type: implements
+    from: SYM-entity-context-is-current-authored-entity
+    to: REQ-kb-entity-body-context
+    created_at: 2026-11-18T06:43:45.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d19f4031058
+  - type: covered_by
+    from: SYM-entity-context-is-current-authored-entity
+    to: TEST-kb-entity-body-context
+    created_at: 2026-11-18T06:43:45.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e370cd10eae

@@ -1,7 +1,6 @@
-import {
-  type ExtractionResult,
-  extractFromMarkdownString,
-} from "../../extractors/markdown.js";
+import { firmEditFileHash } from "kibi-agent-core/firm-edit-review";
+import { isRetiredStatus } from "kibi-agent-core/snippets";
+import type { ExtractionResult } from "../../extractors/markdown.js";
 import {
   type StagedFile,
   parseDeletionPoints,
@@ -22,6 +21,13 @@ import {
  */
 export type StagedFirmEditInput = {
   readonly sourceFiles: readonly StagedFile[];
+  /**
+   * The other staged entries: deleted, renamed to a path that is not
+   * source, binary, or in an encoding Kibi does not read. They hold no
+   * declarations the gate can read after the change, so a record that
+   * points at one of them before the change is judged as removed.
+   */
+  readonly unreadFiles?: readonly StagedFile[];
   /** Every symbol of a staged source file, each with the hunks it owns. */
   readonly extractAll: (file: StagedFile) => Promise<ExtractedSymbol[]>;
   /**
@@ -45,15 +51,6 @@ export type StagedFirmEditInput = {
 };
 
 const SYMBOL_MANIFESTS = new Set([".kb/symbols.yaml", ".kb/symbols.yml"]);
-
-function statusOf(text: string, source: string): unknown {
-  try {
-    return extractFromMarkdownString(text, source).entity.status;
-  } catch {
-    // A base document that no longer parses has no status to compare.
-  }
-  return undefined;
-}
 
 /** A symbol record's source file, as removedSymbolRecords reads it. */
 function recordFile(result: ExtractionResult): string {
@@ -83,24 +80,34 @@ async function vanishedDeclarations(
       result.entity.type === "symbol" && current.has(result.entity.id),
   );
   const vanished: RemovedFirmSymbol[] = [];
-  for (const file of input.sourceFiles) {
+  const byFile = new Map<
+    string,
+    { result: ExtractionResult; requirementIds: string[] }[]
+  >();
+  for (const result of base) {
+    const requirementIds = [
+      ...new Set(
+        result.relationships
+          .filter(
+            (relationship) =>
+              relationship.type === "implements" &&
+              relationship.to.startsWith("REQ-"),
+          )
+          .map((relationship) => relationship.to),
+      ),
+    ];
+    if (requirementIds.length === 0) continue;
+    const list = byFile.get(recordFile(result)) ?? [];
+    list.push({ result, requirementIds });
+    byFile.set(recordFile(result), list);
+  }
+  const read = new Set(input.sourceFiles.map((file) => file.path));
+  for (const file of [
+    ...input.sourceFiles,
+    ...(input.unreadFiles ?? []).filter((entry) => !read.has(entry.path)),
+  ]) {
     const basePath = file.oldPath ?? file.path;
-    const records = base.flatMap((result) => {
-      const requirementIds = [
-        ...new Set(
-          result.relationships
-            .filter(
-              (relationship) =>
-                relationship.type === "implements" &&
-                relationship.to.startsWith("REQ-"),
-            )
-            .map((relationship) => relationship.to),
-        ),
-      ];
-      return recordFile(result) === basePath && requirementIds.length > 0
-        ? [{ result, requirementIds }]
-        : [];
-    });
+    const records = byFile.get(basePath) ?? [];
     if (records.length === 0) continue;
     const before = new Set(
       (await input.extractBase(file)).map((symbol) => symbol.name),
@@ -110,13 +117,47 @@ async function vanishedDeclarations(
     );
     for (const { result, requirementIds } of records) {
       const title = result.entity.title;
-      if (!before.has(title)) continue;
       const now = current.get(result.entity.id) as ExtractionResult;
-      if (recordFile(now) === file.path && after.has(title)) continue;
+      const kept = recordFile(now) === file.path;
+      if (!before.has(title)) {
+        // A file-level record stands for the whole file, so any change of
+        // the file edits it; a declaration-level record the extractor did
+        // not list before the change is left out.
+        if (result.entity.granularity_reason === undefined) continue;
+        const text = kept ? input.readChanged(file.path) : undefined;
+        vanished.push({
+          sourceFile: basePath,
+          symbol: title,
+          requirementIds,
+          ...(text === undefined ? {} : { codeHash: firmEditFileHash(text) }),
+        });
+        continue;
+      }
+      if (kept && after.has(title)) continue;
       vanished.push({ sourceFile: basePath, symbol: title, requirementIds });
     }
   }
   return vanished;
+}
+
+/**
+ * The current requirement in the change that supersedes `id`, if any: a
+ * retired successor replaces nothing.
+ */
+export function currentSuccessor(
+  knowledge: readonly ExtractionResult[],
+  id: string,
+): string | undefined {
+  return knowledge.find(
+    (result) =>
+      result.entity.type === "req" &&
+      result.entity.id !== id &&
+      !isRetiredStatus(result.entity.status as string | undefined) &&
+      result.relationships.some(
+        (relationship) =>
+          relationship.type === "supersedes" && relationship.to === id,
+      ),
+  )?.entity.id;
 }
 
 export async function stagedFirmEditGateOptions(
@@ -143,9 +184,9 @@ export async function stagedFirmEditGateOptions(
     baseKnowledge ??= input.readBaseKnowledge();
     return baseKnowledge;
   };
-  // Removing a record needs a manifest change.
+  // Removing a record, or its link, needs a manifest or shard change.
   const removedSymbols = [
-    ...(manifestChanged
+    ...(manifestChanged || shardChanged
       ? removedSymbolRecords(readBaseRecords(), input.knowledge)
       : []),
     ...(await vanishedDeclarations(input, symbolsByFile, readBaseRecords)),
@@ -163,6 +204,7 @@ export async function stagedFirmEditGateOptions(
     symbolsByFile,
     deletedAfterByFile,
     removedSymbols,
+    supersededBy: (id) => currentSuccessor(input.knowledge, id),
     readContent: input.readContent,
     readRequirement: (id) =>
       input.knowledge.find((result) => result.entity.id === id)?.entity,
@@ -173,10 +215,6 @@ export async function stagedFirmEditGateOptions(
         requirement,
         documentText: input.readChanged(requirement.source),
         baseText,
-        baseStatus:
-          baseText === undefined
-            ? undefined
-            : String(statusOf(baseText, requirement.source)),
         supersededInChange: supersededInChange(requirement.id),
       });
     },

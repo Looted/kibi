@@ -58,6 +58,62 @@ type ToolRegistration = {
   ) => Promise<unknown>;
 };
 
+/**
+ * A result whose nextActions name an operation this session does not list
+ * (under the core profile) gets a text line with that operation's CLI route,
+ * so the step can still be followed. Other results are returned as they are.
+ */
+export function withUnlistedRoutes(
+  result: unknown,
+  listed: ReadonlySet<string> | undefined,
+): unknown {
+  if (listed === undefined || result === null || typeof result !== "object")
+    return result;
+  const { content, structuredContent } = result as {
+    content?: unknown;
+    structuredContent?: {
+      nextActions?: unknown;
+      data?: { nextActions?: unknown };
+      // kb_status names its bootstrap step on its own.
+      bootstrap?: { nextAction?: unknown };
+    };
+  };
+  if (!Array.isArray(content)) return result;
+  const actions = [
+    structuredContent?.nextActions,
+    structuredContent?.data?.nextActions,
+    [structuredContent?.bootstrap?.nextAction],
+  ].flatMap((list) => (Array.isArray(list) ? list : []));
+  const routes = new Map<string, string>();
+  for (const action of actions) {
+    const operation = (action as { operation?: unknown } | null)?.operation;
+    if (typeof operation !== "string" || listed.has(operation)) continue;
+    try {
+      routes.set(operation, getSpec(operation as OperationName).cliName);
+    } catch {
+      // Not a Kibi operation: nothing to route.
+    }
+  }
+  if (routes.size === 0) return result;
+  return {
+    ...result,
+    content: [
+      ...content,
+      {
+        type: "text",
+        text: `Not listed in this session, so run with the same input through the project CLI: ${[
+          ...routes,
+        ]
+          .map(
+            ([operation, cli]) =>
+              `${operation} as npx --no-install kibi ${cli} --input -`,
+          )
+          .join("; ")}.`,
+      },
+    ],
+  };
+}
+
 export function registerConfiguredTools<TProlog>(
   server: McpServer,
   runtime: ToolsRuntime<TProlog>,
@@ -105,7 +161,8 @@ export function registerConfiguredTools<TProlog>(
       ...(publicSpec.agentVisibleStructuredData === true
         ? { agentVisibleStructuredData: true }
         : {}),
-      execute: (args, context) => execute(context, args),
+      execute: async (args, context) =>
+        withUnlistedRoutes(await execute(context, args), listed),
     };
     registerTool(
       server,

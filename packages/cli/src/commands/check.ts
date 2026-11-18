@@ -54,6 +54,7 @@ import {
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.js";
 import { stagedFirmEditGateOptions } from "../public/impact/firm-edit-staged.js";
+import { readImpactManifestResults } from "../public/impact/manifest.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
 import { tagBlocks } from "../public/operations/finding-blocks.js";
@@ -1421,20 +1422,19 @@ export async function checkCommand(
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
           ...createFirmEditGateDiagnostics(
             await stagedFirmEditGateOptions({
-              // A deleted source file removes every declaration it held.
-              sourceFiles: [
-                ...sourceFiles,
-                ...stagedInventory
-                  .filter(
-                    (file) =>
-                      file.status === "D" && file.disposition !== "skipped",
-                  )
-                  .map((file) => ({
-                    path: file.path,
-                    status: file.status,
-                    hunkRanges: [],
-                  })),
-              ],
+              sourceFiles,
+              // A deleted file, one renamed to a path that is not source, and
+              // one Kibi skips (binary, unreadable encoding) hold no
+              // declaration the gate can read, so every one a record pointed
+              // at before is judged as removed.
+              unreadFiles: stagedInventory.map((file) => ({
+                path: file.path,
+                ...(file.oldPath === undefined
+                  ? {}
+                  : { oldPath: file.oldPath }),
+                status: file.status,
+                hunkRanges: [],
+              })),
               // Every declaration, each with the hunks it owns, so a symbol
               // the change only removes lines from is still seen.
               extractAll: (file) =>
@@ -1454,8 +1454,17 @@ export async function checkCommand(
                   { ...file, path: basePath, content, status: "A" },
                   manifestLookup,
                   {
-                    analyzeText: async () =>
-                      sourceAnalysis.get(file.path)?.before ?? null,
+                    // A file the change skips (binary, unreadable encoding)
+                    // or renames to a path that is not source was not
+                    // analyzed, so its base text is analyzed here.
+                    analyzeText: async (name, text) =>
+                      sourceAnalysis.has(file.path)
+                        ? (
+                            sourceAnalysis.get(
+                              file.path,
+                            ) as SourceChangeAnalysis
+                          ).before
+                        : sourceService.analyzeTextV2(name, text),
                   },
                 );
               },
@@ -1551,6 +1560,7 @@ export async function checkCommand(
 
         // One block per declaration nothing owns stands for every finding
         // it caused; the JSON keeps those findings with their ids.
+        const workingTree = workingTreeSymbolRecords(process.cwd());
         const ownerFindings = collectOwnerFindings({
           traceability: violationsRaw,
           diagnostics: stagedKibiDiagnostics,
@@ -1565,7 +1575,13 @@ export async function checkCommand(
             snapshotEntities.find((result) => result.entity.id === id)?.entity,
           testsFor: (file, requirementId) =>
             coveringTests(snapshotEntities, file, requirementId),
-          takenIds: snapshotEntities.map((result) => result.entity.id),
+          // kb_upsert writes the working tree, so a record not staged yet
+          // holds its id too.
+          takenIds: [
+            ...snapshotEntities.map((result) => result.entity.id),
+            ...workingTree.map((record) => record.id),
+          ],
+          writtenRecords: workingTree,
         });
         const shown = withoutOwnedCauses(
           ownerFindings,
@@ -2170,4 +2186,19 @@ export async function checkStrictReadiness(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   return strictViolations(prolog, "strict_readiness_violation");
+}
+
+/** The working tree's symbol records; none when unreadable. */
+function workingTreeSymbolRecords(
+  workspaceRoot: string,
+): { id: string; file: string; name: string }[] {
+  try {
+    return readImpactManifestResults(workspaceRoot).map((result) => ({
+      id: result.entity.id,
+      file: result.sourceFile ?? "",
+      name: result.entity.title,
+    }));
+  } catch {
+    return [];
+  }
 }

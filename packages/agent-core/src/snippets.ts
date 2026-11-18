@@ -7,9 +7,13 @@ import {
   type EntitySummary,
   type FactClaim,
   type IndexedSymbol,
+  isCurrentFirmSummary,
+  isRetiredStatus,
   proseExcerpt,
   readEntitySummary,
 } from "./knowledge-index.js";
+
+export { isCurrentFirmSummary, isRetiredStatus };
 import type { RequirementHead } from "./requirement-candidates.js";
 
 /**
@@ -97,11 +101,17 @@ export function editFocus(
   // fields read as undefined, so the empty list cannot be told apart.
   // Stryker disable next-line ArrayDeclaration
   const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  // An edit with replace_all (replaceAll) changes every occurrence.
   const usable = [input, ...edits.map((edit) => (edit ?? {}) as Fields)]
-    .flatMap((record) => [record.old_string, record.oldString])
+    .flatMap((record) =>
+      [record.old_string, record.oldString].map((needle) => ({
+        needle,
+        all: record.replace_all === true || record.replaceAll === true,
+      })),
+    )
     .filter(
-      (needle): needle is string =>
-        typeof needle === "string" && needle.length > 0,
+      (entry): entry is { needle: string; all: boolean } =>
+        typeof entry.needle === "string" && entry.needle.length > 0,
     );
   // rationale: without needles the scan below finds nothing either; the
   // early return only saves reading the file.
@@ -117,11 +127,14 @@ export function editFocus(
   }
 
   const ranges: LineRange[] = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0) continue;
-    const start = content.slice(0, offset).split("\n").length;
-    ranges.push({ start, end: start + needle.split("\n").length - 1 });
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split("\n").length;
+      ranges.push({ start, end: start + needle.split("\n").length - 1 });
+      if (!all) break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }
@@ -129,20 +142,6 @@ export function editFocus(
 function formatList(items: readonly string[], limit: number): string {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
-}
-
-const RETIRED_STATUS =
-  /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-
-/**
- * True for a status that marks an entity as no longer current policy. The
- * hooks and the commit gate share it, so they agree on which firm
- * requirements still guard their code. `closed` is not retired: a closed
- * requirement is done and still governs.
- */
-export function isRetiredStatus(status: string | undefined): boolean {
-  // `String(undefined)` is "undefined", which names no retired status.
-  return RETIRED_STATUS.test(String(status));
 }
 
 /**
@@ -157,8 +156,9 @@ export function describeEntity(
   summary: EntitySummary,
   supersededBy?: string,
 ): string {
-  const retired = supersededBy
-    ? ` (${summary.status ?? "closed"}, superseded by ${supersededBy})`
+  const successor = supersededBy ?? summary.supersededBy;
+  const retired = successor
+    ? ` (${summary.status ?? "closed"}, superseded by ${successor})`
     : isRetiredStatus(summary.status)
       ? ` (${summary.status})`
       : "";
@@ -387,7 +387,11 @@ export function requirementGroundingLines(
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
   const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
-  if (isRetiredStatus(requirement.status)) return [];
+  if (
+    isRetiredStatus(requirement.status) ||
+    requirement.supersededBy !== undefined
+  )
+    return [];
   const links = requirement.links ?? [];
   const facts = [
     ...new Set(
@@ -466,8 +470,8 @@ export function createEntitySummarizer(workspaceRoot: string): Summarize {
  * symbols' owners lead, then the requirements with the most symbols.
  */
 /**
- * The listed requirements that another listed, current requirement
- * supersedes, each with its successor. A replaced requirement is `closed`,
+ * The listed requirements that a current requirement supersedes (listed
+ * here or recorded on the summary), each with its successor. A replaced requirement is `closed`,
  * which alone reads as current, so the snippet names its successor.
  */
 function replacedAmong(
@@ -478,6 +482,9 @@ function replacedAmong(
   const replaced = new Map<string, string>();
   for (const id of requirementIds) {
     const summary = summarize(id);
+    // A replaced requirement whose successor is not listed here.
+    if (summary.supersededBy !== undefined && !replaced.has(id))
+      replaced.set(id, summary.supersededBy);
     if (summary.status === "closed" || isRetiredStatus(summary.status))
       continue;
     for (const link of summary.links ?? [])

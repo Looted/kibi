@@ -124,6 +124,25 @@ describe("editFocus", () => {
     expect(editFocus(target, { edits: "first" })).toBeUndefined();
   });
 
+  test("an edit with replace_all is located at every match, others at the first", () => {
+    const dir = tempDir();
+    const target = path.join(dir, "b.ts");
+    fs.writeFileSync(target, "total\nx\ntotal\ntotal\n");
+    expect(
+      editFocus(target, { old_string: "total", replace_all: true }),
+    ).toStrictEqual([
+      { start: 1, end: 1 },
+      { start: 3, end: 3 },
+      { start: 4, end: 4 },
+    ]);
+    expect(
+      editFocus(target, { edits: [{ oldString: "total", replaceAll: true }] }),
+    ).toHaveLength(3);
+    expect(
+      editFocus(target, { old_string: "total", replace_all: "yes" }),
+    ).toStrictEqual([{ start: 1, end: 1 }]);
+  });
+
   test("empty, missing or unfound needles and unreadable files give nothing", () => {
     const target = file();
     for (const input of [

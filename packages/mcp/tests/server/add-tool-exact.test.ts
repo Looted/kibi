@@ -134,6 +134,49 @@ describe("addTool, exact", () => {
     expect(diagnostics.at(-1)).toStrictEqual(notice);
   });
 
+  test("a write meant for another workspace is refused, not applied here", async () => {
+    const notice: WorkspaceMismatchDiagnostic = {
+      code: "workspace_mismatch",
+      severity: "warning",
+      message: "answered elsewhere",
+      detail: {
+        requested: "/a",
+        resolved: null,
+        answeredFrom: "/b",
+        reason: "not_a_kibi_workspace",
+      },
+    };
+    setWorkspaceRouter({
+      route: async (_name: string, args: Record<string, unknown>) => ({
+        kind: "local",
+        args,
+        notice,
+      }),
+    } as unknown as WorkspaceRouter);
+    const { runtime: tools } = runtime();
+    let ran = false;
+    const spec = {
+      name: "kb_review_firm_edit",
+      effects: ["workspace-read", "workspace-write"],
+      requiresProlog: false,
+      execute: async () => {
+        ran = true;
+        return { content: [], structuredContent: {} };
+      },
+    } as unknown as RuntimeOperationSpec<Record<string, unknown>, unknown>;
+    await expect(
+      register(
+        "kb_review_firm_edit",
+        async () => ({ ok: true }),
+        tools,
+        spec,
+      )({}),
+    ).rejects.toThrow(
+      "kb_review_firm_edit writes, so it was not run in /b for the requested workspace /a (not_a_kibi_workspace).",
+    );
+    expect(ran).toBe(false);
+  });
+
   test("a coded error answers with the coded error envelope", async () => {
     const { runtime: tools } = runtime();
     const failure = Object.assign(new Error("ignored"), {

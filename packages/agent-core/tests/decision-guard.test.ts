@@ -37,6 +37,7 @@ import {
   statedReason,
   statedRule,
   takeRuleNote,
+  unlocatedSymbols,
 } from "../src/decision-guard";
 import type { EntitySummary, IndexedSymbol } from "../src/knowledge-index";
 
@@ -597,7 +598,86 @@ describe("dead implements comments", () => {
   });
 });
 
+describe("unlocatedSymbols", () => {
+  const named = (title: string, line?: number, endLine?: number) => ({
+    ...symbol(`SYM-${title}`, 1, 1, ["REQ-firm"]),
+    title,
+    line,
+    endLine,
+  });
+  const content = [
+    "// header",
+    "export const MAX = 3;",
+    "export function retry(n: number) {",
+    "  return n < MAX;",
+    "}",
+    "class Box {",
+    "  @dec()",
+    "  open() {}",
+    "}",
+  ].join("\n");
+
+  test("a symbol without coordinates is unlocated", () => {
+    const loose = named("limits.json");
+    expect(unlocatedSymbols([loose], undefined)).toEqual([loose]);
+    expect(unlocatedSymbols([named("retry", 3, 5)], undefined)).toEqual([]);
+  });
+
+  test("coordinates that no longer name the symbol in the file are unlocated", () => {
+    const fresh = [
+      named("retry", 3, 5),
+      named("MAX", 2, 2),
+      named("Box.open", 7, 8),
+      // A description, or a record spanning the whole file, is judged by
+      // its range only.
+      named("retry helpers suite", 4, 4),
+      named("whole", 1, 9),
+    ];
+    expect(unlocatedSymbols(fresh, content)).toEqual([]);
+    const shifted = named("retry", 1, 2);
+    const past = named("MAX", 2, 12);
+    const elsewhere = named("Box.open", 2, 3);
+    expect(unlocatedSymbols([shifted, past, elsewhere], content)).toEqual([
+      shifted,
+      past,
+      elsewhere,
+    ]);
+    // The name is looked for in the first few lines only.
+    const long = `${"x\n".repeat(7)}`;
+    expect(
+      unlocatedSymbols([named("late", 2, 9)], `${long}late\nmore\n`),
+    ).toEqual([named("late", 2, 9)]);
+  });
+});
+
 describe("firmRequirementsTouched", () => {
+  test("an edit of a file whose firm symbol is unlocated asks about it", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    const file = path.join(dir, "calc.ts");
+    fs.writeFileSync(file, "// a\n// b\nexport function retry() {}\n");
+    const stale = {
+      ...symbol("SYM-retry", 1, 1, ["REQ-firm"]),
+      title: "retry",
+    };
+    const located = { ...stale, line: 3, endLine: 3 };
+    const touched = (target: IndexedSymbol, absolutePath?: string) =>
+      firmRequirementsTouched({
+        symbols: [target],
+        focus: [{ start: 2, end: 2 }],
+        wholeFile: false,
+        summarize,
+        absolutePath,
+      }).ids;
+    // Line 2 is outside retry, but the coordinates are stale.
+    expect(touched(stale, file)).toEqual(["REQ-firm"]);
+    expect(touched(located, file)).toEqual([]);
+    // Unread, only a missing line counts as unlocated.
+    expect(touched(stale)).toEqual([]);
+    expect(touched({ ...stale, line: undefined })).toEqual(["REQ-firm"]);
+    expect(touched(stale, path.join(dir, "gone.ts"))).toEqual([]);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
   const symbols = [
     symbol("SYM-outer", 1, 40, ["REQ-default", "REQ-other-firm"]),
     symbol("SYM-inner", 10, 12, ["REQ-firm", "REQ-retired"]),
@@ -613,6 +693,25 @@ describe("firmRequirementsTouched", () => {
     // The innermost symbol is reported as the edit location.
     expect(result.symbol?.id).toBe("SYM-inner");
     expect(result.ids.sort()).toEqual(["REQ-firm", "REQ-other-firm"]);
+  });
+
+  test("a closed requirement a current one supersedes is not asked about", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-old": {
+        id: "REQ-old",
+        firmness: "firm",
+        status: "closed",
+        supersededBy: "REQ-new",
+      },
+      "REQ-done": { id: "REQ-done", firmness: "firm", status: "closed" },
+    };
+    const result = firmRequirementsTouched({
+      symbols: [symbol("SYM-a", 1, 9, ["REQ-old", "REQ-done"])],
+      focus: undefined,
+      wholeFile: true,
+      summarize: (id) => summaries[id] ?? { id },
+    });
+    expect(result.ids).toEqual(["REQ-done"]);
   });
 
   test("an edit outside every symbol or with no known location touches nothing", () => {
@@ -685,6 +784,42 @@ describe("firm edit texts", () => {
 });
 
 describe("statedRule and notes", () => {
+  test("rules about errors, quoted policies and rules after a bug report are found", () => {
+    for (const rule of [
+      "Error messages must never include the stack trace.",
+      "Error responses must use RFC 7807 from now on.",
+      "ValidationError must always carry the field name.",
+      "Exception: admins must still be able to export.",
+      "At login (and signup) users must accept the terms.",
+      "Deploys are frozen and I must approve each release.",
+      "Our policy is 'API keys must never be logged', apply it here.",
+    ])
+      expect(statedRule(rule)).toBe("must");
+    expect(
+      statedRule(
+        "Fix the bug where guests can post; from now on only admins are allowed.",
+      ),
+    ).toBe("from now on");
+    expect(
+      statedRule(
+        "The error that users see is ugly, and going forward all errors must be localized.",
+      ),
+    ).toBe("going forward");
+    // Pasted output, a named phrase, the speaker's own situation and a bug
+    // report's own clause stay silent.
+    for (const silent of [
+      "TypeError: x must be a string",
+      "Error: value must be positive",
+      "java.lang.IllegalStateException: id must not be null",
+      "WARNING [db] pool size must be raised",
+      "    at run (src/a.ts:3:7) must",
+      "I have to leave soon, fix the build.",
+      "Fix the bug where users have to click twice.",
+      "The flag 'is required' is shown twice.",
+    ])
+      expect(statedRule(silent)).toBeUndefined();
+  });
+
   test("finds the phrase that makes a request read as a rule", () => {
     expect(statedRule("From now on, only admins may delete")).toBe(
       "from now on",

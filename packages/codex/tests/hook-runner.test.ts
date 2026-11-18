@@ -815,6 +815,21 @@ describe("Codex decision guard", () => {
     expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
   });
 
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const event = session();
+    const shell = (command: string) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "Bash",
+      tool_input: { command },
+    });
+    expect(contextOf(await event(shell("cat src/checkout.ts")))).toBe("");
+    expect(
+      contextOf(await event(shell("sed -i s/100/1000/ src/checkout.ts"))),
+    ).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding",
+    );
+  });
+
   test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-data-");
@@ -1046,7 +1061,10 @@ describe("Codex decision guard", () => {
       tool_name: "mcp__kibi__kb_upsert",
       tool_input: { type: "symbol", id: "SYM-guard", properties: {} },
     });
-    const stop = await event({ hook_event_name: "Stop", stop_hook_active: false });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
     expect(stop.decision).toBeUndefined();
   });
 

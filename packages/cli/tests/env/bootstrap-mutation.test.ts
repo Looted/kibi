@@ -256,17 +256,12 @@ describe("parseEnvContent", () => {
           " B = two words ",
           'C="quoted"',
           "D='single'",
-          "E=\"mismatch'",
-          "F='open",
-          'G="',
           "H=a=b",
           "=nokey",
           "novalue",
           "I=",
           'J=""',
           'K=x"',
-          "L='x",
-          'M="x',
         ].join("\r\n"),
       ),
     ).toStrictEqual([
@@ -274,15 +269,41 @@ describe("parseEnvContent", () => {
       { key: "B", value: "two words" },
       { key: "C", value: "quoted" },
       { key: "D", value: "single" },
-      { key: "E", value: "\"mismatch'" },
-      { key: "F", value: "'open" },
-      { key: "G", value: "" },
       { key: "H", value: "a=b" },
       { key: "I", value: "" },
       { key: "J", value: "" },
       { key: "K", value: 'x"' },
-      { key: "L", value: "'x" },
-      { key: "M", value: '"x' },
+    ]);
+    // A quoted value runs to its closing quote across lines, so the lines of
+    // a PEM key or a JSON blob are never read as keys; an unclosed quote runs
+    // to the end of the file.
+    expect(
+      parseEnvContent(
+        [
+          'PEM="-----BEGIN KEY-----',
+          "c2VjcmV0==  ",
+          '-----END KEY-----"',
+          'JSON=\'{"a":1,',
+          ' "token=abc": "y=z"}\'',
+          "E=\"mismatch'",
+          "after=1",
+          'close"',
+          "L='x",
+          "rest=2",
+        ].join("\n"),
+      ),
+    ).toStrictEqual([
+      {
+        key: "PEM",
+        value: "-----BEGIN KEY-----\nc2VjcmV0==\n-----END KEY-----",
+      },
+      { key: "JSON", value: '{"a":1,\n "token=abc": "y=z"}' },
+      { key: "E", value: "mismatch'\nafter=1\nclose" },
+      { key: "L", value: "x\nrest=2" },
+    ]);
+    expect(parseEnvContent('G="')).toStrictEqual([{ key: "G", value: "" }]);
+    expect(parseEnvContent("F='\n'")).toStrictEqual([
+      { key: "F", value: "\n" },
     ]);
     expect(parseEnvContent("A=1\nB=2\rC=3")).toStrictEqual([
       { key: "A", value: "1" },
@@ -535,7 +556,10 @@ describe("secret attribution", () => {
     expect(inspectSecretSource("BLANK_TOKEN", options)).toBe("missing");
     expect(env).toStrictEqual({ KIBI_WORKSPACE: root, X_TOKEN: "x" });
     expect(
-      inspectSecretSource("X_TOKEN", { ...options, initialProcessKeys: new Set() }),
+      inspectSecretSource("X_TOKEN", {
+        ...options,
+        initialProcessKeys: new Set(),
+      }),
     ).toBe("process");
     expect(
       inspectSecretSource("P_TOKEN", {
@@ -583,7 +607,9 @@ describe("secret attribution", () => {
   });
 
   test("answers from the last process bootstrap unless options narrow it", () => {
-    const { root, xdg } = workspaceWithFiles({ project: "BOOT_TEST_B_TOKEN=file\n" });
+    const { root, xdg } = workspaceWithFiles({
+      project: "BOOT_TEST_B_TOKEN=file\n",
+    });
     setProcessEnv({
       ...WORKSPACE_KEYS,
       KIBI_WORKSPACE: root,
@@ -594,14 +620,17 @@ describe("secret attribution", () => {
     bootstrapKibiEnvironment();
     expect(inspectSecretSource("BOOT_TEST_B_TOKEN")).toBe("project_env");
     // Recorded attribution is read, not the files: a later file is ignored.
-    write(path.join(root, ".env.kibi"), "BOOT_TEST_B_TOKEN=file\nBOOT_TEST_D_TOKEN=late\n");
+    write(
+      path.join(root, ".env.kibi"),
+      "BOOT_TEST_B_TOKEN=file\nBOOT_TEST_D_TOKEN=late\n",
+    );
     expect(inspectSecretSource("BOOT_TEST_D_TOKEN")).toBe("missing");
     expect(inspectSecretSource("BOOT_TEST_D_TOKEN", { startDir: root })).toBe(
       "project_env",
     );
-    expect(inspectSecretSource("BOOT_TEST_D_TOKEN", { xdgConfigHome: xdg })).toBe(
-      "project_env",
-    );
+    expect(
+      inspectSecretSource("BOOT_TEST_D_TOKEN", { xdgConfigHome: xdg }),
+    ).toBe("project_env");
     expect(inspectSecretSource("BOOT_TEST_D_TOKEN", { homedir: "/h" })).toBe(
       "project_env",
     );
@@ -611,12 +640,17 @@ describe("secret attribution", () => {
       }),
     ).toBe("project_env");
     expect(
-      inspectSecretSource("BOOT_TEST_D_TOKEN", { initialProcessKeys: new Set() }),
+      inspectSecretSource("BOOT_TEST_D_TOKEN", {
+        initialProcessKeys: new Set(),
+      }),
     ).toBe("project_env");
     expect(process.env.BOOT_TEST_D_TOKEN).toBe(undefined);
     // The remembered process keys still own BOOT_TEST_C_TOKEN in a dry run, while
     // the file-loaded BOOT_TEST_B_TOKEN is not a process key.
-    write(path.join(root, ".env.kibi"), "BOOT_TEST_B_TOKEN=file\nBOOT_TEST_C_TOKEN=file\n");
+    write(
+      path.join(root, ".env.kibi"),
+      "BOOT_TEST_B_TOKEN=file\nBOOT_TEST_C_TOKEN=file\n",
+    );
     expect(inspectSecretSource("BOOT_TEST_C_TOKEN", { startDir: root })).toBe(
       "process",
     );
@@ -630,7 +664,9 @@ describe("secret attribution", () => {
   });
 
   test("snapshots a copy of the process env without a prior bootstrap", () => {
-    const { root, xdg } = workspaceWithFiles({ project: "BOOT_TEST_A_TOKEN=file\n" });
+    const { root, xdg } = workspaceWithFiles({
+      project: "BOOT_TEST_A_TOKEN=file\n",
+    });
     setProcessEnv({
       ...WORKSPACE_KEYS,
       KIBI_WORKSPACE: root,

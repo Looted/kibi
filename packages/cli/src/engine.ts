@@ -1092,7 +1092,7 @@ export class EngineClient {
         // but before the read-only runtime and attachment handshakes finish:
         // another client replacing the same daemon stops it under this one.
         // Retry those handshakes on a new connection a few times; request()
-        // never retries an application RPC.
+        // retries an application RPC only when the daemon refused to run it.
         if (
           attempt >= ENGINE_HANDSHAKE_ATTEMPTS - 1 ||
           !allowSpawn ||
@@ -1260,7 +1260,45 @@ export class EngineClient {
       pending.reject(new Error(response.error ?? "Kibi engine request failed"));
   }
 
+  /**
+   * One RPC. A daemon that has begun shutting down refuses it before running
+   * it (another client is replacing that daemon), so the request is sent
+   * again on a new connection a few times; any other failure, and a
+   * lifecycle request, is not retried. When no daemon can be reached for a
+   * retry (it is stopping, not being replaced), the refusal is reported.
+   */
   private async request<T>(
+    request: Omit<EngineRequest, "id">,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    let refusal: Error | undefined;
+    for (let attempt = 0; ; attempt += 1) {
+      if (refusal) {
+        try {
+          await this.start();
+        } catch {
+          throw refusal;
+        }
+      }
+      try {
+        return await this.requestOnce<T>(request, signal);
+      } catch (error) {
+        if (
+          attempt >= ENGINE_HANDSHAKE_ATTEMPTS - 1 ||
+          signal?.aborted === true ||
+          !(error instanceof Error) ||
+          error.message !== ENGINE_SHUTTING_DOWN_ERROR ||
+          isEngineLifecycleRequest(request as EngineRequest)
+        )
+          throw error;
+        refusal = error;
+        this.socket?.destroy();
+        this.socket = null;
+      }
+    }
+  }
+
+  private async requestOnce<T>(
     request: Omit<EngineRequest, "id">,
     signal?: AbortSignal,
   ): Promise<T> {

@@ -196,6 +196,21 @@ function authoredPath(value: unknown): string | undefined {
   return normalized;
 }
 
+/** What a requested document.path may not name, whatever exists there. */
+function assertDocumentPathShape(relative: string): void {
+  // Git's own directory and installed dependencies hold no Kibi documents.
+  if (
+    relative
+      .split(/[\\/]/)
+      .some((part) => part === ".git" || part === "node_modules")
+  ) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `document.path cannot target .git or node_modules: ${relative}`,
+    );
+  }
+}
+
 export function resolveContainedSourcePath(
   workspaceRoot: string,
   relative: string,
@@ -330,7 +345,13 @@ function sourcePath(
   entity: Readonly<Record<string, unknown>>,
   existing: Readonly<Record<string, unknown>> | undefined,
 ): string {
-  const requested = input.document?.path;
+  // A backslash is read as a separator on every platform, as the receipt
+  // reports it, so `.kb\\adr\\x.md` never creates a literal file name.
+  const requested =
+    input.document?.path === undefined || path.isAbsolute(input.document.path)
+      ? input.document?.path
+      : input.document.path.replaceAll("\\", "/");
+  if (requested !== undefined) assertDocumentPathShape(requested);
   const canonical = configuredSourceTarget(context.workspaceRoot, input.type);
   let relative: string | undefined =
     requested ?? authoredPath(existing?.source);

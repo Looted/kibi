@@ -9,6 +9,7 @@ import {
   IMPLEMENTED_BY_DEPS,
   type ImplementedByDeps,
   executeUpsertRequest,
+  writtenRequirementOf,
 } from "../../../src/operations/mutation/implemented-by.js";
 import { quantityWarnings } from "../../../src/operations/mutation/quantity-warnings.js";
 import type {
@@ -988,7 +989,13 @@ export function area(): number { return 1; }
       expect(error.detail).toContain("REQ-key-expiry was written");
       expect(error.detail).toContain("failed: held.");
       expect(error.cause).toBe(cause);
+      expect(writtenRequirementOf(error)).toBe("REQ-key-expiry");
     }
+    expect(writtenRequirementOf(new Error("x"))).toBeUndefined();
+    expect(writtenRequirementOf("x")).toBeUndefined();
+    const plain = (await run(new Error("broken"))) as Error;
+    expect(plain.message).toContain("failed: broken.");
+    expect(writtenRequirementOf(plain)).toBe("REQ-key-expiry");
     const input = (await run(
       new InputError("BAD_SYMBOL", "bad"),
     )) as InputError;

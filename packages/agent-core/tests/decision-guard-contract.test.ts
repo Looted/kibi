@@ -180,6 +180,24 @@ describe("requirement upserts", () => {
     expect(isRequirementUpsert(null)).toBe(false);
     expect(isRequirementUpsert("req")).toBe(false);
   });
+
+  test("a shell command writes one through kibi record, or kibi upsert of a req", () => {
+    const yes = [
+      "printf x | npx --no-install kibi record --input -",
+      `kibi upsert --input - <<'EOF'\n{"type": "req", "id": "REQ-a"}\nEOF`,
+    ];
+    const no = [
+      "kibi record --input - --dry-run",
+      `kibi upsert --input - <<'EOF'\n{"type":"fact","id":"FACT-a"}\nEOF`,
+      `kibi upsert --input - <<'EOF'\n{"type":"req","dryRun":true}\nEOF`,
+      `kibi query --input '{"type":"req"}'`,
+      "echo record",
+    ];
+    for (const command of yes)
+      expect(isRequirementUpsert({ command }), command).toBe(true);
+    for (const command of no)
+      expect(isRequirementUpsert({ command }), command).toBe(false);
+  });
 });
 
 describe("signoff reminder timing", () => {

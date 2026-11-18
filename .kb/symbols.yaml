@@ -26372,7 +26372,7 @@ symbols:
   - id: SYM-agent-core-snippets-isretiredstatus
     title: isRetiredStatus
     status: active
-    sourceFile: packages/agent-core/src/snippets.ts
+    sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -46128,3 +46128,212 @@ symbols:
         target: TEST-kibi-intent-aware-source-discovery
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-agent-core-superseding-requirement
+    title: supersedingRequirement
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:15.293Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-agent-core-is-current-firm-summary
+    title: isCurrentFirmSummary
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:17.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-firm-edit-staged-current-successor
+    title: currentSuccessor
+    sourceFile: packages/cli/src/public/impact/firm-edit-staged.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:20.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-env-is-kibi-or-process-env-key
+    title: isKibiOrProcessEnvKey
+    sourceFile: packages/cli/src/env/workspace-env-policy.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:23:36.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-env-parse-env-content
+    title: parseEnvContent
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:23:38.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-entity-context-is-current-authored-entity
+    title: isCurrentAuthoredEntity
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:43:44.494Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context
+  - id: SYM-merge-train-merge-train-assemble
+    title: MergeTrain.assemble
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:11:57.200Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-merge-train-process-runner
+    title: processRunner
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:11:59.267Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-merge-train-verify-unset-env
+    title: VERIFY_UNSET_ENV
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:12:44.408Z
+  - id: SYM-merge-train-runner
+    title: Runner
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:12:47.239Z
+  - id: SYM-merge-train-merge-train
+    title: MergeTrain
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:23:03.300Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-merge-train-kb-merge-actions-run
+  - id: SYM-cli-sibling-requirements-sibling-steps-text
+    title: siblingStepsText
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:37.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+  - id: SYM-implemented-by-written-requirement-of
+    title: writtenRequirementOf
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:39.800Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-implemented-by-written-requirement
+    title: WRITTEN_REQUIREMENT
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:42.168Z
+  - id: SYM-capture-ref-placeholder
+    title: REF_PLACEHOLDER
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:44.928Z
+  - id: SYM-requirement-statements-requirement-statement-diagnostics-options
+    title: RequirementStatementDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T07:47:47.629Z
+  - id: SYM-tool-registration-with-unlisted-routes
+    title: withUnlistedRoutes
+    sourceFile: packages/mcp/src/server/tool-registration.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T08:08:32.788Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-record-execute-authored-requirement-ids
+    title: authoredRequirementIds
+    sourceFile: packages/cli/src/operations/mutation/record-execute.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T08:08:35.680Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture

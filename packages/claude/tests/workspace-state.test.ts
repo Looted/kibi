@@ -277,10 +277,41 @@ describe("session journal replay", () => {
     applyEvent(state, { kind: "edited", path: "docs/x.md", pathKind: "other" });
     expect(state.sourceEdited).toBe(false);
     expect(state.pendingSource).toStrictEqual([]);
+    // An edit without a fingerprint (an older journal) confirms nothing, but
+    // the asks for its path are spent.
     applyEvent(state, { kind: "edited", path: "src/a.ts", pathKind: "test" });
-    expect(state.firmConfirmed).toStrictEqual(new Set(["R1", "R2", "R3"]));
+    expect(state.firmConfirmed).toStrictEqual(new Set());
     expect(state.firmAsked).toStrictEqual(new Map([["src/b.ts", ["R9"]]]));
     expect(state.sourceEdited).toBe(false);
+    // Another edit of the file confirms nothing; the asked edit confirms the
+    // requirements asked about with it.
+    applyEvent(state, {
+      kind: "firm_asked",
+      path: "src/b.ts",
+      ids: ["R2"],
+      edit: "e2",
+    });
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/b.ts",
+      pathKind: "test",
+      edit: "other",
+    });
+    expect(state.firmConfirmed).toStrictEqual(new Set());
+    applyEvent(state, {
+      kind: "firm_asked",
+      path: "src/b.ts",
+      ids: ["R2", "R9"],
+      edit: "e2",
+    });
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/b.ts",
+      pathKind: "test",
+      edit: "e2",
+    });
+    expect(state.firmConfirmed).toStrictEqual(new Set(["R2", "R9"]));
+    expect(state.firmAsked).toStrictEqual(new Map());
 
     applyEvent(state, { kind: "edited", path: "s1", pathKind: "source" });
     applyEvent(state, { kind: "edited", path: "s2", pathKind: "source" });
@@ -289,6 +320,25 @@ describe("session journal replay", () => {
     expect(state.sourceEdited).toBe(true);
     expect(state.pendingSource).toStrictEqual(["s2", "s1"]);
     expect(state.reminded).toStrictEqual(new Set(["s2"]));
+  });
+
+  test("requirements a receipt let through are no longer pending the person's answer", () => {
+    const state = replay(
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"], edit: "e" },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R3"], edit: "f" },
+      { kind: "firm_reviewed", path: "src/a.ts", ids: ["R1"] },
+      { kind: "firm_reviewed", path: "src/b.ts", ids: ["R3"] },
+      { kind: "firm_reviewed", path: "src/c.ts", ids: ["R4"] },
+    );
+    expect(state.firmAsked).toStrictEqual(new Map([["src/a.ts", ["R2"]]]));
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/a.ts",
+      pathKind: "source",
+      edit: "e",
+    });
+    // Only the requirement the person was still asked about is confirmed.
+    expect(state.firmConfirmed).toStrictEqual(new Set(["R2"]));
   });
 
   test("checks clear the named pending files, or all of them", () => {

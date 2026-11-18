@@ -19,13 +19,33 @@ const RULE: DecisionDocument = {
 };
 
 describe("firm decision edits", () => {
-  test("a requirement's claim is its title and statement, not its context", () => {
+  test("a requirement's claim is its title, statement and quoted reason, not its other notes", () => {
     expect(
       decisionClaimChanges(RULE, {
         ...RULE,
-        body: "Carts hold at most 50 items.\n\n## Context\nThe picker handles one cart per trip.\n",
+        body: `${RULE.body}\n## Notes\nThe picker was rebuilt in May.\n`,
       }),
     ).toEqual([]);
+    // The Context section is the reason readers quote when no rationale field
+    // is recorded, so rewriting it changes the decision.
+    expect(
+      decisionClaimChanges(RULE, {
+        ...RULE,
+        body: "Carts hold at most 50 items.\n\n## Context\nThe agent likes round numbers.\n",
+      }),
+    ).toEqual(["reason"]);
+    // The Source section quotes the person's words.
+    const sourced = {
+      ...RULE,
+      body: `${RULE.body}\n## Source\n\n> at most 50\n`,
+    };
+    expect(
+      decisionClaimChanges(sourced, {
+        ...sourced,
+        body: sourced.body.replace("> at most 50", "> fifty or so"),
+      }),
+    ).toEqual(["source"]);
+    expect(decisionClaimChanges(RULE, sourced)).toEqual([]);
     expect(
       decisionClaimChanges(RULE, {
         ...RULE,
@@ -47,25 +67,37 @@ describe("firm decision edits", () => {
   });
 
   test("a requirement's recorded reason is part of its claim once it is given", () => {
-    const reasoned = (rationale: unknown): DecisionDocument => ({
+    const bare: DecisionDocument = {
       ...RULE,
-      data: { ...RULE.data, rationale },
+      body: "Carts hold at most 50 items.\n",
+    };
+    const reasoned = (rationale: unknown): DecisionDocument => ({
+      ...bare,
+      data: { ...bare.data, rationale },
     });
     const upstream = reasoned("Upstream rate limits");
     // Rewriting a recorded reason changes the decision.
     expect(
       decisionClaimChanges(upstream, reasoned("Three is a nice number")),
     ).toEqual(["reason"]);
-    expect(decisionClaimChanges(upstream, RULE)).toEqual(["reason"]);
+    expect(decisionClaimChanges(upstream, bare)).toEqual(["reason"]);
+    // So does replacing a reason kept in the body with a different field.
+    expect(
+      decisionClaimChanges(RULE, { ...RULE, data: upstream.data }),
+    ).toEqual(["reason"]);
     // Whitespace alone does not.
     expect(
       decisionClaimChanges(upstream, reasoned("  Upstream   rate limits ")),
     ).toEqual([]);
-    // Giving a reason where none, or the placeholder, was recorded does not.
-    expect(decisionClaimChanges(RULE, upstream)).toEqual([]);
+    // So does giving a reason where none, or the placeholder, was recorded:
+    // the reason is credited to the person.
+    expect(decisionClaimChanges(bare, upstream)).toEqual(["reason"]);
     expect(
       decisionClaimChanges(reasoned("Reason not stated"), upstream),
-    ).toEqual([]);
+    ).toEqual(["reason"]);
+    expect(decisionClaimChanges(bare, reasoned("Reason not stated"))).toEqual(
+      [],
+    );
     // A firm requirement's reason is guarded like its statement, and new
     // human words release it.
     expect(
@@ -220,14 +252,47 @@ describe("firm decision edits", () => {
     expect(
       evaluateFirmDecisionEdits([current], new Map(), new Set(), read),
     ).toEqual([]);
+    // Retiring a firm decision is a change of its claim.
     expect(
       evaluateFirmDecisionEdits(
         [{ ...current, data: { ...current.data, status: "deprecated" } }],
         new Map(),
         new Set([current.path]),
         read,
+      ).map((finding) => finding.evidence),
+    ).toEqual([{ type: "req", changed: ["title", "statement", "status"] }]);
+    // Retired at HEAD and still retired: not judged.
+    const retired = committed.replace("status: open", "status: deprecated");
+    expect(
+      evaluateFirmDecisionEdits(
+        [{ ...current, data: { ...current.data, status: "deprecated" } }],
+        new Map(),
+        new Set([current.path]),
+        () => retired,
       ),
     ).toEqual([]);
+    // Reopened after an edit made while it was retired: judged.
+    expect(
+      evaluateFirmDecisionEdits(
+        [current],
+        new Map(),
+        new Set([current.path]),
+        () => retired,
+      ).map((finding) => finding.evidence),
+    ).toEqual([{ type: "req", changed: ["title", "statement", "status"] }]);
+  });
+
+  test("retiring or reopening a firm requirement changes its claim; closing it does not", () => {
+    const status = (value: string) => ({
+      ...RULE,
+      data: { ...RULE.data, status: value },
+    });
+    expect(unapprovedFirmEdit(RULE, status("deprecated"))).toEqual(["status"]);
+    expect(unapprovedFirmEdit(status("retired"), RULE)).toEqual(["status"]);
+    expect(unapprovedFirmEdit(RULE, status("closed"))).toEqual([]);
+    expect(unapprovedFirmEdit(status("deprecated"), status("retired"))).toEqual(
+      [],
+    );
   });
 
   test("the guidance names the reference fields each decision type accepts", () => {

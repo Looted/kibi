@@ -141,16 +141,19 @@ export function contextEntityOf(entity: AuthoredEntity): {
   };
 }
 
+/** Whether an authored status marks an entity as no longer current. */
+export function isRetiredAuthoredStatus(status: unknown): boolean {
+  // A status that is not text is never a retired one.
+  return RETIRED_STATUSES.has(status as string);
+}
+
 /** Whether an authored entity is current: not retired, not superseded. */
 export function isCurrentAuthoredEntity(
   entity: AuthoredEntity,
   superseded: ReadonlySet<string>,
 ): boolean {
   const status = entity.data.status;
-  return (
-    // A status that is not text is never a retired one.
-    !RETIRED_STATUSES.has(status as string) && !superseded.has(entity.id)
-  );
+  return !isRetiredAuthoredStatus(status) && !superseded.has(entity.id);
 }
 
 const CONTEXT_LANES = [

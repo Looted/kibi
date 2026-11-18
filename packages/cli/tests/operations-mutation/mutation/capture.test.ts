@@ -3,6 +3,7 @@ import { KbRejection } from "../../../src/cli-errors.js";
 import {
   type CaptureReads,
   MAX_RELATED_STATEMENT,
+  REF_PLACEHOLDER,
   WHY_PLACEHOLDER,
   captureFollowUp,
   evidenceFloorOf,
@@ -231,6 +232,42 @@ describe("withRequirementCapture", () => {
     expect(written.properties.rationale).toBe("They get skipped.");
   });
 
+  test("a new origin.ref replaces the Source section the person's words are quoted in", async () => {
+    const root = tempWorkspace({
+      ".kb/requirements/REQ-snippet-cap.md":
+        "---\nid: REQ-snippet-cap\ntitle: Snippets\n---\nSnippets stay short.\n\n## Context\n\nThey get skipped.\n\n## Source\n\n> old words\n",
+    });
+    const stored = store({
+      entities: {
+        "REQ-snippet-cap": {
+          source: ".kb/requirements/REQ-snippet-cap.md",
+          semantic_text: "Snippets stay short.",
+          origin: { kind: "human", ref: "old words" },
+        },
+      },
+    });
+    const withRef = (ref: string, body?: string) =>
+      withRequirementCapture(
+        req({
+          properties: {
+            title: "T",
+            status: "open",
+            origin: { kind: "human", ref },
+          },
+          ...(body === undefined ? {} : { document: { body } }),
+        }),
+        context(root),
+        stored,
+      );
+    expect((await withRef("new words")).document?.body).toBe(
+      "Snippets stay short.\n\n## Context\n\nThey get skipped.\n\n## Source\n\n> new words\n",
+    );
+    // The same words, or a sent body with its own Source, are left alone.
+    expect((await withRef("old words")).document).toBeUndefined();
+    const own = "Snippets stay short.\n\n## Source\n\n> own words\n";
+    expect((await withRef("new words", own)).document?.body).toBe(own);
+  });
+
   test("without a body or a readable file the statement comes from semantic_text or the title", async () => {
     const fromTitle = await withRequirementCapture(
       req({
@@ -306,6 +343,37 @@ describe("withRequirementCapture", () => {
     expect(goals).toHaveLength(1);
   });
 
+  test("a resent body whose statement the file already holds keeps a separately written semantic_text", async () => {
+    const onDisk =
+      "Exports carry a signature block that auditors verify offline.\n\n## Context\n\nThe auditors asked.\n";
+    const root = tempWorkspace({
+      ".kb/requirements/REQ-snippet-cap.md": `---\nid: REQ-snippet-cap\ntitle: Exports\n---\n${onDisk}`,
+    });
+    const reads = store({
+      entities: {
+        "REQ-snippet-cap": {
+          source: ".kb/requirements/REQ-snippet-cap.md",
+          semantic_text: "Every export must be signed.",
+        },
+      },
+    });
+    const resent = await withRequirementCapture(
+      req({ document: { body: `${onDisk}\n## Notes\n\nSee the ticket.\n` } }),
+      context(root),
+      reads,
+    );
+    expect(resent.properties.semantic_text).toBeUndefined();
+    // A body that states something else still restates it.
+    const restated = await withRequirementCapture(
+      req({ document: { body: "Exports must be signed twice.\n" } }),
+      context(root),
+      reads,
+    );
+    expect(restated.properties.semantic_text).toBe(
+      "Exports must be signed twice.",
+    );
+  });
+
   test("a body without semantic_text records its statement when none is stored or it states another", async () => {
     const body =
       "Totals must be rounded.\n\n## Context\n\nThe auditors asked.\n";
@@ -339,7 +407,14 @@ describe("withRequirementCapture", () => {
     (sent.properties as Entity).semantic_text = "Sent.";
     const reads = store();
     expect(await withRequirementCapture(sent, context(), reads)).toEqual(sent);
-    expect(reads.reads).toEqual([]);
+    // Only the stored origin.ref is read, to compare the sent one with it.
+    expect(reads.reads).toEqual(["entity:req:REQ-snippet-cap"]);
+    const noRef = req({ document: { body } });
+    (noRef.properties as Entity).semantic_text = "Sent.";
+    (noRef.properties as Entity).origin = { kind: "agent" };
+    const none = store();
+    await withRequirementCapture(noRef, context(), none);
+    expect(none.reads).toEqual([]);
     // A heading-only body states nothing, so nothing is recorded.
     const empty = req({ document: { body: "## Context\n\nx\n" } });
     expect(await withRequirementCapture(empty, context(), store())).toEqual(
@@ -415,6 +490,65 @@ describe("captureFollowUp", () => {
         required: true,
       },
     ]);
+  });
+
+  test("on a firm requirement, the step asks for the person's words with the reason", async () => {
+    const origin = { kind: "human", ref: "keep it short" };
+    const result = await captureFollowUp(
+      req(),
+      payload([CONTEXT_WARNING]),
+      context(),
+      store({
+        entities: {
+          "REQ-snippet-cap": {
+            ...ENTITY,
+            firmness: "firm",
+            origin,
+            rationale: "Agents skip",
+          },
+        },
+      }),
+    );
+    expect(result.nextActions[0]?.input).toEqual({
+      type: "req",
+      id: "REQ-snippet-cap",
+      properties: {
+        title: "Snippets show at most seven lines",
+        status: "open",
+        origin: { ...origin, ref: REF_PLACEHOLDER },
+      },
+      why: WHY_PLACEHOLDER,
+    });
+    expect(result.nextActions[0]?.reason).toContain(
+      "is firm and its reason is credited to the person, so ask the person",
+    );
+    // A first reason over "Reason not stated" would be credited to the
+    // person too, so it needs their words as well.
+    const unstated = await captureFollowUp(
+      req(),
+      payload([CONTEXT_WARNING]),
+      context(),
+      store({
+        entities: {
+          "REQ-snippet-cap": {
+            ...ENTITY,
+            firmness: "firm",
+            origin,
+            rationale: "Reason not stated",
+          },
+        },
+      }),
+    );
+    expect(unstated.nextActions[0]?.input).toEqual({
+      type: "req",
+      id: "REQ-snippet-cap",
+      properties: {
+        title: "Snippets show at most seven lines",
+        status: "open",
+        origin: { ...origin, ref: REF_PLACEHOLDER },
+      },
+      why: WHY_PLACEHOLDER,
+    });
   });
 
   const INVENTORY = [

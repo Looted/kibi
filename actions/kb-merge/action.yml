@@ -41,7 +41,9 @@ inputs:
     description: >-
       Shell command run in the merged tree after kibi sync and before the push;
       the merge is pushed only when it exits 0. $KIBI and $KIBI_BRANCH are
-      set. Use "" to run no check.
+      set; the GitHub tokens are removed from its environment, since the tree
+      holds pull request content. Run a script from the base checkout by
+      absolute path, not the tree's copy. Use "" to run no check.
     required: false
     default: "$KIBI check"
   attempts:

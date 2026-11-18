@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5577fd28d61
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-actions-tree-commands-tokens
+    created_at: 2026-11-18T08:28:06.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9860e0d553f7
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-actions-tree-commands-tokens-VIOLATED
+    created_at: 2026-11-18T08:28:06.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba4f4c7b9b72

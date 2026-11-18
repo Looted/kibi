@@ -304,3 +304,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d554150654c
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-workspace-files-provider-endpoints
+    created_at: 2026-11-18T06:23:01.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e176c2de15a4
