@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/engine.ts",
   "symbol": "EngineClient",
   "verdict": "keeps",
-  "note": "Retries only requests the daemon refused while shutting down; version handshakes, rejection and replacement are unchanged.",
+  "note": "Only which error a refused application request reports when its retry cannot reach a daemon changed; version handshake, rejection and replacement are untouched.",
   "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
-  "codeHash": "sha256:a772eb8c684b4dc0bd0322f527e9776b4e48fcd2c32e1fdb4cb3a59736adf077",
+  "codeHash": "sha256:479f4ef7e70e748a806248886c4486f53d71867131cc85704a9ff823c2d212cc",
   "startLine": 1046,
-  "endLine": 1667,
-  "recordedAt": "2026-11-18T08:08:37.686Z"
+  "endLine": 1677,
+  "recordedAt": "2026-11-18T08:52:16.116Z"
 }

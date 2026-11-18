@@ -1264,13 +1264,22 @@ export class EngineClient {
    * One RPC. A daemon that has begun shutting down refuses it before running
    * it (another client is replacing that daemon), so the request is sent
    * again on a new connection a few times; any other failure, and a
-   * lifecycle request, is not retried.
+   * lifecycle request, is not retried. When no daemon can be reached for a
+   * retry (it is stopping, not being replaced), the refusal is reported.
    */
   private async request<T>(
     request: Omit<EngineRequest, "id">,
     signal?: AbortSignal,
   ): Promise<T> {
+    let refusal: Error | undefined;
     for (let attempt = 0; ; attempt += 1) {
+      if (refusal) {
+        try {
+          await this.start();
+        } catch {
+          throw refusal;
+        }
+      }
       try {
         return await this.requestOnce<T>(request, signal);
       } catch (error) {
@@ -1282,6 +1291,7 @@ export class EngineClient {
           isEngineLifecycleRequest(request as EngineRequest)
         )
           throw error;
+        refusal = error;
         this.socket?.destroy();
         this.socket = null;
       }
