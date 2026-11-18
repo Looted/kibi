@@ -80,14 +80,20 @@ export function firmRequirementRestated(input: {
   );
 }
 
-/** Whether a requirement is current and firm, so edits of its code are gated. */
+/**
+ * Whether a requirement is current and firm, so edits of its code are gated.
+ * `supersededBy` names the current requirement that replaces it, if any.
+ */
 export function isCurrentFirmRequirement(
   requirement: ExtractedEntity,
+  supersededBy?: (id: string) => string | undefined,
 ): boolean {
   if (requirement.type !== "req") return false;
   // A missing status reads as "undefined", which no retired word matches; a
-  // closed requirement is done and still governs, as in the hooks.
+  // closed requirement is done and still governs, as in the hooks, unless a
+  // current requirement supersedes it.
   if (isRetiredStatus(requirement.status as string | undefined)) return false;
+  if (supersededBy?.(requirement.id) !== undefined) return false;
   return (
     effectiveFirmness("req", requirement.firmness, requirement.origin) ===
     "firm"
@@ -241,6 +247,11 @@ export type FirmEditGateOptions = {
    * supersede checks.
    */
   readonly requirementChanged: (requirement: ExtractedEntity) => boolean;
+  /**
+   * The current requirement that supersedes a requirement, if any: a
+   * replaced requirement no longer guards its code.
+   */
+  readonly supersededBy?: (id: string) => string | undefined;
   /** A receipt file's text, by workspace-relative path; undefined when absent. */
   readonly readReceipt: (relativePath: string) => string | undefined;
   /**
@@ -303,7 +314,10 @@ export function createFirmEditGateDiagnostics(
   const diagnostics: KibiImpactDiagnostic[] = [];
   for (const id of [...symbolsByRequirement.keys()].sort()) {
     const requirement = options.readRequirement(id);
-    if (requirement === undefined || !isCurrentFirmRequirement(requirement))
+    if (
+      requirement === undefined ||
+      !isCurrentFirmRequirement(requirement, options.supersededBy)
+    )
       continue;
     if (options.requirementChanged(requirement)) continue;
     const statement = requirementStatement(

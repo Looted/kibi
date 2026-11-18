@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
+import { supersedingRequirement } from "kibi-agent-core/knowledge-index";
 import {
   createMaintenanceSourceAnalysisService,
   readSnapshotSourceConfig,
@@ -271,6 +272,8 @@ export async function analyzeChangedFileImpact(
                   readContent: (file) => contentByFile.get(file),
                   readRequirement,
                   requirementChanged,
+                  supersededBy: (id) =>
+                    supersedingRequirement(workspaceRoot, id),
                   readReceipt: (receiptPath) => {
                     try {
                       return readFileSync(

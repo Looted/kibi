@@ -307,6 +307,10 @@ describe("helpers", () => {
       ),
     ).toBe(true);
     expect(isCurrentFirmRequirement(req("ADR-a", { type: "adr" }))).toBe(false);
+    // A closed requirement a current one supersedes no longer guards.
+    const closed = req("REQ-a", { status: "closed" });
+    expect(isCurrentFirmRequirement(closed, () => "REQ-b")).toBe(false);
+    expect(isCurrentFirmRequirement(closed, () => undefined)).toBe(true);
   });
 });
 
@@ -517,6 +521,28 @@ describe("createFirmEditGateDiagnostics", () => {
     expect(diagnostic?.suggestion).toBe(
       "Ask the person whether REQ-key-expiry should change. With their words, supersede REQ-key-expiry with kb_upsert (a new requirement with a supersedes link and their words in origin.ref) in this change; otherwise undo the edit.",
     );
+  });
+
+  test("a requirement a current one supersedes is not gated", () => {
+    const expire = symbol("expireKey");
+    const requirements = {
+      "REQ-key-expiry": req("REQ-key-expiry", { status: "closed" }),
+    };
+    expect(
+      gate([expire], {
+        requirements,
+        extra: {
+          supersededBy: (id) =>
+            id === "REQ-key-expiry" ? "REQ-key-expiry-v2" : undefined,
+        },
+      }),
+    ).toEqual([]);
+    expect(
+      gate([expire], {
+        requirements,
+        extra: { supersededBy: () => undefined },
+      }).map((diagnostic) => diagnostic.id),
+    ).toEqual(["firm_edit_unreviewed"]);
   });
 
   test("judges any changed code of current firm requirements, whatever its role", () => {

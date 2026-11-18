@@ -615,6 +615,25 @@ describe("firmRequirementsTouched", () => {
     expect(result.ids.sort()).toEqual(["REQ-firm", "REQ-other-firm"]);
   });
 
+  test("a closed requirement a current one supersedes is not asked about", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-old": {
+        id: "REQ-old",
+        firmness: "firm",
+        status: "closed",
+        supersededBy: "REQ-new",
+      },
+      "REQ-done": { id: "REQ-done", firmness: "firm", status: "closed" },
+    };
+    const result = firmRequirementsTouched({
+      symbols: [symbol("SYM-a", 1, 9, ["REQ-old", "REQ-done"])],
+      focus: undefined,
+      wholeFile: true,
+      summarize: (id) => summaries[id] ?? { id },
+    });
+    expect(result.ids).toEqual(["REQ-done"]);
+  });
+
   test("an edit outside every symbol or with no known location touches nothing", () => {
     for (const focus of [undefined, [], [{ start: 90, end: 95 }]]) {
       const result = firmRequirementsTouched({

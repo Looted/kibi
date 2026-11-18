@@ -564,6 +564,23 @@ describe("executeReviewFirmEdit", () => {
     expect(await refusal(root, [entry({ requirementId: "REQ-old" })])).toBe(
       "REQ-old is not a current firm requirement, so an edit of its code needs no review.",
     );
+    // A closed requirement a current one supersedes no longer guards.
+    write(
+      root,
+      ".kb/requirements/REQ-key-expiry.md",
+      requirement("REQ-key-expiry").replace("status: open", "status: closed"),
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-key-expiry-v2.md",
+      requirement("REQ-key-expiry-v2").replace(
+        "status: open",
+        "status: open\nlinks:\n  - type: supersedes\n    target: REQ-key-expiry",
+      ),
+    );
+    expect(await refusal(root, [entry()])).toBe(
+      "REQ-key-expiry is superseded by REQ-key-expiry-v2, so it no longer guards its code; review the edit against REQ-key-expiry-v2 if that one is firm.",
+    );
   });
 
   test("refuses a file outside the workspace or one it cannot read", async () => {

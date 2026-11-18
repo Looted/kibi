@@ -22,6 +22,7 @@ import {
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
+  supersedingRequirement,
 } from "kibi-agent-core/knowledge-index";
 import { KbRejection } from "../../cli-errors.js";
 import type { ExtractionResult } from "../../extractors/markdown.js";
@@ -307,6 +308,11 @@ async function planReceipt(
   const requirement = readWorkspaceRequirement(workspaceRoot, requirementId);
   if (requirement === undefined)
     refuse(`${requirementId} is not a requirement in .kb/requirements.`);
+  const successor = supersedingRequirement(workspaceRoot, requirementId);
+  if (successor !== undefined)
+    refuse(
+      `${requirementId} is superseded by ${successor}, so it no longer guards its code; review the edit against ${successor} if that one is firm.`,
+    );
   if (!isCurrentFirmRequirement(requirement))
     refuse(
       `${requirementId} is not a current firm requirement, so an edit of its code needs no review.`,

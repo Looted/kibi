@@ -26372,7 +26372,7 @@ symbols:
   - id: SYM-agent-core-snippets-isretiredstatus
     title: isRetiredStatus
     status: active
-    sourceFile: packages/agent-core/src/snippets.ts
+    sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -46126,3 +46126,42 @@ symbols:
         target: TEST-kibi-intent-aware-source-discovery
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-agent-core-superseding-requirement
+    title: supersedingRequirement
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:15.293Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-agent-core-is-current-firm-summary
+    title: isCurrentFirmSummary
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:17.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-firm-edit-staged-current-successor
+    title: currentSuccessor
+    sourceFile: packages/cli/src/public/impact/firm-edit-staged.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:04:20.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged

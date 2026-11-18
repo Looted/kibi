@@ -1,3 +1,4 @@
+import { isRetiredStatus } from "kibi-agent-core/snippets";
 import {
   type ExtractionResult,
   extractFromMarkdownString,
@@ -119,6 +120,26 @@ async function vanishedDeclarations(
   return vanished;
 }
 
+/**
+ * The current requirement in the change that supersedes `id`, if any: a
+ * retired successor replaces nothing.
+ */
+export function currentSuccessor(
+  knowledge: readonly ExtractionResult[],
+  id: string,
+): string | undefined {
+  return knowledge.find(
+    (result) =>
+      result.entity.type === "req" &&
+      result.entity.id !== id &&
+      !isRetiredStatus(result.entity.status as string | undefined) &&
+      result.relationships.some(
+        (relationship) =>
+          relationship.type === "supersedes" && relationship.to === id,
+      ),
+  )?.entity.id;
+}
+
 export async function stagedFirmEditGateOptions(
   input: StagedFirmEditInput,
 ): Promise<FirmEditGateOptions> {
@@ -163,6 +184,7 @@ export async function stagedFirmEditGateOptions(
     symbolsByFile,
     deletedAfterByFile,
     removedSymbols,
+    supersededBy: (id) => currentSuccessor(input.knowledge, id),
     readContent: input.readContent,
     readRequirement: (id) =>
       input.knowledge.find((result) => result.entity.id === id)?.entity,

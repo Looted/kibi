@@ -274,4 +274,48 @@ describe("stagedFirmEditGateOptions", () => {
       }),
     ).toBe(false);
   });
+
+  test("a requirement a current requirement in the change supersedes is replaced", async () => {
+    const successor = (status: string | undefined, to = "REQ-a") =>
+      result({ id: "REQ-b", type: "req", ...(status ? { status } : {}) }, [
+        { type: "supersedes", from: "REQ-b", to },
+      ]);
+    const supersededBy = async (knowledge: ExtractionResult[]) =>
+      (await options({ knowledge })).supersededBy?.("REQ-a");
+    expect(await supersededBy([result(requirement()), successor("open")])).toBe(
+      "REQ-b",
+    );
+    expect(await supersededBy([result(requirement()), successor(undefined)])).toBe(
+      "REQ-b",
+    );
+    // A retired successor replaces nothing, nor does a link to another id,
+    // a link that is not a supersede, or a non-requirement.
+    expect(
+      await supersededBy([result(requirement()), successor("deprecated")]),
+    ).toBeUndefined();
+    expect(
+      await supersededBy([result(requirement()), successor("open", "REQ-x")]),
+    ).toBeUndefined();
+    expect(
+      await supersededBy([
+        result({ id: "REQ-b", type: "req" }, [
+          { type: "relates_to", from: "REQ-b", to: "REQ-a" },
+        ]),
+      ]),
+    ).toBeUndefined();
+    expect(
+      await supersededBy([
+        result({ id: "ADR-b", type: "adr" }, [
+          { type: "supersedes", from: "ADR-b", to: "REQ-a" },
+        ]),
+      ]),
+    ).toBeUndefined();
+    expect(
+      await supersededBy([
+        result({ ...requirement() }, [
+          { type: "supersedes", from: "REQ-a", to: "REQ-a" },
+        ]),
+      ]),
+    ).toBeUndefined();
+  });
 });

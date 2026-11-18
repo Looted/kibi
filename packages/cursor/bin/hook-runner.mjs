@@ -984,6 +984,66 @@ function shardLinksFrom(workspaceRoot, entityId) {
   }
   return cached.byFrom.get(entityId) ?? [];
 }
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+function isRetiredStatus(status) {
+  return RETIRED_STATUS.test(String(status));
+}
+function isCurrentFirmSummary(summary) {
+  return summary.firmness === "firm" && !isRetiredStatus(summary.status) && summary.supersededBy === undefined;
+}
+function shardSupersedes(text) {
+  const pick = (records) => records.flatMap(({ type, from, to }) => type === "supersedes" && typeof from === "string" && typeof to === "string" ? [{ from, to }] : []);
+  if (!/^relationships:\s*\[/m.test(text)) {
+    const blocks = text.split(/\n(?=\s*- )/).filter((block) => block.includes("supersedes"));
+    const records = scanRecordSequence(`relationships:
+${blocks.map((block) => block.replace(/^relationships:\s*\n/, "")).join(`
+`)}
+`, "relationships");
+    const found = pick(records);
+    if (found.length === records.filter((record) => record.type === "supersedes").length)
+      return found;
+  }
+  return pick(scanRecordSequence(text, "relationships"));
+}
+function currentSuccessors(workspaceRoot) {
+  const edges = [];
+  const list = (dir, suffix) => {
+    try {
+      return fs3.readdirSync(path4.join(workspaceRoot, dir)).filter((name) => name.endsWith(suffix)).sort();
+    } catch {}
+    return [];
+  };
+  for (const name of list(".kb/requirements", ".md")) {
+    const id = name.slice(0, -3);
+    const text = readText(path4.join(workspaceRoot, ".kb/requirements", name));
+    if (text === undefined || !text.includes("supersedes"))
+      continue;
+    for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
+      if (link.type === "supersedes")
+        edges.push({ from: id, to: link.target });
+  }
+  for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
+    const text = readText(path4.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    if (text === undefined || !text.includes("supersedes"))
+      continue;
+    for (const { from, to } of shardSupersedes(text))
+      edges.push({ from, to });
+  }
+  const successors = new Map;
+  const retired = new Map;
+  for (const { from, to } of edges) {
+    if (from === to || successors.has(to) || !from.startsWith("REQ-"))
+      continue;
+    if (!retired.has(from))
+      retired.set(from, isRetiredStatus(readSummaryHead(workspaceRoot, from, false).status));
+    if (retired.get(from) === false)
+      successors.set(to, from);
+  }
+  return successors;
+}
+function supersedingRequirement(workspaceRoot, requirementId) {
+  return currentSuccessors(workspaceRoot).get(requirementId);
+}
 function flushLink(links, pending) {
   if (pending?.target !== undefined) {
     links.push({ type: pending.type ?? "relates_to", target: pending.target });
@@ -992,6 +1052,15 @@ function flushLink(links, pending) {
   }
 }
 function readEntitySummary(workspaceRoot, entityId) {
+  const summary = readSummaryHead(workspaceRoot, entityId);
+  if (summary.status === "closed" && entityId.startsWith("REQ-")) {
+    const successor = supersedingRequirement(workspaceRoot, entityId);
+    if (successor !== undefined)
+      summary.supersededBy = successor;
+  }
+  return summary;
+}
+function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
     return { id: entityId };
@@ -1116,7 +1185,7 @@ function readEntitySummary(workspaceRoot, entityId) {
   const seen = new Set;
   for (const link of [
     ...authored,
-    ...shardLinksFrom(workspaceRoot, entityId)
+    ...withShardLinks ? shardLinksFrom(workspaceRoot, entityId) : []
   ]) {
     const key = `${link.type}\x00${link.target}`;
     if (link.target.length === 0 || seen.has(key))
@@ -1367,12 +1436,9 @@ function formatList(items, limit) {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-function isRetiredStatus(status) {
-  return RETIRED_STATUS.test(String(status));
-}
 function describeEntity(summary, supersededBy) {
-  const retired = supersededBy ? ` (${summary.status ?? "closed"}, superseded by ${supersededBy})` : isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const successor = supersededBy ?? summary.supersededBy;
+  const retired = successor ? ` (${summary.status ?? "closed"}, superseded by ${successor})` : isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
   const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
   const title = displayTitle(summary);
@@ -1487,7 +1553,7 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
   const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
-  if (isRetiredStatus(requirement.status))
+  if (isRetiredStatus(requirement.status) || requirement.supersededBy !== undefined)
     return [];
   const links = requirement.links ?? [];
   const facts = [
@@ -1535,6 +1601,8 @@ function replacedAmong(requirementIds, summarize) {
   const replaced = new Map;
   for (const id of requirementIds) {
     const summary = summarize(id);
+    if (summary.supersededBy !== undefined && !replaced.has(id))
+      replaced.set(id, summary.supersededBy);
     if (summary.status === "closed" || isRetiredStatus(summary.status))
       continue;
     for (const link of summary.links ?? [])
@@ -1668,7 +1736,7 @@ function firmRequirementsTouched(input) {
     if (input.confirmed?.has(id))
       return false;
     const summary = input.summarize(id);
-    if (summary.firmness !== "firm" || isRetiredStatus(summary.status))
+    if (!isCurrentFirmSummary(summary))
       return false;
     const reviewed = input.reviewed;
     if (reviewed === undefined)

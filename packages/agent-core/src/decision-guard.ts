@@ -10,7 +10,7 @@ import {
   type Summarize,
   focusedSymbols,
   implementedRequirementIds,
-  isRetiredStatus,
+  isCurrentFirmSummary,
 } from "./snippets.js";
 
 /**
@@ -57,8 +57,7 @@ export function firmRequirementsTouched(input: {
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id)) return false;
     const summary = input.summarize(id);
-    if (summary.firmness !== "firm" || isRetiredStatus(summary.status))
-      return false;
+    if (!isCurrentFirmSummary(summary)) return false;
     const reviewed = input.reviewed;
     if (reviewed === undefined) return true;
     return !touched
