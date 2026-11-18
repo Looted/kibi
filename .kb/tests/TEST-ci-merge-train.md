@@ -21,15 +21,15 @@ id: TEST-ci-merge-train
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2c78debaca569200735af101
+    receipt_id: PR-fdb1d64d3255238cf11ba0f7
     test_id: TEST-ci-merge-train
     scope: end_to_end
     outcome: passed
-    code_snapshot: 41b874d07340b68ce52925d0db2e1efd0d144d4a30d39495f7ae549d8fd48930
+    code_snapshot: 6ba033523eaf1599c4d3efc3d15e2d78ec425f30d68a8184efef61a383b87869
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-18T08:22:06.654Z'
-    finished_at: '2026-11-18T08:22:14.682Z'
-    artifact_digest: 03c41d06fab366940212fd285697e9ff193f16192aa338fab380ead09c24d15f
+    started_at: '2026-11-18T08:28:11.655Z'
+    finished_at: '2026-11-18T08:28:18.118Z'
+    artifact_digest: 093182fe2988217a17febf2002b84d89ae8299f03c6452f7d8f8b3ead7f41dc4
     contract_hash: a5bb3f83bfa0c5037d72ea174ab2224fbee26f9c08a7d8b1decf49f5ad9f87e2
     binding_hash: 3bc876b9670d12bddd8578d6181c20b31f63830222213e41dfb2b81257f710d6
     fingerprint: e32f20162bbb1688f7482c937afca832269393985d27707a33652c9308b28ad6

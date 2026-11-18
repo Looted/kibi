@@ -629,3 +629,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-067592715d0c
+  - type: specified_by
+    from: REQ-merge-train-kb-merge-actions-run
+    to: SCEN-ci-merge-actions-tree-commands-tokens
+    created_at: 2026-11-18T08:28:04.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-228bf6c2cb4e
+  - type: specified_by
+    from: REQ-merge-train-kb-merge-actions-run
+    to: SCEN-NEG-ci-merge-actions-tree-commands-tokens-VIOLATED
+    created_at: 2026-11-18T08:28:04.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dd07b697bbe
