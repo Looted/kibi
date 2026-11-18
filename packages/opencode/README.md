@@ -3,7 +3,10 @@
 OpenCode plugin for Kibi - repo-local, per-branch, queryable knowledge base.
 
 `kibi-opencode` is optional. It provides OpenCode-specific guidance, startup UX,
-and background sync/check maintenance, but it does not ship a replacement `kibi`
+background sync/check maintenance and, on OpenCode v1, the decision hooks the
+other Kibi host plugins run (stated-rule capture with a `kb_record` template, a
+one-time stop before an edit of code that implements a firm requirement, and a
+capture or signoff request when a session goes idle), but it does not ship a replacement `kibi`
 CLI or `kibi-mcp` server binary. Install and configure the base `kibi-cli`,
 `kibi-mcp`, and `kibi-core` packages in the project first; add this plugin only
 when you want OpenCode-specific behavior.
