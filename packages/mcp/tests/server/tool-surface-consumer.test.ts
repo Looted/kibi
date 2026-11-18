@@ -38,6 +38,7 @@ const AGENT_FACING_TOOLS = [
   "kb_record",
   "kb_delete",
   "kb_check",
+  "kb_review_firm_edit",
   "kb_prepare_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
@@ -45,7 +46,7 @@ const AGENT_FACING_TOOLS = [
   "kb_ingest_proof",
 ];
 
-/** The default profile: the core seven, listed in catalog order. */
+/** The core profile: the core seven and the receipt tool, in catalog order. */
 const CORE_TOOLS = [
   "kb_query",
   "kb_search",
@@ -54,12 +55,14 @@ const CORE_TOOLS = [
   "kb_upsert",
   "kb_record",
   "kb_check",
+  "kb_review_firm_edit",
 ];
 
 /** A freshly initialized KB is empty, so the bootstrap tools are listed too. */
 const EMPTY_KB_TOOLS = [...CORE_TOOLS, "kb_plan_bootstrap", "kb_apply_plan"];
 
 const FULL = { KIBI_MCP_TOOLS: "full" };
+const CORE = { KIBI_MCP_TOOLS: "core" };
 
 type Json = Record<string, unknown>;
 
@@ -162,9 +165,13 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists the core tools by default and all 16 in the full profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists all 18 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
-    const core = await connect(workspace);
+    const listed = await connect(workspace);
+    expect((await listed.listTools()).tools.map((tool) => tool.name)).toEqual(
+      AGENT_FACING_TOOLS,
+    );
+    const core = await connect(workspace, CORE);
     // The KB is empty after kibi init, so the bootstrap tools are listed.
     expect((await core.listTools()).tools.map((tool) => tool.name)).toEqual(
       EMPTY_KB_TOOLS,
@@ -179,11 +186,12 @@ describe("kibi-mcp consolidated tool surface", () => {
         "kb_check",
         "kb_status",
         "kb_skills",
+        "kb_review_firm_edit",
         "kb_plan_bootstrap",
         "kb_apply_plan",
       ].join(", ")}.`,
     );
-    expect(instructions).toContain("Set KIBI_MCP_TOOLS=full");
+    expect(instructions).not.toContain("KIBI_MCP_TOOLS");
     const client = await connect(workspace, FULL);
 
     const { tools } = await client.listTools();
@@ -322,8 +330,8 @@ describe("kibi-mcp consolidated tool surface", () => {
       );
     expect(size(tools)).toBeLessThanOrEqual(122_000);
     expect(modelFacing(tools)).toBeLessThanOrEqual(62_000);
-    // The default profile of an empty KB lists nine tools at about half.
-    const core = (await (await connect(workspace)).listTools()).tools;
+    // The core profile of an empty KB lists ten tools at about half.
+    const core = (await (await connect(workspace, CORE)).listTools()).tools;
     expect(core.map((tool) => tool.name)).toEqual(EMPTY_KB_TOOLS);
     expect(size(core)).toBeLessThanOrEqual(64_000);
     expect(modelFacing(core)).toBeLessThanOrEqual(35_000);

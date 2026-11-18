@@ -1,6 +1,6 @@
 # Predicate ontology decision tree
 
-Call `kb_model` (full MCP profile only; CLI `kibi model --input -`) with `mode: "analyze"` on the complete prose before encoding a clause.
+Call `kb_model` (core MCP profile: CLI `kibi model --input -`) with `mode: "analyze"` on the complete prose before encoding a clause.
 Set requirement `logic_claims` to exactly the assertive `claim_key` values.
 For each relational clause, call `kb_model` with `mode: "predicates"`, that clause, and
 `existingLogicClaims`. If lexical rank is a false positive, retry with the
@@ -56,7 +56,7 @@ grounds the claim (for example a bootstrap `requires_property` fact); the action
 still names the predicate state. `replace_grounding` means a predicate fits but
 a second grounding link would fail, so keep the existing link or apply the
 `replacementPlan` steps unchanged, in order and back to back (predicate fact,
-`kb_delete` (full MCP profile only; CLI `kibi delete --input -`) of the old link, requirement link; between the last two `kb_check`
+`kb_delete` (core MCP profile: CLI `kibi delete --input -`) of the old link, requirement link; between the last two `kb_check`
 reports both `logic-coverage` and `strict-req-fact-pairing` for the
 requirement, as `expected.kbCheckAfterStep` states; run `kb_check` after the
 last step and apply `rollback` if it is not clean). `keep_existing_grounding`

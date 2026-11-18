@@ -256,6 +256,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_prepare_impact_review",
                 "kb_query",
                 "kb_record",
+                "kb_review_firm_edit",
                 "kb_search",
                 "kb_skills",
                 "kb_status",

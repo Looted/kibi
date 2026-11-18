@@ -1,5 +1,5 @@
 ---
-title: Full profile that leaves ten tools unlisted
+title: MCP server that leaves ten tools unlisted without the core profile
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog

@@ -43,10 +43,10 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_check` | `kibi check --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP catalog has 17 tools rather than one per operation, and a session
-lists seven of them unless the `full` profile is chosen (see the
-[MCP reference](mcp-reference.md#tool-list)); the rest run through the routes
-above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
+The MCP catalog has 18 tools rather than one per operation, and a session
+lists all of them unless the `core` profile is chosen (see the
+[MCP reference](mcp-reference.md#tool-list)); under `core` the rest run through
+the routes above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
 
 - `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and
@@ -816,9 +816,9 @@ printf '%s' '{"questions":[{"id":"REQ-042","statement":"Exports stay in CSV.","q
 Records the agent's verdict on its change to code that implements a current
 firm requirement, a rule a person set. `kibi check --staged` blocks such a
 change (`firm_edit_unreviewed`) until every edited symbol has a current
-`keeps` receipt. It is a CLI command, not an MCP tool: the blocking finding
-prints the exact input to pipe in, with the requirement, file and symbol
-filled and the note left empty.
+`keeps` receipt. MCP lists it as `kb_review_firm_edit` in every tool profile.
+The blocking finding prints the exact input to send, with the requirement,
+file and symbol filled and the note left empty.
 
 **Syntax:**
 ```bash

@@ -1,5 +1,5 @@
 ---
-title: The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
+title: Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
@@ -12,9 +12,9 @@ origin:
   recorded_at: '2026-11-16T20:00:00.000Z'
 tags:
   - tool-surface
-claim_text: The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
-claim_key: CLAIM-063456F19053E2B1
+claim_text: Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
+claim_key: CLAIM-1BECB4BB3E4A1516
 id: FACT-mcp-instructions-name-unlisted
 type: fact
 ---
-The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI. Grounds REQ-mcp-default-tool-profile.
+Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI. Grounds REQ-mcp-default-tool-profile.

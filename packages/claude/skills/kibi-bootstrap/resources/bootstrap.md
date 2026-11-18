@@ -20,7 +20,7 @@ and follow `nextActions` if it returns `committed_with_repairs`. Direct
 plan through it. That rule covers the plan's own writes. After apply and
 close-out, the deepen step hands unplanned claims (`invalid_write`,
 `sourceOnlySignals`), scenarios and predicates to the normal `kibi-usage`
-workflow, where `kb_model` (full MCP profile only; CLI `kibi model --input -`) and `kb_upsert` are the expected tools.
+workflow, where `kb_model` (core MCP profile: CLI `kibi model --input -`) and `kb_upsert` are the expected tools.
 
 `BOOTSTRAP_PLAN_INVALID` fails before bootstrap writes or a new journal; request
 a corrected plan. `BOOTSTRAP_PLAN_REJECTED` reports a deterministic failure and

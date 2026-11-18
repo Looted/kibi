@@ -479,8 +479,8 @@ On OpenCode v2:
 - v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
 - **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
-  OpenCode v2.0.32 with the `full` tool profile the catalog lists
-  `kibi (16 tools, 1 shown)` (six with the default profile), `search({ query:
+  OpenCode v2.0.32 the catalog lists
+  `kibi (18 tools, 1 shown)` (eight with the `core` profile), `search({ query:
   "kibi" })` finds all of them, and the tools are reachable
   through `execute` under `tools.kibi`. To call the native `kibi_*` tools
   directly, set `codemode: false` on a v2-native server entry under

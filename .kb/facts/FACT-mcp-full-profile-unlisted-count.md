@@ -1,5 +1,5 @@
 ---
-title: The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool
+title: Without the core tool profile, the MCP server leaves no tool unlisted
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
@@ -11,10 +11,10 @@ origin:
   recorded_at: '2026-11-16T20:00:00.000Z'
 tags:
   - tool-surface
-claim_text: The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool
+claim_text: The MCP server must list every MCP tool unless the core tool profile is chosen
 value_int: 0
-claim_key: CLAIM-53F4E7511CBC7D77
+claim_key: CLAIM-CA13AD582348339C
 id: FACT-mcp-full-profile-unlisted-count
 type: fact
 ---
-The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool. Grounds REQ-mcp-default-tool-profile.
+The MCP server must list every MCP tool unless the core tool profile is chosen, so outside the core profile no catalog tool is left unlisted. Grounds REQ-mcp-default-tool-profile.
