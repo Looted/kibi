@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6603e89b4fdf
+  - type: implements
+    from: SYM-env-is-kibi-or-process-env-key
+    to: REQ-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:36.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4af3a9bed1dd
+  - type: covered_by
+    from: SYM-env-is-kibi-or-process-env-key
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:36.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6335f4aa6e76

@@ -46178,3 +46178,29 @@ symbols:
         target: TEST-kibi-staged-firm-edit-gate
       - type: implements
         target: REQ-kibi-staged-firm-edit-gate
+  - id: SYM-env-is-kibi-or-process-env-key
+    title: isKibiOrProcessEnvKey
+    sourceFile: packages/cli/src/env/workspace-env-policy.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:23:36.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-env-parse-env-content
+    title: parseEnvContent
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-18T06:23:38.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy

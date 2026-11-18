@@ -19,7 +19,10 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { isWorkspaceEnvKeyAllowed } from "./workspace-env-policy.js";
+import {
+  isKibiOrProcessEnvKey,
+  isWorkspaceEnvKeyAllowed,
+} from "./workspace-env-policy.js";
 
 export {
   isWorkspaceEnvKeyAllowed,
@@ -191,18 +194,27 @@ export function resolveKibiProjectEnvPath(
 
 export function parseEnvContent(content: string): EnvEntry[] {
   const entries: EnvEntry[] = [];
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
+  const lines = content.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = (lines[index] as string).trim();
     if (!line || line.startsWith("#")) continue;
     const eqIndex = line.indexOf("=");
     if (eqIndex <= 0) continue;
     const key = line.slice(0, eqIndex).trim();
     let value = line.slice(eqIndex + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
+    const quote = value[0];
+    if (quote === '"' || quote === "'") {
+      // A quoted value runs to its closing quote, across lines (a PEM key,
+      // a JSON blob), so its continuation lines are never read as keys.
+      while (value.length < 2 || !value.endsWith(quote)) {
+        index += 1;
+        if (index >= lines.length) break;
+        value = `${value}\n${(lines[index] as string).trimEnd()}`;
+      }
+      value =
+        value.length >= 2 && value.endsWith(quote)
+          ? value.slice(1, -1)
+          : value.slice(1);
     }
     // The line is trimmed and does not start with "=", so the key is never
     // empty.
@@ -283,22 +295,40 @@ function writeStderrNotice(message: string): void {
   process.stderr.write(`${message}\n`);
 }
 
+/**
+ * A conventional variable name. Anything else (a lower-case word, a base64
+ * run, a fragment of JSON) may be part of a secret value, so it is counted,
+ * never printed.
+ */
+const ENV_KEY_NAME = /^[A-Z_][A-Z0-9_]*$/;
+
 function reportIgnoredKeys(
   filePath: string,
   keys: readonly string[],
   warn: ((message: string) => void) | undefined,
   isDefaultEnv: boolean,
+  legacy: boolean,
 ): void {
-  if (keys.length === 0) return;
+  // Any other line is counted, never printed. A shared legacy `.env` holds the application's own
+  // settings, so only the Kibi and process keys it tries to set are named.
+  const names = keys.filter(
+    (key) => ENV_KEY_NAME.test(key) && (!legacy || isKibiOrProcessEnvKey(key)),
+  );
+  const malformed = keys.filter((key) => !ENV_KEY_NAME.test(key)).length;
+  if (names.length === 0 && (legacy || malformed === 0)) return;
   const sink = warn ?? (isDefaultEnv ? writeStderrNotice : undefined);
   if (!sink) return;
-  const notice = `${filePath}\0${keys.join(",")}`;
+  const notice = `${filePath}\0${names.join(",")}\0${malformed}`;
   if (warn === undefined) {
     if (reportedIgnoredNotices.has(notice)) return;
     reportedIgnoredNotices.add(notice);
   }
+  const lines =
+    malformed === 0
+      ? ""
+      : `${names.length > 0 ? " and " : ""}${malformed} other line${malformed === 1 ? "" : "s"}`;
   sink(
-    `[kibi] Ignored ${keys.join(", ")} from ${filePath}: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.`,
+    `[kibi] Ignored ${names.join(", ")}${lines} from ${filePath}: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.`,
   );
 }
 
@@ -418,8 +448,15 @@ export function bootstrapKibiEnvironment(
     project.ignored,
     options.warn,
     isDefaultEnv,
+    false,
   );
-  reportIgnoredKeys(legacyEnvPath, legacy.ignored, options.warn, isDefaultEnv);
+  reportIgnoredKeys(
+    legacyEnvPath,
+    legacy.ignored,
+    options.warn,
+    isDefaultEnv,
+    true,
+  );
 
   if (isDefaultEnv) {
     lastDefaultBootstrap = result;
