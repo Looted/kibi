@@ -1038,7 +1038,9 @@ export function isCurrentFirmSummary(summary: EntitySummary): boolean {
 function shardSupersedes(text: string): { from: string; to: string }[] {
   const pick = (records: RawRecord[]) =>
     records.flatMap(({ type, from, to }) =>
-      type === "supersedes" && typeof from === "string" && typeof to === "string"
+      type === "supersedes" &&
+      typeof from === "string" &&
+      typeof to === "string"
         ? [{ from, to }]
         : [],
     );
@@ -1095,8 +1097,7 @@ function currentSuccessors(workspaceRoot: string): Map<string, string> {
   const successors = new Map<string, string>();
   const retired = new Map<string, boolean>();
   for (const { from, to } of edges) {
-    if (from === to || successors.has(to) || !from.startsWith("REQ-"))
-      continue;
+    if (from === to || successors.has(to) || !from.startsWith("REQ-")) continue;
     if (!retired.has(from))
       retired.set(
         from,

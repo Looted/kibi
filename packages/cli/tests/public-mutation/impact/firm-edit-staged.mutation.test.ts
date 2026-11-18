@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { firmEditFileHash } from "kibi-agent-core/firm-edit-review";
 import type {
   ExtractedEntity,
   ExtractionResult,
@@ -214,6 +215,119 @@ describe("stagedFirmEditGateOptions", () => {
     expect(asked).toEqual([]);
   });
 
+  test("a record in a file the gate cannot read after the change is judged as removed", async () => {
+    const record = (title: string, file: string) =>
+      result(
+        { id: `SYM-${title}`, type: "symbol", title },
+        [{ type: "implements", from: `SYM-${title}`, to: "REQ-a" }],
+        file,
+      );
+    const asked: string[] = [];
+    const gate = await options({
+      sourceFiles: [
+        { path: "src/a.ts", status: "M", hunkRanges: [], content: "x" },
+      ] as StagedFile[],
+      unreadFiles: [
+        // Already read as source: not judged twice.
+        { path: "src/a.ts", status: "M", hunkRanges: [] },
+        // Renamed to a path that is not source.
+        {
+          path: "docs/calc.md",
+          oldPath: "src/calc.ts",
+          status: "R",
+          hunkRanges: [],
+        },
+        // Skipped: binary or not UTF-8.
+        { path: "src/bin.ts", status: "M", hunkRanges: [] },
+      ] as StagedFile[],
+      knowledge: [
+        result(requirement()),
+        record("kept", "src/a.ts"),
+        record("retry", "src/calc.ts"),
+        record("encoded", "src/bin.ts"),
+      ],
+      extractAll: async () =>
+        [{ name: "kept" }] as unknown as ExtractedSymbol[],
+      extractBase: async (file) => {
+        asked.push(file.oldPath ?? file.path);
+        return [
+          { name: "kept" },
+          { name: "retry" },
+          { name: "encoded" },
+        ] as unknown as ExtractedSymbol[];
+      },
+    });
+    expect(gate.removedSymbols).toEqual([
+      { sourceFile: "src/calc.ts", symbol: "retry", requirementIds: ["REQ-a"] },
+      {
+        sourceFile: "src/bin.ts",
+        symbol: "encoded",
+        requirementIds: ["REQ-a"],
+      },
+    ]);
+    expect(asked).toEqual(["src/a.ts", "src/calc.ts", "src/bin.ts"]);
+  });
+
+  test("a file-level record is edited by any change of its file and removed with it", async () => {
+    const record = (title: string, file: string, coarse = true) =>
+      result(
+        {
+          id: `SYM-${title}`,
+          type: "symbol",
+          title,
+          ...(coarse ? { granularity_reason: "config-artifact" } : {}),
+        },
+        [{ type: "implements", from: `SYM-${title}`, to: "REQ-a" }],
+        file,
+      );
+    const text: Record<string, string> = {
+      "config/limits.json": '{"maxRetries":300}\n',
+    };
+    const gate = await options({
+      sourceFiles: [],
+      unreadFiles: [
+        { path: "config/limits.json", status: "M", hunkRanges: [] },
+        { path: "config/gone.json", status: "D", hunkRanges: [] },
+        {
+          path: "docs/moved.json",
+          oldPath: "config/moved.json",
+          status: "R",
+          hunkRanges: [],
+        },
+        { path: "config/plain.json", status: "M", hunkRanges: [] },
+      ] as StagedFile[],
+      knowledge: [
+        result(requirement()),
+        record("limits.json", "config/limits.json"),
+        record("gone.json", "config/gone.json"),
+        record("moved.json", "config/moved.json"),
+        // A declaration-level record the extractor does not list is left
+        // out, as before.
+        record("plain.json", "config/plain.json", false),
+      ],
+      readChanged: (file) => text[file],
+      extractBase: async () => [],
+    });
+    expect(gate.removedSymbols).toEqual([
+      {
+        sourceFile: "config/limits.json",
+        symbol: "limits.json",
+        requirementIds: ["REQ-a"],
+        codeHash: firmEditFileHash('{"maxRetries":300}\n'),
+      },
+      {
+        sourceFile: "config/gone.json",
+        symbol: "gone.json",
+        requirementIds: ["REQ-a"],
+      },
+      {
+        sourceFile: "config/moved.json",
+        symbol: "moved.json",
+        requirementIds: ["REQ-a"],
+      },
+    ]);
+  });
+
   test("a requirement counts as restated only when its statement, status or supersede changed", async () => {
     const changed = async (
       base: string | undefined,
@@ -285,9 +399,9 @@ describe("stagedFirmEditGateOptions", () => {
     expect(await supersededBy([result(requirement()), successor("open")])).toBe(
       "REQ-b",
     );
-    expect(await supersededBy([result(requirement()), successor(undefined)])).toBe(
-      "REQ-b",
-    );
+    expect(
+      await supersededBy([result(requirement()), successor(undefined)]),
+    ).toBe("REQ-b");
     // A retired successor replaces nothing, nor does a link to another id,
     // a link that is not a supersede, or a non-requirement.
     expect(

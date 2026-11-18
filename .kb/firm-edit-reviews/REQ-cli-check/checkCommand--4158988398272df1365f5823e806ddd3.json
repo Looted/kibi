@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Only passes the KB's entity ids to the owner findings so a type's paste-ready record gets a free id; validation, staged focus and the exit code are unchanged.",
+  "note": "Passes every staged entry to the firm-edit gate and analyzes the base text of unread files; validation rules and scope are unchanged.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:ddbea6843da593a3aa277809ecd614593df8b7e4ad4f8f059accfa1f1a7a4847",
+  "codeHash": "sha256:53a8e6d36331f2d61db6e2b551c052191831061981c5531045062bb236349739",
   "startLine": 822,
-  "endLine": 1813,
-  "recordedAt": "2026-11-17T19:09:26.110Z"
+  "endLine": 1821,
+  "recordedAt": "2026-11-18T06:17:58.271Z"
 }

@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/public/impact/analyzer.ts",
   "symbol": "analyzeChangedFileImpact",
   "verdict": "keeps",
-  "note": "Only passes the supersede lookup to the firm-edit gate; impact listing and suggestions are unchanged.",
+  "note": "Passes unread staged entries to the firm-edit gate; impact listing and suggestions are unchanged.",
   "statementHash": "sha256:1e680d241efda0bec58c3490da18cdbd11aa54f2335203bc483cd6159d75741a",
-  "codeHash": "sha256:87ba453a36e874698a973e1d3dcdfe2686b655bf86c75f08ba14a2ad9a2ed6df",
+  "codeHash": "sha256:191885765bac9d4a28cb84690a6b64b61fd685ab449be835d23180f50391b676",
   "startLine": 47,
-  "endLine": 324,
-  "recordedAt": "2026-11-18T06:03:19.055Z"
+  "endLine": 339,
+  "recordedAt": "2026-11-18T06:17:58.271Z"
 }

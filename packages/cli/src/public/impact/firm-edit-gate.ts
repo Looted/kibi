@@ -185,6 +185,11 @@ export type RemovedFirmSymbol = {
   readonly sourceFile: string;
   readonly symbol: string;
   readonly requirementIds: readonly string[];
+  /**
+   * The whole file's code hash when the change edits the file of a
+   * file-level record rather than removing it; absent for a removal.
+   */
+  readonly codeHash?: string;
 };
 
 /**
@@ -309,7 +314,7 @@ export function createFirmEditGateDiagnostics(
       gate(id, {
         sourceFile: removed.sourceFile,
         name: removed.symbol,
-        codeHash: () => FIRM_EDIT_REMOVED_CODE_HASH,
+        codeHash: () => removed.codeHash ?? FIRM_EDIT_REMOVED_CODE_HASH,
       });
   const diagnostics: KibiImpactDiagnostic[] = [];
   for (const id of [...symbolsByRequirement.keys()].sort()) {

@@ -1421,20 +1421,19 @@ export async function checkCommand(
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
           ...createFirmEditGateDiagnostics(
             await stagedFirmEditGateOptions({
-              // A deleted source file removes every declaration it held.
-              sourceFiles: [
-                ...sourceFiles,
-                ...stagedInventory
-                  .filter(
-                    (file) =>
-                      file.status === "D" && file.disposition !== "skipped",
-                  )
-                  .map((file) => ({
-                    path: file.path,
-                    status: file.status,
-                    hunkRanges: [],
-                  })),
-              ],
+              sourceFiles,
+              // A deleted file, one renamed to a path that is not source, and
+              // one Kibi skips (binary, unreadable encoding) hold no
+              // declaration the gate can read, so every one a record pointed
+              // at before is judged as removed.
+              unreadFiles: stagedInventory.map((file) => ({
+                path: file.path,
+                ...(file.oldPath === undefined
+                  ? {}
+                  : { oldPath: file.oldPath }),
+                status: file.status,
+                hunkRanges: [],
+              })),
               // Every declaration, each with the hunks it owns, so a symbol
               // the change only removes lines from is still seen.
               extractAll: (file) =>
@@ -1454,8 +1453,17 @@ export async function checkCommand(
                   { ...file, path: basePath, content, status: "A" },
                   manifestLookup,
                   {
-                    analyzeText: async () =>
-                      sourceAnalysis.get(file.path)?.before ?? null,
+                    // A file the change skips (binary, unreadable encoding)
+                    // or renames to a path that is not source was not
+                    // analyzed, so its base text is analyzed here.
+                    analyzeText: async (name, text) =>
+                      sourceAnalysis.has(file.path)
+                        ? (
+                            sourceAnalysis.get(
+                              file.path,
+                            ) as SourceChangeAnalysis
+                          ).before
+                        : sourceService.analyzeTextV2(name, text),
                   },
                 );
               },

@@ -13,6 +13,7 @@ import {
   type FirmEditReceipt,
   type FirmEditVerdict,
   firmEditCodeHash,
+  firmEditFileHash,
   firmEditLegacyReceiptPath,
   firmEditReceiptPath,
   firmEditStatementHash,
@@ -244,19 +245,21 @@ async function reviewedCode(input: {
   const indexed = deps
     .indexedSymbols(workspaceRoot, sourceFile)
     .filter((candidate) => candidate.implements.includes(requirementId));
+  // A record no declaration matches stands for the whole file, as the commit
+  // gate judges it: an edit anywhere in the file is reviewed, and a file the
+  // workspace removed is reviewed as removed.
   const coarse = indexed.find((candidate) => candidate.title === name);
-  const coarseHash =
-    coarse?.line !== undefined &&
-    coarse.endLine !== undefined &&
-    content !== undefined
-      ? firmEditCodeHash(content, coarse.line, coarse.endLine)
-      : undefined;
-  if (coarseHash !== undefined)
+  if (coarse !== undefined && content !== undefined)
     return {
-      codeHash: coarseHash,
-      startLine: coarse?.line as number,
-      endLine: coarse?.endLine as number,
+      codeHash: firmEditFileHash(content),
+      startLine: 1,
+      endLine: content.split(/\r?\n/).length,
     };
+  if (
+    coarse !== undefined &&
+    deps.readHead(workspaceRoot, sourceFile) !== undefined
+  )
+    return { codeHash: FIRM_EDIT_REMOVED_CODE_HASH, startLine: 0, endLine: 0 };
   const removed = removedSymbolRecords(
     deps.headKnowledge(workspaceRoot),
     readImpactManifestResults(workspaceRoot),
@@ -274,10 +277,6 @@ async function reviewedCode(input: {
       ...indexed.map((candidate) => candidate.title),
     ]),
   ];
-  if (coarse !== undefined)
-    refuse(
-      `${name} in ${sourceFile} has no source coordinates to bind the review to; run kibi sync and record the review again.`,
-    );
   if (content === undefined) refuse(`${sourceFile} cannot be read.`);
   return refuse(
     `${name} in ${sourceFile} does not implement ${requirementId}. ${
@@ -330,6 +329,16 @@ async function planReceipt(
   const requirementText = staged
     ? deps.readStaged(workspaceRoot, requirementPath)
     : readWorkspaceText(path.join(workspaceRoot, requirementPath));
+  // The commit gate skips a binary or non-UTF-8 file and judges its firm
+  // code as removed; a review read from replacement characters would bind
+  // to text the gate never sees.
+  if (
+    content !== undefined &&
+    (content.includes("\u0000") || content.includes("\uFFFD"))
+  )
+    refuse(
+      `${sourceFile} is binary or not UTF-8 text, so Kibi cannot read the firm code in it; restore it as UTF-8 source before recording a review.`,
+    );
   const name = entry.symbol.trim();
   const code = await reviewedCode({
     workspaceRoot,

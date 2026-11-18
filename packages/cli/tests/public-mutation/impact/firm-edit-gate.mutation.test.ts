@@ -649,6 +649,43 @@ describe("createFirmEditGateDiagnostics", () => {
     ).toHaveLength(1);
   });
 
+  test("an edited file-level record is judged by its whole file's hash", () => {
+    const removed = {
+      sourceFile: "config/limits.json",
+      symbol: "limits.json",
+      requirementIds: ["REQ-key-expiry"],
+      codeHash: "sha256:file",
+    };
+    const keeps = (codeHash: string) =>
+      receipts({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-key-expiry",
+        sourceFile: "config/limits.json",
+        symbol: "limits.json",
+        verdict: "keeps",
+        note: "n",
+        statementHash: firmEditStatementHash(STATEMENT),
+        codeHash,
+        startLine: 1,
+        endLine: 1,
+        recordedAt: "2026-11-18T00:00:00.000Z",
+      });
+    expect(
+      gate([], {
+        extra: { removedSymbols: [removed] },
+        readReceipt: keeps("sha256:file"),
+      }),
+    ).toEqual([]);
+    expect(
+      gate([], {
+        extra: { removedSymbols: [removed] },
+        readReceipt: keeps(FIRM_EDIT_REMOVED_CODE_HASH),
+      }).map((diagnostic) => diagnostic.message),
+    ).toEqual([
+      `The change edits code that implements REQ-key-expiry, a firm rule the person set, without a current review of that code: limits.json in config/limits.json (the code changed after the review). Statement: "${STATEMENT}"`,
+    ]);
+  });
+
   test("files with unstaged edits get a staged review input", () => {
     const [diagnostic] = gate(
       [

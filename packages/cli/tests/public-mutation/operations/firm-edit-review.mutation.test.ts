@@ -15,6 +15,7 @@ import path from "node:path";
 import {
   FIRM_EDIT_REMOVED_CODE_HASH,
   firmEditCodeHash,
+  firmEditFileHash,
   firmEditLegacyReceiptPath,
   firmEditReceiptPath,
   firmEditStatementHash,
@@ -330,12 +331,12 @@ describe("executeReviewFirmEdit", () => {
     expect(existsSync(path.join(root, written))).toBe(true);
   });
 
-  test("a coarse symbol is bound to its manifest coordinates, as the hooks index it", async () => {
+  test("a coarse symbol is bound to its whole file, as the commit gate judges it", async () => {
     const root = workspace();
     const coarse = (extra: Partial<IndexedSymbol>): ReviewFirmEditDeps => ({
       ...deps,
       indexedSymbols: (_root, sourceFile) =>
-        sourceFile === "src/keys.ts"
+        sourceFile === "src/keys.ts" || sourceFile === "src/gone.ts"
           ? [
               {
                 id: "SYM-keys-module",
@@ -348,47 +349,64 @@ describe("executeReviewFirmEdit", () => {
             ]
           : [],
     });
-    const result = await executeReviewFirmEdit(
-      { reviews: [entry({ symbol: "keys module" })] },
+    for (const extra of [{ line: 5, endLine: 7 }, { line: 5 }, {}]) {
+      const result = await executeReviewFirmEdit(
+        { reviews: [entry({ symbol: "keys module" })] },
+        context(root),
+        coarse(extra),
+      );
+      expect(
+        (result.structuredContent as { receipts: Record<string, unknown>[] })
+          .receipts[0],
+      ).toMatchObject({
+        symbol: "keys module",
+        codeHash: firmEditFileHash(SOURCE),
+        startLine: 1,
+        endLine: SOURCE.split("\n").length,
+      });
+    }
+    // A file the workspace removed is reviewed as removed when HEAD has it,
+    // and cannot be read otherwise.
+    const gone = (head: string | undefined) => ({
+      ...coarse({}),
+      readHead: (_root: string, file: string) =>
+        file === "src/gone.ts" ? head : undefined,
+    });
+    const removed = await executeReviewFirmEdit(
+      {
+        reviews: [entry({ symbol: "keys module", sourceFile: "src/gone.ts" })],
+      },
       context(root),
-      coarse({ line: 5, endLine: 7 }),
+      gone("{}\n"),
     );
     expect(
-      (result.structuredContent as { receipts: Record<string, unknown>[] })
+      (removed.structuredContent as { receipts: Record<string, unknown>[] })
         .receipts[0],
     ).toMatchObject({
-      symbol: "keys module",
-      codeHash: firmEditCodeHash(SOURCE, 5, 7),
-      startLine: 5,
-      endLine: 7,
+      codeHash: FIRM_EDIT_REMOVED_CODE_HASH,
+      startLine: 0,
+      endLine: 0,
     });
     expect(
       await refusal(
         root,
-        [entry({ symbol: "keys module" })],
-        coarse({ line: 5 }),
+        [entry({ symbol: "keys module", sourceFile: "src/gone.ts" })],
+        gone(undefined),
       ),
-    ).toBe(
-      "keys module in src/keys.ts has no source coordinates to bind the review to; run kibi sync and record the review again.",
-    );
-    expect(
-      await refusal(
-        root,
-        [entry({ symbol: "keys module" })],
-        coarse({ line: 5, endLine: 99 }),
-      ),
-    ).toBe(
-      "keys module in src/keys.ts has no source coordinates to bind the review to; run kibi sync and record the review again.",
-    );
-    expect(
-      await refusal(
-        root,
-        [entry({ symbol: "other" })],
-        coarse({ line: 5, endLine: 7 }),
-      ),
-    ).toBe(
+    ).toBe("src/gone.ts cannot be read.");
+    expect(await refusal(root, [entry({ symbol: "other" })], coarse({}))).toBe(
       "other in src/keys.ts does not implement REQ-key-expiry. Symbols there that implement it: expireKey, renderKey, keys module.",
     );
+  });
+
+  test("refuses a binary or non-UTF-8 source file", async () => {
+    const root = workspace();
+    for (const text of [`${SOURCE}// caf\uFFFD\n`, `${SOURCE}\u0000`]) {
+      write(root, "src/keys.ts", text);
+      expect(await refusal(root, [entry()])).toBe(
+        "src/keys.ts is binary or not UTF-8 text, so Kibi cannot read the firm code in it; restore it as UTF-8 source before recording a review.",
+      );
+    }
   });
 
   test("a symbol the workspace removed since HEAD is reviewed as removed", async () => {

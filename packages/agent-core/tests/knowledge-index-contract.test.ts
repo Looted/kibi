@@ -7,14 +7,14 @@ import path from "node:path";
 import {
   MAX_REASON_CHARS,
   buildKnowledgeIndex,
+  isCurrentFirmSummary,
   loadKnowledgeIndex,
   manifestStateOf,
   proseExcerpt,
-  isCurrentFirmSummary,
   readEntitySummary,
-  supersedingRequirement,
   scanSymbolCoordinates,
   scanSymbolsManifest,
+  supersedingRequirement,
   withoutChangeNotes,
 } from "../src/knowledge-index";
 
@@ -1137,7 +1137,11 @@ describe("readEntitySummary", () => {
       }),
     ).toBe(false);
     expect(
-      isCurrentFirmSummary({ id: "REQ-a", firmness: "firm", status: "retired" }),
+      isCurrentFirmSummary({
+        id: "REQ-a",
+        firmness: "firm",
+        status: "retired",
+      }),
     ).toBe(false);
     expect(isCurrentFirmSummary({ id: "REQ-a", firmness: "default" })).toBe(
       false,
@@ -1147,7 +1151,7 @@ describe("readEntitySummary", () => {
   test("supersede records are read from flow shards and from block records cut short", () => {
     const root = tempDir();
     for (const id of ["REQ-a", "REQ-b", "REQ-c", "REQ-d"])
-      write(root, `.kb/requirements/${id}.md`, `---\nstatus: closed\n---\n`);
+      write(root, `.kb/requirements/${id}.md`, "---\nstatus: closed\n---\n");
     write(root, ".kb/requirements/REQ-new.md", "---\nstatus: open\n---\n");
     write(
       root,

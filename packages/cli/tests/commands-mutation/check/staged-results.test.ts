@@ -225,7 +225,11 @@ describe("snapshot symbols for granularity", () => {
     });
     const extracted: Array<[string, string, unknown]> = [];
     h.set("extractSymbolsFromStagedFileAsync", async (file, _lookup, deps) => {
-      extracted.push([file.path, file.status, await deps.analyzeText()]);
+      extracted.push([
+        file.path,
+        file.status,
+        await deps.analyzeText(file.path, file.content),
+      ]);
       return [];
     });
     await h.run();
@@ -256,12 +260,20 @@ describe("snapshot symbols for granularity", () => {
     expect((input.readContent as (file: string) => unknown)("src/a.ts")).toBe(
       "content of src/a.ts",
     );
-    // A deleted file the gate checks is judged with no text left.
-    expect(
-      (input.sourceFiles as unknown as Array<Record<string, unknown>>)
-        .filter((file) => file.status === "D")
-        .map((file) => [file.path, file.hunkRanges, "content" in file]),
-    ).toEqual([["src/gone.ts", [], false]]);
+    // Every staged entry goes to the gate with no text, so a deleted,
+    // skipped or renamed-away file is judged by its base declarations.
+    expect(input.unreadFiles as unknown).toEqual([
+      { path: "src/a.ts", status: "M", hunkRanges: [] },
+      { path: REQ, status: "M", hunkRanges: [] },
+      {
+        path: "src/new.ts",
+        oldPath: "src/old.ts",
+        status: "R",
+        hunkRanges: [],
+      },
+      { path: "src/gone.ts", status: "D", hunkRanges: [] },
+      { path: "src/vendored.ts", status: "D", hunkRanges: [] },
+    ]);
     const gitCalls: string[][] = [];
     h.world.git = (args) => {
       gitCalls.push([...args]);
@@ -275,14 +287,20 @@ describe("snapshot symbols for granularity", () => {
     expect(call("readBase", REQ)).toBe(`blob BASE:${REQ}`);
     expect(call("readReceipt", "r.json")).toBe("blob HEAD:r.json");
     // The base declarations come from the base tree, at the old path of a
-    // rename, analyzed as before the change.
+    // rename, analyzed as before the change; a file the change did not
+    // analyze (skipped, or renamed to a path that is not source) has its
+    // base text analyzed here.
     extracted.length = 0;
     const fromBase = input.extractBase as (file: unknown) => Promise<unknown>;
     await fromBase({ path: "src/a.ts", status: "M" });
     await fromBase({ path: "src/new.ts", oldPath: "src/old.ts", status: "R" });
     expect(extracted).toEqual([
       ["src/a.ts", "A", h.world.analysis.get("src/a.ts")?.before],
-      ["src/old.ts", "A", null],
+      [
+        "src/old.ts",
+        "A",
+        { analyzed: "src/old.ts", text: "blob BASE:src/old.ts" },
+      ],
     ]);
     expect(gitCalls.slice(-2)).toEqual([
       ["show", "BASE:src/a.ts"],

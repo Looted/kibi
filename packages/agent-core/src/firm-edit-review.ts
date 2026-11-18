@@ -52,6 +52,15 @@ export function firmEditStatementHash(statement: string): string {
 }
 
 /**
+ * The code hash of a whole file: the code a file-level symbol record (a
+ * config artifact, or a file no extractor reads declarations from) stands
+ * for.
+ */
+export function firmEditFileHash(content: string): string {
+  return firmEditCodeHash(content, 1, content.split(/\r?\n/).length) as string;
+}
+
+/**
  * Hash of the code on lines `startLine`..`endLine` (1-based, inclusive) of
  * `content`, ignoring line endings and trailing whitespace. Undefined when
  * the span is not inside the text.
