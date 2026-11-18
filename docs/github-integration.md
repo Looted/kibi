@@ -455,7 +455,7 @@ from, so a later pull request can reuse it in turn.
 | Input | Default | Meaning |
 | --- | --- | --- |
 | `base` | repository default branch | Branch the trains merge into. |
-| `checks` | required | Required check names, comma or newline separated. |
+| `checks` | required | Required check names, one per line, or comma separated on a single line. A check name with a comma needs one name per line. |
 | `train-checks` | `""` | Checks a train must also pass before it lands, but a pull request does not need to board. |
 | `label` | `train` | Label that boards a pull request. |
 | `max` | `8` | Most pull requests in one train. |
