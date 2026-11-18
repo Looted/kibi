@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 4278,
-      "sha256": "183a395528e4a78cc42210ddb42fa9331420627c7fd4b8b3212299d60c2fc209"
+      "bytes": 4445,
+      "sha256": "0334c02b6ea47efc6175ea5b979b0af24c1a9cfed7ee79678638e3e467493bc8"
     },
     {
       "path": "LICENSE.md",
@@ -121,8 +121,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 1320,
-      "sha256": "49623d2393083b83f27abe2b268e66a65cedddf3a46e0f1a84a3418715d96077"
+      "bytes": 1340,
+      "sha256": "f9fd39208fcb919df4fd80da93d1bdbc85c92c2d7f87b1b376d9ca8f119da714"
     }
   ]
 }

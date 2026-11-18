@@ -492,9 +492,12 @@ describe("round-2 agent-test regressions: exact or refuse", () => {
       members: [],
       lines: [],
     });
-    assert.deepEqual((await inline("a.go", aliased, "calls")).members, [
-      '"github.com/joho/godotenv".Getenv',
-    ]);
+    // The call reads as os.Getenv but goes to a package that is not
+    // followed: refused, not listed as absent.
+    assert.deepEqual(await inline("a.go", aliased, "calls"), {
+      members: [],
+      lines: [3],
+    });
     const path = go([
       'import "example.com/fake/os"',
       'func f() { _ = os.Getenv("NOT_STD") }',
@@ -1007,9 +1010,10 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
       members: [],
       lines: [],
     });
-    assert.deepEqual((await inline("a.go", other, "calls")).members, [
-      '"example.com/unix".Getenv',
-    ]);
+    assert.deepEqual(await inline("a.go", other, "calls"), {
+      members: [],
+      lines: [3],
+    });
   });
 
   it("lists a Go logger held in a package var, returned by a helper or bound as a method value", async () => {
@@ -1847,29 +1851,40 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
 
   const go = (lines) => `package a\n${lines.join("\n")}\n`;
 
-  it("lists a Go package used under a name another package is known by under its import path", async () => {
-    const cases = [
+  it("refuses a call through a Go package used under a name another package is known by", async () => {
+    // The code reads as the known package's call (exec.Command, log.Fatal),
+    // but the package imported under that name is not followed, so what the
+    // call runs is not known: the row is refused, never listed as absent.
+    const refused = [
       [
         'import logrus "github.com/other/notlogrus"',
-        'func f() { logrus.Error("x"); l := logrus.New(); l.Warn("y") }',
-        [
-          '"github.com/other/notlogrus".Error',
-          '"github.com/other/notlogrus".Warn',
-        ],
-        ["logrus.Error", "logrus.Warn"],
+        'func f() { logrus.Error("x") }',
       ],
+      ['import exec "github.com/fake/exec"', 'func f() { exec.Command("rm") }'],
       [
-        'import exec "github.com/fake/exec"',
-        'func f() { exec.Command("rm").Run() }',
-        ['"github.com/fake/exec".Command', '"github.com/fake/exec".Run'],
-        ["exec.Command", "exec.Run"],
+        'import exec "golang.org/x/sys/execabs"',
+        'func f() { exec.Command("rm") }',
       ],
-      [
-        'import "github.com/charmbracelet/log"',
-        'func f() { log.Fatal("x") }',
-        ['"github.com/charmbracelet/log".Fatal'],
-        ["log.Fatal"],
-      ],
+      ['import exec "github.com/acme/run"', 'func f() { exec.Command("rm") }'],
+      ['import "github.com/charmbracelet/log"', 'func f() { log.Fatal("x") }'],
+    ];
+    for (const [imports, body] of refused) {
+      const source = go([imports, body]);
+      assert.deepEqual(
+        await inline("a.go", source, "calls"),
+        { members: [], lines: [3] },
+        imports,
+      );
+      assert.deepEqual(
+        await inline("a.go", source, "string_args", { callee: "exec.Command" }),
+        { members: [], lines: [3] },
+        imports,
+      );
+    }
+  });
+
+  it("lists a Go package used under its own or a known name", async () => {
+    const cases = [
       [
         'import log "github.com/sirupsen/logrus"',
         "func f(err error) { log.Error(err) }",
@@ -1897,15 +1912,6 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
         assert.ok(!calls.members.includes(name), `${name}: ${calls.members}`);
       assert.deepEqual(calls.lines, []);
     }
-    const args = go([
-      'import exec "github.com/fake/exec"',
-      'func f() { exec.Command("rm") }',
-    ]);
-    assert.deepEqual(
-      (await inline("a.go", args, "string_args", { callee: "exec.Command" }))
-        .members,
-      [],
-    );
   });
 
   it("marks a Go package-level name another file of the package may bind for env", async () => {

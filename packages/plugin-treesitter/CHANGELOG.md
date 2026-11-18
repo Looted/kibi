@@ -4,6 +4,8 @@
 
 ### Patch Changes
 
+- A Go call through a package imported under a name a known package uses, such as `exec "golang.org/x/sys/execabs"`, `exec "github.com/acme/run"` or `"github.com/charmbracelet/log"`, is now refused instead of read as some other package's call. The code reads as `exec.Command` or `log.Fatal`, but the package is not followed, so a rule such as "never call exec.Command" is no longer proved for that file. Before, it reached `proved` while the file called the aliased `exec.Command("rm")`. A known package under another known name (`log "github.com/sirupsen/logrus"`) is still listed under its own name.
+
 - Updated dependencies [69b636f]
   - kibi-plugin-sdk@0.8.0
 

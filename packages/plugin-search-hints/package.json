@@ -16,6 +16,7 @@
     "assets",
     "licenses",
     "integrity.json",
+    "catalog.json",
     "SBOM.spdx.json",
     "THIRD_PARTY_NOTICES.md",
     "README.md",

@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 38510,
-      "sha256": "799cfad9d85b4c9b864b320935b384461c50ae41fa8310f3121dc7c1d33b1f40"
+      "bytes": 39114,
+      "sha256": "a572c0aff287c8d9ae5ec081404f97e8a1ebc889e1b64e886ded266d6a95d101"
     },
     {
       "path": "LICENSE.md",
@@ -312,12 +312,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1122,
-      "sha256": "e5a7cc8e031b578df45b9d83740d2695519e4885214485d393f641c593169ddc"
+      "sha256": "e0402da1c5422ac7e6ac818605dc7719ba685ee7f2c07535e92b176f5aaa57e0"
     },
     {
       "path": "dist/references.js",
-      "bytes": 140549,
-      "sha256": "776bd6a506d325eaa1243acd8f16eeeef600d85260ffe62e6fb328698d9ea6d9"
+      "bytes": 141467,
+      "sha256": "278f2e904f27346234f4152fb48d7f95646b50c04d7008322eaa1445f9a6c385"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

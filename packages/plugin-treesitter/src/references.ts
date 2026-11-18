@@ -1003,7 +1003,29 @@ function goUndeclaredCall(
   return `${name} may be a function of another file of the package`;
 }
 
+/**
+ * For calls and call arguments: a call through an unknown package used
+ * under a name another package is known by (`exec
+ * "golang.org/x/sys/execabs"`, `log "github.com/charmbracelet/log"`). The
+ * reader spells it by its import path,
+ * but the code reads as the known package's call and the package is not
+ * followed, so what it runs is not known here: the row is refused rather
+ * than proved absent.
+ */
+function goRefusesAliasedCall(
+  callName: string | null,
+  extract: ReferenceExtract,
+): boolean {
+  if (extract !== "calls" && extract !== "string_args") return false;
+  const quoted = callName === null ? null : /^"([^"]*)"\./.exec(callName);
+  // A known package used under another known name (`log
+  // "github.com/sirupsen/logrus"`) is listed under its own name.
+  return quoted !== null && goKnownName(quoted[1] as string) === null;
+}
+
 const GO: Reader = {
+  refuses: (_node, callName, _names, _context, extract) =>
+    goRefusesAliasedCall(callName, extract),
   isCall: (node) =>
     node.type === "call_expression" ||
     (node.type === "type_conversion_expression" &&
