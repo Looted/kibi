@@ -56,12 +56,30 @@ export type SiblingRequirement = Readonly<{
   statesOldValue: boolean;
 }>;
 
-export type SiblingNextAction = Readonly<{
-  operation: "kb_upsert";
-  input: Readonly<{ id: string }>;
-  reason: string;
-  required: true;
-}>;
+/**
+ * The step a sibling asks for, with a ready input: a `kb_upsert` of a
+ * default or exploratory sibling (its type, id, title and status, to which
+ * the agent adds the new value), or a `kb_query` of a firm one, which the
+ * person decides on before anything touches it.
+ */
+export type SiblingNextAction = Readonly<
+  | {
+      operation: "kb_upsert";
+      input: Readonly<{
+        type: "req";
+        id: string;
+        properties: Readonly<{ title: string; status: string }>;
+      }>;
+      reason: string;
+      required: true;
+    }
+  | {
+      operation: "kb_query";
+      input: Readonly<{ id: string; includeBody: true }>;
+      reason: string;
+      required: true;
+    }
+>;
 
 export type SiblingReport = Readonly<{
   siblings: readonly SiblingRequirement[];
@@ -279,12 +297,31 @@ function collectSiblings(
   return {
     siblings,
     warnings,
-    nextActions: siblings.map((sibling, index) => ({
-      operation: "kb_upsert",
-      input: { id: sibling.requirementId },
-      reason: warnings[index] as string,
-      required: true,
-    })),
+    nextActions: siblings.map((sibling, index): SiblingNextAction => {
+      const reason = warnings[index] as string;
+      if (sibling.firmness === "firm")
+        return {
+          operation: "kb_query",
+          input: { id: sibling.requirementId, includeBody: true },
+          reason,
+          required: true,
+        };
+      // A listed sibling is a current requirement read from its document,
+      // whose status is a required field.
+      const status = text(
+        inputs.entities.get(sibling.requirementId)?.data.status,
+      );
+      return {
+        operation: "kb_upsert",
+        input: {
+          type: "req",
+          id: sibling.requirementId,
+          properties: { title: sibling.title, status },
+        },
+        reason,
+        required: true,
+      };
+    }),
   };
 }
 

@@ -694,6 +694,38 @@ describe("statedRule and notes", () => {
     expect(statedRule("Please rename the helper")).toBeUndefined();
   });
 
+  test("leaves bug reports, pasted errors, hindsight and named phrases alone", () => {
+    for (const prompt of [
+      "Fix the bug where users have to click twice to submit the form",
+      "There is an issue when a title is required twice",
+      "I have to leave soon, just rename foo to bar",
+      "Here is the error:\n    Error: value is required\nplease fix",
+      "TypeError: x is required\n    at run (src/a.ts:1:1)",
+      "warning: field is required\nplease look",
+      "We should never have shipped this. Revert commit abc.",
+      "Refactor utils.ts. It should always have been a class.",
+      "Run the tests and tell me which ones are required to pass CI",
+      "Check whether tokens are required here",
+      "What does 'is not allowed' mean in this error message: `operation is not allowed`",
+    ]) {
+      expect([prompt, statedRule(prompt)]).toEqual([prompt, undefined]);
+    }
+  });
+
+  test("still finds a rule after such a frame or in other clauses", () => {
+    for (const [prompt, phrase] of [
+      ["Users have to verify their email before login.", "have to"],
+      ["Add a check which must run before deploy.", "must"],
+      ["Here's how it should work: tokens must expire after an hour.", "must"],
+      ['The PM said "tokens must expire after an hour".', "must"],
+      ["We should never log keys.", "should never"],
+      ["Fix the crash; from now on uploads must be under 10MB.", "from now on"],
+      ["Fix the bug where it crashes. Uploads must be under 10MB.", "must"],
+    ] as const) {
+      expect([prompt, statedRule(prompt)]).toEqual([prompt, phrase]);
+    }
+  });
+
   test("reads never and always as a rule only when they instruct", () => {
     expect(statedRule("Never log keys.")).toBe("never");
     expect(statedRule("Always require 2FA")).toBe("always");

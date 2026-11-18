@@ -485,8 +485,10 @@ async function selectTestsBySelector(
       : undefined;
     if (typeof scenarioRows === "string")
       for (const [, test] of parsePairList(scenarioRows)) ids.add(test);
+    // A test that validates the requirement, or one the requirement names
+    // as verified_by (as kb_record links it).
     const directResult = await context.prolog?.query(
-      `findall(T, kb_relationship(validates, T, ${requirement}), Rows)`,
+      `findall(T, (kb_relationship(validates, T, ${requirement}) ; kb_relationship(verified_by, ${requirement}, T)), Rows)`,
     );
     const directRows = directResult?.success
       ? directResult.bindings.Rows

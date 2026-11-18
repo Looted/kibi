@@ -107,7 +107,12 @@ open_pulls() {
 candidates() {
   local wanted pulls head cross labels
   wanted=$(wanted_branches)
-  pulls=$(open_pulls)
+  # A command substitution does not inherit `set -e`, so a failed listing
+  # (a token without pull-requests: read) is caught here, not read as "none".
+  if ! pulls=$(open_pulls); then
+    echo "::error::Could not list the open pull requests into $BASE; the token needs pull-requests: read." >&2
+    return 1
+  fi
   while IFS=$'\t' read -r head cross labels; do
     [ -n "$head" ] || continue
     if [ -n "$wanted" ] && ! grep -Fxq -- "$head" <<<"$wanted"; then continue; fi
@@ -154,7 +159,12 @@ route_manifests() {
   mkdir -p "$info"
   # Worktrees read info/attributes from the common directory, and it wins
   # over a .gitattributes that does not declare the driver yet.
-  printf '%s\n' "${MANIFEST_ATTRIBUTES[@]}" >>"$info/attributes"
+  # Each line is added once, so repeated runs on one clone do not pile up.
+  local line
+  touch "$info/attributes"
+  for line in "${MANIFEST_ATTRIBUTES[@]}"; do
+    grep -Fxq -- "$line" "$info/attributes" || printf '%s\n' "$line" >>"$info/attributes"
+  done
 }
 
 # Merges BASE into HEAD in a scratch worktree at $TREE. Prints merged |
@@ -214,12 +224,24 @@ verify_one() {
   )
 }
 
+# Pushes the merge. Prints pushed | moved | failed:<git's error>: a push
+# refused for any other reason than a moved branch (no write access, a
+# protected branch, an expired token) is not retried.
 push_one() {
-  local head="$1" before="$2"
+  local head="$1" before="$2" error now
   # The lease refuses the push when someone else moved the branch since it
   # was fetched, even if the new tip happens to contain the merge.
-  (cd "$TREE" && g push --quiet --force-with-lease="refs/heads/$head:$before" \
-    "$REMOTE" "HEAD:refs/heads/$head" >&2)
+  if error=$(cd "$TREE" && g push --quiet --force-with-lease="refs/heads/$head:$before" \
+    "$REMOTE" "HEAD:refs/heads/$head" 2>&1); then
+    echo pushed
+    return
+  fi
+  now=$(g ls-remote "$REMOTE" "refs/heads/$head" 2>/dev/null | cut -f1)
+  if [ -n "$now" ] && [ "$now" != "$before" ]; then
+    echo moved
+    return
+  fi
+  echo "failed:$(printf '%s' "$error" | tr '\n' ' ' | sed 's/ *$//')"
 }
 
 MERGED=()
@@ -265,10 +287,16 @@ resolve_branch() {
       echo "::error::$head was not pushed: $reason"
       return
     fi
-    if push_one "$head" "$before"; then
-      MERGED+=("$head"); note "$head" "merged $BASE and pushed $(g -C "$TREE" rev-parse --short HEAD)"
-      return
-    fi
+    outcome=$(push_one "$head" "$before")
+    case "$outcome" in
+      pushed)
+        MERGED+=("$head"); note "$head" "merged $BASE and pushed $(g -C "$TREE" rev-parse --short HEAD)"
+        return ;;
+      failed:*)
+        FAILED+=("$head"); note "$head" "not pushed: ${outcome#failed:}"
+        echo "::error::$head was not pushed: ${outcome#failed:}"
+        return ;;
+    esac
     echo "$head: the branch moved while it was being merged (attempt $attempt of $ATTEMPTS)"
   done
   FAILED+=("$head")
@@ -304,7 +332,7 @@ write_outputs() {
 main() {
   local head state
   local list
-  list=$(candidates)
+  list=$(candidates) || exit 1
   mapfile -t heads < <(printf '%s' "$list" | sed '/^$/d')
   if [ "$LIST_ONLY" = "true" ]; then
     for head in ${heads[@]+"${heads[@]}"}; do

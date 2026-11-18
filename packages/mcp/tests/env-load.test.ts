@@ -59,12 +59,12 @@ describe("env loading", () => {
       path.join(tmpDir, ".env.custom"),
       "DEFAULT_KEY=from-default\n",
     );
-    fs.writeFileSync(path.join(tmpDir, ".env"), "LEGACY_ONLY=legacy\n");
+    fs.writeFileSync(path.join(tmpDir, ".env"), "LEGACY_ONLY_TOKEN=legacy\n");
     Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     Reflect.deleteProperty(process.env, "KIBI_PROJECT_ROOT");
     Reflect.deleteProperty(process.env, "KIBI_ROOT");
     Reflect.deleteProperty(process.env, "DEFAULT_KEY");
-    Reflect.deleteProperty(process.env, "LEGACY_ONLY");
+    Reflect.deleteProperty(process.env, "LEGACY_ONLY_TOKEN");
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 
@@ -72,9 +72,9 @@ describe("env loading", () => {
 
     expect(result.envFilePath).toBe(path.join(tmpDir, ".env.custom"));
     expect(result.keysLoaded).toContain("DEFAULT_KEY");
-    expect(result.keysLoaded).toContain("LEGACY_ONLY");
+    expect(result.keysLoaded).toContain("LEGACY_ONLY_TOKEN");
     expect(process.env.DEFAULT_KEY).toBe("from-default");
-    expect(process.env.LEGACY_ONLY).toBe("legacy");
+    expect(process.env.LEGACY_ONLY_TOKEN).toBe("legacy");
   });
 
   test("getCoreModulePathOverride normalizes non-word characters in filenames", () => {

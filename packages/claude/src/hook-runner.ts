@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -217,7 +218,21 @@ type Workspace = {
   confirmFirm: boolean;
 };
 
-type FirmEdit = { path: string; where: string; ids: string[] };
+/** `edit` fingerprints the asked edit (see `editFingerprint`). */
+type FirmEdit = { path: string; where: string; ids: string[]; edit: string };
+
+/**
+ * A fingerprint of one proposed edit: the tool and its whole input. A retry
+ * of the same edit has the same fingerprint; any other edit has another.
+ */
+function editFingerprint(
+  toolName: string | undefined,
+  toolInput: unknown,
+): string {
+  return createHash("sha256")
+    .update(JSON.stringify([toolName ?? null, toolInput ?? null]))
+    .digest("hex");
+}
 
 /**
  * The current firm requirements an edit changes that the person has not yet
@@ -230,6 +245,7 @@ function firmEdit(
   wholeFile: boolean,
   state: SessionState,
   workspace: Workspace,
+  edit: string,
 ): FirmEdit | undefined {
   if (!workspace.confirmFirm) return undefined;
   const { ids, symbol } = firmRequirementsTouched({
@@ -238,10 +254,13 @@ function firmEdit(
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    // A receipt counts only for the retry of an edit this session asked
-    // about, never for a later session's edit.
+    // A receipt counts only for the retry of the edit this session asked
+    // about: the receipt judged the code before that edit, so another edit
+    // of the same symbol, or a later session's edit, is asked again.
     reviewed: firmEditReviewed(workspace.root, relativePath, (id) =>
-      state.firmAskedAt.get(id),
+      state.firmAskedEdit.get(id) === edit
+        ? state.firmAskedAt.get(id)
+        : undefined,
     ),
   });
   if (ids.length === 0) return undefined;
@@ -249,6 +268,7 @@ function firmEdit(
     path: relativePath,
     where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,
     ids,
+    edit,
   };
 }
 
@@ -265,7 +285,13 @@ function withFirmConfirmation(
   trace: HookTrace,
 ): HookOutput {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids, at: Date.now() },
+    {
+      kind: "firm_asked",
+      path: firm.path,
+      ids: firm.ids,
+      at: Date.now(),
+      edit: firm.edit,
+    },
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;
@@ -392,6 +418,7 @@ function preToolUse(
         toolName === "Write",
         state,
         workspace,
+        editFingerprint(toolName, input.toolInput),
       );
   const output = editPreToolUse(
     relativePath,
@@ -562,6 +589,7 @@ function bashPreToolUse(
         true,
         state,
         workspace,
+        editFingerprint("Bash", command),
       );
     })
     .find((candidate) => candidate !== undefined);

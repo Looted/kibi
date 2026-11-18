@@ -154,6 +154,41 @@ describe("firm-edit receipts through the real CLI", () => {
     expect(firmFindings(workspace)).toEqual([]);
   }, 120_000);
 
+  test("deleting, emptying, un-exporting or moving firm code with its record kept is gated", () => {
+    const workspace = firmWorkspace();
+    const removed = "expireKey in src/keys.ts (removed, no review recorded)";
+    const cases: Array<[string, () => void]> = [
+      ["delete", () => workspace.git("rm", "-q", "src/keys.ts")],
+      ["empty", () => workspace.write("src/keys.ts", "")],
+      [
+        "un-export",
+        () =>
+          workspace.write(
+            "src/keys.ts",
+            SOURCE.replace("export function", "function").replace("90", "9000"),
+          ),
+      ],
+      ["move", () => workspace.git("mv", "src/keys.ts", "src/keys2.ts")],
+    ];
+    for (const [name, change] of cases) {
+      change();
+      workspace.git("add", "-A");
+      const findings = firmFindings(workspace);
+      expect(
+        findings.map((entry) => entry.id),
+        name,
+      ).toEqual(["firm_edit_unreviewed"]);
+      expect(String(findings[0]?.message), name).toContain(removed);
+      workspace.git("reset", "-q", "--hard");
+    }
+    // A keeps review of the removal clears it, like a removed record.
+    workspace.git("rm", "-q", "src/keys.ts");
+    const kept = review(workspace, "keeps");
+    expect(kept.status, JSON.stringify(kept)).toBe("success");
+    workspace.git("add", "-A");
+    expect(firmFindings(workspace)).toEqual([]);
+  }, 180_000);
+
   test("with unstaged edits in the file, a staged review clears the staged change", () => {
     const workspace = firmWorkspace();
     workspace.write("src/keys.ts", SOURCE.replace("90", "91"));

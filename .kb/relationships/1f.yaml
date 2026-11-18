@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e338f110559
+  - type: validates
+    from: TEST-symbol-id-minting
+    to: SCEN-symbol-id-minting
+    created_at: 2026-11-17T19:07:19.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05a8e968568f
+  - type: validates
+    from: TEST-symbol-id-minting
+    to: SCEN-NEG-symbol-id-minting-VIOLATED
+    created_at: 2026-11-17T19:07:19.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34e672c95c7b

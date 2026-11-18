@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { KbRejection } from "../../../src/cli-errors.js";
 import {
+  ID_CHARS,
   ID_WORDS,
   MAX_TITLE,
   RECORD_FIELDS,
@@ -131,6 +132,14 @@ describe("kb_record title and id", () => {
     expect(recordIdBase("API_Keys v2 expire!")).toBe("REQ-api-keys-v2-expire");
     expect(recordIdBase("The — of")).toBe("REQ-rule");
     expect(recordIdBase("— …")).toBe("REQ-rule");
+    // Long words are cut to 80 characters, never ending on a dash.
+    expect(ID_CHARS).toBe(80);
+    expect(recordIdBase(`${"x".repeat(300)} keys`)).toBe(
+      `REQ-${"x".repeat(80)}`,
+    );
+    expect(recordIdBase(`${"y".repeat(79)} keys`)).toBe(
+      `REQ-${"y".repeat(79)}`,
+    );
   });
 
   test("the first free id is the base, else the base numbered from 2", async () => {

@@ -207,8 +207,10 @@ export {
 } from "kibi-cli/public/branch-resolver";
 export {
   KIBI_PROTOCOL_VERSION,
+  KbRejection,
   appendPayloadCountField,
   codedErrorOf,
+  isKbRejection,
   normalizeResultPayload,
   operationData,
   prepareOperationInput,

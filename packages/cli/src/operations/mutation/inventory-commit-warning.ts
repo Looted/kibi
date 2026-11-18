@@ -20,7 +20,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import { validateSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
+import {
+  type SemanticRelationship,
+  validateSemanticInventoryBoundary,
+} from "../semantic-advisor/ingestion-boundary.js";
 
 /**
  * kb_upsert warning for a requirement whose written document lacks the
@@ -28,12 +31,15 @@ import { validateSemanticInventoryBoundary } from "../semantic-advisor/ingestion
  * sent (a descriptive title needs no inventory), but the document it writes
  * pins the body statement as semantic_text, and the commit gate and every
  * other workspace's sync judge that: `kibi check --staged` refuses to commit
- * the requirement while it is new or its statement changes.
+ * the requirement while it is new or its statement changes. The document is
+ * judged with the write's relationships as well as its own front matter
+ * links: kb_upsert keeps relationships in the shards, not in the file.
  */
 export function inventoryCommitWarnings(
   type: string,
   workspaceRoot: string,
   writtenPath: string | undefined,
+  written: readonly SemanticRelationship[] = [],
 ): string[] {
   if (type !== "req" || writtenPath === undefined) return [];
   let content: string;
@@ -48,15 +54,22 @@ export function inventoryCommitWarnings(
   } catch {
     return [];
   }
+  const relationships = new Map<string, SemanticRelationship>();
+  for (const relationship of [...result.relationships, ...written])
+    relationships.set(
+      `${relationship.type}\u0000${relationship.from}\u0000${relationship.to}`,
+      relationship,
+    );
+  const all = [...relationships.values()];
   const payload = {
     type: result.entity.type,
     id: result.entity.id,
     properties: result.entity,
-    relationships: result.relationships,
+    relationships: all,
   };
   const boundary = validateSemanticInventoryBoundary(
     payload,
-    result.relationships,
+    all,
     analyzeSemanticAdvisorInput({ payload }).receipt,
   );
   if (boundary.errors.length === 0) return [];

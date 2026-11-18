@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd280143703d
+  - type: assumes
+    from: SCEN-closed-firm-requirement-guard
+    to: FACT-current-firm-requirements-unguarded
+    created_at: 2026-11-17T19:23:33.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5949b6963361

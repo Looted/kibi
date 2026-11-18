@@ -184,7 +184,7 @@ describe("requirement grounding", () => {
     );
     expect(lines).toEqual([
       "REQ-GREET must keep true: The greet function must not call console.log or eval.",
-      "Why: no reason is recorded.",
+      "Why: no reason is recorded for REQ-GREET.",
     ]);
     expect(lines.join("\n")).not.toContain("FACT-");
   });
@@ -255,7 +255,7 @@ describe("requirement grounding", () => {
       requirementGroundingLines("REQ-cut", createEntitySummarizer(root)),
     ).toEqual([
       "REQ-cut must keep true: The matcher in src/match.c must never call malloc. It runs in a signal handler.",
-      "Why: no reason is recorded.",
+      "Why: no reason is recorded for REQ-cut.",
     ]);
   });
 });
@@ -290,6 +290,52 @@ describe("shared file knowledge snippet", () => {
     expect(read).toContain("- REQ-rounding: Checkout totals round to cents");
     expect(read).not.toContain("must keep true");
     expect(read).not.toContain("Decision:");
+  });
+
+  test("a closed requirement a listed one supersedes is marked and listed last", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-csv-old": {
+        id: "REQ-csv-old",
+        title: "Reports export as CSV with comma separators",
+        status: "closed",
+        firmness: "firm",
+        why: {
+          recorded: true,
+          text: "Finance imports these files.",
+          from: "rationale",
+        },
+      },
+      "REQ-csv-new": {
+        id: "REQ-csv-new",
+        title: "Reports export as CSV with semicolon separators",
+        status: "open",
+        links: [{ type: "supersedes", target: "REQ-csv-old" }],
+        why: { recorded: false },
+      },
+    };
+    const snippet = fileKnowledgeSnippet({
+      relativePath: "src/x.ts",
+      symbols: [
+        {
+          id: "SYM-export",
+          title: "exportCsv",
+          line: 1,
+          endLine: 5,
+          implements: ["REQ-csv-old", "REQ-csv-new"],
+          coveredBy: [],
+          executableFor: [],
+        },
+      ],
+      surface: "edit",
+      summarize: (id) => summaries[id] ?? { id },
+    })?.split("\n");
+    expect(snippet?.slice(1, 4)).toEqual([
+      "- REQ-csv-new: Reports export as CSV with semicolon separators — exportCsv",
+      "- REQ-csv-old (closed, superseded by REQ-csv-new): Reports export as CSV with comma separators — exportCsv",
+      // The reason line names the requirement it belongs to.
+      "Why: no reason is recorded for REQ-csv-new.",
+    ]);
+    expect(snippet?.join("\n")).not.toContain("Finance imports");
   });
 
   test("a superseded lead requirement gets no grounding lines", () => {
@@ -695,7 +741,7 @@ describe("the recorded reason on the Why line", () => {
   };
   const summarizeWhy = (id: string): EntitySummary => withWhy[id] ?? { id };
   const whyLine =
-    "Why: Finance reconciles to the cent (rationale; maintainer, 2026-10-01).";
+    "Why: Finance reconciles to the cent (REQ-rounding rationale; maintainer, 2026-10-01).";
 
   test("grounding gives it after what must stay true, unless asked not to", () => {
     expect(requirementGroundingLines("REQ-rounding", summarizeWhy)).toEqual([
@@ -835,7 +881,7 @@ describe("the recorded reason on the Why line", () => {
       why: text.split("\n").find((line) => line.startsWith("Why: ")),
       tests: text.includes("\nCovered by: "),
     });
-    const why = (chars: number) => reasonLine(lead, chars);
+    const why = (chars: number) => reasonLine(lead, chars, "REQ-long-0");
     expect(shapes.map(shape)).toEqual([
       { requirements: 4, moreClaims: false, why: why(240), tests: true },
       { requirements: 3, moreClaims: false, why: why(240), tests: true },
@@ -857,7 +903,9 @@ describe("the recorded reason on the Why line", () => {
     expect(fewer).toContain(" +1 more.");
     expect(fewer.endsWith("…")).toBe(false);
     const tight = update(fewer.length - 1);
-    expect(tight.split("\n")).toContain(reasonLine(lead, 160) as string);
+    expect(tight.split("\n")).toContain(
+      reasonLine(lead, 160, "REQ-long-0") as string,
+    );
     expect(tight.endsWith("…")).toBe(false);
   });
 });

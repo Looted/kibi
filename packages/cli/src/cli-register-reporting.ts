@@ -19,7 +19,9 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
 /**
  * kibi check --changed: the staged gate over a scratch index holding the
  * working tree plus the index (only the named paths and .kb when paths are
- * given), so the real index is never written.
+ * given), so the real index is never written. Like the pre-commit hook, it
+ * runs the generated-manifest check before the staged check, and fails when
+ * either does; the generated check's problems go to stderr.
  */
 export async function runChangedCheck(
   changed: boolean | string[],
@@ -29,11 +31,16 @@ export async function runChangedCheck(
   return withChangedIndex(
     process.cwd(),
     Array.isArray(changed) ? changed : undefined,
-    async () =>
-      (await import("./commands/check.js")).checkCommand({
+    async () => {
+      const generated = await (
+        await import("./commands/check-generated.js")
+      ).checkGeneratedManifests({ changedOnly: true, quiet: true });
+      const result = await (await import("./commands/check.js")).checkCommand({
         ...checkOptions,
         staged: true,
-      }),
+      });
+      return generated.exitCode === 0 ? result : { exitCode: 1 };
+    },
   );
 }
 

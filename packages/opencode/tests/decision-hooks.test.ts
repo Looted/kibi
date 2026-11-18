@@ -189,6 +189,28 @@ describe("OpenCode decision hooks", () => {
     expect(decisions.afterTool(undefined, "s1", {})).toBeUndefined();
   });
 
+  test("a rule recorded through the CLI or under any server key is counted", async () => {
+    const root = linkedWorkspace();
+    for (const [tool, args] of [
+      ["bash", { command: "printf '{}' | npx --no-install kibi record --input -" }],
+      ["kibi-mcp_kb_record", { statement: "s", why: "w", saidBy: "user", code: [] }],
+      ["mykb_kb_upsert", { type: "symbol", id: "SYM-x", properties: {} }],
+    ] as const) {
+      const { decisions, prompts } = hooks(root);
+      decisions.chatMessage("s1", text("Guests should never see totals."));
+      decisions.afterTool("write", "s1", {
+        filePath: path.join(root, "src/other.ts"),
+      });
+      decisions.afterTool(tool, "s1", args);
+      await decisions.sessionIdle("s1");
+      // Recorded: no capture request (a recorded rule asks for signoff).
+      expect(prompts.map(([, prompt]) => prompt)).not.toContain(
+        captureReminder("should never"),
+      );
+      expect(prompts.length).toBeLessThanOrEqual(1);
+    }
+  });
+
   test("no prompt function means no idle follow-up", async () => {
     const root = linkedWorkspace();
     const decisions = createDecisionHooks({

@@ -364,7 +364,16 @@ export function firmEditContext(ids: readonly string[]): string {
  * that the request sets a rule ("from now on", "only admins").
  */
 const RULE_PHRASES =
-  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
+
+/**
+ * Text before a rule phrase that makes it describe rather than set a rule:
+ * a bug report's frame ("the bug where users have to click twice"), an
+ * indirect question ("tell me which ones are required") or the speaker's own
+ * situation ("I have to leave soon").
+ */
+const DESCRIBING_FRAME =
+  /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$|\bI\s+$/i;
 
 /**
  * "never" and "always" set a rule only as an instruction: at the start of a
@@ -403,6 +412,17 @@ const CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
 /** List, heading and number markers before a line's words. */
 const LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
 
+/** A line of pasted tool output: an error, warning or stack frame. */
+const PASTED_OUTPUT_LINE =
+  /^\s*(?:[\w.$]*(?:Error|Exception)\b|(?:error|warning|fatal|panic)\b\s*[:[]|at\s+\S+\s+\()/i;
+
+/**
+ * Words in single quotation marks, which the person names rather than says
+ * ("what does 'is not allowed' mean"). A rule quoted in double quotes is
+ * often the person's or a stakeholder's own rule, so it is kept.
+ */
+const QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
+
 /** Emphasis markers around words ("**Never**", "_always_"). */
 const EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
 
@@ -420,7 +440,7 @@ function requestLines(text: string): string[] {
       continue;
     }
     previous = line.trim() === "" ? "blank" : "text";
-    if (/^\s*>/.test(line)) continue;
+    if (/^\s*>/.test(line) || PASTED_OUTPUT_LINE.test(line)) continue;
     lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
   }
   return lines;
@@ -430,6 +450,7 @@ function requestLines(text: string): string[] {
 function requestSentences(prompt: string): string[] {
   // An empty piece matches no rule phrase, so pieces are not filtered.
   return requestLines(prompt.replace(CODE_SPANS, " "))
+    .map((line) => line.replace(QUOTED_WORDS, " "))
     .flatMap((line) => line.split(/(?<=[.!?])\s/))
     .map((sentence) => sentence.trim());
 }
@@ -458,8 +479,10 @@ function ruleMatch(
       (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence))
     )
       continue;
-    const match = RULE_PHRASES.exec(sentence);
-    if (match) return { phrase: match[0].toLowerCase(), sentences, index };
+    for (const match of sentence.matchAll(RULE_PHRASES)) {
+      if (!DESCRIBING_FRAME.test(sentence.slice(0, match.index)))
+        return { phrase: match[0].toLowerCase(), sentences, index };
+    }
     const adverb = instructingAdverb(sentence);
     if (adverb) return { phrase: adverb, sentences, index };
   }

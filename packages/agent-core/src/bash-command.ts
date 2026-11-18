@@ -118,6 +118,17 @@ const IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 const IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
 // Words that run the next word as the command.
 const COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+// Shells whose `-c` script is a command line of its own (`bash -lc "..."`).
+const SHELLS = new Set(["sh", "bash", "zsh", "dash", "ksh"]);
+const SCRIPT_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
+
+/** The script of `bash -c <script>` (any shell, flags bundled), if any. */
+function shellScript(words: readonly string[]): string | undefined {
+  const [name, ...args] = words;
+  if (!SHELLS.has(path.basename(String(name)))) return undefined;
+  const flag = args.findIndex((arg) => SCRIPT_FLAG.test(arg));
+  return flag === -1 ? undefined : args[flag + 1];
+}
 
 /**
  * The command with every quoted or backslash-escaped character replaced by
@@ -181,7 +192,13 @@ function* writtenNames(command: string): Generator<string> {
   for (const words of simpleCommandWords(command, masked)) {
     // Without a command word (an empty or all-prefix command) this is the
     // last word or none, which never names an editor or tee.
-    const [name, ...args] = words.slice(words.findIndex(isCommandWord));
+    const commandWords = words.slice(words.findIndex(isCommandWord));
+    const script = shellScript(commandWords);
+    if (script !== undefined) {
+      yield* writtenNames(unquote(script));
+      continue;
+    }
+    const [name, ...args] = commandWords;
     const program = path.basename(String(name));
     // Flags are kept: commandFilePaths never reports a `-` word.
     if (
@@ -219,6 +236,7 @@ export function commandEditPaths(command: string, cwd: string): string[] {
 /** Hosts' shell tool names: a `sed -i` or `>` through them edits files too. */
 const SHELL_TOOLS = new Set([
   "Bash",
+  "Shell",
   "shell",
   "local_shell",
   "exec_command",
@@ -240,9 +258,12 @@ export function shellToolEditPaths(
     toolInput !== null && typeof toolInput === "object"
       ? (toolInput as { command?: unknown }).command
       : undefined;
-  const command = Array.isArray(raw)
-    ? raw.filter((part) => typeof part === "string").join(" ")
-    : raw;
+  const argv = Array.isArray(raw)
+    ? raw.filter((part): part is string => typeof part === "string")
+    : undefined;
+  // `["bash", "-lc", "<script>"]` runs the script as its own command line.
+  const command =
+    argv === undefined ? raw : (shellScript(argv) ?? argv.join(" "));
   if (typeof command !== "string") return [];
   return commandEditPaths(command, cwd);
 }

@@ -27,7 +27,15 @@ export type DecisionDocument = Readonly<{
 }>;
 
 /** The parts of a decision's claim an in-place edit may change. */
-export type DecisionClaimField = "title" | "statement" | "body" | "firmness";
+export type DecisionClaimField =
+  | "title"
+  | "statement"
+  | "reason"
+  | "body"
+  | "firmness";
+
+/** The reason a requirement records when the person gave none. */
+const NO_REASON = "reason not stated";
 
 function normalized(value: unknown): string {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
@@ -46,8 +54,9 @@ function requirementStatement(document: DecisionDocument): string {
 
 /**
  * The claim fields that differ between two versions of one decision. A
- * requirement's claim is its title, its stated meaning and the statement its
- * body derives (context sections may change freely); an ADR's claim is its
+ * requirement's claim is its title, its stated meaning, the statement its
+ * body derives and its recorded reason (other context may change freely);
+ * an ADR's claim is its
  * title and whole body. Lowering a firm decision's firmness changes it too.
  */
 export function decisionClaimChanges(
@@ -64,6 +73,15 @@ export function decisionClaimChanges(
         normalized(requirementSemanticText(after.body))
     )
       changed.push("statement");
+    // The recorded reason is quoted as the person's, so rewriting it changes
+    // the decision too; giving a reason where none was recorded does not.
+    const reason = normalized(before.data.rationale);
+    if (
+      reason !== "" &&
+      reason.toLowerCase() !== NO_REASON &&
+      reason !== normalized(after.data.rationale)
+    )
+      changed.push("reason");
   } else if (normalized(before.body) !== normalized(after.body)) {
     changed.push("body");
   }
@@ -86,10 +104,18 @@ export function citesNewHumanWords(
   before: DecisionDocument,
   after: DecisionDocument,
 ): boolean {
-  const ref = firmnessRef({ type: after.type, ...after.data });
-  return (
-    ref !== undefined &&
-    ref !== firmnessRef({ type: before.type, ...before.data })
+  // origin.ref and a requirement's approval_ref are each a place for the
+  // person's words; a new one in either releases the edit.
+  const refs = (document: DecisionDocument) => [
+    firmnessRef({ type: document.type, origin: document.data.origin }),
+    firmnessRef({
+      type: document.type,
+      approval_ref: document.data.approval_ref,
+    }),
+  ];
+  const old = refs(before);
+  return refs(after).some(
+    (ref, index) => ref !== undefined && ref !== old[index],
   );
 }
 

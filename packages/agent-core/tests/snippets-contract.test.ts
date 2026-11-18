@@ -159,6 +159,15 @@ describe("editFocus", () => {
 describe("describeEntity", () => {
   test("retired and firmness labels, titles cut at 80", () => {
     expect(isRetiredStatus(undefined)).toBe(false);
+    // The commit gate shares this predicate. A closed requirement is done
+    // and still governs, so it guards its code in hooks and the gate alike.
+    for (const status of ["archived", "removed", "superseded", "retired"])
+      expect(isRetiredStatus(status)).toBe(true);
+    for (const status of ["open", "closed", "approved", "in_progress"])
+      expect(isRetiredStatus(status)).toBe(false);
+    expect(
+      describeEntity({ id: "R", status: "closed", firmness: "firm" }),
+    ).toBe("R [firm: ask before changing]");
     expect(describeEntity({ id: "R", status: "Deprecated" })).toBe(
       "R (Deprecated)",
     );

@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12698e7e5b3e
+  - type: executable_for
+    from: SYM-test-symbol-id-minting
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:15.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcd7b59b9535

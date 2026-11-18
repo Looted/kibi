@@ -120,7 +120,6 @@ describe("prepareChangedIndex", () => {
     const changed = prepareChangedIndex(root, [
       path.join(root, "b.ts"),
       "gone.ts",
-      "never-existed.ts",
       "b.ts",
     ]);
     try {
@@ -187,10 +186,29 @@ describe("prepareChangedIndex", () => {
     }
   });
 
-  test("with only paths git cannot add, the index is copied as it is", () => {
+  test("a named path that neither exists nor is tracked is refused, not dropped", () => {
+    expect(() =>
+      prepareChangedIndex(root, ["a.ts", "never-existed.ts", "nor-this.ts"]),
+    ).toThrow(
+      "never-existed.ts, nor-this.ts are neither in the working tree nor tracked by git, so there is nothing to judge (paths are read from the directory the command runs in).",
+    );
+    expect(() => prepareChangedIndex(root, ["never-existed.ts"])).toThrow(
+      "never-existed.ts is neither in the working tree",
+    );
+    // A deleted tracked file and a path spelled with "./" are judged.
+    const changed = prepareChangedIndex(root, ["gone.ts", "./b.ts"]);
+    try {
+      expect(changedIn(changed.indexFile)).toContain("D\tgone.ts");
+      expect(changedIn(changed.indexFile)).toContain("M\tb.ts");
+    } finally {
+      changed.dispose();
+    }
+  });
+
+  test("with only .kb named and no .kb, the index is copied as it is", () => {
     rmSync(path.join(root, ".kb"), { recursive: true });
     git(["rm", "-q", "-r", "--cached", ".kb"]);
-    const changed = prepareChangedIndex(root, ["never-existed.ts"]);
+    const changed = prepareChangedIndex(root, [".kb"]);
     try {
       expect(changedIn(changed.indexFile)).toStrictEqual(changedIn());
     } finally {

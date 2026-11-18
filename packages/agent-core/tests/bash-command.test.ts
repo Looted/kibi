@@ -478,6 +478,7 @@ describe("shellToolEditPaths", () => {
     const target = path.join(root, "src/a.ts");
     for (const toolName of [
       "Bash",
+      "Shell",
       "shell",
       "local_shell",
       "exec_command",
@@ -498,6 +499,29 @@ describe("shellToolEditPaths", () => {
         root,
       ),
     ).toEqual([target]);
+  });
+
+  test("reads the script a shell runs with -c, as a string or argv", () => {
+    const root = tempDir("kibi-shell-tool-");
+    write(root, "src/a.ts", "x\n");
+    const target = path.join(root, "src/a.ts");
+    for (const command of [
+      `bash -lc "sed -i 's/x/y/' src/a.ts"`,
+      "sh -c 'tee src/a.ts < /dev/null'",
+      "cd . && /bin/zsh -c 'perl -pi -e s/x/y/ src/a.ts'",
+      ["bash", "-lc", "sed -i s/x/y/ src/a.ts"],
+      ["/bin/sh", "-c", "tee -a src/a.ts"],
+    ]) {
+      expect(shellToolEditPaths("shell", { command }, root)).toEqual([target]);
+    }
+    // A shell without -c, and a -c script that only reads, write nothing.
+    for (const command of [
+      "bash script.sh src/a.ts",
+      `bash -c "sed -n 1p src/a.ts"`,
+      ["bash", "-c"],
+    ]) {
+      expect(shellToolEditPaths("shell", { command }, root)).toEqual([]);
+    }
   });
 
   test("names nothing for other tools, reads or missing commands", () => {

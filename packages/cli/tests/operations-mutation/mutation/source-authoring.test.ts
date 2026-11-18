@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { OperationError } from "../../../src/cli-errors.js";
 import { reviseRequirementBody } from "../../../src/entity-body-context.js";
 import * as authoring from "../../../src/operations/mutation/source-authoring.js";
 import {
@@ -1237,6 +1238,52 @@ describe("rendering a source write", () => {
     expect(result.relative).toBe("docs/x.md");
     expect(result.before).toBeUndefined();
     expect(result.after).toBe(rendered);
+  });
+
+  test("refuse a document without an id unless the store reads this entity from it", async () => {
+    const root = workspace();
+    const ctx = context(root) as OperationContext & { fs: FilesystemPort };
+    fs.mkdirSync(path.join(root, "docs"));
+    fs.writeFileSync(
+      path.join(root, "docs/a.md"),
+      "---\ntitle: Use Postgres\nstatus: accepted\n---\nPostgres.\n",
+    );
+    const refused = (await renderSourceWrite(
+      scenarioInput(),
+      scenarioEntity,
+      undefined,
+      ctx,
+    ).catch((error: unknown) => error)) as OperationError;
+    expect(refused).toBeInstanceOf(OperationError);
+    expect(refused.code).toBe("SOURCE_ENTITY_MISMATCH");
+    expect(refused.message).toBe(
+      "Authored document docs/a.md holds another entity (it has no id, so sync derives one from its path and title), not S-1; write S-1 to its own file or omit document.path",
+    );
+    for (const source of ["docs/b.md", "mcp://kibi/upsert"]) {
+      const other = (await renderSourceWrite(
+        scenarioInput(),
+        scenarioEntity,
+        { source },
+        ctx,
+      ).catch((error: unknown) => error)) as OperationError;
+      expect(other.code).toBe("SOURCE_ENTITY_MISMATCH");
+    }
+    // The entity the store already reads from that file is written there.
+    for (const source of ["docs/a.md", path.join(root, "docs/a.md")]) {
+      const held = await renderSourceWrite(
+        scenarioInput(),
+        scenarioEntity,
+        { source },
+        ctx,
+      );
+      expect(held.after).toContain("id: S-1");
+    }
+    // A file without front matter, or a YAML manifest, is not such a document.
+    fs.writeFileSync(path.join(root, "docs/a.md"), "plain body\n");
+    expect(
+      (await renderSourceWrite(scenarioInput(), scenarioEntity, undefined, ctx))
+        .after,
+    ).toContain("id: S-1");
   });
 
   test("publish override bytes only over an existing document", async () => {

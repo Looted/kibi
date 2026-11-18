@@ -2,7 +2,9 @@
   "kb_skills_list": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["skills"],
+    "required": [
+      "skills"
+    ],
     "properties": {
       "skills": {
         "type": "array",
@@ -36,7 +38,9 @@
   "kb_skills_read": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["content"],
+    "required": [
+      "content"
+    ],
     "properties": {
       "content": {
         "type": "string"
@@ -46,7 +50,10 @@
   "kb_query": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["entities", "count"],
+    "required": [
+      "entities",
+      "count"
+    ],
     "properties": {
       "entities": {
         "type": "array",
@@ -75,7 +82,10 @@
   "kb_search": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["results", "count"],
+    "required": [
+      "results",
+      "count"
+    ],
     "properties": {
       "results": {
         "type": "array",
@@ -99,7 +109,10 @@
         "additionalProperties": true
       },
       "branch": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "branchStore": {
         "type": "object",
@@ -118,7 +131,10 @@
         "type": "string"
       },
       "syncedAt": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "dirty": {
         "type": "boolean"
@@ -315,7 +331,9 @@
   "kb_sparql_remote": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["rows"],
+    "required": [
+      "rows"
+    ],
     "properties": {
       "rows": {
         "type": "array",
@@ -406,7 +424,10 @@
         }
       },
       "migrationWarning": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "logic": {
         "type": "object",
@@ -480,10 +501,16 @@
         }
       },
       "source": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "requirementId": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "subject": {
         "type": "string"
@@ -509,7 +536,10 @@
         ]
       },
       "recommendedPredicateSchema": {
-        "type": ["object", "null"]
+        "type": [
+          "object",
+          "null"
+        ]
       },
       "applyPlan": {
         "type": "array",
@@ -519,14 +549,23 @@
         }
       },
       "relationshipPlan": {
-        "type": ["object", "null"]
+        "type": [
+          "object",
+          "null"
+        ]
       },
       "plan": {
-        "type": ["object", "null"],
+        "type": [
+          "object",
+          "null"
+        ],
         "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies."
       },
       "relationshipTarget": {
-        "type": ["string", "null"],
+        "type": [
+          "string",
+          "null"
+        ],
         "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets."
       },
       "existingGrounding": {
@@ -546,7 +585,10 @@
         "description": "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one."
       },
       "replacementPlan": {
-        "type": ["object", "null"]
+        "type": [
+          "object",
+          "null"
+        ]
       },
       "bindingHints": {
         "type": "array",
@@ -567,7 +609,10 @@
   "kb_plan_bootstrap": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["plan", "diagnostics"],
+    "required": [
+      "plan",
+      "diagnostics"
+    ],
     "properties": {
       "plan": {
         "type": "object",
@@ -612,7 +657,10 @@
         "type": "boolean"
       },
       "migrationWarning": {
-        "type": ["string", "null"]
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "handoffMessage": {
         "type": "string"
@@ -706,11 +754,17 @@
         "items": {}
       },
       "semanticAdvisor": {
-        "type": ["object", "null"],
+        "type": [
+          "object",
+          "null"
+        ],
         "additionalProperties": true
       },
       "normalizedPreview": {
-        "type": ["object", "null"],
+        "type": [
+          "object",
+          "null"
+        ],
         "additionalProperties": true
       },
       "errorCode": {
@@ -845,7 +899,11 @@
       {
         "type": "object",
         "additionalProperties": false,
-        "required": ["valid", "dryRun", "skippedEffects"],
+        "required": [
+          "valid",
+          "dryRun",
+          "skippedEffects"
+        ],
         "properties": {
           "valid": {
             "type": "boolean"
@@ -859,11 +917,17 @@
             "items": {}
           },
           "semanticAdvisor": {
-            "type": ["object", "null"],
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "normalizedPreview": {
-            "type": ["object", "null"],
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "errorCode": {
@@ -927,7 +991,10 @@
   "kb_record": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["id", "upsert"],
+    "required": [
+      "id",
+      "upsert"
+    ],
     "properties": {
       "id": {
         "type": "string"
@@ -943,6 +1010,9 @@
       "verdict": {
         "type": "object",
         "additionalProperties": true
+      },
+      "verdictError": {
+        "type": "string"
       },
       "commitAllowed": {
         "type": "boolean"
@@ -1196,7 +1266,10 @@
           "symbolDebt": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["total", "fileCount"],
+            "required": [
+              "total",
+              "fileCount"
+            ],
             "properties": {
               "total": {
                 "type": "integer"
@@ -1209,7 +1282,10 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["path", "unrecorded"],
+                  "required": [
+                    "path",
+                    "unrecorded"
+                  ],
                   "properties": {
                     "path": {
                       "type": "string"
@@ -1295,7 +1371,10 @@
         ],
         "properties": {
           "kind": {
-            "enum": ["staged", "diff"]
+            "enum": [
+              "staged",
+              "diff"
+            ]
           },
           "baseCommit": {
             "oneOf": [
@@ -1328,14 +1407,22 @@
             "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
           },
           "headTreeSource": {
-            "enum": ["index", "commit"]
+            "enum": [
+              "index",
+              "commit"
+            ]
           }
         }
       },
       "recordHeaders": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["contractVersion", "policy", "evaluator", "scope"],
+        "required": [
+          "contractVersion",
+          "policy",
+          "evaluator",
+          "scope"
+        ],
         "properties": {
           "contractVersion": {
             "const": "kibi.impact-review.v1"
@@ -1343,7 +1430,11 @@
           "policy": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["id", "version", "fingerprint"],
+            "required": [
+              "id",
+              "version",
+              "fingerprint"
+            ],
             "properties": {
               "id": {
                 "type": "string"
@@ -1360,7 +1451,10 @@
           "evaluator": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["contractVersion", "fingerprint"],
+            "required": [
+              "contractVersion",
+              "fingerprint"
+            ],
             "properties": {
               "contractVersion": {
                 "const": "kibi.impact-evaluator.v1"
@@ -1416,7 +1510,14 @@
               "type": "string"
             },
             "status": {
-              "enum": ["A", "M", "R", "C", "T", "D"]
+              "enum": [
+                "A",
+                "M",
+                "R",
+                "C",
+                "T",
+                "D"
+              ]
             },
             "oldPath": {
               "type": "string"
@@ -1425,13 +1526,27 @@
               "type": "string"
             },
             "analysisDepth": {
-              "enum": ["symbol", "metadata", "file", "none"]
+              "enum": [
+                "symbol",
+                "metadata",
+                "file",
+                "none"
+              ]
             },
             "disposition": {
-              "enum": ["checked", "advisory", "skipped"]
+              "enum": [
+                "checked",
+                "advisory",
+                "skipped"
+              ]
             },
             "skipReason": {
-              "enum": ["binary", "unsupported_encoding", "symlink", "submodule"]
+              "enum": [
+                "binary",
+                "unsupported_encoding",
+                "symlink",
+                "submodule"
+              ]
             },
             "gitMode": {
               "type": "string"
@@ -1444,7 +1559,10 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["start", "end"],
+                "required": [
+                  "start",
+                  "end"
+                ],
                 "properties": {
                   "start": {
                     "type": "integer"
@@ -1460,7 +1578,10 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["start", "end"],
+                "required": [
+                  "start",
+                  "end"
+                ],
                 "properties": {
                   "start": {
                     "type": "integer"
@@ -1485,7 +1606,12 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": ["100644", "100755", "120000", "160000"]
+                      "enum": [
+                        "100644",
+                        "100755",
+                        "120000",
+                        "160000"
+                      ]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1503,7 +1629,11 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": ["regular", "symlink", "gitlink"]
+                      "enum": [
+                        "regular",
+                        "symlink",
+                        "gitlink"
+                      ]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1531,7 +1661,12 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": ["ok", "partial", "unsupported", "failed"]
+                              "enum": [
+                                "ok",
+                                "partial",
+                                "unsupported",
+                                "failed"
+                              ]
                             },
                             "language": {
                               "type": "string"
@@ -1540,7 +1675,10 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": ["string", "null"]
+                              "type": [
+                                "string",
+                                "null"
+                              ]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -1627,7 +1765,12 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": ["100644", "100755", "120000", "160000"]
+                      "enum": [
+                        "100644",
+                        "100755",
+                        "120000",
+                        "160000"
+                      ]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1645,7 +1788,11 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": ["regular", "symlink", "gitlink"]
+                      "enum": [
+                        "regular",
+                        "symlink",
+                        "gitlink"
+                      ]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1673,7 +1820,12 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": ["ok", "partial", "unsupported", "failed"]
+                              "enum": [
+                                "ok",
+                                "partial",
+                                "unsupported",
+                                "failed"
+                              ]
                             },
                             "language": {
                               "type": "string"
@@ -1682,7 +1834,10 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": ["string", "null"]
+                              "type": [
+                                "string",
+                                "null"
+                              ]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -1771,7 +1926,12 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": ["100644", "100755", "120000", "160000"]
+                      "enum": [
+                        "100644",
+                        "100755",
+                        "120000",
+                        "160000"
+                      ]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1789,7 +1949,11 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": ["regular", "symlink", "gitlink"]
+                      "enum": [
+                        "regular",
+                        "symlink",
+                        "gitlink"
+                      ]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1817,7 +1981,12 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": ["ok", "partial", "unsupported", "failed"]
+                              "enum": [
+                                "ok",
+                                "partial",
+                                "unsupported",
+                                "failed"
+                              ]
                             },
                             "language": {
                               "type": "string"
@@ -1826,7 +1995,10 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": ["string", "null"]
+                              "type": [
+                                "string",
+                                "null"
+                              ]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -1910,7 +2082,12 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": ["100644", "100755", "120000", "160000"]
+                      "enum": [
+                        "100644",
+                        "100755",
+                        "120000",
+                        "160000"
+                      ]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1928,7 +2105,11 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": ["regular", "symlink", "gitlink"]
+                      "enum": [
+                        "regular",
+                        "symlink",
+                        "gitlink"
+                      ]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1956,7 +2137,12 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": ["ok", "partial", "unsupported", "failed"]
+                              "enum": [
+                                "ok",
+                                "partial",
+                                "unsupported",
+                                "failed"
+                              ]
                             },
                             "language": {
                               "type": "string"
@@ -1965,7 +2151,10 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": ["string", "null"]
+                              "type": [
+                                "string",
+                                "null"
+                              ]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -2043,7 +2232,12 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "requirementIds", "before", "after"],
+          "required": [
+            "path",
+            "requirementIds",
+            "before",
+            "after"
+          ],
           "properties": {
             "path": {
               "type": "string"
@@ -2091,7 +2285,11 @@
                         "items": {
                           "type": "object",
                           "additionalProperties": false,
-                          "required": ["type", "from", "to"],
+                          "required": [
+                            "type",
+                            "from",
+                            "to"
+                          ],
                           "properties": {
                             "type": {
                               "type": "string"
@@ -2218,7 +2416,11 @@
                         "items": {
                           "type": "object",
                           "additionalProperties": false,
-                          "required": ["type", "from", "to"],
+                          "required": [
+                            "type",
+                            "from",
+                            "to"
+                          ],
                           "properties": {
                             "type": {
                               "type": "string"
@@ -2339,7 +2541,11 @@
                         "items": {
                           "type": "object",
                           "additionalProperties": false,
-                          "required": ["type", "from", "to"],
+                          "required": [
+                            "type",
+                            "from",
+                            "to"
+                          ],
                           "properties": {
                             "type": {
                               "type": "string"
@@ -2466,7 +2672,11 @@
                         "items": {
                           "type": "object",
                           "additionalProperties": false,
-                          "required": ["type", "from", "to"],
+                          "required": [
+                            "type",
+                            "from",
+                            "to"
+                          ],
                           "properties": {
                             "type": {
                               "type": "string"
@@ -2574,7 +2784,10 @@
                   "type": "string"
                 },
                 "side": {
-                  "enum": ["before", "after"]
+                  "enum": [
+                    "before",
+                    "after"
+                  ]
                 },
                 "status": {
                   "const": "unsupported"
@@ -2614,7 +2827,10 @@
                   "type": "string"
                 },
                 "side": {
-                  "enum": ["before", "after"]
+                  "enum": [
+                    "before",
+                    "after"
+                  ]
                 },
                 "status": {
                   "const": "partial"
@@ -2750,7 +2966,11 @@
                   "policy": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["id", "version", "fingerprint"],
+                    "required": [
+                      "id",
+                      "version",
+                      "fingerprint"
+                    ],
                     "properties": {
                       "id": {
                         "type": "string"
@@ -2767,7 +2987,10 @@
                   "evaluator": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["contractVersion", "fingerprint"],
+                    "required": [
+                      "contractVersion",
+                      "fingerprint"
+                    ],
                     "properties": {
                       "contractVersion": {
                         "const": "kibi.impact-evaluator.v1"
@@ -2804,7 +3027,10 @@
                   "reviewer": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["id", "source"],
+                    "required": [
+                      "id",
+                      "source"
+                    ],
                     "properties": {
                       "id": {
                         "type": "null"
@@ -2839,7 +3065,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "enum": ["A", "M", "R", "C", "T", "D"]
+                          "enum": [
+                            "A",
+                            "M",
+                            "R",
+                            "C",
+                            "T",
+                            "D"
+                          ]
                         },
                         "oldPath": {
                           "type": "string"
@@ -2848,10 +3081,19 @@
                           "type": "string"
                         },
                         "analysisDepth": {
-                          "enum": ["symbol", "metadata", "file", "none"]
+                          "enum": [
+                            "symbol",
+                            "metadata",
+                            "file",
+                            "none"
+                          ]
                         },
                         "disposition": {
-                          "enum": ["checked", "advisory", "skipped"]
+                          "enum": [
+                            "checked",
+                            "advisory",
+                            "skipped"
+                          ]
                         },
                         "skipReason": {
                           "enum": [
@@ -2872,7 +3114,10 @@
                           "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["start", "end"],
+                            "required": [
+                              "start",
+                              "end"
+                            ],
                             "properties": {
                               "start": {
                                 "type": "integer"
@@ -2888,7 +3133,10 @@
                           "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["start", "end"],
+                            "required": [
+                              "start",
+                              "end"
+                            ],
                             "properties": {
                               "start": {
                                 "type": "integer"
@@ -2936,7 +3184,11 @@
                                   "pattern": "^sha256:[0-9a-f]{64}$"
                                 },
                                 "kind": {
-                                  "enum": ["regular", "symlink", "gitlink"]
+                                  "enum": [
+                                    "regular",
+                                    "symlink",
+                                    "gitlink"
+                                  ]
                                 },
                                 "contentProjection": {
                                   "const": "proof_receipts_stripped"
@@ -2978,7 +3230,10 @@
                                           "type": "string"
                                         },
                                         "providerId": {
-                                          "type": ["string", "null"]
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ]
                                         },
                                         "providerStamp": {},
                                         "providerFingerprint": {
@@ -3088,7 +3343,11 @@
                                   "pattern": "^sha256:[0-9a-f]{64}$"
                                 },
                                 "kind": {
-                                  "enum": ["regular", "symlink", "gitlink"]
+                                  "enum": [
+                                    "regular",
+                                    "symlink",
+                                    "gitlink"
+                                  ]
                                 },
                                 "contentProjection": {
                                   "const": "proof_receipts_stripped"
@@ -3130,7 +3389,10 @@
                                           "type": "string"
                                         },
                                         "providerId": {
-                                          "type": ["string", "null"]
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ]
                                         },
                                         "providerStamp": {},
                                         "providerFingerprint": {
@@ -3248,7 +3510,11 @@
                                   "pattern": "^sha256:[0-9a-f]{64}$"
                                 },
                                 "kind": {
-                                  "enum": ["regular", "symlink", "gitlink"]
+                                  "enum": [
+                                    "regular",
+                                    "symlink",
+                                    "gitlink"
+                                  ]
                                 },
                                 "contentProjection": {
                                   "const": "proof_receipts_stripped"
@@ -3290,7 +3556,10 @@
                                           "type": "string"
                                         },
                                         "providerId": {
-                                          "type": ["string", "null"]
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ]
                                         },
                                         "providerStamp": {},
                                         "providerFingerprint": {
@@ -3397,7 +3666,11 @@
                                   "pattern": "^sha256:[0-9a-f]{64}$"
                                 },
                                 "kind": {
-                                  "enum": ["regular", "symlink", "gitlink"]
+                                  "enum": [
+                                    "regular",
+                                    "symlink",
+                                    "gitlink"
+                                  ]
                                 },
                                 "contentProjection": {
                                   "const": "proof_receipts_stripped"
@@ -3439,7 +3712,10 @@
                                           "type": "string"
                                         },
                                         "providerId": {
-                                          "type": ["string", "null"]
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ]
                                         },
                                         "providerStamp": {},
                                         "providerFingerprint": {
@@ -3617,7 +3893,10 @@
             "additionalProperties": true
           },
           "recoveryJournalId": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "deleted": {
             "type": "integer"
@@ -3771,7 +4050,10 @@
       {
         "type": "object",
         "additionalProperties": false,
-        "required": ["action", "skills"],
+        "required": [
+          "action",
+          "skills"
+        ],
         "properties": {
           "action": {
             "const": "list"
@@ -3807,12 +4089,17 @@
             "type": "string"
           }
         },
-        "required": ["action"]
+        "required": [
+          "action"
+        ]
       },
       {
         "type": "object",
         "additionalProperties": false,
-        "required": ["action", "content"],
+        "required": [
+          "action",
+          "content"
+        ],
         "properties": {
           "action": {
             "const": "read"
@@ -3848,7 +4135,9 @@
             "additionalProperties": true
           }
         },
-        "required": ["mode"]
+        "required": [
+          "mode"
+        ]
       },
       {
         "type": "object",
@@ -3916,7 +4205,10 @@
             }
           },
           "migrationWarning": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "logic": {
             "type": "object",
@@ -3972,7 +4264,9 @@
             }
           }
         },
-        "required": ["mode"]
+        "required": [
+          "mode"
+        ]
       },
       {
         "type": "object",
@@ -3994,10 +4288,16 @@
             }
           },
           "source": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "requirementId": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "subject": {
             "type": "string"
@@ -4023,7 +4323,10 @@
             ]
           },
           "recommendedPredicateSchema": {
-            "type": ["object", "null"]
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "applyPlan": {
             "type": "array",
@@ -4033,14 +4336,23 @@
             }
           },
           "relationshipPlan": {
-            "type": ["object", "null"]
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "plan": {
-            "type": ["object", "null"],
+            "type": [
+              "object",
+              "null"
+            ],
             "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies."
           },
           "relationshipTarget": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets."
           },
           "existingGrounding": {
@@ -4060,7 +4372,10 @@
             "description": "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one."
           },
           "replacementPlan": {
-            "type": ["object", "null"]
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "bindingHints": {
             "type": "array",
@@ -4077,7 +4392,9 @@
             }
           }
         },
-        "required": ["mode"]
+        "required": [
+          "mode"
+        ]
       }
     ]
   }

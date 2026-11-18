@@ -2209,6 +2209,14 @@ describe("a requirement summary's recorded reason", () => {
     expect(why("# Why: a comment\nnote: n\n", "S.\n")).toEqual({
       recorded: false,
     });
+    // The placeholder `why` writes in the field is not a reason either; a
+    // body section is tried instead.
+    expect(why("rationale: Reason not stated\n", "S.\n")).toEqual({
+      recorded: false,
+    });
+    expect(
+      why("rationale: Reason not stated.\n", "S.\n\n## Context\n\nReal.\n"),
+    ).toEqual({ recorded: true, text: "Real.", from: "section" });
   });
 
   test("split and supersede notes are not a reason", () => {

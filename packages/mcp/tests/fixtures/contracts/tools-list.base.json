@@ -3302,6 +3302,9 @@
                 "properties": {},
                 "type": "object"
               },
+              "verdictError": {
+                "type": "string"
+              },
               "written": {
                 "additionalProperties": {},
                 "properties": {},

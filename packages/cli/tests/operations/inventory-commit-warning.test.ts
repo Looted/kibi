@@ -3,6 +3,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { inventoryCommitWarnings } from "../../src/operations/mutation/inventory-commit-warning.js";
+import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
+import { semanticInventoryContract } from "../../src/operations/semantic-advisor/ingestion-boundary.js";
 
 const root = mkdtempSync(path.join(os.tmpdir(), "kibi-inventory-warning-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
@@ -32,6 +34,47 @@ describe("inventoryCommitWarnings", () => {
     );
     expect(warning).toContain(
       "kibi check --staged (the pre-commit hook) refuses to commit it",
+    );
+  });
+
+  test("counts the write's relationships, which live in the shards, as grounding", () => {
+    const text = "A user must have at most 5 sessions.";
+    const properties = { status: "open", semantic_text: text };
+    const payload = { type: "req", id: "REQ-m", properties };
+    const contract = semanticInventoryContract(
+      payload,
+      analyzeSemanticAdvisorInput({
+        payload: { ...payload, relationships: [] },
+      }).receipt,
+    );
+    const inventory = (
+      contract.semantic_inventory as Record<string, unknown>[]
+    ).map((entry) => ({ ...entry, status: "modeled" }));
+    const front = Object.entries({
+      ...properties,
+      ...contract,
+      semantic_inventory: inventory,
+    })
+      .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+      .join("\n");
+    const file = write(
+      ".kb/requirements/REQ-m.md",
+      `---\nid: REQ-m\ntitle: Session cap\ntype: req\n${front}\n---\n${text}\n`,
+    );
+    const link = { type: "requires_property", from: "REQ-m", to: "FACT-cap" };
+    expect(inventoryCommitWarnings("req", root, file)[0]).toContain(
+      "must equal logical grounding relationships (0)",
+    );
+    expect(inventoryCommitWarnings("req", root, file, [link])).toStrictEqual(
+      [],
+    );
+    // A link the file states too is counted once.
+    const linked = write(
+      ".kb/requirements/REQ-m.md",
+      `---\nid: REQ-m\ntitle: Session cap\ntype: req\n${front}\nlinks:\n  - type: requires_property\n    target: FACT-cap\n---\n${text}\n`,
+    );
+    expect(inventoryCommitWarnings("req", root, linked, [link])).toStrictEqual(
+      [],
     );
   });
 

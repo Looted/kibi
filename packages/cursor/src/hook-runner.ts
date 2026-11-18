@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -41,6 +42,7 @@ import {
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -62,7 +64,6 @@ import {
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
-  BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   interfaceAdvisory,
   stopFollowupMessage,
@@ -228,13 +229,17 @@ function emptyResult(): CursorHookResult {
   return {};
 }
 
-/** Whether the Cursor workspace root holds `.kb/manifest.json`, the initialized-project signal. */
-export function hasKibiConfig(cwd: string | undefined): boolean {
-  if (!cwd) {
-    return false;
-  }
-
-  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
+/**
+ * The Cursor window's Kibi workspace and whether it adopted Kibi: the nearest
+ * ancestor holding `.kb/manifest.json` (the initialized-project signal, not
+ * a leftover `.kb/config.json`), so a window opened on a subdirectory of a
+ * Kibi project belongs to it.
+ */
+export function cursorKibiWorkspace(
+  directory: string,
+  env: NodeJS.ProcessEnv,
+): { root: string; optedIn: boolean } {
+  return resolveKibiWorkspace(directory, env);
 }
 
 /**
@@ -284,6 +289,17 @@ function resolveWorkspaceRoot(
   return input.workspaceRoots?.[0] ?? input.cwd ?? process.cwd();
 }
 
+/** The workspace-relative paths among `paths` whose edits are tracked. */
+function trackedPaths(paths: readonly string[], cwd: string): string[] {
+  return paths
+    .map((candidate) => toRepoRelativePath(candidate, cwd))
+    .filter(
+      (candidate) =>
+        isMeaningfulTrackedPath(candidate) ||
+        isKbFreshnessRelevantPath(candidate),
+    );
+}
+
 function resolvePrimaryPath(
   input: ReturnType<typeof parseHookInput>,
 ): string | undefined {
@@ -303,8 +319,12 @@ export async function runHook(
   const input = parseHookInput(rawInput);
   const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
   const stateDir = resolveStateDir(pluginData, input.conversationId);
-  const cwd = resolveWorkspaceRoot(input);
-  const kibiReady = hasKibiConfig(cwd);
+  const workspace = cursorKibiWorkspace(
+    resolveWorkspaceRoot(input),
+    environment.env ?? process.env,
+  );
+  const cwd = workspace.root;
+  const kibiReady = workspace.optedIn;
   const workspaceTrusted = environment.workspaceTrusted === true;
   const initialState = loadHookState(stateDir);
   const session: DecisionSession = {
@@ -317,18 +337,9 @@ export async function runHook(
     switch (input.event) {
       case "sessionStart":
         trace.action = "session_start";
+        // A workspace that never adopted Kibi stays quiet, as on every host.
+        if (!kibiReady) return emptyResult();
         startDecisionSession(session, "startup");
-        if (!kibiReady) {
-          const advisory = interfaceAdvisory(
-            initialState.mcpState,
-            workspaceTrusted,
-          );
-          return {
-            additional_context: advisory
-              ? `${BOOTSTRAP_REMINDER}\n${advisory}`
-              : BOOTSTRAP_REMINDER,
-          };
-        }
         {
           const advisory = interfaceAdvisory(
             initialState.mcpState,
@@ -357,7 +368,9 @@ export async function runHook(
         }
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
-          isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
+          kibiReady &&
+          isEditLikeTool(input.toolName) &&
+          explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
           trace.action = "kb_direct_note";
@@ -482,18 +495,18 @@ export async function runHook(
       }
 
       case "postToolUse": {
-        if (kibiReady) {
-          try {
-            recordToolTelemetry(
-              input,
-              cwd,
-              stateDir,
-              startedAt,
-              environment.env,
-            );
-          } catch {
-            // Telemetry is best effort and must never change the hook's output.
-          }
+        // Nothing is tracked in a workspace that never adopted Kibi.
+        if (!kibiReady) return emptyResult();
+        try {
+          recordToolTelemetry(
+            input,
+            cwd,
+            stateDir,
+            startedAt,
+            environment.env,
+          );
+        } catch {
+          // Telemetry is best effort and must never change the hook's output.
         }
         const kbToolCall = extractKbMcpToolCall(
           input.toolName,
@@ -512,19 +525,32 @@ export async function runHook(
 
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         if (isKnownEditableTool(input.toolName)) {
-          const dirtyPaths = explicitPaths
-            .map((candidate) => toRepoRelativePath(candidate, cwd))
-            .filter(
-              (candidate) =>
-                isMeaningfulTrackedPath(candidate) ||
-                isKbFreshnessRelevantPath(candidate),
-            );
+          const dirtyPaths = trackedPaths(explicitPaths, cwd);
 
           if (dirtyPaths.length > 0) {
             addDirtyPaths(stateDir, dirtyPaths);
           }
           if (dirtyPaths.some(isSourceImpactRelevantPath)) {
             markDecisionFlag(session, "source-edited");
+          }
+        }
+        // A `sed -i`, `>` or `tee` through the shell edits files too; its
+        // rule note and capture template ride on this tool's result, since
+        // no pre-edit hook saw the edit.
+        const shellEdits = trackedPaths(
+          shellToolEditPaths(input.toolName, input.toolInput, input.cwd ?? cwd),
+          cwd,
+        );
+        let shellNote: string | undefined;
+        if (shellEdits.length > 0) {
+          addDirtyPaths(stateDir, shellEdits);
+          if (shellEdits.some(isSourceImpactRelevantPath)) {
+            markDecisionFlag(session, "source-edited");
+            const parts = [
+              takeRuleNote(session),
+              claimRuleCaptureTemplate(session),
+            ].filter((part): part is string => part !== undefined);
+            if (parts.length > 0) shellNote = parts.join("\n\n");
           }
         }
         // An MCP call is judged by its parsed name, under which a dry-run
@@ -539,8 +565,13 @@ export async function runHook(
           }
         }
 
+        if (shellNote !== undefined) {
+          trace.action = "shell_edit_note";
+          return { additional_context: shellNote };
+        }
+
         const primaryPath = resolvePrimaryPath(input);
-        if (!primaryPath || !kibiReady) {
+        if (!primaryPath) {
           return emptyResult();
         }
 

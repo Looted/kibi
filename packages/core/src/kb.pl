@@ -349,6 +349,10 @@ journal_encoded_length(Code, Length0, Length) :-
 
 journal_graph_uri(Directory, GraphURI) :-
     journal_expected_graph_uri(Directory, Expected),
+    forall(( rdf_graph(Graph),
+             Graph \== Expected,
+             \+ journal_file_name_fits(Graph) ),
+           merge_graph(Graph, Expected)),
     (   rdf_graph(Expected)
     ->  GraphURI = Expected
     ;   rdf_graph_property(Graph, triples(Triples)),
@@ -356,6 +360,21 @@ journal_graph_uri(Directory, GraphURI) :-
     ->  GraphURI = Graph
     ;   GraphURI = Expected
     ).
+
+% A store restored under a graph URI whose snapshot file name does not fit
+% (written before the short URIs, at a path whose name encodes to 248-251
+% bytes) could append to its journal but never write a snapshot.  Its triples
+% move to the short graph in one transaction, each once, and the old graph is
+% unloaded, which deletes its files.  A move cut off before the unload is
+% finished by the next attach, which finds every triple already moved.
+merge_graph(From, To) :-
+    rdf_transaction(
+        forall(rdf(S, P, O, From),
+               (   rdf(S, P, O, To)
+               ->  true
+               ;   rdf_assert(S, P, O, To)
+               ))),
+    rdf_unload_graph(From).
 
 kb_attach_legacy(Directory) :-
     % Create RDF graph name from directory
@@ -790,7 +809,20 @@ kb_storage_compact :-
     % mutalog-disable-next-line goal_true: a legacy store records no journal sentinel stamp, so the save inside the compaction fails for it as well
     kb_storage_mode(journaled),
     kb_attached(Directory),
-    with_kb_mutex(kb_storage_compact_locked(Directory)).
+    with_kb_mutex((
+        kb_storage_compact_locked(Directory),
+        snapshot_written
+    )).
+
+% kb_flush_journals/1 keeps the journal when it cannot write a clean snapshot,
+% so an explicit compaction that left a journal says so instead of passing.
+snapshot_written :-
+    (   snapshot_due([])
+    ->  throw(error(resource_error(kb_store_snapshot),
+                    context(kb_storage_compact/0,
+                            'the store journal was kept and no snapshot was written; the data is safe, run the compaction again later')))
+    ;   true
+    ).
 
 %% kb_storage_compact_if_needed
 % Compact only when the live journal has crossed the 16 MiB idle-compaction

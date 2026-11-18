@@ -582,8 +582,9 @@ export async function validateUpsertForCommit(
     );
     return analysis;
   };
-  let semantic: UpsertSemanticAnalysis;
+  let semantic!: UpsertSemanticAnalysis;
   let inventoryApplied: readonly ServerInventoryEntry[] | undefined;
+  let refusal: KbRejection | undefined;
   try {
     semantic = await boundary(input);
   } catch (error) {
@@ -605,6 +606,12 @@ export async function validateUpsertForCommit(
       error.code !== "INCOMPLETE_PROPOSITIONS"
     )
       throw error;
+    refusal = error;
+  }
+  // Partial entries are never a ledger on their own: they are completed from
+  // the prose even when the boundary let them through (a title with no claim
+  // of its own over a stored semantic_text).
+  if (refusal !== undefined || partialInventory) {
     const server = await withServerSemanticInventory(
       payload,
       input,
@@ -613,13 +620,15 @@ export async function validateUpsertForCommit(
       staged,
       lookup,
     );
-    // rationale: an unfilled write is refused again as is when re-judged.
-    // Stryker disable next-line ConditionalExpression
-    if (server.applied === undefined) throw error;
-    input = server.input;
-    validated = validateUpsertInput(input, context.clock());
-    semantic = await boundary(input);
-    inventoryApplied = server.applied;
+    if (server.applied !== undefined) {
+      input = server.input;
+      validated = validateUpsertInput(input, context.clock());
+      semantic = await boundary(input);
+      inventoryApplied = server.applied;
+    } else if (refusal !== undefined) {
+      // rationale: an unfilled write is refused again as is when re-judged.
+      throw refusal;
+    }
   }
   // Partial entries Kibi did not complete are judged as the entity they are.
   if (partialInventory && inventoryApplied === undefined)
@@ -1212,6 +1221,7 @@ export async function executeUpsert(
           input.type,
           context.workspaceRoot,
           sourceWrite?.receipt.path,
+          relationships,
         ),
         ...subjectWarnings,
         ...(input.type === "req"

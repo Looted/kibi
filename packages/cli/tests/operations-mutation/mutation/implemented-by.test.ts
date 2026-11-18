@@ -10,6 +10,7 @@ import {
   type ImplementedByDeps,
   executeUpsertRequest,
 } from "../../../src/operations/mutation/implemented-by.js";
+import { quantityWarnings } from "../../../src/operations/mutation/quantity-warnings.js";
 import type {
   UpsertInput,
   UpsertPayload,
@@ -75,6 +76,7 @@ function deps(
     failSymbol?: string;
     empty?: boolean;
     reads?: CaptureReads;
+    quantity?: string[];
   } = {},
 ): ImplementedByDeps & { calls: Recorded } {
   const calls: Recorded = { executed: [], validated: [] };
@@ -117,6 +119,7 @@ function deps(
     }) as unknown as ImplementedByDeps["validate"],
     storedSymbols: async () => options.stored ?? [],
     captureReads: () => options.reads,
+    quantityWarnings: () => options.quantity ?? [],
   };
 }
 
@@ -626,9 +629,10 @@ describe("executeUpsertRequest", () => {
     expect(result.structuredContent?.relatedRequirements).toEqual([
       { id: "REQ-key-age", statement: "Keys expire after 90 days." },
     ]);
+    const step = result.structuredContent?.nextActions?.[0];
     expect(result.content.map((part) => part.text)).toEqual([
       "wrote REQ-key-expiry",
-      "Left before kb_check passes: 1 step(s), each in nextActions with its input.",
+      `Left before kb_check passes: 1 step(s), also in nextActions:\n1. ${step?.operation} (claim-subject-missing): ${step?.reason} Input: ${JSON.stringify(step?.input)}`,
       "Current requirements on the same terms: REQ-key-age. If REQ-key-expiry replaces one, add a supersedes link to it and close it.",
     ]);
 
@@ -695,6 +699,42 @@ describe("executeUpsertRequest", () => {
       deps({ reads }),
     );
     expect(fact.structuredContent).not.toHaveProperty("nextActions");
+  });
+
+  test("adds the quantity warnings the linked code reveals, once", async () => {
+    const asked: unknown[] = [];
+    const using = deps({
+      quantity: ["warned REQ-key-expiry", "quantity-duplicate: twin"],
+    });
+    const seen = using.quantityWarnings;
+    const result = await executeUpsertRequest(
+      req([{ sourceFile: "src/keys.ts", symbol: "expireKey" }]),
+      CONTEXT,
+      {
+        ...using,
+        quantityWarnings: (input) => {
+          asked.push(input);
+          return seen(input);
+        },
+      },
+    );
+    expect(asked).toEqual([
+      {
+        type: "req",
+        id: "REQ-key-expiry",
+        entity: { id: "REQ-key-expiry", type: "req" },
+        relationships: [
+          { type: "specified_by", from: "REQ-key-expiry", to: "S" },
+        ],
+        workspaceRoot: CONTEXT.workspaceRoot,
+      },
+    ]);
+    expect(result.structuredContent?.warnings).toEqual([
+      "warned REQ-key-expiry",
+      "warned SYM-keys-expire-key",
+      "quantity-duplicate: twin",
+    ]);
+    expect(IMPLEMENTED_BY_DEPS.quantityWarnings).toBe(quantityWarnings);
   });
 
   test("the default capture reads need a store", () => {

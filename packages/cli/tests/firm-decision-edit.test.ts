@@ -46,6 +46,64 @@ describe("firm decision edits", () => {
     ).toEqual(["title"]);
   });
 
+  test("a requirement's recorded reason is part of its claim once it is given", () => {
+    const reasoned = (rationale: unknown): DecisionDocument => ({
+      ...RULE,
+      data: { ...RULE.data, rationale },
+    });
+    const upstream = reasoned("Upstream rate limits");
+    // Rewriting a recorded reason changes the decision.
+    expect(
+      decisionClaimChanges(upstream, reasoned("Three is a nice number")),
+    ).toEqual(["reason"]);
+    expect(decisionClaimChanges(upstream, RULE)).toEqual(["reason"]);
+    // Whitespace alone does not.
+    expect(
+      decisionClaimChanges(upstream, reasoned("  Upstream   rate limits ")),
+    ).toEqual([]);
+    // Giving a reason where none, or the placeholder, was recorded does not.
+    expect(decisionClaimChanges(RULE, upstream)).toEqual([]);
+    expect(
+      decisionClaimChanges(reasoned("Reason not stated"), upstream),
+    ).toEqual([]);
+    // A firm requirement's reason is guarded like its statement, and new
+    // human words release it.
+    expect(
+      unapprovedFirmEdit(upstream, reasoned("Three is a nice number")),
+    ).toEqual(["reason"]);
+    expect(
+      unapprovedFirmEdit(upstream, {
+        ...reasoned("Three is a nice number"),
+        data: {
+          ...reasoned("Three is a nice number").data,
+          origin: { kind: "import", ref: "docs/policy.md#L9" },
+        },
+      }),
+    ).toEqual([]);
+    // A new approval_ref releases it too, even when origin.ref is unchanged;
+    // the same approval_ref again does not.
+    const withApproval = (rationale: string, approval_ref: string) => ({
+      ...reasoned(rationale),
+      data: { ...reasoned(rationale).data, approval_ref },
+    });
+    expect(
+      unapprovedFirmEdit(upstream, withApproval("Three is enough", "yes, 3")),
+    ).toEqual([]);
+    expect(
+      unapprovedFirmEdit(
+        withApproval("Upstream rate limits", "yes, 3"),
+        withApproval("Three is enough", "yes, 3"),
+      ),
+    ).toEqual(["reason"]);
+    // An ADR has no recorded reason field; its body is its claim.
+    expect(
+      decisionClaimChanges(
+        { type: "adr", data: { title: "A", rationale: "x" }, body: "B\n" },
+        { type: "adr", data: { title: "A", rationale: "y" }, body: "B\n" },
+      ),
+    ).toEqual([]);
+  });
+
   test("whitespace-only rewording is not a claim change, but joining words is", () => {
     const retitle = (title: unknown) => ({
       ...RULE,

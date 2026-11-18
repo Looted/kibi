@@ -101,8 +101,9 @@ with the code (`git add .kb`). When
 
 ## Resources
 
-Read one with `kb_skills` (`action: "read"`, `id: "kibi-usage"`,
-`resource`) when the task needs it:
+Read one when the task needs it, with `kb_skills` (`action: "read"`,
+`id: "kibi-usage"`, `resource: "resources/<name>"`) or from the
+`resources/` folder beside this file:
 
 - Modeling a claim: `domain-subjects.md`, `quantified-claims.md`,
   `predicate-ontology.md`, `fact-lanes.md`, `logic-ir.md`

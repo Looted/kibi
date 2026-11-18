@@ -80,7 +80,9 @@ describe("a value fact that other requirements constrain", () => {
     ] as const) {
       const result = workspace.json(["upsert"], ceilingFact(200, extra));
       expect(result.status, JSON.stringify(result)).toBe("error");
-      expect((result.error as Json).code, JSON.stringify(result.error)).toBe(code);
+      expect((result.error as Json).code, JSON.stringify(result.error)).toBe(
+        code,
+      );
       const message = JSON.stringify(result.error);
       expect(message).toContain(
         "Contradiction detected for fact FACT-quota-ceiling: the write makes current requirements conflict",
@@ -120,14 +122,14 @@ describe("a value fact that other requirements constrain", () => {
     );
     expect(data.nextActions).toEqual([
       {
-        operation: "kb_upsert",
-        input: { id: "REQ-quota-ceiling" },
+        operation: "kb_query",
+        input: { id: "REQ-quota-ceiling", includeBody: true },
         reason: warnings[0],
         required: true,
       },
       {
-        operation: "kb_upsert",
-        input: { id: "REQ-quota-floor" },
+        operation: "kb_query",
+        input: { id: "REQ-quota-floor", includeBody: true },
         reason: warnings[1],
         required: true,
       },

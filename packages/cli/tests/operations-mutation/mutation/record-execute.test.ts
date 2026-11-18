@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import {
-  InputError,
-  KbRejection,
-  OperationError,
-} from "../../../src/cli-errors.js";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { InputError, KbRejection } from "../../../src/cli-errors.js";
 import {
   RECORD_DEPS,
   type RecordDeps,
@@ -104,6 +103,33 @@ describe("kb_record runs its one payload through kb_upsert, then kb_check change
       expect(found).toBe(true);
       expect(goals).toEqual(["once((kb_entity('REQ-a', _, _)))"]);
     });
+  });
+
+  test("an id whose requirement file exists is taken, compiled or not", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-record-exists-"));
+    try {
+      mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+      writeFileSync(
+        path.join(root, ".kb", "requirements", "REQ-on-disk.md"),
+        "---\nid: REQ-on-disk\n---\n",
+      );
+      const goals: string[] = [];
+      const exists = RECORD_DEPS.exists({
+        workspaceRoot: root,
+        prolog: {
+          query: async (goal: string) => {
+            goals.push(goal);
+            return { success: false, bindings: {} };
+          },
+        },
+      } as unknown as OperationContext);
+      expect(await exists("REQ-on-disk")).toBe(true);
+      expect(goals).toEqual([]);
+      expect(await exists("REQ-elsewhere")).toBe(false);
+      expect(goals).toEqual(["once((kb_entity('REQ-elsewhere', _, _)))"]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test("a write returns the payload, kb_upsert's result and the verdict", async () => {
@@ -275,22 +301,24 @@ describe("kb_record runs its one payload through kb_upsert, then kb_check change
     expect(calls.upserts).toEqual([]);
   });
 
-  test("a check that fails after the write says the requirement was written", async () => {
-    const { deps: fake } = deps({
+  test("a check that fails after the write returns the write and says not to record it again", async () => {
+    const { deps: fake, calls } = deps({
       check: async () => {
         throw new Error("no git index");
       },
     });
-    const error = (await executeRecord(INPUT, CONTEXT, fake).catch(
-      (failure: unknown) => failure,
-    )) as OperationError;
-    expect(error).toBeInstanceOf(OperationError);
-    expect(error.code).toBe("RECORD_VERDICT_FAILED");
-    expect(error.retryable).toBe(true);
-    expect(error.message).toBe(
-      "REQ-keys-rotate-yearly-2 was written by kb_upsert; kb_check changed:true failed after it: no git index. Run kb_check with changed:true for src/keys.ts, src/audit.ts to get the verdict.",
-    );
-    const thrown = (await executeRecord(
+    const result = await executeRecord(INPUT, CONTEXT, fake);
+    const verdictError =
+      "REQ-keys-rotate-yearly-2 was written by kb_upsert; kb_check changed:true failed after it: no git index. Do not record the rule again; run kb_check with changed:true for src/keys.ts, src/audit.ts to get the verdict.";
+    expect(result.structuredContent).toMatchObject({
+      id: "REQ-keys-rotate-yearly-2",
+      verdictError,
+    });
+    expect(result.structuredContent?.verdict).toBeUndefined();
+    expect(result.structuredContent?.commitAllowed).toBeUndefined();
+    expect(result.content.at(-1)).toEqual({ type: "text", text: verdictError });
+    expect(calls.upserts).toHaveLength(1);
+    const plain = await executeRecord(
       INPUT,
       CONTEXT,
       deps({
@@ -298,7 +326,9 @@ describe("kb_record runs its one payload through kb_upsert, then kb_check change
           throw "plain";
         },
       }).deps,
-    ).catch((failure: unknown) => failure)) as OperationError;
-    expect(thrown.message).toContain("failed after it: plain.");
+    );
+    expect(plain.structuredContent?.verdictError).toContain(
+      "failed after it: plain.",
+    );
   });
 });

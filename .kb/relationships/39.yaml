@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3e0c0f7e27d
+  - type: assumes
+    from: SCEN-NEG-closed-firm-requirement-guard-VIOLATED
+    to: FACT-NEG-closed-firm-requirement-guard-VIOLATED
+    created_at: 2026-11-17T19:23:35.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d519d955def5
