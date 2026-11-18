@@ -117,7 +117,6 @@ Translate them with this table:
 | `kb_model_requirement` | `kb_model` with `mode: "requirement"` | `kibi model-requirement`, or `kibi model` |
 | `kb_suggest_predicates` | `kb_model` with `mode: "predicates"` | `kibi suggest-predicates`, or `kibi model` |
 | `kb_validate_upsert` | `kb_upsert` with `dryRun: true` | `kibi validate-upsert`, or `kibi upsert` with `"dryRun": true` |
-| `kb_review_firm_edit` | none: run the CLI route the `firm_edit_unreviewed` finding prints | `kibi review-firm-edit` |
 | `kb_sparql_remote` | `kb_sparql_remote` (opt-in) | `kibi sparql-remote` |
 | `kb_job_status` | `kb_job_status` (opt-in) | none: jobs live in the server process |
 
@@ -553,7 +552,7 @@ A bootstrap plan (`kibi.bootstrap-plan.v1`) applies its actions one at a time, c
 
 After an applied migration on a healthy store, `remainingPlan` (`kibi.migration-plan-digest.v2`) reports what is left without repeating the whole plan: the merged plan's `planHash`, `status`, `expected`, `scope`, `summary` and `diagnostics`, the first 20 automatic actions as `{ id, code, state, autoApplicable, dependsOn }` (`automaticActions`), counts of all automatic actions (`automaticSummary`: `total`, `ready`, `blocked`, and `omitted` for those past the first 20), and every other action counted by `code`, `safety` and `state` (`actionGroups`). A digest cannot be applied; `kb_status`, `kb_check` and `kb_coverage` (or `kibi migrate`) return the full plan with each action's details. When an automatic action in the digest is `blocked`, its `next` text says so: the action waits for the actions in its `dependsOn` and needs no approval until a later plan shows it ready.
 
-**Engine daemon after a session.** MCP calls that use the branch store (for example `kb_apply_plan`, `kb_upsert`, `kb_check`) run in the workspace's engine daemon, a detached `engine-daemon` process with its own SWI-Prolog child that holds the branch store's `rdf/lock`. It is shared: later MCP sessions and CLI calls for the same workspace and branch reuse it. After the MCP server exits, the daemon and its lock stay until the daemon has been idle for 10 minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS` overrides this), then it exits and releases the lock (idle time is measured on the wall clock, so time the host spent suspended counts). A stopping daemon saves the store and detaches it, which removes `rdf/lock` and the ownership journal, before its SWI-Prolog child exits. A lock held by a live daemon is expected, not a stale lock: `kibi engine status` shows it and `kibi engine stop` ends it early. A lock whose process is gone is reclaimed automatically when the next engine starts, and `kb_status` reports the takeover in `notices` (`store_lock_taken_over`). A client only uses a daemon started with the same Kibi package versions (`kibi-cli@…,kibi-core@…`) and SWI-Prolog as its own: the daemon reports both in its handshake and refuses other requests from a client that differs, and the client stops such a daemon (for example one an older install started from a git hook) and starts its own. `kibi doctor` reports the package versions of the daemon that is running.
+**Engine daemon after a session.** MCP calls that use the branch store (for example `kb_apply_plan`, `kb_upsert`, `kb_check`) run in the workspace's engine daemon, a detached `engine-daemon` process with its own SWI-Prolog child that holds the branch store's `rdf/lock`. It is shared: later MCP sessions and CLI calls for the same workspace and branch reuse it. After the MCP server exits, the daemon and its lock stay until the daemon has been idle for 10 minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS` overrides this), then it exits and releases the lock (idle time is measured on the wall clock, so time the host spent suspended counts). A stopping daemon saves the store and detaches it, which removes `rdf/lock` and the ownership journal, before its SWI-Prolog child exits. A lock held by a live daemon is expected, not a stale lock: `kibi engine status` shows it and `kibi engine stop` ends it early. A lock whose process is gone is reclaimed automatically when the next engine starts, and `kb_status` reports the takeover in `notices` (`store_lock_taken_over`). A client only uses a daemon started with the same Kibi package versions (`kibi-cli@…,kibi-core@…`), Prolog core (a digest of its sources) and SWI-Prolog as its own, so two installs of one release share a daemon: the daemon reports both in its handshake and refuses other requests from a client that differs, and the client stops such a daemon (for example one an older install started from a git hook) and starts its own. `kibi doctor` reports the package versions of the daemon that is running.
 
 ### `kb_ingest_proof`
 
@@ -658,6 +657,13 @@ workspace <path>`, because a copied file never carries its advisory lock.
 It is recorded in `<store>/.kibi-lock-takeover.json`, shown for 24 hours
 (and by `kibi doctor`'s branch-store check), replaced by the next takeover,
 and deleted by `kibi engine janitor --apply` once it is older than that.
+`branch_store_repaired` (with the record's `path`) reports that an engine
+removed duplicate triple copies an earlier release saved in the branch store
+snapshot, and printed `kibi: repaired branch store ...` on stderr. It is
+recorded in `<store>/.kibi-store-repair.json` and shown for seven days (and
+by `kibi doctor`'s branch-store check as a warning), so answers given before
+the repair can be rechecked. See
+[Troubleshooting](troubleshooting.md#kibi-repaired-branch-store-on-stderr).
 
 **Example:**
 ```json
@@ -963,6 +969,31 @@ id whose requirement file already exists, compiled or not, gets the next
 The result is the same as `kb_upsert` of `upsert` followed by `kb_check` with
 `changed: true` for the same files: the same entities, relationships and
 verdict.
+
+### `kb_review_firm_edit`
+
+Record the agent's verdict on its change to code that implements a current
+firm requirement. `kibi check --staged` and `kb_check` with `changed: true`
+block such a change (`firm_edit_unreviewed`) until every edited symbol has a
+current `keeps` receipt, and the finding names this tool with the exact input
+to send. Listed in every tool profile. CLI: `kibi review-firm-edit --input -`.
+
+**Parameters:**
+- `reviews`: `[{ requirementId, sourceFile, symbol, verdict, note, requestQuote? }]`.
+  `verdict` is `keeps` (the change still does what the rule says) or `changes`
+  (it does not); `note` says why in one line.
+- `dryRun` (optional): validate every entry and write nothing.
+- `staged` (optional): read the code and the requirement from the Git index,
+  as the commit gate does.
+
+Each entry writes a receipt under `.kb/firm-edit-reviews/<REQ-id>/`, bound to
+the requirement's statement and the symbol's code; stage it with the change.
+A `keeps` receipt clears `firm_edit_unreviewed` for that symbol, and a
+`changes` receipt turns it into `firm_edit_breaks_rule`, which blocks until
+the requirement is superseded with the person's words. A receipt is the
+agent's judgment, never the person's approval, and `kibi signoff` lists it as
+such. Input rules, receipt matching and examples are in the CLI reference
+under `kibi review-firm-edit`.
 
 ### `kb_delete`
 
