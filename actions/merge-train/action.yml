@@ -16,15 +16,16 @@ inputs:
     default: ""
   checks:
     description: >-
-      Required check names, comma or newline separated. A pull request boards
-      only when these passed on its current head, and a train merges only when
-      they passed on its assembled head.
+      Required check names, one per line (a name may then hold a comma) or
+      comma separated on a single line. A pull request boards only when these
+      passed on its current head, and a train merges only when they passed on
+      its assembled head.
     required: true
   train-checks:
     description: >-
       Check names a train must also pass, on its assembled head, before it
-      merges, but that a pull request does not need to board, comma or newline
-      separated. Use it for a check too slow to run on every pull request, such
+      merges, but that a pull request does not need to board, listed like
+      checks. Use it for a check too slow to run on every pull request, such
       as a full proof that your workflows run only on train branches.
     required: false
     default: ""

@@ -314,6 +314,21 @@ describe("metadata and checks", () => {
 });
 
 describe("settings", () => {
+  test("a check name may hold a comma when the names are one per line", () => {
+    const settings = settingsFromEnv({
+      MERGE_TRAIN_BASE: "develop",
+      GH_REPO: "o/r",
+      MERGE_TRAIN_CHECKS: "Build + Unit Tests\nSecrets, dependencies, code\n",
+      MERGE_TRAIN_TRAIN_CHECKS: "slow, proof",
+    });
+    expect(settings.checks).toEqual([
+      "Build + Unit Tests",
+      "Secrets, dependencies, code",
+    ]);
+    // A single line is still comma separated.
+    expect(settings.trainChecks).toEqual(["slow", "proof"]);
+  });
+
   test("settingsFromEnv reads the action's configuration", () => {
     const settings = settingsFromEnv({
       MERGE_TRAIN_BASE: "develop",
@@ -341,7 +356,7 @@ describe("settings", () => {
       MERGE_TRAIN_BASE: "main",
       GH_REPO: "o/r",
       MERGE_TRAIN_CHECKS: "all",
-      MERGE_TRAIN_TRAIN_CHECKS: "slow-proof,\n all , e2e",
+      MERGE_TRAIN_TRAIN_CHECKS: "slow-proof\n all \n e2e",
       MERGE_TRAIN_LABEL: "ship",
       MERGE_TRAIN_MAX: "2",
       MERGE_TRAIN_PREFIX: "trains/",
