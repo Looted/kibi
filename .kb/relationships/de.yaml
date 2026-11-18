@@ -430,3 +430,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c00a223897d1
+  - type: implements
+    from: SYM-merge-train-process-runner
+    to: REQ-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:38.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f91820f474a
