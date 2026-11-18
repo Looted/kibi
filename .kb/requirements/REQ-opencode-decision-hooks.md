@@ -23,6 +23,8 @@ logic_claims:
 required_evidence: tested
 origin:
   kind: agent
+  approved_by: maintainer
+  ref: 'Maintainer-approved statement (2026-11-18, "Approve all"): "The OpenCode plugin must run the same decision guard as the Codex, Cursor and ZCode hooks, with the rule note, the capture template, the firm-edit stop and the idle capture request."'
   recorded_at: '2026-11-17T17:01:12.951Z'
 id: REQ-opencode-decision-hooks
 type: req

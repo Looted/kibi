@@ -23,6 +23,8 @@ logic_claims:
 required_evidence: tested
 origin:
   kind: agent
+  approved_by: maintainer
+  ref: 'Maintainer-approved statement (2026-11-18, "Approve all"): "Every host hook with a shell tool must count an in-place edit through that tool, such as sed -i, a redirection, tee or the same inside a shell -c script, as an edit of the files it writes."'
   recorded_at: '2026-11-17T17:02:23.812Z'
 id: REQ-agent-hosts-shell-edits-count
 type: req
