@@ -417,20 +417,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-74f990e25b0a
   - type: implements
-    from: SYM-agent-core-firm-edit-file-hash
-    to: REQ-kibi-staged-firm-edit-gate
-    created_at: 2026-11-18T06:12:43.967Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d2db613563d5
-  - type: covered_by
-    from: SYM-agent-core-firm-edit-file-hash
-    to: TEST-kibi-staged-firm-edit-gate
-    created_at: 2026-11-18T06:12:43.994Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e7de7c5dca05
-  - type: implements
     from: SYM-merge-train-process-runner
     to: REQ-merge-train-kb-merge-actions-run
     created_at: 2026-11-18T07:12:00.173Z

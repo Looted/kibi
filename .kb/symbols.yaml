@@ -46167,19 +46167,6 @@ symbols:
         target: TEST-closed-firm-requirement-guards
       - type: implements
         target: REQ-pre-edit-hooks-kibi-check-staged
-  - id: SYM-agent-core-firm-edit-file-hash
-    title: firmEditFileHash
-    sourceFile: packages/agent-core/src/firm-edit-review.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-18T06:12:43.179Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-staged-firm-edit-gate
-      - type: implements
-        target: REQ-kibi-staged-firm-edit-gate
   - id: SYM-env-is-kibi-or-process-env-key
     title: isKibiOrProcessEnvKey
     sourceFile: packages/cli/src/env/workspace-env-policy.ts
@@ -46206,19 +46193,6 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
-  - id: SYM-entity-context-is-retired-authored-status
-    title: isRetiredAuthoredStatus
-    sourceFile: packages/cli/src/public/operations/entity-context.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-18T06:43:41.940Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-firm-decision-edit
   - id: SYM-entity-context-is-current-authored-entity
     title: isCurrentAuthoredEntity
     sourceFile: packages/cli/src/public/operations/entity-context.ts
@@ -46232,25 +46206,6 @@ symbols:
         target: TEST-kb-entity-body-context
       - type: implements
         target: REQ-kb-entity-body-context
-  - id: SYM-agent-core-decision-guard-unlocated-symbols
-    title: unlocatedSymbols
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-18T06:49:40.667Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-firm-edit-ask
-      - type: implements
-        target: REQ-claude-firm-edit-confirmation
   - id: SYM-merge-train-merge-train-assemble
     title: MergeTrain.assemble
     sourceFile: actions/merge-train/merge-train.mts
