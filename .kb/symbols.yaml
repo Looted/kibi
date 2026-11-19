@@ -1,8 +1,8 @@
 # symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# Generated coordinates are stored separately in symbol-coordinates.yaml.
-# Run `kibi sync --refresh-symbol-coordinates` to refresh them.
+# Coordinates are derived from source by every `kibi sync` into the
+# gitignored symbol-coordinates.yaml; they are never authored or committed.
 #
 # Coordinate refresh granularity gate:
 #   The AST extractor locates per-declaration spans for code files. When it
