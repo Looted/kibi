@@ -219,7 +219,7 @@ The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFEREN
 
 ## Result over its size ceiling (`RESULT_TOO_LARGE`)
 
-A read operation's data was still larger than 64,000 characters after it was cut to its 24,000-character [result size budget](mcp-reference.md#result-size-budget). Nothing was written. Narrow the call (filters, a smaller `limit`, or `fields: "summary"`) and try again; the same call repeated unchanged fails the same way, so it is not retryable.
+A list or report read's data was still larger than 64,000 characters after it was cut to its 24,000-character [result size budget](mcp-reference.md#result-size-budget). Nothing was written. Narrow the call (filters, a smaller `limit`, or `fields: "summary"`) and try again; the same call repeated unchanged fails the same way, so it is not retryable.
 
 A result cut to the budget is not an error: it carries `truncated: true`, `truncation` and a `RESULT_TRUNCATED` info diagnostic, and its `nextActions` name the call with the next `offset`.
 
