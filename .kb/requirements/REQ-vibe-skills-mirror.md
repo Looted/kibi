@@ -33,9 +33,10 @@ origin:
   recorded_at: '2026-11-19T20:09:51.173Z'
 id: REQ-vibe-skills-mirror
 type: req
+firmness: firm
 ---
 ## Context
 
-Requested by the maintainer (2026-11-19): every host plugin mirrors the canonical skills; the Vibe mirror needs name=id frontmatter (Vibe requires name to match the directory) and a CI drift check like the other hook bundles. Source: scripts/sync-agent-skills.ts and .github/workflows/ci.yml.
+Requested by the maintainer (2026-11-19): like the other host plugin bundles, kibi-vibe mirrors the canonical skills into packages/vibe/skills via sync-agent-skills --target vibe, with the frontmatter name set to the skill id because Vibe requires name to match the skill directory, and CI drift-checks the mirror. Source: scripts/sync-agent-skills.ts, .github/workflows/ci.yml.
 
-See the linked scenario for the executable behavior.
+See the linked scenarios for the executable behavior.

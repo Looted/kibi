@@ -42,9 +42,10 @@ origin:
   recorded_at: '2026-11-19T20:09:42.283Z'
 id: REQ-vibe-mcp-launcher-contract
 type: req
+firmness: firm
 ---
 ## Context
 
-Requested by the maintainer (2026-11-19) when wiring Kibi MCP into Mistral Vibe Desktop on Windows: the host must never show a connection failure outside Kibi projects, and the 16 kb_* tools must appear in Kibi workspaces. Source: packages/vibe/bin/launch-kibi-mcp.mjs and packages/vibe/bin/kibi.mjs.
+Requested by the maintainer (2026-11-19) when wiring Kibi MCP into Mistral Vibe Desktop: the kibi-vibe plugin's stdio server is started by packages/vibe/bin/launch-kibi-mcp.mjs, and the host must never show a connection failure outside Kibi projects. Inside a workspace owning .kb/manifest.json the launcher spawns the real server so every kb_* tool answers; outside one it serves a silent zero-tool MCP server and exits 0, and bin/kibi.mjs exits 3 before spawning any CLI route. Source: packages/vibe/bin/launch-kibi-mcp.mjs, packages/vibe/bin/kibi.mjs, packages/vibe/mcp.json.
 
-See the linked scenario for the executable behavior.
+See the linked scenarios for the executable behavior.
