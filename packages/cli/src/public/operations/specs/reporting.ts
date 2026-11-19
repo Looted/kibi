@@ -393,16 +393,21 @@ export async function perContractTestBindings(
 export const COVERAGE_ROW_PAGE_SIZE = 10;
 
 /**
- * The check time a coverage report is computed at: the start of the current
+ * The check time a coverage report is computed at: the end of the current
  * window. The engine keeps the last report for the same arguments and check
  * time, so repeated calls and the pages after the first reuse it instead of
- * recomputing it; a receipt's age is judged at most one window early.
+ * recomputing it. The end, not the start: a receipt recorded earlier in the
+ * window is never judged as dated after the check, and a receipt's age is
+ * judged at most one window late.
  */
 export const COVERAGE_CLOCK_WINDOW_MS = 15 * 60 * 1000;
 
 export function coverageCheckTime(now: Date): string {
   const time = now.getTime();
-  return new Date(time - (time % COVERAGE_CLOCK_WINDOW_MS)).toISOString();
+  const intoWindow = time % COVERAGE_CLOCK_WINDOW_MS;
+  return new Date(
+    intoWindow === 0 ? time : time - intoWindow + COVERAGE_CLOCK_WINDOW_MS,
+  ).toISOString();
 }
 
 export async function readCoveragePages(

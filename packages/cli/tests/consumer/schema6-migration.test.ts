@@ -72,7 +72,7 @@ function applyApprovedPlan(ws: ConsumerWorkspace, planHash: string): Json {
 }
 
 function entities(ws: ConsumerWorkspace, type: string): Entity[] {
-  const result = ws.json(["query"], { type });
+  const result = ws.json(["query"], { type, fields: "full" });
   return (result.data as Json).entities as Entity[];
 }
 

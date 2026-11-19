@@ -517,9 +517,9 @@ describe("executeCoverage", () => {
       context({ prolog: plain }),
     );
     expect(coverageGoals(plain)).toEqual([
-      "discovery:coverage_report_json('req', [], false, true, 10, 0, 'unknown', '2026-03-04T05:00:00.000Z', 604800, JsonString))",
-      `discovery:coverage_report_json('symbol', ['core'], true, false, 4, 1, '${"f".repeat(64)}', '2026-03-04T05:00:00.000Z', 604800, JsonString))`,
-      "discovery:coverage_report_json('req', [], false, ['tested','missing','unresolved','not_applicable'], true, 10, 0, 'unknown', '2026-03-04T05:00:00.000Z', 604800, JsonString))",
+      "discovery:coverage_report_json('req', [], false, true, 10, 0, 'unknown', '2026-03-04T05:15:00.000Z', 604800, JsonString))",
+      `discovery:coverage_report_json('symbol', ['core'], true, false, 4, 1, '${"f".repeat(64)}', '2026-03-04T05:15:00.000Z', 604800, JsonString))`,
+      "discovery:coverage_report_json('req', [], false, ['tested','missing','unresolved','not_applicable'], true, 10, 0, 'unknown', '2026-03-04T05:15:00.000Z', 604800, JsonString))",
     ]);
     Reflect.deleteProperty(process.env, "KIBI_PROOF_BINDING_MODE");
     const bound = engine((goal) => {
@@ -548,9 +548,9 @@ describe("executeCoverage", () => {
       goal.replace(/'[0-9a-f]{64}'/g, "HASH"),
     );
     expect([perContract, filtered, byType]).toEqual([
-      "discovery:coverage_report_json('req', [], false, per_contract, _{'T-1': HASH}, true, 3, 0, 'unknown', '2026-03-04T05:00:00.000Z', 604800, JsonString))",
-      "discovery:coverage_report_json('req', [], false, ['tested'], per_contract, _{'T-1': HASH}, true, 3, 0, 'unknown', '2026-03-04T05:00:00.000Z', 604800, JsonString))",
-      "discovery:coverage_report_json('type', [], false, true, 3, 0, 'unknown', '2026-03-04T05:00:00.000Z', 604800, JsonString))",
+      "discovery:coverage_report_json('req', [], false, per_contract, _{'T-1': HASH}, true, 3, 0, 'unknown', '2026-03-04T05:15:00.000Z', 604800, JsonString))",
+      "discovery:coverage_report_json('req', [], false, ['tested'], per_contract, _{'T-1': HASH}, true, 3, 0, 'unknown', '2026-03-04T05:15:00.000Z', 604800, JsonString))",
+      "discovery:coverage_report_json('type', [], false, true, 3, 0, 'unknown', '2026-03-04T05:15:00.000Z', 604800, JsonString))",
     ]);
   });
 

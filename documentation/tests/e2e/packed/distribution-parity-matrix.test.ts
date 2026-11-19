@@ -134,11 +134,14 @@ function requirementDocument(
   const renderedLinks = links.length
     ? `links:\n${links.map((link) => `  - type: ${link.type}\n    target: ${link.target}`).join("\n")}\n`
     : "";
+  // A tag per fixture lets each coverage capability read its own row whole,
+  // within the result size budget.
   return `---
 id: ${id}
 title: Distribution parity fixture ${id}
 status: open
 priority: must
+tags: [${id.toLowerCase()}]
 ${renderedLinks}---
 
 ${id} must expose a stable requirement-compiler outcome.
@@ -467,7 +470,17 @@ function capabilityInput(capability: RequirementCompilerCapability): {
       return {
         tool: "kb_coverage",
         route: "coverage",
-        input: { by: "req", includePassing: true, limit: 100 },
+        input: {
+          by: "req",
+          includePassing: true,
+          limit: 100,
+          fields: "full",
+          tags: [
+            capability === "proof_receipts"
+              ? "req-matrix-receipt"
+              : "req-matrix-incomplete",
+          ],
+        },
       };
     case "proof_contract":
       return {

@@ -335,13 +335,24 @@ describe("fitOperationResult", () => {
   test("refuses a read larger than the ceiling", () => {
     expect(() =>
       fitOperationResult(
-        { name: "kb_status", effects: ["kb-read"] },
+        { name: "kb_coverage", effects: ["kb-read"] },
         {},
         { content: [], structuredContent: { big: "c".repeat(70_000) } },
       ),
     ).toThrow(
       expect.objectContaining({ code: RESULT_TOO_LARGE, retryable: false }),
     );
+  });
+
+  test("passes a bounded output that has no smaller form whole", () => {
+    const fitted = fitOperationResult(
+      { name: "kb_prepare_impact_review", effects: ["kb-read"] },
+      {},
+      { content: [], structuredContent: { big: "c".repeat(70_000) } },
+    );
+    expect(fitted.result.structuredContent).toEqual({
+      big: "c".repeat(70_000),
+    });
   });
 
   test("does not refuse a write after it committed", () => {

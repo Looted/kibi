@@ -232,15 +232,18 @@ describe("summarizeCoverageRow", () => {
 });
 
 describe("coverageCheckTime", () => {
-  test("rounds down to its window, so repeated calls reuse the report", () => {
+  test("rounds up to the end of its window, so repeated calls reuse the report", () => {
     expect(coverageCheckTime(new Date("2026-03-04T05:06:07.000Z"))).toBe(
-      "2026-03-04T05:00:00.000Z",
+      "2026-03-04T05:15:00.000Z",
     );
     expect(coverageCheckTime(new Date("2026-03-04T05:14:59.999Z"))).toBe(
-      "2026-03-04T05:00:00.000Z",
+      "2026-03-04T05:15:00.000Z",
     );
     expect(coverageCheckTime(new Date("2026-03-04T05:15:00.000Z"))).toBe(
       "2026-03-04T05:15:00.000Z",
+    );
+    expect(coverageCheckTime(new Date("2026-03-04T05:15:00.001Z"))).toBe(
+      "2026-03-04T05:30:00.000Z",
     );
   });
 });

@@ -68,9 +68,12 @@ returned. Call again with offset 15 for the next rows.`, and a `nextActions`
 entry that repeats the call with that `offset`. A larger `limit` returns the
 same page; page with `offset` or narrow the filters.
 
-A read whose data is still larger than 64,000 characters after its cut is
-refused with `RESULT_TOO_LARGE` (not retryable). A write has already committed,
-so its result is returned as it is. The `kibi coverage`, `kibi report`,
+A list or report read whose data is still larger than 64,000 characters after
+its cut is refused with `RESULT_TOO_LARGE` (not retryable). An output that has
+no smaller form to ask for, such as `kb_status`, a skill or the
+`kb_prepare_impact_review` template, is sized by what the call asked about and
+is returned whole. A write has already committed, so its result is returned as
+it is. The `kibi coverage`, `kibi report`,
 `kibi signoff`, `kibi migrate` and `kibi query` commands print the whole
 report, since they do not hand it to an agent.
 

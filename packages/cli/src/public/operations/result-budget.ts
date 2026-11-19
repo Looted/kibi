@@ -448,8 +448,12 @@ export function refuseOverCeiling(
   ceiling: number = RESULT_CEILING_CHARS,
 ): void {
   const readOnly = !spec.effects.some((effect) => WRITE_EFFECTS.has(effect));
+  // A bounded output (a status, a skill, a review template) is sized by what
+  // the caller asked about and has no smaller form to ask for, so it passes
+  // whole; the ceiling catches a list or report whose own cut failed.
+  const narrowable = resultBudgetFor(spec.name)?.kind !== "bounded";
   const size = sizeOf(data);
-  if (readOnly && size > ceiling) {
+  if (readOnly && narrowable && size > ceiling) {
     throw new OperationError(
       RESULT_TOO_LARGE,
       `${spec.name} produced ${size.toLocaleString("en-US")} characters of data, over the ${ceiling.toLocaleString("en-US")}-character ceiling for a tool result. Narrow the call (filters, a smaller limit or fields "summary") and try again.`,
