@@ -1,5 +1,5 @@
 ---
-title: 'Failure side: a read result over 64,000 characters is refused'
+title: 'Failure side: a list or report read over 64,000 characters is refused'
 status: active
 expects: rejection
 tags:

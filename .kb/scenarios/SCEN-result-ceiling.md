@@ -1,5 +1,5 @@
 ---
-title: A read result over 64,000 characters is refused
+title: A list or report read over 64,000 characters is refused
 status: active
 expects: success
 tags:
@@ -10,6 +10,6 @@ origin:
 id: SCEN-result-ceiling
 type: scenario
 ---
-Given a read operation whose data stays over 64,000 characters after its cut, when it returns, then the call fails with RESULT_TOO_LARGE and no data.
+Given a list or report read whose data stays over 64,000 characters after its cut, when it returns, then the call fails with RESULT_TOO_LARGE and no data; a bounded output of the same size is returned whole.
 
 The suites of TEST-kibi-result-budget exercise it.

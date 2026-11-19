@@ -1,5 +1,5 @@
 ---
-title: 'Failure side: a returned read result is at most 64,000 characters'
+title: 'Failure side: a returned list or report read is at most 64,000 characters'
 status: active
 fact_kind: property_value
 subject_key: kibi.operation_result

@@ -1,5 +1,5 @@
 ---
-title: A returned read result is at most 64,000 characters
+title: A returned list or report read is at most 64,000 characters
 status: active
 fact_kind: property_value
 subject_key: kibi.operation_result
@@ -14,10 +14,10 @@ tags:
 origin:
   kind: agent
   recorded_at: '2026-11-19T16:00:00.000Z'
-claim_key: CLAIM-AA3C191D2A8A9B73
-claim_text: A read operation result larger than 64,000 characters must be refused with RESULT_TOO_LARGE
+claim_key: CLAIM-EF5419EC9C36D96C
+claim_text: A list or report read result larger than 64,000 characters must be refused with RESULT_TOO_LARGE
 text_ref: REQ-result-ceiling
 id: FACT-result-ceiling-chars
 type: fact
 ---
-A read operation never returns data over 64,000 characters; past it the call fails with RESULT_TOO_LARGE. Grounds the clause of REQ-result-ceiling.
+A list or report read never returns data over 64,000 characters; past it the call fails with RESULT_TOO_LARGE. Bounded outputs are returned whole. Grounds the clause of REQ-result-ceiling.
