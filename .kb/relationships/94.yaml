@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf50cedbb352
+  - type: assumes
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: FACT-NEG-VIBE-WORKSPACE-CWD-ONLY
+    created_at: 2026-11-19T22:37:23.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df5145331e0
+  - type: verified_by
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:23.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6e2f51d7b1

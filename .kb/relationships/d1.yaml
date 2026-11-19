@@ -601,3 +601,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0cfdf8a61f71
+  - type: specified_by
+    from: REQ-vibe-wsl-safe-spawn
+    to: SCEN-NEG-vibe-wsl-spawn-shell-string
+    created_at: 2026-11-19T22:37:26.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d9f956a410f
