@@ -97,7 +97,9 @@ Seed entity for semantic parity tests.
 `;
 }
 
-export async function createParityWorkspace(): Promise<ParityWorkspace> {
+export async function createParityWorkspace(
+  extraDocuments: readonly { path: string; body: string }[] = [],
+): Promise<ParityWorkspace> {
   const root = await mkdtemp(path.join(os.tmpdir(), "kibi-parity-"));
   try {
     await runWorkspaceCommand(root, ["git", "init", "-b", "contracts-seed"]);
@@ -114,6 +116,15 @@ export async function createParityWorkspace(): Promise<ParityWorkspace> {
       const filePath = path.join(root, entity.source);
       await mkdir(path.dirname(filePath), { recursive: true });
       await writeFile(filePath, entityDocument(entity), "utf8");
+    }
+    for (const document of extraDocuments) {
+      const filePath = path.join(root, document.path);
+      await mkdir(path.dirname(filePath), { recursive: true });
+      await writeFile(filePath, document.body, "utf8");
+    }
+    // Sync reads documents Git knows about.
+    if (extraDocuments.length > 0) {
+      await runWorkspaceCommand(root, ["git", "add", "-A"]);
     }
     await runWorkspaceCommand(root, ["bun", "run", KIBI_BIN, "sync"]);
   } catch (error) {

@@ -595,7 +595,7 @@ describe("buildRepairPlan", () => {
     });
     expect(partial.status).toBe("partial");
     expect(partial.diagnostics).toEqual([
-      "Repair plan is partial: 2 actionable requirement(s) were excluded by coverage pagination; rerun with offset 0 and a larger limit.",
+      "Repair plan is partial: 2 actionable requirement(s) are outside this coverage page; read the following pages with offset to plan them.",
     ]);
     expect(
       plan([row], { offset: 1 }, { proofMissing: 1, proofUnresolved: 0 }).scope,

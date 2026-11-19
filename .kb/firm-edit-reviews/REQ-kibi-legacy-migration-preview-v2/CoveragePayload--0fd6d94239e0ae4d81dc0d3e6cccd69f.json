@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-legacy-migration-preview-v2",
+  "sourceFile": "packages/cli/src/public/operations/specs/reporting.ts",
+  "symbol": "CoveragePayload",
+  "verdict": "keeps",
+  "note": "legacyMigrationPlan is still emitted in full with includeMigrationPreview in both summary and full fields, through the same fitted result over CLI and MCP; the payload only gains summary, paging and matched fields.",
+  "statementHash": "sha256:9f7fa8b935289de178016ce86f4ebc73a9aba3d47074979fa2e66da45e7ea9e6",
+  "codeHash": "sha256:b906df8f406ce538fed63f89f0640854df198db38dc81f4a672f722d795d2422",
+  "startLine": 118,
+  "endLine": 134,
+  "recordedAt": "2026-11-19T15:20:19.988Z"
+}

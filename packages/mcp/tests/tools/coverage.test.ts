@@ -69,7 +69,10 @@ describe("MCP coverage tool handler", () => {
       query,
       invalidateCache: () => {},
     } as unknown as PrologProcess;
-    const result = await handleKbCoverage(prolog, { by: "req" });
+    const result = await handleKbCoverage(prolog, {
+      by: "req",
+      fields: "full",
+    });
 
     expect(result.structuredContent?.summary.total).toBe(2);
     expect(result.structuredContent?.rows[0]?.coverageDepth).toBe(

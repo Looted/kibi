@@ -35,28 +35,19 @@
       "proofSnapshotAvailable": false,
       "proofSnapshotError": "The active operation runtime does not expose workspace snapshots."
     },
-    "repairPlan": {
+    "repairPlanSummary": {
       "version": "kibi.repair-plan.v1",
-      "planId": "repair-plan-ee5693e5d1bf8e9104b3da6c",
-      "readOnly": true,
+      "planId": "repair-plan-90cbb3ddbd54a9dafc2b0746",
       "status": "ready",
-      "codeSnapshot": "unknown",
       "scope": {
         "by": "req",
         "tags": [],
         "offset": 0,
-        "limit": 100,
+        "limit": 1,
         "complete": true,
         "actionableRequirements": 1,
         "returnedActionableRequirements": 1,
         "excludedByPagination": 0
-      },
-      "applicationPolicy": {
-        "queryBeforeMutation": true,
-        "createEndpointsBeforeRelationships": true,
-        "validateBeforeEachWrite": true,
-        "sequentialUpsertsOnly": true,
-        "recheckCoverageAfterEachBatch": true
       },
       "summary": {
         "requirementCount": 1,
@@ -65,118 +56,10 @@
         "readyBatchCount": 1,
         "blockedBatchCount": 0
       },
-      "batches": [
-        {
-          "id": "repair-040-REQ-a-manifest_links",
-          "order": 40,
-          "phase": "manifest_links",
-          "requirementId": "REQ-a",
-          "state": "ready",
-          "dependsOn": [],
-          "objective": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints.",
-          "workflowSteps": [
-            "kb_query",
-            "kb_validate_upsert",
-            "kb_upsert",
-            "kb_check"
-          ],
-          "validationRules": [
-            "semantic-completeness",
-            "logic-coverage",
-            "predicate-verifiability",
-            "rule-safety",
-            "rule-verifiability",
-            "no-dangling-refs"
-          ],
-          "writePolicy": "sequential_upsert",
-          "autoApplicable": false,
-          "repairs": [
-            {
-              "requirementId": "REQ-a",
-              "gap": "missing_logic_claims",
-              "proofPriority": 30,
-              "proofStage": "logic_grounding",
-              "action": "Ground the claims.",
-              "evidence": {}
-            }
-          ]
-        }
-      ],
-      "diagnostics": []
-    },
-    "migrationPlan": {
-      "version": "kibi.migration-plan.v2",
-      "expected": {
-        "branch": null,
-        "kbBranch": null,
-        "kbSnapshotId": "snap-9",
-        "workspaceSnapshot": "unknown",
-        "configHash": null
-      },
-      "scope": {
-        "evaluatedDomains": ["proof", "semantic", "symbol"],
-        "incompleteDomains": ["coverage"],
-        "complete": false
-      },
-      "actions": [
-        {
-          "id": "coverage-repair-040-REQ-a-manifest_links",
-          "code": "coverage_manifest_links",
-          "category": "semantic",
-          "state": "ready",
-          "safety": "review",
-          "invocation": {
-            "kind": "review",
-            "instruction": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints."
-          },
-          "affectedEntityIds": ["REQ-a"],
-          "affectedFiles": [],
-          "dependsOn": [],
-          "preconditions": [],
-          "postconditions": [],
-          "evidence": {
-            "batch": {
-              "id": "repair-040-REQ-a-manifest_links",
-              "order": 40,
-              "phase": "manifest_links",
-              "requirementId": "REQ-a",
-              "state": "ready",
-              "dependsOn": [],
-              "objective": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints.",
-              "workflowSteps": [
-                "kb_query",
-                "kb_validate_upsert",
-                "kb_upsert",
-                "kb_check"
-              ],
-              "validationRules": [
-                "semantic-completeness",
-                "logic-coverage",
-                "predicate-verifiability",
-                "rule-safety",
-                "rule-verifiability",
-                "no-dangling-refs"
-              ],
-              "writePolicy": "sequential_upsert",
-              "autoApplicable": false,
-              "repairs": [
-                {
-                  "requirementId": "REQ-a",
-                  "gap": "missing_logic_claims",
-                  "proofPriority": 30,
-                  "proofStage": "logic_grounding",
-                  "action": "Ground the claims.",
-                  "evidence": {}
-                }
-              ]
-            }
-          },
-          "autoApplicable": false,
-          "dispositionRequired": true,
-          "allowedDispositions": ["fixed", "accepted", "deferred"]
-        }
-      ],
       "diagnostics": [],
+      "hint": "Pass fields: \"full\" (with filters or a small limit) for the batches and actions; kb_check includeMigrationPlan or kb_status gives the plan kb_apply_plan applies."
+    },
+    "migrationPlanSummary": {
       "planHash": "d0fd9e509f73c1093cfa320fea9fc1bf26fcc01685e82f7bb6047b745ef2d0fa",
       "status": "partial",
       "summary": {
@@ -187,7 +70,12 @@
         "reviewActionCount": 1,
         "operatorActionCount": 0,
         "executionActionCount": 0
-      }
+      },
+      "actionsByCode": {
+        "coverage_manifest_links": 1
+      },
+      "blockedActionIds": [],
+      "hint": "Pass fields: \"full\" (with filters or a small limit) for the batches and actions; kb_check includeMigrationPlan or kb_status gives the plan kb_apply_plan applies."
     }
   }
 }

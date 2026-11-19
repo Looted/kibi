@@ -8,7 +8,10 @@ import type {
   OperationContext,
   RuntimeOperationSpec,
 } from "../public/operations/runtime-types.js";
-import { coverageSpec } from "../public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../public/operations/specs/reporting.js";
 import { KIBI_BRAND, renderKibiBadge } from "../report/brand.js";
 import {
   type HtmlReportCoverage,
@@ -98,19 +101,20 @@ async function executeCoverageInContext(
   tags: readonly string[],
   limit: number,
 ): Promise<ReportCoverage> {
+  // The report reads every row, past the budget kb_coverage keeps.
   const requirements = await coverageSpec.execute(
-    {
+    withFullListing({
       by: "req",
       tags,
       includePassing: true,
       includeTransitive: true,
       limit,
       offset: 0,
-    },
+    }),
     context,
   );
   const symbols = await coverageSpec.execute(
-    {
+    withFullListing({
       by: "symbol",
       tags,
       includePassing: false,
@@ -118,7 +122,7 @@ async function executeCoverageInContext(
       // Only the complete summary is needed for the unowned-code metric.
       limit: 0,
       offset: 0,
-    },
+    }),
     context,
   );
   if (!requirements.structuredContent || !symbols.structuredContent) {

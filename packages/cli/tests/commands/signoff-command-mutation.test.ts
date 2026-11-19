@@ -9,7 +9,10 @@ import {
   defaultSignoffFormat,
   signoffCommand,
 } from "../../src/commands/signoff.js";
-import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../../src/public/operations/specs/reporting.js";
 import { earliestUnmetGate } from "../../src/report/html-report.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 import * as collect from "../../src/signoff/collect.js";
@@ -416,14 +419,14 @@ describe("default proof loading", () => {
       structuredContent: { rows },
     }));
     expect(inputs).toStrictEqual([
-      {
+      withFullListing({
         by: "req",
         tags: [],
         includePassing: true,
         includeTransitive: true,
         limit: 100_000,
         offset: 0,
-      },
+      }),
     ]);
     expect(closed).toStrictEqual([{ status: "success", result: 8 }]);
     const plain = (row: Record<string, unknown>) => ({

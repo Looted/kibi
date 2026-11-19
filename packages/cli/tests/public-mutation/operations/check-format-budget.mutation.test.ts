@@ -3,12 +3,14 @@ import type { QualityDiagnostic } from "../../../src/public/impact/types.js";
 import {
   type CheckStructuredContent,
   fitScopedCheckToBudget,
+  fitSymbolDebtToBudget,
   formatViolationText,
+  pageCheckFindings,
 } from "../../../src/public/operations/check-format-shared.js";
 import type { Violation } from "../../../src/utils/rule-registry.js";
 
 const HINT =
-  "The result was cut to its size budget. Narrow sourceFiles, or pass rules to list those rules' findings in full; kibi check --format json lists every finding.";
+  "The result was cut to its size budget. Narrow sourceFiles, or pass rules to page through those rules' findings; kibi check --format json lists every finding.";
 const size = (value: unknown) => JSON.stringify(value).length;
 
 function violation(index: number, extra: Partial<Violation> = {}): Violation {
@@ -179,11 +181,11 @@ describe("fitScopedCheckToBudget", () => {
   });
 
   test("blocking findings are listed in full up to four fifths of the budget", () => {
-    const input = content(40);
+    const input = content(200);
     const cost = size(violation(0)) + size(diagnostic(0)) + 2;
     // A budget whose four fifths hold the base and exactly `listed` findings.
     let found: { budget: number; listed: number } | undefined;
-    for (let budget = 1000; budget < size(input) && !found; budget += 5) {
+    for (let budget = 4000; budget < size(input) && !found; budget += 5) {
       const base = size({
         ...truncated(input, budget),
         violations: [],
@@ -200,7 +202,7 @@ describe("fitScopedCheckToBudget", () => {
     expect(fitted.violationGroups).toStrictEqual([
       {
         rule: "required-fields",
-        count: 40 - found.listed,
+        count: 200 - found.listed,
         entityIds: input.violations
           .slice(found.listed, found.listed + 20)
           .map((v) => v.entityId),
@@ -208,6 +210,19 @@ describe("fitScopedCheckToBudget", () => {
         suggestion: "Add title",
       },
     ]);
+  });
+
+  test("the grouped rest takes room from the listed findings when it needs it", () => {
+    const input = content(40);
+    // A fifth of this budget cannot hold the group of the rest.
+    const budget = 1500;
+    const fitted = fitScopedCheckToBudget(input, budget);
+    expect(size(fitted)).toBeLessThanOrEqual(budget);
+    expect(fitted.violations.length).toBeGreaterThan(0);
+    expect(fitted.violations.length).toBeLessThan(40);
+    expect(fitted.violationGroups?.[0]?.count).toBe(
+      40 - fitted.violations.length,
+    );
   });
 
   test("a finding that does not fit is grouped, one that fits is listed", () => {
@@ -283,5 +298,82 @@ describe("formatViolationText listings", () => {
     expect(text).toContain(
       "- required-fields ×3 | REQ-1, REQ-2, … | Missing title | Suggestion: Add title\n- no-cycles ×1 | REQ-3 | Cycle",
     );
+  });
+});
+
+describe("pageCheckFindings", () => {
+  test("a first page within the budget is returned as is", () => {
+    const input = content(3);
+    expect(pageCheckFindings(input, 0, true, false, size(input))).toBe(input);
+  });
+
+  test("lists the findings in pages and names the next offset", () => {
+    const input = content(40);
+    const budget = 2_000;
+    const first = pageCheckFindings(input, 0, true, false, budget);
+    expect(size(first)).toBeLessThanOrEqual(budget);
+    const listed = first.violations.length;
+    expect(listed).toBeGreaterThan(0);
+    expect(first.diagnostics).toHaveLength(listed);
+    expect(first.violations).toStrictEqual(input.violations.slice(0, listed));
+    expect(first.count).toBe(40);
+    expect(first.truncated).toBe(true);
+    expect(first.truncation).toStrictEqual({
+      budgetChars: budget,
+      returned: listed,
+      total: 40,
+      omitted: 40 - listed,
+      nextOffset: listed,
+      hint: "The rule selection's findings are listed in pages; call again with offset for the next page. kibi check --format json lists every finding.",
+    });
+    const second = pageCheckFindings(input, listed, true, false, budget);
+    expect(second.violations[0]).toStrictEqual(input.violations[listed]);
+    const last = pageCheckFindings(input, 38, true, false, budget);
+    expect(last.violations).toStrictEqual(input.violations.slice(38));
+    expect(last.truncated).toBe(true);
+    expect(last.truncation).toStrictEqual({
+      budgetChars: budget,
+      returned: 2,
+      total: 40,
+      omitted: 0,
+      hint: "This is the last page of the rule selection's findings.",
+    });
+  });
+
+  test("a finding larger than the budget is cut like an unscoped check", () => {
+    const input = content(1, {
+      violations: [violation(0, { description: "d".repeat(1_000) })],
+      diagnostics: [{ ...diagnostic(0), message: "m".repeat(1_000) }],
+    } as Partial<CheckStructuredContent>);
+    const page = pageCheckFindings(input, 0, true, false, 1_800);
+    expect(size(page)).toBeLessThanOrEqual(1_800);
+    expect(page.violations).toStrictEqual([]);
+    expect(page.violationGroups?.[0]?.count).toBe(1);
+  });
+});
+
+describe("fitSymbolDebtToBudget", () => {
+  const files = Array.from({ length: 50 }, (_, index) => ({
+    path: `src/f${index}.ts`,
+    unrecorded: ["a", "b"],
+  }));
+  const debt = { total: 100, fileCount: 50, files };
+
+  test("keeps a debt list that fits, or a count without a list", () => {
+    const input = content(1);
+    expect(fitSymbolDebtToBudget(input, debt, 100_000)).toBe(debt);
+    const counted = { total: 100, fileCount: 50 };
+    expect(fitSymbolDebtToBudget(input, counted, 10)).toBe(counted);
+  });
+
+  test("lists the files that fit and counts the rest", () => {
+    const input = content(1);
+    const budget = size(input) + 600;
+    const fitted = fitSymbolDebtToBudget(input, debt, budget);
+    const shown = fitted.files?.length ?? 0;
+    expect(shown).toBeGreaterThan(0);
+    expect(fitted.files).toStrictEqual(files.slice(0, shown));
+    expect(fitted.filesOmitted).toBe(50 - shown);
+    expect(size({ ...input, symbolDebt: fitted })).toBeLessThanOrEqual(budget);
   });
 });

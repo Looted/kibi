@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-612820d6b4a6
+  - type: implements
+    from: SYM-cli-result-too-large-code
+    to: REQ-result-ceiling
+    created_at: 2026-11-19T15:47:51.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b81f614479c
+  - type: covered_by
+    from: SYM-cli-result-too-large-code
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:51.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23a757f92a82

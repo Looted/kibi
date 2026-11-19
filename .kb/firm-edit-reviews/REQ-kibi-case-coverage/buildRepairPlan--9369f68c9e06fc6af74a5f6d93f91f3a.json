@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-case-coverage",
+  "sourceFile": "packages/cli/src/public/operations/repair-plan.ts",
+  "symbol": "buildRepairPlan",
+  "verdict": "keeps",
+  "note": "Only the partial-plan diagnostic wording changed to point at paging with offset; case coverage and its gating are untouched.",
+  "statementHash": "sha256:1664443e585b621b59cc97b9163ba3a93f7cacb92592aac40824991d8c7e8f8f",
+  "codeHash": "sha256:45b1fbdc0ea0ed4a5b79907df4b60d4af94f9974b38702e092fd250bca3df9f2",
+  "startLine": 662,
+  "endLine": 757,
+  "recordedAt": "2026-11-19T15:20:19.988Z"
+}

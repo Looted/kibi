@@ -163,8 +163,8 @@ describe("shared reporting operation executors", () => {
       ],
     });
 
-    const first = await coverageSpec.execute({}, context);
-    const second = await coverageSpec.execute({}, context);
+    const first = await coverageSpec.execute({ fields: "full" }, context);
+    const second = await coverageSpec.execute({ fields: "full" }, context);
 
     expect(first.structuredContent?.repairPlan).toMatchObject({
       version: "kibi.repair-plan.v1",
