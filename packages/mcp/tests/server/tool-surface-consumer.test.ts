@@ -166,7 +166,7 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists all 18 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists all 19 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
     const listed = await connect(workspace);
     expect((await listed.listTools()).tools.map((tool) => tool.name)).toEqual(
