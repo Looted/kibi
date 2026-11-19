@@ -1,5 +1,5 @@
 {
-  "preparationVersion": "kibi.impact-review-preparation.v1",
+  "preparationVersion": "kibi.impact-review-preparation.v2",
   "status": "ready_for_authoring",
   "recordHeaders": {
     "contractVersion": "kibi.impact-review.v1",
@@ -18,302 +18,84 @@
       "providerSetFingerprint": "provider-fp"
     }
   },
+  "fileCount": 4,
   "files": [
     {
       "path": "a.ts",
-      "newHunkRanges": [],
-      "before": null,
-      "after": {
-        "analysis": {
-          "providerId": "prov",
-          "providerFingerprint": "pf",
-          "diagnosticCodes": [],
-          "status": "unsupported",
-          "obligation": {
-            "kind": "unsupported_review"
-          }
-        }
-      }
+      "analysis": {
+        "before": null,
+        "after": "unsupported"
+      },
+      "requirementIds": ["REQ-missing"],
+      "pendingObligations": 1
     },
     {
       "path": "m.ts",
-      "newHunkRanges": [],
-      "before": {
-        "analysis": {
-          "providerId": "prov",
-          "providerFingerprint": "pf",
-          "diagnosticCodes": [],
-          "obligation": {
-            "kind": "none"
-          }
-        }
+      "analysis": {
+        "before": null,
+        "after": "failed"
       },
-      "after": {
-        "analysis": {
-          "providerId": "prov",
-          "providerFingerprint": "pf",
-          "diagnosticCodes": [],
-          "status": "failed",
-          "obligation": {
-            "kind": "blocked"
-          }
-        }
-      }
+      "requirementIds": [],
+      "pendingObligations": 0
     },
     {
       "path": "n.ts",
-      "newHunkRanges": [],
-      "after": {}
+      "analysis": {
+        "before": null,
+        "after": null
+      },
+      "requirementIds": [],
+      "pendingObligations": 0
     },
     {
       "path": "z.ts",
-      "newHunkRanges": [
-        {
-          "start": 1,
-          "end": 2
-        }
-      ],
-      "before": {
-        "analysis": {
-          "providerId": "prov",
-          "providerFingerprint": "pf",
-          "diagnosticCodes": ["b", "a"],
-          "status": "unsupported",
-          "obligation": {
-            "kind": "unsupported_review"
-          }
-        }
+      "analysis": {
+        "before": "unsupported",
+        "after": "partial"
       },
-      "after": {
-        "analysis": {
-          "providerId": "prov",
-          "providerFingerprint": "pf",
-          "diagnosticCodes": ["C1", "C0"],
-          "status": "partial",
-          "obligation": {
-            "kind": "partial_review",
-            "ranges": [
-              {
-                "startLine": 3,
-                "endLine": 4
-              }
-            ]
-          }
-        }
-      }
+      "requirementIds": ["REQ-a", "REQ-b"],
+      "pendingObligations": 2
     }
   ],
-  "requirementScopes": [
+  "requirements": [
     {
-      "path": "a.ts",
-      "requirementIds": ["REQ-missing"],
-      "before": [
-        {
-          "id": "REQ-missing",
-          "state": "absent",
-          "entityFingerprint": null,
-          "artifactPath": null,
-          "sourcePath": null,
-          "relationships": [],
-          "relatedEntities": []
-        }
-      ],
-      "after": [
-        {
-          "id": "REQ-missing",
-          "state": "absent",
-          "entityFingerprint": null,
-          "artifactPath": null,
-          "sourcePath": null,
-          "relationships": [],
-          "relatedEntities": []
-        }
-      ]
+      "id": "REQ-a",
+      "before": {
+        "state": "present",
+        "entityFingerprint": "fa",
+        "artifactPath": ".kb/a.md"
+      },
+      "after": {
+        "state": "present",
+        "entityFingerprint": "fa2",
+        "artifactPath": ".kb/a.md"
+      }
     },
     {
-      "path": "z.ts",
-      "requirementIds": ["REQ-a", "REQ-b"],
-      "before": [
-        {
-          "id": "REQ-a",
-          "state": "present",
-          "entityFingerprint": "fa",
-          "artifactPath": ".kb/a.md",
-          "sourcePath": null,
-          "entity": {
-            "id": "REQ-a",
-            "title": "A",
-            "type": "req",
-            "zeta": 1
-          },
-          "relationships": [
-            {
-              "type": "constrains",
-              "from": "REQ-a",
-              "to": "REQ-b"
-            },
-            {
-              "type": "depends_on",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "requires_predicate",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "requires_property",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "requires_rule",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "specified_by",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "supersedes",
-              "from": "REQ-a",
-              "to": "REQ-c"
-            },
-            {
-              "type": "validates",
-              "from": "REQ-a",
-              "to": "REQ-gone"
-            },
-            {
-              "type": "validates",
-              "from": "REQ-ab",
-              "to": "REQ-a"
-            },
-            {
-              "type": "verified_by",
-              "from": "REQ-c",
-              "to": "REQ-a"
-            }
-          ],
-          "relatedEntities": [
-            {
-              "id": "REQ-ab",
-              "type": "test",
-              "entityFingerprint": null,
-              "artifactPath": null,
-              "sourcePath": null,
-              "entity": {
-                "id": "REQ-ab",
-                "type": "test"
-              }
-            },
-            {
-              "id": "REQ-b",
-              "type": "req",
-              "entityFingerprint": "fb",
-              "artifactPath": ".kb/b.md",
-              "sourcePath": "src/b",
-              "entity": {
-                "id": "REQ-b",
-                "title": "B",
-                "type": "req"
-              }
-            },
-            {
-              "id": "REQ-c",
-              "type": null,
-              "entityFingerprint": null,
-              "artifactPath": null,
-              "sourcePath": ".kb/c.md",
-              "entity": {
-                "id": "REQ-c",
-                "title": "C"
-              }
-            }
-          ]
-        },
-        {
-          "id": "REQ-b",
-          "state": "present",
-          "entityFingerprint": "fb",
-          "artifactPath": ".kb/b.md",
-          "sourcePath": "src/b",
-          "entity": {
-            "id": "REQ-b",
-            "title": "B",
-            "type": "req"
-          },
-          "relationships": [
-            {
-              "type": "constrains",
-              "from": "REQ-a",
-              "to": "REQ-b"
-            }
-          ],
-          "relatedEntities": [
-            {
-              "id": "REQ-a",
-              "type": "req",
-              "entityFingerprint": "fa",
-              "artifactPath": ".kb/a.md",
-              "sourcePath": null,
-              "entity": {
-                "id": "REQ-a",
-                "title": "A",
-                "type": "req",
-                "zeta": 1
-              }
-            }
-          ]
-        }
-      ],
-      "after": [
-        {
-          "id": "REQ-a",
-          "state": "present",
-          "entityFingerprint": "fa2",
-          "artifactPath": ".kb/a.md",
-          "sourcePath": ".kb/a.md",
-          "entity": {
-            "id": "REQ-a",
-            "title": "A2",
-            "type": "req"
-          },
-          "relationships": [
-            {
-              "type": "depends_on",
-              "from": "REQ-b",
-              "to": "REQ-a"
-            }
-          ],
-          "relatedEntities": [
-            {
-              "id": "REQ-b",
-              "type": "req",
-              "entityFingerprint": null,
-              "artifactPath": null,
-              "sourcePath": null,
-              "entity": {
-                "id": "REQ-b",
-                "title": "B",
-                "type": "req"
-              }
-            }
-          ]
-        },
-        {
-          "id": "REQ-b",
-          "state": "absent",
-          "entityFingerprint": null,
-          "artifactPath": null,
-          "sourcePath": null,
-          "relationships": [],
-          "relatedEntities": []
-        }
-      ]
+      "id": "REQ-b",
+      "before": {
+        "state": "present",
+        "entityFingerprint": "fb",
+        "artifactPath": ".kb/b.md"
+      },
+      "after": {
+        "state": "absent",
+        "entityFingerprint": null,
+        "artifactPath": null
+      }
+    },
+    {
+      "id": "REQ-missing",
+      "before": {
+        "state": "present",
+        "entityFingerprint": "fm",
+        "artifactPath": ".kb/m.md"
+      },
+      "after": {
+        "state": "absent",
+        "entityFingerprint": null,
+        "artifactPath": null
+      }
     }
   ],
   "residualReviewObligations": [
@@ -350,5 +132,21 @@
       "wholeFile": true,
       "pending": true
     }
-  ]
+  ],
+  "authoring": {
+    "operation": "kb_author_impact_review",
+    "recordPath": ".kibi/impact-review.json",
+    "authoredFields": [
+      "files[].decision",
+      "files[].analysisReviews",
+      "reviewer.id",
+      "reviewedAt"
+    ],
+    "schema": {
+      "id": "urn:kibi:impact-review:v1",
+      "skill": "kibi-commit-review",
+      "resource": "resources/impact-review.schema.json"
+    },
+    "instructions": "Decide each file, then send the decisions with recordHeaders.scope.fingerprint to kb_author_impact_review; Kibi adds the evidence, validates the record and writes it. Stage the record with git add -f. Kibi generates no decision, approval, signature or proof."
+  }
 }

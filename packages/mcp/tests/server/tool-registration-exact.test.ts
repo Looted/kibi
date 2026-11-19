@@ -345,6 +345,9 @@ describe("registerConfiguredTools, exact", () => {
     const { registered } = setup();
     await run(registered, "kb_prepare_impact_review", { r: 1 });
     expect(review).toStrictEqual([[{ r: 1 }, context]]);
+    const author = stub(getSpec("kb_author_impact_review"), "execute");
+    await run(registered, "kb_author_impact_review", { a: 1 });
+    expect(author).toStrictEqual([[{ a: 1 }, context]]);
   });
 
   test("compile, apply and ingest prefer runtime hooks, else the shared executors", async () => {

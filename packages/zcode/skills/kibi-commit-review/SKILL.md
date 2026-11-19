@@ -1,10 +1,10 @@
 ---
 name: kibi-commit-review
-description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, how merge commits and migration renames are judged, and which requirement a newly listed symbol belongs to without making that requirement too broad."
+description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope and kb_author_impact_review to write the record, the kibi signoff requirements summary to show before a commit, how merge commits and migration renames are judged, and which requirement a newly listed symbol belongs to without making that requirement too broad."
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.10.0
+  version: 1.11.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -14,6 +14,7 @@ metadata:
     - agent-guidance
   resources:
     - resources/staged-gate.md
+    - resources/impact-review.schema.json
 ---
 ## Goal
 
@@ -131,11 +132,21 @@ also demands a content-bound review record at `.kibi/impact-review.json`
 (`Staged impact review failed: impact_review_invalid ...`). Prepare it with
 `kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) (`scope: {"kind":"staged"}`, or `{"kind":"diff",
 "baseCommit":"<40-hex sha>","headCommit":"<40-hex sha>"}` for a pull
-request). It is read-only: it returns per-file evidence, requirement scopes,
-residual review obligations and an unauthored record template. Draft each
-file's `decision` from what you verified, leave `reviewer.id` for the person
-who reviews, and never present the record as their approval. Field details are
-in `resources/staged-gate.md`.
+request). It is read-only: it returns a row per changed file with its
+requirement ids and pending obligations, each requirement once with its
+fingerprints, and full evidence only for the `paths` you name. Decide each
+file from what you verified, then write the record with
+`kb_author_impact_review` (CLI `kibi author-impact-review --input -`, staged
+scope), passing `recordHeaders.scope.fingerprint`; Kibi adds the evidence,
+validates the record and keeps earlier decisions for unchanged files. Stage it
+with `git add -f .kibi/impact-review.json`. Put the person's id in
+`reviewer.id` only when they reviewed it, and never present the record as
+their approval. When the person will review and sign, do not write the record:
+save your decisions as the author input, with `"reviewer": {"id": ""}`, to
+`.kibi/impact-review-decisions.json` and give them
+`npx --no-install kibi author-impact-review --input .kibi/impact-review-decisions.json`
+to run after they add their id; the gate stays shut until they do. Field details are in `resources/staged-gate.md`; the record
+schema is `resources/impact-review.schema.json`.
 
 ## Merge commits and migrations
 

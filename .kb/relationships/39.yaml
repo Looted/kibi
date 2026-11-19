@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d519d955def5
+  - type: implements
+    from: SYM-impact-review-preparation-without-analysis-reviews
+    to: REQ-impact-review-named-evidence
+    created_at: 2026-11-19T20:42:16.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-230472334cb4
+  - type: covered_by
+    from: SYM-impact-review-preparation-without-analysis-reviews
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T20:42:16.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30aa2aae72ab

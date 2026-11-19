@@ -35,7 +35,7 @@ import {
   type TargetHost,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
-import { IMPACT_REVIEW_PATH } from "./decision-seeds";
+import { IMPACT_DECISIONS_PATH, IMPACT_REVIEW_PATH } from "./decision-seeds";
 import { FixtureSetupError, stopFixtureEngine } from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { SKILLOPT_EVALUATION_BRANCH } from "./permissions";
@@ -111,14 +111,14 @@ export async function readWorkspaceSources(
     }
   };
   await visit(WORKSPACE_SOURCE_ROOT);
-  // The impact-review record the commit-review cases draft lives outside src/.
-  try {
-    files[IMPACT_REVIEW_PATH] = await readFile(
-      join(workspaceRoot, IMPACT_REVIEW_PATH),
-      "utf8",
-    );
-  } catch {
-    // No record was written.
+  // The impact-review record and the drafted decisions the commit-review
+  // cases write live outside src/.
+  for (const path of [IMPACT_REVIEW_PATH, IMPACT_DECISIONS_PATH]) {
+    try {
+      files[path] = await readFile(join(workspaceRoot, path), "utf8");
+    } catch {
+      // Nothing was written there.
+    }
   }
   return files;
 }

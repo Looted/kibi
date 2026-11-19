@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4951e409d8b7
+  - type: assumes
+    from: SCEN-NEG-impact-review-author-scope-fingerprint-STALE-SCOPE
+    to: FACT-NEG-impact-review-author-scope-fingerprint-STALE-SCOPE
+    created_at: 2026-11-19T19:11:56.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2287be0d1466

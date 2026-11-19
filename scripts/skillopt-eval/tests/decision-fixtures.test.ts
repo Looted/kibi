@@ -43,6 +43,7 @@ import {
   DECISION_IDS,
   DECISION_RULE_TITLE,
   DECISION_SUBJECT_KEY,
+  IMPACT_DECISIONS_PATH,
   IMPACT_REVIEW_PATH,
 } from "../runtime/decision-seeds";
 import { runIndependentFinalState } from "../runtime/final-state";
@@ -709,6 +710,15 @@ const UNSTAGE_ANSWER = [
   "```",
 ].join("\n");
 
+/** A Kibi command the person runs themselves; it must succeed. */
+async function personRunsKibi(
+  staged: Staged,
+  args: readonly string[],
+): Promise<void> {
+  const run = await cli(staged.workspace, args);
+  expect(`${run.exitCode}\n${run.output}`).toStartWith("0\n");
+}
+
 /** What the person runs after the agent: stage, then the gates. */
 async function personRunsGate(
   staged: Staged,
@@ -1075,54 +1085,69 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
         const prepared = await agent.data("kb_prepare_impact_review", {
           scope: { kind: "staged" },
         });
-        const authorship = prepared.authorship as Record<string, unknown>;
-        const template = authorship.recordTemplate as Record<string, unknown>;
-        const record = structuredClone(
-          template.record as Record<string, unknown>,
-        );
-        for (const file of record.files as Record<string, unknown>[]) {
-          file.analysisReviews = [];
-          file.decision =
-            file.path === "src/fixture.ts"
-              ? {
-                  kind: "impact",
-                  requirementIds: [DECISION_IDS.rule],
-                  knowledge: {
-                    state: "still_current",
+        const headers = prepared.recordHeaders as {
+          scope: { fingerprint: string };
+        };
+        const files = (prepared.files as Record<string, unknown>[]).map(
+          (file) => ({
+            path: file.path,
+            analysisReviews: [],
+            decision:
+              file.path === "src/fixture.ts"
+                ? {
+                    kind: "impact",
+                    requirementIds: [DECISION_IDS.rule],
+                    knowledge: {
+                      state: "still_current",
+                      rationale:
+                        "The error message now names the rejected value; the 32 character limit is unchanged.",
+                    },
+                  }
+                : {
+                    kind: "no_impact",
+                    reason: "generated symbol coordinates",
                     rationale:
-                      "The error message now names the rejected value; the 32 character limit is unchanged.",
+                      "Only the generated line coordinates of fixtureFamily moved.",
                   },
-                }
-              : {
-                  kind: "no_impact",
-                  reason: "generated symbol coordinates",
-                  rationale:
-                    "Only the generated line coordinates of fixtureFamily moved.",
-                };
-        }
+          }),
+        );
+        // The person signs: the agent drafts the write's input and leaves
+        // reviewer.id for them.
         await agent.edit(
-          IMPACT_REVIEW_PATH,
-          `${JSON.stringify(record, null, 2)}\n`,
+          IMPACT_DECISIONS_PATH,
+          `${JSON.stringify(
+            {
+              scope: { kind: "staged" },
+              scopeFingerprint: headers.scope.fingerprint,
+              reviewer: { id: "" },
+              files,
+            },
+            null,
+            2,
+          )}\n`,
         );
         return [
-          `I drafted ${IMPACT_REVIEW_PATH}: src/fixture.ts impacts ${DECISION_IDS.rule}, which is still current. The reviewer id is yours to fill in after you review it; then run:`,
+          `I drafted the review decisions in ${IMPACT_DECISIONS_PATH}: src/fixture.ts impacts ${DECISION_IDS.rule}, which is still current. Once you have reviewed them, put your id in reviewer.id and run:`,
           "",
           "```bash",
-          `git add ${IMPACT_REVIEW_PATH}`,
+          `npx --no-install kibi author-impact-review --input ${IMPACT_DECISIONS_PATH}`,
+          `git add -f ${IMPACT_REVIEW_PATH}`,
           "npx --no-install kibi check --staged",
           "```",
         ].join("\n");
       },
     );
-    // The person reviews and signs the record, then stages it.
-    const path = join(staged.workspace, IMPACT_REVIEW_PATH);
-    const record = JSON.parse(await readFile(path, "utf8"));
-    record.reviewer = {
-      id: "reviewer@example.test",
-      source: "self-claimed-local",
-    };
-    record.reviewedAt = "2026-10-21T12:00:00.000Z";
-    await writeFile(path, `${JSON.stringify(record, null, 2)}\n`, "utf8");
+    // The person reviews the decisions, signs them and writes the record.
+    const draftPath = join(staged.workspace, IMPACT_DECISIONS_PATH);
+    const draft = JSON.parse(await readFile(draftPath, "utf8"));
+    draft.reviewer = { id: "reviewer@example.test" };
+    draft.reviewedAt = "2026-10-21T12:00:00.000Z";
+    await writeFile(draftPath, `${JSON.stringify(draft, null, 2)}\n`, "utf8");
+    await personRunsKibi(staged, [
+      "author-impact-review",
+      "--input",
+      IMPACT_DECISIONS_PATH,
+    ]);
     await personRunsGate(staged, [IMPACT_REVIEW_PATH]);
   }, 600_000);
 

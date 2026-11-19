@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-20b5165c7fee
+  - type: implements
+    from: SYM-impact-review-authoring-assert-scope-fingerprint
+    to: REQ-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:12:01.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c6eb6e1ac96
+  - type: covered_by
+    from: SYM-impact-review-authoring-assert-scope-fingerprint
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:01.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a28daa45b73

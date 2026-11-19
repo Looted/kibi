@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { readFile } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import Ajv from "ajv";
 import Ajv2020 from "ajv/dist/2020.js";
@@ -87,7 +87,7 @@ describe("semantic MCP/CLI operation parity", () => {
   }, 30_000);
 
   afterAll(() => {
-    expect(PARITY_CASES).toHaveLength(26);
+    expect(PARITY_CASES).toHaveLength(27);
   });
 
   for (const parityCase of PARITY_CASES) {
@@ -153,29 +153,21 @@ describe("semantic MCP/CLI operation parity", () => {
           const output = JSON.parse(cli.stdout) as {
             data?: {
               preparationVersion?: string;
+              recordHeaders?: { scope?: { fingerprint?: string } };
+              fileCount?: number;
               files?: readonly { path: string }[];
               residualReviewObligations?: readonly { pending?: boolean }[];
-              authorship?: {
-                recordTemplate?: {
-                  record?: {
-                    reviewer?: { id?: unknown };
-                    reviewedAt?: unknown;
-                    files?: readonly {
-                      decision?: unknown;
-                      analysisReviews?: unknown;
-                    }[];
-                  };
-                };
-              };
+              authoring?: { operation?: string };
             };
           };
           expect(output.data?.preparationVersion).toBe(
-            "kibi.impact-review-preparation.v1",
+            "kibi.impact-review-preparation.v2",
           );
           expect(
             validateOutput(JSON.parse(cli.stdout)),
             JSON.stringify(validateOutput.errors),
           ).toBe(true);
+          expect(output.data?.fileCount).toBe(1);
           expect(output.data?.files?.map(({ path: file }) => file)).toEqual([
             "notes/review.txt",
           ]);
@@ -184,37 +176,57 @@ describe("semantic MCP/CLI operation parity", () => {
               ({ pending }) => pending,
             ),
           ).toBe(true);
-          const template = output.data?.authorship?.recordTemplate?.record;
-          expect(template?.reviewer?.id).toBeNull();
-          expect(template?.reviewedAt).toBeNull();
-          expect(
-            template?.files?.every(
-              ({ decision, analysisReviews }) =>
-                decision === null && analysisReviews === null,
-            ),
-          ).toBe(true);
-          const authorshipData = output.data?.authorship as
-            | {
-                recordSchema?: object;
-                templateSchema?: object;
-                recordTemplate?: { record?: unknown };
-              }
-            | undefined;
-          const templateValidator = new Ajv2020({
-            allErrors: true,
-            strict: false,
-          }).compile(authorshipData?.templateSchema ?? {});
-          expect(
-            templateValidator(authorshipData?.recordTemplate),
-            JSON.stringify(templateValidator.errors),
-          ).toBe(true);
-          const recordValidator = new Ajv2020({
-            allErrors: true,
-            strict: false,
-          }).compile(authorshipData?.recordSchema ?? {});
-          expect(recordValidator(authorshipData?.recordTemplate?.record)).toBe(
-            false,
+          expect(output.data?.authoring?.operation).toBe(
+            "kb_author_impact_review",
           );
+
+          // The write operation turns the decisions into a valid record
+          // without staging it.
+          const authorInput = {
+            scope: { kind: "staged" },
+            scopeFingerprint: output.data?.recordHeaders?.scope?.fingerprint,
+            reviewer: { id: "parity@example.invalid" },
+            files: [
+              {
+                path: "notes/review.txt",
+                decision: {
+                  kind: "no_impact",
+                  reason: "notes only",
+                  rationale: "The note carries no behavior.",
+                },
+                analysisReviews: [
+                  {
+                    kind: "unsupported_review",
+                    side: "after",
+                    wholeFile: true,
+                    rationale: "Read the whole note.",
+                  },
+                ],
+              },
+            ],
+          };
+          const authored = await runCliJsonRoute(
+            workspace.root,
+            "author-impact-review",
+            authorInput,
+          );
+          expect(authored.exitCode, authored.stdout + authored.stderr).toBe(0);
+          const authoredData = (
+            JSON.parse(authored.stdout) as { data?: Record<string, unknown> }
+          ).data;
+          expect(authoredData?.written).toBe(true);
+          expect(authoredData?.staged).toBe(false);
+          expect(authoredData?.decided).toEqual(["notes/review.txt"]);
+          const record = JSON.parse(
+            await Bun.file(
+              path.join(workspace.root, ".kibi/impact-review.json"),
+            ).text(),
+          );
+          expect(record.reviewer).toEqual({
+            id: "parity@example.invalid",
+            source: "self-claimed-local",
+          });
+          await rm(path.join(workspace.root, ".kibi/impact-review.json"));
 
           const afterTreeProcess = Bun.spawn(["git", "write-tree"], {
             cwd: workspace.root,

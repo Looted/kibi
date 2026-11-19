@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f7bbbc1ce11
+  - type: executable_for
+    from: SYM-test-impact-review-authoring
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:09:31.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd84d0be9bb2
