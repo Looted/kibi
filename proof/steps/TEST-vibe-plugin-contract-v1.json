@@ -1,0 +1,11 @@
+{
+  "test_id": "TEST-vibe-plugin-contract-v1",
+  "steps": [
+    [
+      "node",
+      "--test",
+      "packages/vibe/tests/runtime.test.mjs",
+      "packages/vibe/tests/launcher-contract.test.mjs"
+    ]
+  ]
+}
