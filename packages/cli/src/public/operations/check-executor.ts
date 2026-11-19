@@ -40,6 +40,8 @@ import {
   buildSummary,
   describeEvaluatedRules,
   fitScopedCheckToBudget,
+  fitSymbolDebtToBudget,
+  pageCheckFindings,
 } from "./check-format-shared.js";
 import {
   SCOPED_CHECK_OMITTED_ID,
@@ -108,6 +110,8 @@ export type CheckInput = {
   readonly includeMigrationPlan?: boolean;
   /** An unscoped check lists its symbol debt per file, not only as counts. */
   readonly includeSymbolDebt?: boolean;
+  /** With rules: the first finding of the page to list. */
+  readonly offset?: number;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -640,21 +644,36 @@ export async function executeCheck(
             .catch(() => undefined)
         : undefined;
     analysisCache?.save();
-    // A rule selection lists its findings in full; any other check keeps to
-    // the size budget, and the debt list, when asked for, comes on top.
+    // The kibi check command lists every finding. A rule selection lists
+    // its findings in pages within the size budget; any other check keeps
+    // to the budget by cutting advisory findings, the plan and then the
+    // blocking findings, and the debt list, when asked for, fits in what is
+    // left.
     const fitted =
-      hasExplicitRules || options.fullListing === true
+      options.fullListing === true
         ? structured
-        : fitScopedCheckToBudget(
-            // Tagged before the cut, so the budget counts the tags.
-            withMergeBlocks(structured),
-            undefined,
-            scoped,
-            args.includeMigrationPlan === true,
-          );
-    const structuredContent = withMergeBlocks(
-      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted,
-    );
+        : hasExplicitRules
+          ? pageCheckFindings(
+              // Tagged before the cut, so the budget counts the tags.
+              withMergeBlocks(structured),
+              args.offset ?? 0,
+              scoped,
+              args.includeMigrationPlan === true,
+            )
+          : fitScopedCheckToBudget(
+              withMergeBlocks(structured),
+              undefined,
+              scoped,
+              args.includeMigrationPlan === true,
+            );
+    // Tagged again because the cut may group findings into new entries.
+    const tagged = withMergeBlocks(fitted);
+    const listedDebt =
+      symbolDebt !== undefined && options.fullListing !== true
+        ? fitSymbolDebtToBudget(tagged, symbolDebt)
+        : symbolDebt;
+    const structuredContent =
+      listedDebt !== undefined ? { ...tagged, symbolDebt: listedDebt } : tagged;
     return {
       content: [
         {

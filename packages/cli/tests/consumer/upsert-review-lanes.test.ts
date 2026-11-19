@@ -47,8 +47,9 @@ function bootstrappedRequirement(): { ws: ConsumerWorkspace; req: Json } {
   expect(
     workspace.json(["apply-plan"], { plan, approvedPlanHash: plan.planHash }),
   ).toMatchObject({ status: "success" });
-  const [req] = (workspace.json(["query"], { type: "req" }).data as Json)
-    .entities as Json[];
+  const [req] = (
+    workspace.json(["query"], { type: "req", fields: "full" }).data as Json
+  ).entities as Json[];
   if (req === undefined) throw new Error("bootstrap wrote no requirement");
   return { ws: workspace, req };
 }

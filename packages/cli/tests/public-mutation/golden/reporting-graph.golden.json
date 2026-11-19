@@ -8,7 +8,8 @@
     ],
     "structuredContent": {
       "nodes": [],
-      "edges": []
+      "edges": [],
+      "nodeCount": 0
     }
   },
   "missing": {
@@ -18,7 +19,9 @@
         "text": "Graph traversal returned no nodes."
       }
     ],
-    "structuredContent": {}
+    "structuredContent": {
+      "nodeCount": 0
+    }
   },
   "nodes": {
     "content": [
@@ -46,7 +49,8 @@
       "meta": {
         "branch": "main",
         "branchStoreKey": "key"
-      }
+      },
+      "nodeCount": 2
     }
   },
   "noEdges": {
@@ -61,7 +65,8 @@
         {
           "id": "A"
         }
-      ]
+      ],
+      "nodeCount": 1
     }
   }
 }

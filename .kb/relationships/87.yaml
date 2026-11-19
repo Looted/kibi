@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-833f9aedd22b
+  - type: assumes
+    from: SCEN-NEG-summary-rows-default-FULL-BY-DEFAULT
+    to: FACT-NEG-summary-rows-default-FULL-BY-DEFAULT
+    created_at: 2026-11-19T15:27:05.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbc9f413731e

@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebd3a73e08e6
+  - type: assumes
+    from: SCEN-coverage-plan-summaries
+    to: FACT-coverage-plan-summaries
+    created_at: 2026-11-19T15:27:53.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb7eb7ee462a

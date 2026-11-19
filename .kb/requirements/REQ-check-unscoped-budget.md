@@ -31,11 +31,11 @@ kb_check run without a rule or file scope must cut its result to the same size b
 
 ## Why
 
-A scoped kb_check already keeps to 24,000 characters, but the unfiltered check that skills ask for before completion had no limit, so a KB with many findings returned a result a host with a tool-result cap may cut or refuse. Cutting it the same way keeps the verdict and every blocking rule visible, and a rule selection or kibi check --format json still lists every finding.
+A scoped kb_check already keeps to 24,000 characters, but the unfiltered check that skills ask for before completion had no limit, so a KB with many findings returned a result a host with a tool-result cap may cut or refuse. Cutting it the same way keeps the verdict and every blocking rule visible, and kibi check --format json still lists every finding; a rule selection pages through its findings within the same budget (REQ-check-rule-selection-pages).
 
 ## Context
 
-The budget reduces advisory findings to counts by id first, then a migration plan not asked for in full to its summary, then lists blocking findings past the budget by rule and entity id. The kibi check command and kb_apply_plan's remaining-plan read keep the full listing.
+The budget reduces advisory findings to counts by id first, then a migration plan not asked for in full to its summary, then lists blocking findings past the budget by rule and entity id. The kibi check command and kb_apply_plan's remaining-plan read keep the full listing. A rule selection no longer lists its findings in full: REQ-check-rule-selection-pages, approved by the maintainer on 2026-11-19, supersedes that part.
 
 ## Source
 

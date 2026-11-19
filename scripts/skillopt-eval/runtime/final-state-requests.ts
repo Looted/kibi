@@ -14,10 +14,10 @@ export interface FinalStateRequest {
 }
 
 export const DEFAULT_FINAL_STATE_REQUESTS: FinalStateRequest[] = [
-  { tool: "kb_query", args: {} },
+  { tool: "kb_query", args: { fields: "full" } },
   { tool: "kb_check", args: {} },
   { tool: "kb_status", args: {} },
-  { tool: "kb_coverage", args: { by: "req" } },
+  { tool: "kb_coverage", args: { by: "req", fields: "full" } },
 ];
 
 /**
@@ -37,7 +37,10 @@ export function taskFinalStateRequests(
       { tool: "kb_check", args: {} },
       { tool: "kb_status", args: {} },
       { tool: "kb_graph", args: { seedIds: [symbolId] } },
-      { tool: "kb_coverage", args: { by: "symbol", includePassing: true } },
+      {
+        tool: "kb_coverage",
+        args: { by: "symbol", includePassing: true, fields: "full" },
+      },
     ];
   }
   return DEFAULT_FINAL_STATE_REQUESTS;

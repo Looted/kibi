@@ -55,7 +55,10 @@ describe("human and JSON discovery command parity", () => {
 
     // When
     const protocol = JSON.parse(
-      run(["query", "--input", "-"], JSON.stringify({ type: "req" })),
+      run(
+        ["query", "--input", "-"],
+        JSON.stringify({ type: "req", fields: "full" }),
+      ),
     );
 
     // Then

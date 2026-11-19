@@ -47,11 +47,21 @@
         "maxEdges": {
           "default": 500,
           "description": "Stop and set truncated once this many edges are reached.",
+          "maximum": 5000,
+          "minimum": 1,
           "type": "integer"
         },
         "maxNodes": {
           "default": 200,
           "description": "Stop and set truncated once this many nodes are reached.",
+          "maximum": 2000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based offset into the reached nodes (sorted by id); each page lists the edges that leave its nodes.",
+          "minimum": 0,
           "type": "integer"
         },
         "relationships": {

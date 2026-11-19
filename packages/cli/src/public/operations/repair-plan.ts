@@ -703,7 +703,7 @@ export function buildRepairPlan(
   const diagnostics = complete
     ? []
     : [
-        `Repair plan is partial: ${excludedByPagination} actionable requirement(s) were excluded by coverage pagination; rerun with offset 0 and a larger limit.`,
+        `Repair plan is partial: ${excludedByPagination} actionable requirement(s) are outside this coverage page; read the following pages with offset to plan them.`,
       ];
   const planCore = {
     version: REPAIR_PLAN_VERSION,

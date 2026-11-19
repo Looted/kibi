@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1b63941b9b4
+  - type: assumes
+    from: SCEN-result-budget-paging-notice
+    to: FACT-result-budget-paging-notice
+    created_at: 2026-11-19T15:26:14.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47596127c5ff
