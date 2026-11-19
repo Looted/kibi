@@ -318,7 +318,7 @@ describe("pageCheckFindings", () => {
     expect(first.violations).toStrictEqual(input.violations.slice(0, listed));
     expect(first.count).toBe(40);
     expect(first.truncated).toBe(true);
-    expect(first.truncation).toStrictEqual({
+    expect(first.truncation as Record<string, unknown>).toStrictEqual({
       budgetChars: budget,
       returned: listed,
       total: 40,
@@ -331,7 +331,7 @@ describe("pageCheckFindings", () => {
     const last = pageCheckFindings(input, 38, true, false, budget);
     expect(last.violations).toStrictEqual(input.violations.slice(38));
     expect(last.truncated).toBe(true);
-    expect(last.truncation).toStrictEqual({
+    expect(last.truncation as Record<string, unknown>).toStrictEqual({
       budgetChars: budget,
       returned: 2,
       total: 40,

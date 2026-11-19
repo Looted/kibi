@@ -272,7 +272,7 @@ describe("fitOperationResult", () => {
       {},
       {
         content: [
-          { type: "image", data: "", mimeType: "image/png" },
+          { type: "image", data: "", mimeType: "image/png" } as never,
           { type: "text", text: "Found entities." },
         ],
         structuredContent: { entities: rows },
@@ -300,7 +300,7 @@ describe("fitOperationResult", () => {
         structuredContent: { rows },
       },
     );
-    const data = fitted.result.structuredContent as {
+    const data = fitted.result.structuredContent as unknown as {
       truncation: Record<string, unknown>;
     };
     expect(data.truncation.total).toBe(50);
