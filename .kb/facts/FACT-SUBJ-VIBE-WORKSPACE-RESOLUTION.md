@@ -9,4 +9,4 @@ origin:
 id: FACT-SUBJ-VIBE-WORKSPACE-RESOLUTION
 type: fact
 ---
-Subject fact for REQ-vibe-workspace-resolution.
+Workspace resolution is the deterministic order resolveWorkspace applies when Vibe spawns the server from an arbitrary cwd: trimmed KIBI_WORKSPACE, KIBI_PROJECT_ROOT or KIBI_ROOT environment values first, then a .git-bounded upward walk for a directory owning .kb/manifest.json, then the kibi-workspace.txt pointer beside the launcher, then the cwd itself. It is not about converting paths for WSL or the MCP tool contract.
