@@ -42,9 +42,10 @@ origin:
   recorded_at: '2026-11-19T20:09:44.520Z'
 id: REQ-vibe-wsl-safe-spawn
 type: req
+firmness: firm
 ---
 ## Context
 
-Requested by the maintainer (2026-11-19) as code-review hardening of the first vibe plugin PR: WSL wrapping must not interpolate paths into a shell string (injection), must use the distro from the UNC path, and must not silently cd elsewhere on conversion failure. Source: packages/vibe/bin/kibi-runtime.mjs.
+Requested by the maintainer (2026-11-19) as review hardening of the kibi-vibe plugin on Windows: when the workspace is a \\wsl.localhost\\<distro>\\ UNC path, the launcher starts Kibi through wsl.exe with --cd and --exec and a literal argument vector, passing that distro with -d, and never interpolates the path into a shell string; a drive-letter path that wslpath cannot convert is a hard error, never a silent cd elsewhere. Source: parseWslUnc, toWslPath, buildWslArgs in packages/vibe/bin/kibi-runtime.mjs.
 
-See the linked scenario for the executable behavior.
+See the linked scenarios for the executable behavior.

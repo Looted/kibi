@@ -42,9 +42,10 @@ origin:
   recorded_at: '2026-11-19T20:09:46.819Z'
 id: REQ-vibe-workspace-resolution
 type: req
+firmness: firm
 ---
 ## Context
 
-Requested by the maintainer (2026-11-19): Vibe Desktop spawns stdio servers with a cwd that is not the session folder, so the launcher needs a deterministic workspace resolution. Source: resolveWorkspace in packages/vibe/bin/kibi-runtime.mjs.
+Requested by the maintainer (2026-11-19): Mistral Vibe Desktop spawns the stdio MCP server with a cwd that is not the session folder, so resolveWorkspace in packages/vibe/bin/kibi-runtime.mjs resolves the Kibi workspace deterministically — trimmed KIBI_WORKSPACE / KIBI_PROJECT_ROOT / KIBI_ROOT first, then a .git-bounded upward walk for .kb/manifest.json, then the kibi-workspace.txt pointer beside the launcher, then the cwd. Source: packages/vibe/bin/kibi-runtime.mjs.
 
-See the linked scenario for the executable behavior.
+See the linked scenarios for the executable behavior.
