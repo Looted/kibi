@@ -11,6 +11,7 @@ import {
   QUERY_LIMIT_EXCEEDED_CODE,
   queryLimitExceededOf,
 } from "./engine-limits.js";
+import { fitOperationResult } from "./public/operations/result-budget.js";
 import {
   operationData,
   toKibiResult,
@@ -23,6 +24,22 @@ import { noteCliThrownError } from "./usage-telemetry.js";
 
 // Only whether an envelope is valid matters here, never the list of errors.
 const outputValidator = new Ajv2020({ strict: false });
+
+/**
+ * An operation's data fitted to the result budget by the same function as
+ * the MCP tool result, so the CLI JSON route carries the same data for the
+ * same call.
+ */
+export function budgetedOperationResult(
+  spec: Parameters<typeof fitOperationResult>[0],
+  input: unknown,
+  raw: unknown,
+): ReturnType<typeof fitOperationResult> {
+  return fitOperationResult(spec, input, {
+    content: [],
+    structuredContent: operationData(raw),
+  });
+}
 
 export type CliContext = OperationContext & {
   readonly diagnosticTelemetry?: DiagnosticTelemetry;
@@ -162,10 +179,16 @@ export async function executeOperation(
     const executionContext: CliContext = prepared.telemetry
       ? { ...context, diagnosticTelemetry: prepared.telemetry }
       : context;
-    const result = await spec.execute(prepared.businessInput, executionContext);
-    const output = operationData(result);
+    const raw = await spec.execute(prepared.businessInput, executionContext);
+    // The same size budget as the MCP tool result, so both carry the same
+    // data for the same call.
+    const fitted = budgetedOperationResult(spec, prepared.businessInput, raw);
+    const output = fitted.result.structuredContent;
     const envelope = withDetachedReadOnlyNotice(
-      toKibiResult(spec, output),
+      toKibiResult(spec, output, {
+        appendDiagnostics: fitted.diagnostics,
+        appendNextActions: fitted.nextActions,
+      }),
       context,
     );
     if (!protocolValid(spec, envelope)) {

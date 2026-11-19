@@ -457,7 +457,7 @@ describe("scoped check results", () => {
     expect(text.endsWith(fitted.truncation?.hint ?? "missing")).toBe(true);
     expect(fitted.truncation).toEqual({
       budgetChars: SCOPED_CHECK_BUDGET_CHARS,
-      hint: "The result was cut to its size budget. Narrow sourceFiles, or pass rules to list those rules' findings in full; kibi check --format json lists every finding.",
+      hint: "The result was cut to its size budget. Narrow sourceFiles, or pass rules to page through those rules' findings; kibi check --format json lists every finding.",
     });
     expect(fitted.qualityDiagnostics?.[0]?.suggestion).toBe(
       "Run kibi check --format json to list every advisory finding.",
@@ -470,7 +470,7 @@ describe("scoped check results", () => {
     );
     expect(unscoped.count).toBe(301);
     expect(unscoped.truncation?.hint).toBe(
-      "The result was cut to its size budget. Pass rules to list those rules' findings in full; kibi check --format json lists every finding.",
+      "The result was cut to its size budget. Pass rules to page through those rules' findings; kibi check --format json lists every finding.",
     );
   });
 

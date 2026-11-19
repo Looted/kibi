@@ -307,3 +307,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b0e2cbdad5c
+  - type: specified_by
+    from: REQ-result-budget-row-cut
+    to: SCEN-result-budget-row-cut
+    created_at: 2026-11-19T15:26:36.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4bf11006d7d
+  - type: specified_by
+    from: REQ-result-budget-row-cut
+    to: SCEN-NEG-result-budget-row-cut-UNCUT-ROW
+    created_at: 2026-11-19T15:26:36.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ecb49ea24db
+  - type: verified_by
+    from: REQ-result-budget-row-cut
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:36.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceccb8497626
+  - type: constrains
+    from: REQ-result-budget-row-cut
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:26:36.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85f309404b61
+  - type: requires_property
+    from: REQ-result-budget-row-cut
+    to: FACT-result-budget-row-cut
+    created_at: 2026-11-19T15:26:36.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0405b7fda75
+  - type: assumes
+    from: SCEN-NEG-result-ceiling-OVER-CEILING
+    to: FACT-NEG-result-ceiling-chars-OVER-CEILING
+    created_at: 2026-11-19T15:26:48.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e354ab1bad1

@@ -594,3 +594,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f3003485440
+  - type: specified_by
+    from: REQ-result-ceiling
+    to: SCEN-result-ceiling
+    created_at: 2026-11-19T15:26:51.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab86ac613d75
+  - type: specified_by
+    from: REQ-result-ceiling
+    to: SCEN-NEG-result-ceiling-OVER-CEILING
+    created_at: 2026-11-19T15:26:51.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7cc478404fe
+  - type: verified_by
+    from: REQ-result-ceiling
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:51.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bdedd7487ab
+  - type: constrains
+    from: REQ-result-ceiling
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:26:51.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-884e79def7fa
+  - type: requires_property
+    from: REQ-result-ceiling
+    to: FACT-result-ceiling-chars
+    created_at: 2026-11-19T15:26:51.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80ed67b6c440

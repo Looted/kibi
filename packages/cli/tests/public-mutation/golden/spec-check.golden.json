@@ -98,6 +98,13 @@
         "description": "Return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary, which a check with sourceFiles always gives and any other check gives when the result is over its size budget.",
         "x-kibi-advertised-description": "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary."
       },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0,
+        "description": "With rules: the first finding to list. A rule selection lists its findings in pages that keep to the size budget, and a cut page names the next offset.",
+        "x-kibi-advertised-description": "With rules: the first finding to list; findings come in pages within the size budget."
+      },
       "includeSymbolDebt": {
         "type": "boolean",
         "description": "Without rules or sourceFiles: list the unrecorded declarations per file under symbolDebt.files. By default symbolDebt carries only total and fileCount; the debt never blocks.",
@@ -314,6 +321,9 @@
                         }
                       }
                     }
+                  },
+                  "filesOmitted": {
+                    "type": "integer"
                   }
                 },
                 "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."

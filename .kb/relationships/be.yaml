@@ -496,3 +496,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fcf2f75acab6
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-coverage-matched-count
+    created_at: 2026-11-19T15:28:18.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-773b34b51e84
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:18.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0db0702d84b1

@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63544ec95466
+  - type: implements
+    from: SYM-result-budget-rows-within-budget
+    to: REQ-result-budget-min-row
+    created_at: 2026-11-19T15:26:05.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14ee4b06749f
+  - type: covered_by
+    from: SYM-result-budget-rows-within-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:05.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9fd8bdf43b2

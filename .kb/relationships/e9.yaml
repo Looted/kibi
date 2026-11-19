@@ -482,3 +482,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99b11df7515b
+  - type: assumes
+    from: SCEN-NEG-result-budget-min-row-NO-ROWS
+    to: FACT-NEG-result-budget-min-row-NO-ROWS
+    created_at: 2026-11-19T15:25:59.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee169f29d5aa

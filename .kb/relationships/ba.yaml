@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07186f90b453
+  - type: implements
+    from: SYM-result-budget-refuse-over-ceiling
+    to: REQ-result-ceiling
+    created_at: 2026-11-19T15:26:53.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cbe895d7f97
+  - type: covered_by
+    from: SYM-result-budget-refuse-over-ceiling
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:53.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fe83d3370cc

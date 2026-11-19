@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e358858214ab
+  - type: assumes
+    from: SCEN-NEG-coverage-matched-count-NO-MATCHED
+    to: FACT-NEG-coverage-matched-count-NO-MATCHED
+    created_at: 2026-11-19T15:28:12.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21910c613bc7

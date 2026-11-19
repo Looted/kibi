@@ -3120,10 +3120,12 @@ export async function applyMigrationPlan(
         const coverage = await executeCoverage(
           { by: "req", limit: 10_000, offset: 0 },
           operationContext,
+          { fullListing: true },
         );
         const symbolCoverage = await executeCoverage(
           { by: "symbol", limit: 10_000, offset: 0 },
           operationContext,
+          { fullListing: true },
         );
         const fragments = [
           check.structuredContent?.migrationPlan,

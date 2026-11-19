@@ -21,7 +21,10 @@ import {
   openReport,
   reportCommand,
 } from "../../src/commands/report.js";
-import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../../src/public/operations/specs/reporting.js";
 import * as brand from "../../src/report/brand.js";
 import { KIBI_BRAND } from "../../src/report/brand.js";
 import * as htmlReport from "../../src/report/html-report.js";
@@ -671,25 +674,25 @@ describe("default coverage loader", () => {
     expect(r.opened).toStrictEqual([coverageSpec]);
     expect(r.executed).toStrictEqual([
       [
-        {
+        withFullListing({
           by: "req",
           tags: ["t1", "t2"],
           includePassing: true,
           includeTransitive: true,
           limit: 7,
           offset: 0,
-        },
+        }),
         ctx,
       ],
       [
-        {
+        withFullListing({
           by: "symbol",
           tags: ["t1", "t2"],
           includePassing: false,
           includeTransitive: true,
           limit: 0,
           offset: 0,
-        },
+        }),
         ctx,
       ],
     ]);

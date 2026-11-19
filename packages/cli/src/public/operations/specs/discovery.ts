@@ -1,4 +1,5 @@
 import { KB_DEPENDENCY_INPUT_SCHEMA } from "../../../dependencies/kb-dependency-scope.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import {
   executeQuery,
   executeSearch,
@@ -13,7 +14,6 @@ import type {
   StatusPayload,
 } from "../discovery-executors.js";
 import type { OperationSpec } from "../types.js";
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -137,15 +137,27 @@ export const querySpec = {
       },
       limit: {
         type: "number",
+        minimum: 0,
         default: 100,
         description:
-          "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
+          "Optional max rows to return after filtering. Default: 100 when omitted; a result past its size budget returns fewer and says the offset to call again with.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional max rows after filtering. Default: 100; a result past its size budget returns fewer and names the next offset.",
       },
       offset: {
         type: "number",
         default: 0,
         description:
           "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
+      },
+      fields: {
+        type: "string",
+        enum: ["summary", "full"],
+        default: "summary",
+        description:
+          "summary lists each entity's identifying fields (id, type, title, status, priority, tags, source, firmness); full lists every field. A lookup by id always returns the full entity.",
+        [ADVERTISED_DESCRIPTION]:
+          "summary: identifying fields per listed entity; full: every field. A lookup by id is always full.",
       },
       includeBody: {
         type: "boolean",

@@ -94,6 +94,11 @@ export type QueryInput = {
   readonly propertyKey?: string;
   /** With `id`: also return the entity's authored Markdown body. */
   readonly includeBody?: boolean;
+  /**
+   * summary (default without `id`): each listed entity's identifying fields;
+   * full: every field. A lookup by `id` always returns the full entity.
+   */
+  readonly fields?: "summary" | "full";
 };
 
 /** A ready-to-run follow-up call the query suggests. */
@@ -862,13 +867,17 @@ export async function executeQuery(
     // A requirement or ADR without authored firmness reads as its origin
     // implies (`default` when an agent wrote it, else `firm`); the row says
     // so, so a reader never has to know the rule.
+    const summaryRows =
+      (id === undefined || id === "") && input.fields !== "full";
     const paginated = indexedPage.entities.map((entity) => {
       const firmness = effectiveFirmness(
         entity.type,
         entity.firmness,
         entity.origin,
       );
-      return entity.firmness === firmness ? entity : { ...entity, firmness };
+      const row =
+        entity.firmness === firmness ? entity : { ...entity, firmness };
+      return summaryRows ? summaryEntity(row) : row;
     });
     // An empty page from a never-compiled store says nothing about the
     // authored entities, so the answer names the store state.
@@ -979,6 +988,21 @@ const SUMMARY_ENTITY_FIELDS = [
   "sourceFile",
   "updated_at",
 ] as const;
+
+/**
+ * A listed entity as a list needs it: identifying metadata, and its
+ * firmness when it has one. `fields: "full"` or a lookup by id returns the
+ * rest.
+ */
+export function summaryEntity(
+  entity: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const summary: Record<string, unknown> = {};
+  for (const field of [...SUMMARY_ENTITY_FIELDS, "firmness"]) {
+    if (entity[field] !== undefined) summary[field] = entity[field];
+  }
+  return summary;
+}
 
 /**
  * A match as discovery needs it: identifying metadata, and evidence without
