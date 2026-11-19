@@ -37,6 +37,8 @@ logic_claims:
   - CLAIM-5C25FE3EB4296D35
 origin:
   kind: agent
+  ref: 'Maintainer review of PR #818, 2026-11-19: the five kibi-vibe requirements state the intended behavior and are approved as written.'
+  approved_by: maintainer
   recorded_at: '2026-11-19T20:09:42.283Z'
 id: REQ-vibe-mcp-launcher-contract
 type: req
