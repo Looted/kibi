@@ -102,6 +102,26 @@ describe("mcp background jobs, exact shapes", () => {
     });
   });
 
+  test("a snapshot carries an operation result's data once", async () => {
+    resetJobsForTests();
+    const data = { count: 2 };
+    const tool = startJob("kb_check", async () => ({
+      content: [{ type: "text", text: "2 violations" }],
+      structuredContent: data,
+    }));
+    const odd = startJob("kb_check", async () => ({
+      content: [],
+      structuredContent: [1],
+    }));
+    await settle();
+    expect(jobSnapshot(getJob(String(tool.jobId)) as never).result).toBe(
+      data as never,
+    );
+    expect(
+      jobSnapshot(getJob(String(odd.jobId)) as never).result,
+    ).toStrictEqual({ content: [], structuredContent: [1] });
+  });
+
   test("null and primitive results are wrapped; arrays stay as they are", async () => {
     resetJobsForTests();
     const nullJob = startJob("kb_a", async () => null);

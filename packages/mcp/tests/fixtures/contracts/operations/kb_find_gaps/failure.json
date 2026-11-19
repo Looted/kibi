@@ -23,7 +23,8 @@
         },
         "limit": {
           "default": 100,
-          "description": "Maximum rows to return; count reports the full total.",
+          "description": "Maximum rows; count reports the total. A result past its size budget returns fewer and names the next offset.",
+          "minimum": 0,
           "type": "integer"
         },
         "missingRelationships": {

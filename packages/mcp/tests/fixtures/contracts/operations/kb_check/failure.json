@@ -42,6 +42,12 @@
           "minimum": 0,
           "type": "integer"
         },
+        "offset": {
+          "default": 0,
+          "description": "With rules: the first finding to list; findings come in pages within the size budget.",
+          "minimum": 0,
+          "type": "integer"
+        },
         "rules": {
           "description": "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
           "items": {

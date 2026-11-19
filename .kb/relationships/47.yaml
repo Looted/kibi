@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e047c7f3910b
+  - type: implements
+    from: SYM-cli-result-truncation
+    to: REQ-result-budget-paging-notice
+    created_at: 2026-11-19T15:47:41.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-558f6868bbc5
+  - type: covered_by
+    from: SYM-cli-result-truncation
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:41.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b5d544b59cd

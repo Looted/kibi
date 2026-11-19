@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9612ce56b0b8
+  - type: implements
+    from: SYM-result-budget-cut-row-to-budget
+    to: REQ-result-budget-row-cut
+    created_at: 2026-11-19T15:26:38.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d01111e91f2
+  - type: covered_by
+    from: SYM-result-budget-cut-row-to-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:38.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3de0d3d961e

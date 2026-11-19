@@ -414,6 +414,57 @@ export function decodeFinalStatePredicateSnapshot(
   );
 }
 
+/** The list fields a result cut to the size budget pages through. */
+const PAGED_LIST_KEYS = ["rows", "entities", "violations", "nodes", "edges"];
+
+/** At most this many further pages are read for one request. */
+const MAX_FINAL_STATE_PAGES = 100;
+
+function resultData(result: unknown): Record<string, unknown> | null {
+  if (!isRecord(result) || !isRecord(result.structuredContent)) return null;
+  const content = result.structuredContent;
+  return isRecord(content.data) ? content.data : content;
+}
+
+function nextPageOffset(result: unknown): number | null {
+  const truncation = resultData(result)?.truncation;
+  return isRecord(truncation) && typeof truncation.nextOffset === "number"
+    ? truncation.nextOffset
+    : null;
+}
+
+/**
+ * Reads a request's whole result. A result cut to the size budget names the
+ * offset of its next page; the verifier reads each page and joins their
+ * lists, so its final state sees every row whatever the budget.
+ */
+export async function readEveryPage(
+  call: (args: Record<string, unknown>) => Promise<unknown>,
+  args: Readonly<Record<string, unknown>>,
+): Promise<unknown> {
+  const first = await call({ ...args });
+  const data = resultData(first);
+  let offset = nextPageOffset(first);
+  if (data === null || offset === null) return first;
+  for (let page = 0; offset !== null && page < MAX_FINAL_STATE_PAGES; page++) {
+    const next = await call({ ...args, offset });
+    const nextData = resultData(next);
+    if (nextData === null) break;
+    for (const key of PAGED_LIST_KEYS) {
+      const list = data[key];
+      const more = nextData[key];
+      if (Array.isArray(list) && Array.isArray(more))
+        data[key] = [...list, ...more];
+    }
+    offset = nextPageOffset(next);
+  }
+  if (offset === null) {
+    delete data.truncated;
+    delete data.truncation;
+  }
+  return first;
+}
+
 export async function runIndependentFinalState(
   rawOptions: FinalStateOptions,
 ): Promise<FinalStateReceipt> {
@@ -445,10 +496,12 @@ export async function runIndependentFinalState(
       if (!toolNames.has(request.tool)) {
         throw new TypeError(`final_state_tool_unavailable:${request.tool}`);
       }
-      const rawResult = await client.callTool(
-        { name: request.tool, arguments: request.args },
-        undefined,
-        { timeout: options.timeoutMs },
+      const rawResult = await readEveryPage(
+        (args) =>
+          client.callTool({ name: request.tool, arguments: args }, undefined, {
+            timeout: options.timeoutMs,
+          }),
+        request.args,
       );
       const result = redactJsonRpcValue(rawResult);
       results.push({

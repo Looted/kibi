@@ -529,7 +529,10 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
         Summary,
         Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    % matched: the rows the filters select before paging, so a caller that
+    % was given part of them knows how many it has not seen.
+    length(SortedRows, Matched),
+    Response = _{summary: Summary, rows: Rows, matched: Matched, meta: Meta},
     dict_json_string(Response, JsonString).
 
 % Proof-status filtered report. The status filter selects requirement rows by
@@ -546,7 +549,10 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, 
         Summary,
         Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    % matched: the rows the filters select before paging, so a caller that
+    % was given part of them knows how many it has not seen.
+    length(SortedRows, Matched),
+    Response = _{summary: Summary, rows: Rows, matched: Matched, meta: Meta},
     dict_json_string(Response, JsonString).
 
 % Proof-status filtered report with per-contract receipt binding: the same
@@ -561,7 +567,10 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBi
         Summary,
         Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    % matched: the rows the filters select before paging, so a caller that
+    % was given part of them knows how many it has not seen.
+    length(SortedRows, Matched),
+    Response = _{summary: Summary, rows: Rows, matched: Matched, meta: Meta},
     dict_json_string(Response, JsonString).
 
 status_binding_coverage_rows(req, Tags, _IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows, Summary) :-

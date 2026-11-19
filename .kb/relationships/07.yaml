@@ -608,3 +608,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-504cddba7b28
+  - type: executable_for
+    from: SYM-test-kibi-result-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:24:25.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9da98aa9f81

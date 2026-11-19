@@ -388,3 +388,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51fcd10e485b
+  - type: implements
+    from: SYM-mcp-job-snapshot
+    to: REQ-bootstrap-apply-long-running
+    created_at: 2026-11-19T15:48:24.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815522d7e975
+  - type: covered_by
+    from: SYM-mcp-job-snapshot
+    to: TEST-bootstrap-apply-long-running
+    created_at: 2026-11-19T15:48:24.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-892ff6fc16f2

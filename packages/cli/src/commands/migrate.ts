@@ -1609,7 +1609,7 @@ async function buildWorkspaceMigrationPlan(
     { executeOperation },
     { statusSpec },
     { checkSpec },
-    { coverageSpec },
+    { coverageSpec, withFullListing },
     {
       buildMigrationPlan,
       mergeMigrationPlans,
@@ -1744,8 +1744,8 @@ async function buildWorkspaceMigrationPlan(
       );
     }
     const coverageInputs = [
-      { by: "req" as const, limit: 10_000, offset: 0 },
-      { by: "symbol" as const, limit: 10_000, offset: 0 },
+      withFullListing({ by: "req" as const, limit: 10_000, offset: 0 }),
+      withFullListing({ by: "symbol" as const, limit: 10_000, offset: 0 }),
     ];
     for (const input of coverageInputs) {
       const coverageResult = await executeOperation(

@@ -217,6 +217,12 @@ A tool that rejects its input with a Kibi error code, such as `kb_compile_intent
 
 The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
 
+## Result over its size ceiling (`RESULT_TOO_LARGE`)
+
+A list or report read's data was still larger than 64,000 characters after it was cut to its 24,000-character [result size budget](mcp-reference.md#result-size-budget). Nothing was written. Narrow the call (filters, a smaller `limit`, or `fields: "summary"`) and try again; the same call repeated unchanged fails the same way, so it is not retryable.
+
+A result cut to the budget is not an error: it carries `truncated: true`, `truncation` and a `RESULT_TRUNCATED` info diagnostic, and its `nextActions` name the call with the next `offset`.
+
 ## KB dependency errors (`DEPENDENCY_*`)
 
 A read with `kb` (MCP) or `--kb` (CLI), and `kibi deps lock|fetch|status`, fail with one of these codes instead of answering from the project's own KB:

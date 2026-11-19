@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-185b3e878118
+  - type: assumes
+    from: SCEN-NEG-result-budget-chars-OVER-BUDGET
+    to: FACT-NEG-result-budget-chars-OVER-BUDGET
+    created_at: 2026-11-19T15:25:05.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdea2227e2fa

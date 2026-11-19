@@ -2,7 +2,10 @@ import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import { EventEmitter } from "node:events";
 import { openReport, reportCommand } from "../../src/commands/report.js";
-import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../../src/public/operations/specs/reporting.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 import {
   createTempDir,
@@ -67,23 +70,24 @@ describe("reportCommand default coverage loading", () => {
     const closed = fakeRuntime({ branchAttachment: { gitBranch: "feature" } });
     const inputs = stubCoverage({ branch: "ignored" });
     await run();
+    // The report reads the whole report, past kb_coverage's size budget.
     expect(inputs).toStrictEqual([
-      {
+      withFullListing({
         by: "req",
         tags: ["core"],
         includePassing: true,
         includeTransitive: true,
         limit: 5,
         offset: 0,
-      },
-      {
+      }),
+      withFullListing({
         by: "symbol",
         tags: ["core"],
         includePassing: false,
         includeTransitive: true,
         limit: 0,
         offset: 0,
-      },
+      }),
     ]);
     expect(closed.map((outcome) => outcome.status)).toStrictEqual(["success"]);
     expect(closed[0]?.result?.branch).toBe("feature");

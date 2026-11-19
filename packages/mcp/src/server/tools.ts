@@ -32,11 +32,13 @@ import {
 } from "kibi-runtime";
 import {
   KB_DEPENDENCY_ARGUMENT,
+  fitOperationResult,
   kbDependencyArgument,
   operationData,
   prepareOperationInput,
   toKibiResult,
 } from "kibi-runtime";
+import type { OperationResult } from "kibi-runtime";
 import type { z } from "zod";
 import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
@@ -80,6 +82,33 @@ const TOOL_TIMEOUT_GRACE_MS = 100;
 // then tear down the shared session engine — never on ordinary read timeouts,
 // which would reject sibling tools with "Kibi engine connection closed".
 const TOOL_TIMEOUT_WEDGE_MS = 1_000;
+
+/**
+ * A tool result fitted to the result budget by the same function as the CLI
+ * JSON route, so both carry the same data for the same call. A handler that
+ * returns bare data gets bare (fitted) data back.
+ */
+export function budgetedToolResult(
+  spec: Parameters<typeof fitOperationResult>[0],
+  args: unknown,
+  rawResult: unknown,
+): { fitted: ReturnType<typeof fitOperationResult>; result: unknown } {
+  const hasContent =
+    rawResult !== null &&
+    typeof rawResult === "object" &&
+    "content" in rawResult;
+  const fitted = fitOperationResult(
+    spec,
+    args,
+    hasContent
+      ? (rawResult as OperationResult)
+      : { content: [], structuredContent: operationData(rawResult) },
+  );
+  return {
+    fitted,
+    result: hasContent ? fitted.result : fitted.result.structuredContent,
+  };
+}
 
 function isMutationEffect(effects: readonly string[]): boolean {
   return effects.some(
@@ -513,7 +542,7 @@ export function addTool<TProlog>(
 
       try {
         // Execute handler
-        const result = await withToolTimeout(
+        const rawResult = await withToolTimeout(
           name,
           handlerPromise,
           async (error) => {
@@ -550,10 +579,18 @@ export function addTool<TProlog>(
           activity,
         );
 
+        const { fitted, result } = budgetedToolResult(
+          operationSpec,
+          businessArgs,
+          rawResult,
+        );
         const data = operationData(result);
         const envelope = withWorkspaceNotice(
           withWorkspaceNotice(
-            toKibiResult(operationSpec, data),
+            toKibiResult(operationSpec, data, {
+              appendDiagnostics: fitted.diagnostics,
+              appendNextActions: fitted.nextActions,
+            }),
             workspaceNotice,
           ),
           observed.notice(),

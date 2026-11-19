@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5fd7df3703f9
+  - type: assumes
+    from: SCEN-result-route-parity
+    to: FACT-result-route-parity
+    created_at: 2026-11-19T15:28:44.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b625213b708a

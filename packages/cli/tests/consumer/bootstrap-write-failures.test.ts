@@ -128,7 +128,10 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
     });
     expect((check.data as Json).violations).toEqual([]);
     expect(
-      (workspace().json(["query"], { type: "req" }).data as Json).entities,
+      (
+        workspace().json(["query"], { type: "req", fields: "full" })
+          .data as Json
+      ).entities,
     ).toHaveLength(2);
   }, 120_000);
 
@@ -142,8 +145,9 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
       approvedPlanHash: plan.planHash,
     });
     expect(applied.status).toBe("success");
-    const rows = (workspace().json(["query"], { type: "req" }).data as Json)
-      .entities as Json[];
+    const rows = (
+      workspace().json(["query"], { type: "req", fields: "full" }).data as Json
+    ).entities as Json[];
     expect(rows.some((row) => row.text_ref === "spec:claim:1")).toBe(true);
   }, 120_000);
 
@@ -167,7 +171,10 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
       "KB snapshot changed since planning",
     );
     expect(
-      (workspace().json(["query"], { type: "req" }).data as Json).entities,
+      (
+        workspace().json(["query"], { type: "req", fields: "full" })
+          .data as Json
+      ).entities,
     ).toEqual([]);
   }, 120_000);
 
