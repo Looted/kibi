@@ -133,7 +133,13 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_prepare_impact_review",
     cliName: "prepare-impact-review",
     description:
-      "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+      "Prepare an impact review of the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns the record headers, a row per changed file with its requirement ids and pending obligations, each scoped requirement once with its fingerprints, and full evidence only for the paths you name; rows page with offset. It does not decide, approve, sign, stage, or prove the review; write the record with kb_author_impact_review.",
+  },
+  {
+    name: "kb_author_impact_review",
+    cliName: "author-impact-review",
+    description:
+      "Write .kibi/impact-review.json for the staged snapshot from your per-file decisions. Kibi captures the evidence itself, keeps an earlier decision only while its file and requirements are unchanged, validates the whole record and writes it atomically. Pass scopeFingerprint from kb_prepare_impact_review. It does not stage the record, decide for you or prove anything; the record schema is the kibi-commit-review skill's impact-review.schema.json resource.",
   },
   {
     name: "kb_review_firm_edit",

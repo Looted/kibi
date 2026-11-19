@@ -336,14 +336,14 @@ async function prepare(repo: Fixture, input: Loose): Promise<Loose> {
 }
 
 describe("executePrepareImpactReview", () => {
-  test("prepares the authoring inputs of a staged change", async () => {
+  test("prepares the compact authoring inputs of a staged change", async () => {
     const repo = repository();
     const calls = harness(repo);
     const result = await prepare(repo, { scope: { kind: "staged" } });
     expect(result.content).toStrictEqual([
       {
         type: "text",
-        text: "Prepared complete staged impact-review authoring inputs; every review decision remains unauthored.",
+        text: "Prepared the complete staged impact-review scope: 4 file(s), 4 listed from offset 0; every review decision remains unauthored.",
       },
     ]);
     const data = result.structuredContent;
@@ -368,85 +368,121 @@ describe("executePrepareImpactReview", () => {
       evaluatorFingerprint: "evaluator-fp",
       analyses: new Map([["z.ts", "ANALYSIS"]]),
     });
-    expect(calls.knowledge.mock.calls).toEqual([
-      [calls.snapshot.readGit, repo.baseTree, calls.snapshot.readBlobs],
-      [calls.snapshot.readGit, repo.headTree, calls.snapshot.readBlobs],
-    ]);
+    // Knowledge is read only for named paths.
+    expect(calls.knowledge).not.toHaveBeenCalled();
     expect(calls.snapshot.checks).toBe(2);
-    const { authorship, ...rest } = data;
-    const { snapshot: _snapshot, ...stable } = rest;
+    const { snapshot: _snapshot, ...stable } = data;
     expectGolden("impact-review-preparation", stable);
-    expect(
-      data.requirementScopes[1].before.map((row: Loose) =>
-        Object.keys(row.entity),
-      ),
-    ).toEqual([
-      ["id", "title", "type", "zeta"],
-      ["id", "title", "type"],
-    ]);
-    expect(
-      Object.keys(
-        data.requirementScopes[1].before[0].relatedEntities[2].entity,
-      ),
-    ).toStrictEqual(["id", "title"]);
+    expect(data.fileCount).toBe(4);
     expect(data.files.map((file: Loose) => file.path)).toEqual([
       "a.ts",
       "m.ts",
       "n.ts",
       "z.ts",
     ]);
-    expect(
-      data.files.some((file: Loose) => Object.hasOwn(file, "analysisReviews")),
-    ).toBe(false);
-
-    const { recordSchema, templateSchema, recordTemplate, ...contract } =
-      authorship;
-    expectGolden("impact-review-authorship", contract);
-    expect(recordSchema).toStrictEqual(RECORD_SCHEMA);
-    expect(recordTemplate).toStrictEqual({
-      templateVersion: "kibi.impact-review-authoring-template.v1",
-      isValidImpactReviewRecord: false,
-      record: {
-        ...data.recordHeaders,
-        reviewer: { id: null, source: "self-claimed-local" },
-        reviewedAt: null,
-        files: data.files.map((file: Loose) => ({
-          ...file,
-          analysisReviews: null,
-          decision: null,
-        })),
-      },
-    });
-    const { record, ...templateProperties } = templateSchema.properties;
-    expect({ ...templateSchema, properties: templateProperties }).toStrictEqual(
+    expect(data.requirements).toStrictEqual([
       {
-        $schema: "https://json-schema.org/draft/2020-12/schema",
-        $id: "urn:kibi:impact-review-authoring-template:v1",
-        type: "object",
-        additionalProperties: false,
-        required: ["templateVersion", "isValidImpactReviewRecord", "record"],
-        properties: {
-          templateVersion: {
-            const: "kibi.impact-review-authoring-template.v1",
-          },
-          isValidImpactReviewRecord: { const: false },
+        id: "REQ-a",
+        before: {
+          state: "present",
+          entityFingerprint: "fa",
+          artifactPath: ".kb/a.md",
+        },
+        after: {
+          state: "present",
+          entityFingerprint: "fa2",
+          artifactPath: ".kb/a.md",
         },
       },
-    );
-    const expected = structuredClone(RECORD_SCHEMA);
-    expected.$id = "urn:kibi:impact-review-authoring-record-template:v1";
-    expected.properties.reviewedAt = { type: "null" };
-    expected.$defs.reviewer.properties.id = { type: "null" };
-    expected.$defs.file.properties.analysisReviews = {
-      anyOf: [
-        RECORD_SCHEMA.$defs.file.properties.analysisReviews,
-        { type: "null" },
+      {
+        id: "REQ-b",
+        before: {
+          state: "present",
+          entityFingerprint: "fb",
+          artifactPath: ".kb/b.md",
+        },
+        after: { state: "absent", entityFingerprint: null, artifactPath: null },
+      },
+      {
+        id: "REQ-missing",
+        before: {
+          state: "present",
+          entityFingerprint: "fm",
+          artifactPath: ".kb/m.md",
+        },
+        after: { state: "absent", entityFingerprint: null, artifactPath: null },
+      },
+    ]);
+    expect(data).not.toHaveProperty("evidence");
+    expect(data.authoring).toStrictEqual({
+      operation: "kb_author_impact_review",
+      recordPath: ".kibi/impact-review.json",
+      authoredFields: [
+        "files[].decision",
+        "files[].analysisReviews",
+        "reviewer.id",
+        "reviewedAt",
       ],
-    };
-    expected.$defs.file.properties.decision = {
-      anyOf: [RECORD_SCHEMA.$defs.file.properties.decision, { type: "null" }],
-    };
-    expect(record).toStrictEqual(expected);
+      schema: {
+        id: RECORD_SCHEMA.$id,
+        skill: "kibi-commit-review",
+        resource: "resources/impact-review.schema.json",
+      },
+      instructions: expect.stringContaining("kb_author_impact_review"),
+    });
+  });
+
+  test("a later page carries only its own files' requirements and obligations", async () => {
+    const repo = repository();
+    harness(repo);
+    const data = (await prepare(repo, { scope: { kind: "staged" }, offset: 3 }))
+      .structuredContent;
+    expect(data.fileCount).toBe(4);
+    expect(data.files.map((file: Loose) => file.path)).toEqual(["z.ts"]);
+    expect(data.requirements.map((row: Loose) => row.id)).toEqual([
+      "REQ-a",
+      "REQ-b",
+    ]);
+    expect(
+      new Set(data.residualReviewObligations.map((row: Loose) => row.path)),
+    ).toEqual(new Set(["z.ts"]));
+    expect(data.files[0].pendingObligations).toBe(2);
+  });
+
+  test("named paths return complete evidence with requirement context", async () => {
+    const repo = repository();
+    const calls = harness(repo);
+    const data = (
+      await prepare(repo, {
+        scope: { kind: "staged" },
+        paths: ["z.ts", "a.ts", "z.ts"],
+      })
+    ).structuredContent;
+    expect(calls.knowledge.mock.calls).toEqual([
+      [calls.snapshot.readGit, repo.baseTree, calls.snapshot.readBlobs],
+      [calls.snapshot.readGit, repo.headTree, calls.snapshot.readBlobs],
+    ]);
+    expect(data.files).toHaveLength(4);
+    expect(data.evidence.map((row: Loose) => row.path)).toEqual([
+      "a.ts",
+      "z.ts",
+    ]);
+    const z = data.evidence[1];
+    expect(Object.hasOwn(z, "analysisReviews")).toBe(false);
+    expect(z.newHunkRanges).toEqual([{ start: 1, end: 2 }]);
+    expectGolden("impact-review-named-evidence", z.requirements);
+    expect(
+      z.requirements.before.map((row: Loose) => Object.keys(row.entity)),
+    ).toEqual([
+      ["id", "title", "type", "zeta"],
+      ["id", "title", "type"],
+    ]);
+    expect(
+      Object.keys(z.requirements.before[0].relatedEntities[2].entity),
+    ).toStrictEqual(["id", "title"]);
+    await expect(
+      prepare(repo, { scope: { kind: "staged" }, paths: ["q.ts", "r.ts"] }),
+    ).rejects.toThrow("Not in the captured review inventory: q.ts, r.ts");
   });
 
   test("keeps equal relationships and orders the rest", async () => {
@@ -456,9 +492,10 @@ describe("executePrepareImpactReview", () => {
     const saved = ROWS["tree-base"][2].relationships;
     ROWS["tree-base"][2].relationships = [twice, twice];
     try {
-      const data = (await prepare(repo, { scope: { kind: "staged" } }))
-        .structuredContent;
-      const edges = data.requirementScopes[1].before[0].relationships;
+      const data = (
+        await prepare(repo, { scope: { kind: "staged" }, paths: ["z.ts"] })
+      ).structuredContent;
+      const edges = data.evidence[0].requirements.before[0].relationships;
       expect(
         edges.filter((edge: Loose) => edge.type === "verified_by"),
       ).toHaveLength(2);
@@ -472,7 +509,7 @@ describe("executePrepareImpactReview", () => {
     const calls = harness(repo);
     const result = await prepare(repo, diffScope(repo.base, repo.head));
     expect(result.content[0].text).toBe(
-      "Prepared complete diff impact-review authoring inputs; every review decision remains unauthored.",
+      "Prepared the complete diff impact-review scope: 4 file(s), 4 listed from offset 0; every review decision remains unauthored.",
     );
     expect(result.structuredContent.snapshot).toStrictEqual({
       kind: "diff",

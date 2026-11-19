@@ -11,6 +11,7 @@ import {
   edgesFromNodes,
   fitOperationResult,
   idListText,
+  preparationAfterCut,
   resultBudgetFor,
   rowsWithinBudget,
   truncationSentence,
@@ -140,6 +141,148 @@ describe("cutRowToBudget on a list of text", () => {
     ]) as { rows: unknown[]; omittedFields: string[] };
     expect(cut.rows).toEqual([]);
     expect(cut.omittedFields).toEqual(["rows.0"]);
+  });
+});
+
+describe("preparationAfterCut", () => {
+  test("keeps the requirements and obligations of the listed files", () => {
+    const data = {
+      fileCount: 3,
+      requirements: [{ id: "REQ-a" }, { id: "REQ-b" }, "bad"],
+      residualReviewObligations: [{ path: "a.ts" }, { path: "b.ts" }, 7],
+    };
+    expect(
+      preparationAfterCut(data, [
+        { path: "a.ts", requirementIds: ["REQ-a"] },
+        { path: "c.ts" },
+        "bad",
+      ]),
+    ).toEqual({
+      fileCount: 3,
+      requirements: [{ id: "REQ-a" }],
+      residualReviewObligations: [{ path: "a.ts" }],
+    });
+    expect(preparationAfterCut({}, [{ path: "a.ts" }])).toEqual({
+      requirements: [],
+      residualReviewObligations: [],
+    });
+  });
+
+  test("pages a large preparation by its file rows", () => {
+    const files = Array.from({ length: 300 }, (_, index) => ({
+      path: `src/file-${String(index).padStart(3, "0")}.ts`,
+      requirementIds: [`REQ-${index}`],
+      pad: "x".repeat(200),
+    }));
+    const fitted = fitOperationResult(
+      { name: "kb_prepare_impact_review", effects: ["kb-read"] },
+      { scope: { kind: "staged" }, offset: 0 },
+      {
+        content: [],
+        structuredContent: {
+          recordHeaders: { scope: { fingerprint: "f" } },
+          fileCount: 300,
+          files,
+          requirements: files.map((file) => ({ id: file.requirementIds[0] })),
+          residualReviewObligations: [],
+        },
+      },
+    );
+    const data = fitted.result.structuredContent as unknown as {
+      fileCount: number;
+      files: unknown[];
+      requirements: unknown[];
+      truncation: { total: number; nextOffset: number };
+    };
+    expect(data.fileCount).toBe(300);
+    expect(data.files.length).toBeLessThan(300);
+    expect(data.requirements).toHaveLength(data.files.length);
+    expect(data.truncation.total).toBe(300);
+    expect(data.truncation.nextOffset).toBe(data.files.length);
+  });
+});
+
+describe("named impact-review evidence", () => {
+  const prepare = {
+    name: "kb_prepare_impact_review",
+    effects: ["kb-read"] as const,
+  };
+  const preparation = (count: number, evidenceChars: number) => {
+    const files = Array.from({ length: count }, (_, index) => ({
+      path: `src/file-${index}.ts`,
+      status: "modified",
+    }));
+    return {
+      recordHeaders: { scope: { fingerprint: "f" } },
+      fileCount: count,
+      files,
+      requirements: [],
+      residualReviewObligations: [],
+      evidence: [
+        ...files.map((file) => ({
+          path: file.path,
+          pad: "e".repeat(evidenceChars),
+        })),
+        "bad",
+      ],
+    };
+  };
+
+  test("pages each file's evidence with its row", () => {
+    const fitted = fitOperationResult(
+      prepare,
+      { scope: { kind: "staged" }, paths: [] },
+      { content: [], structuredContent: preparation(7, 5_000) },
+    );
+    const data = fitted.result.structuredContent as unknown as {
+      files: { path: string }[];
+      evidence: { path: string }[];
+      truncation: { nextOffset: number };
+    };
+    expect(data.files.length).toBeGreaterThan(1);
+    expect(data.files.length).toBeLessThan(7);
+    expect(data.evidence.map((entry) => entry.path)).toEqual(
+      data.files.map((file) => file.path),
+    );
+    expect(data.truncation.nextOffset).toBe(data.files.length);
+    expect(size(data)).toBeLessThanOrEqual(RESULT_BUDGET_CHARS + 400);
+  });
+
+  test("keeps a cut row's path when its evidence alone fills the budget", () => {
+    const data = preparation(2, 30_000);
+    data.files[0] = { ...data.files[0], status: "s".repeat(30_000) };
+    const fitted = fitOperationResult(
+      { ...prepare, effects: ["kb-read", "workspace-write"] as const },
+      { scope: { kind: "staged" } },
+      { content: [], structuredContent: data },
+    );
+    const cut = fitted.result.structuredContent as unknown as {
+      files: { path: string; omittedFields: string[] }[];
+      evidence: { path: string }[];
+    };
+    expect(cut.files).toHaveLength(1);
+    expect(cut.files[0].path).toBe("src/file-0.ts");
+    expect(cut.files[0].omittedFields).toContain("status");
+    expect(cut.evidence.map((entry) => entry.path)).toEqual(["src/file-0.ts"]);
+  });
+
+  test("a row that is not a record owns no evidence", () => {
+    const data = preparation(1, 10);
+    const fitted = fitOperationResult(
+      prepare,
+      {},
+      {
+        content: [],
+        structuredContent: {
+          ...data,
+          files: ["bad", { path: "x", pad: "x".repeat(30_000) }],
+        },
+      },
+    );
+    const cut = fitted.result.structuredContent as unknown as {
+      evidence: unknown[];
+    };
+    expect(cut.evidence).toEqual([]);
   });
 });
 
@@ -278,7 +421,7 @@ describe("fitOperationResult", () => {
         structuredContent: { entities: rows },
       },
     );
-    const data = fitted.result.structuredContent as {
+    const data = fitted.result.structuredContent as unknown as {
       entities: unknown[];
       truncation: Record<string, unknown>;
     };
@@ -346,7 +489,7 @@ describe("fitOperationResult", () => {
 
   test("passes a bounded output that has no smaller form whole", () => {
     const fitted = fitOperationResult(
-      { name: "kb_prepare_impact_review", effects: ["kb-read"] },
+      { name: "kb_compile_intent", effects: ["kb-read"] },
       {},
       { content: [], structuredContent: { big: "c".repeat(70_000) } },
     );

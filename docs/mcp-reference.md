@@ -53,8 +53,10 @@ budget:
 
 - **Rows**: `kb_query` (`entities`), `kb_search` (`results`), `kb_find_gaps`
   (`rows`), `kb_graph` (`nodes`, with the edges that leave the kept nodes) and
-  `kb_sparql_remote` (`rows`) return the rows that fit, and always at least
-  one. A single row larger than the budget is cut: its largest parts are left
+  `kb_sparql_remote` (`rows`) and `kb_prepare_impact_review` (`files`, with
+  the requirements and review obligations of the kept files; `fileCount` and
+  the record headers always describe the whole scope) return the rows that
+  fit, and always at least one. A single row larger than the budget is cut: its largest parts are left
   out and named in `omittedFields`.
 - **Fitted**: `kb_coverage` and `kb_check` fit their own results (below).
 - **Bounded**: every other operation's result is bounded by its input, with
@@ -70,19 +72,18 @@ same page; page with `offset` or narrow the filters.
 
 A list or report read whose data is still larger than 64,000 characters after
 its cut is refused with `RESULT_TOO_LARGE` (not retryable). An output that has
-no smaller form to ask for, such as `kb_status`, a skill or the
-`kb_prepare_impact_review` template, is sized by what the call asked about and
-is returned whole. A write has already committed, so its result is returned as
+no smaller form to ask for, such as `kb_status` or a skill, is sized by what
+the call asked about and is returned whole. A write has already committed, so its result is returned as
 it is. The `kibi coverage`, `kibi report`,
 `kibi signoff`, `kibi migrate` and `kibi query` commands print the whole
 report, since they do not hand it to an agent.
 
 ### Tool list
 
-The catalog has 18 tools, and a session lists all of them unless the `core`
+The catalog has 19 tools, and a session lists all of them unless the `core`
 profile is chosen:
 
-- **full** (the default): all 18.
+- **full** (the default): all 19.
 - **core**: the seven tools of every change, `kb_search`, `kb_query`,
   `kb_record`, `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`, plus
   `kb_review_firm_edit`, which records the firm-edit receipt that a blocking
@@ -121,7 +122,7 @@ refuses an unknown one with `VALIDATION_FAILED`, listing the allowed names.
 | Skills | `kb_skills` |
 | Modeling (read-only) | `kb_model` |
 | Mutation and validation | `kb_record`, `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_review_firm_edit`, `kb_ingest_proof` |
-| Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
+| Planning and review | `kb_prepare_impact_review`, `kb_author_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
 environment to a comma-separated list of names, or `all`; a tool named

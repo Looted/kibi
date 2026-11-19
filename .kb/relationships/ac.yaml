@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ceba3f439f8c
+  - type: assumes
+    from: SCEN-impact-review-preparation-paging
+    to: FACT-impact-review-preparation-page-chars
+    created_at: 2026-11-19T19:10:43.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7c1b18d6da3
+  - type: assumes
+    from: SCEN-impact-review-preparation-paging
+    to: FACT-impact-review-preparation-paging
+    created_at: 2026-11-19T19:10:43.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40a220c10899

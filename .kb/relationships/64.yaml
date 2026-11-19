@@ -398,3 +398,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5949b6963361
+  - type: specified_by
+    from: REQ-impact-review-schema-resource
+    to: SCEN-impact-review-schema-resource
+    created_at: 2026-11-19T19:11:28.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46f8ae146a68
+  - type: specified_by
+    from: REQ-impact-review-schema-resource
+    to: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:11:28.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89ac46abf75d
+  - type: constrains
+    from: REQ-impact-review-schema-resource
+    to: FACT-SUBJECT-kibi-impact-review-preparation
+    created_at: 2026-11-19T19:11:28.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-747c51291b8e
+  - type: requires_property
+    from: REQ-impact-review-schema-resource
+    to: FACT-impact-review-schema-resource
+    created_at: 2026-11-19T19:11:28.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c54182c1d9e2
+  - type: verified_by
+    from: REQ-impact-review-schema-resource
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:21:14.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e78a64b450dd

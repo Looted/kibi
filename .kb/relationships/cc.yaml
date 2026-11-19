@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4eb07d95dbd
+  - type: implements
+    from: SYM-impact-review-authoring-validated-record
+    to: REQ-impact-review-author-strict
+    created_at: 2026-11-19T19:12:16.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a83e0bff0086
+  - type: covered_by
+    from: SYM-impact-review-authoring-validated-record
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:16.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b47103b00cbc

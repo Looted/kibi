@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0db0702d84b1
+  - type: assumes
+    from: SCEN-NEG-impact-review-public-preparation-ROWLESS
+    to: FACT-NEG-impact-review-preparation-file-rows-ROWLESS
+    created_at: 2026-11-19T19:21:21.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-919a45f22d96

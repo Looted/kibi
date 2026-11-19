@@ -29,6 +29,7 @@ const EXPECTED_CLI_NAMES = {
   kb_apply_plan: "apply-plan",
   kb_ingest_proof: "ingest-proof",
   kb_prepare_impact_review: "prepare-impact-review",
+  kb_author_impact_review: "author-impact-review",
   kb_review_firm_edit: "review-firm-edit",
 } as const;
 
@@ -42,6 +43,7 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_plan_bootstrap",
   "kb_sparql_remote",
   "kb_prepare_impact_review",
+  "kb_author_impact_review",
   "kb_review_firm_edit",
 ]);
 
@@ -55,9 +57,9 @@ const VALID_EFFECTS = new Set([
 ]);
 
 describe("public operation catalog", () => {
-  test("contains exactly the 26 unique operations and CLI routes", () => {
-    expect(OPERATION_CATALOG).toHaveLength(26);
-    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(26);
+  test("contains exactly the 27 unique operations and CLI routes", () => {
+    expect(OPERATION_CATALOG).toHaveLength(27);
+    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(27);
     expect(
       Object.fromEntries(
         OPERATION_CATALOG.map(({ name, cliName }) => [name, cliName]),

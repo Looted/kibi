@@ -18,8 +18,8 @@ import test from "node:test";
 import { gzipSync } from "node:zlib";
 import {
   assertAcceptedCheckTimingCoverage,
-  assignSyntheticReviewIdentity,
-  authorPreparedRecord,
+  syntheticReviewIdentity,
+  authorPreparedDecisions,
   buildRequirementInput,
   capturePerformanceTraceOffsets,
   checkStagedImpactReviewRequired,
@@ -978,113 +978,88 @@ test("uses literal Rust declarations and gives authored review a local identity"
   assert.match(staged, /:kibi-bench-baseline-001/);
   assert.doesNotMatch(staged, /:kibi-bench-staged-001/);
 
-  const record = assignSyntheticReviewIdentity(
-    { reviewer: { id: null, source: "self-claimed-local" }, reviewedAt: null },
-    "2026-09-27T10:11:12.000Z",
-  );
-  assert.deepEqual(record.reviewer, {
-    id: "synthetic-benchmark-author",
-    source: "self-claimed-local",
+  assert.deepEqual(syntheticReviewIdentity("2026-09-27T10:11:12.000Z"), {
+    reviewer: { id: "synthetic-benchmark-author" },
+    reviewedAt: "2026-09-27T10:11:12.000Z",
   });
-  assert.equal(record.reviewedAt, "2026-09-27T10:11:12.000Z");
   assert.throws(
-    () => assignSyntheticReviewIdentity({ reviewer: {} }, "not-a-timestamp"),
+    () => syntheticReviewIdentity("not-a-timestamp"),
     /valid ISO timestamp/,
   );
 });
 
+const preparationOf = (fields) => ({
+  preparationVersion: "kibi.impact-review-preparation.v2",
+  recordHeaders: { scope: { fingerprint: "sha256:scope" } },
+  fileCount: fields.files.length,
+  requirements: [],
+  residualReviewObligations: [],
+  ...fields,
+});
+
 test("authors prepared file decisions with reviewer and timestamp fields", () => {
-  const workspace = mkdtempSync(
-    path.join(os.tmpdir(), "kibi-review-authoring-test-"),
+  const side = { state: "present", entityFingerprint: "sha256:fixture" };
+  const result = authorPreparedDecisions(
+    preparationOf({
+      files: [
+        { path: "src/parser-0.ts", requirementIds: ["REQ-BENCH-PARSER-001"] },
+      ],
+      requirements: [{ id: "REQ-BENCH-PARSER-001", before: side, after: side }],
+    }),
+    [{ relativePath: "src/parser-0.ts" }],
   );
-  const context = {
-    id: "REQ-BENCH-PARSER-001",
-    state: "present",
-    entityFingerprint: "sha256:fixture",
-  };
-  try {
-    const result = authorPreparedRecord(
-      {
-        preparationVersion: "kibi.impact-review-preparation.v1",
-        requirementScopes: [
-          {
-            path: "src/parser-0.ts",
-            requirementIds: ["REQ-BENCH-PARSER-001"],
-            before: [context],
-            after: [context],
-          },
-        ],
-        residualReviewObligations: [],
-        authorship: {
-          recordTemplate: {
-            isValidImpactReviewRecord: false,
-            record: {
-              reviewer: { id: null, source: "self-claimed-local" },
-              reviewedAt: null,
-              files: [
-                {
-                  path: "src/parser-0.ts",
-                  analysisReviews: null,
-                  decision: null,
-                },
-              ],
-            },
-          },
-        },
-      },
-      [{ relativePath: "src/parser-0.ts" }],
-      workspace,
-    );
-    const authored = JSON.parse(readFileSync(result.recordPath, "utf8"));
-    assert.equal(authored.reviewer.id, "synthetic-benchmark-author");
-    assert.match(authored.reviewedAt, /^\d{4}-\d{2}-\d{2}T.*Z$/);
-    assert.equal(authored.files[0].analysisReviews.length, 0);
-    assert.equal(authored.files[0].decision.kind, "impact");
-    assert.deepEqual(authored.files[0].decision.requirementIds, [
-      "REQ-BENCH-PARSER-001",
-    ]);
-  } finally {
-    rmSync(workspace, { recursive: true, force: true });
-  }
+  assert.deepEqual(result.authoredFilePaths, ["src/parser-0.ts"]);
+  const { input } = result;
+  assert.deepEqual(input.scope, { kind: "staged" });
+  assert.equal(input.scopeFingerprint, "sha256:scope");
+  assert.deepEqual(input.reviewer, { id: "synthetic-benchmark-author" });
+  assert.match(input.reviewedAt, /^\d{4}-\d{2}-\d{2}T.*Z$/);
+  assert.equal(input.files[0].analysisReviews.length, 0);
+  assert.equal(input.files[0].decision.kind, "impact");
+  assert.deepEqual(input.files[0].decision.requirementIds, [
+    "REQ-BENCH-PARSER-001",
+  ]);
 });
 
 test("refuses to author a decision for a path no benchmark rule covers", () => {
-  const workspace = mkdtempSync(
-    path.join(os.tmpdir(), "kibi-review-authoring-test-"),
+  assert.throws(
+    () =>
+      authorPreparedDecisions(
+        preparationOf({
+          files: [{ path: ".kb/symbol-coordinates.yaml", requirementIds: [] }],
+        }),
+        [],
+      ),
+    /No explicit benchmark decision rule covers prepared path \.kb\/symbol-coordinates\.yaml/,
   );
-  try {
-    assert.throws(
-      () =>
-        authorPreparedRecord(
-          {
-            preparationVersion: "kibi.impact-review-preparation.v1",
-            requirementScopes: [],
-            residualReviewObligations: [],
-            authorship: {
-              recordTemplate: {
-                isValidImpactReviewRecord: false,
-                record: {
-                  reviewer: { id: null, source: "self-claimed-local" },
-                  reviewedAt: null,
-                  files: [
-                    {
-                      path: ".kb/symbol-coordinates.yaml",
-                      analysisReviews: null,
-                      decision: null,
-                    },
-                  ],
-                },
-              },
+});
+
+test("refuses a paged preparation and a changed requirement", () => {
+  assert.throws(
+    () =>
+      authorPreparedDecisions(
+        preparationOf({ files: [{ path: "src/a.ts" }], fileCount: 2 }),
+        [{ relativePath: "src/a.ts" }],
+      ),
+    /listed 1 of 2 files/,
+  );
+  assert.throws(
+    () =>
+      authorPreparedDecisions(
+        preparationOf({
+          files: [{ path: "src/a.ts", requirementIds: ["REQ-A"] }],
+          requirements: [
+            {
+              id: "REQ-A",
+              before: { state: "present", entityFingerprint: "sha256:1" },
+              after: { state: "present", entityFingerprint: "sha256:2" },
             },
-          },
-          [],
-          workspace,
-        ),
-      /No explicit benchmark decision rule covers prepared path \.kb\/symbol-coordinates\.yaml/,
-    );
-  } finally {
-    rmSync(workspace, { recursive: true, force: true });
-  }
+          ],
+        }),
+        [{ relativePath: "src/a.ts" }],
+      ),
+    /REQ-A is not unchanged/,
+  );
 });
 
 test("preserves the temporary workspace when public engine stop fails", async () => {
