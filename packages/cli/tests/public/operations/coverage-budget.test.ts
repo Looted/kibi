@@ -166,7 +166,9 @@ describe("kb_coverage size budget", () => {
     quietStatus();
     const rows = Array.from({ length: 10 }, (_, index) => row(index));
     const marked = withFullListing({ limit: 10 });
-    expect(marked[COVERAGE_FULL_LISTING as never]).toBe(true);
+    expect((marked as Record<symbol, unknown>)[COVERAGE_FULL_LISTING]).toBe(
+      true,
+    );
     const result = await executeCoverage(marked, context(coverage(rows, 10)));
     expect(result.structuredContent?.rows).toHaveLength(10);
     expect(result.structuredContent?.rows[0]).toHaveProperty("testResolutions");
