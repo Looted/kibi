@@ -42,6 +42,21 @@ execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
 diagnostic telemetry.
 
+## Results cut to the size budget
+
+Every result keeps its `data` within 24,000 characters. A list cut to the
+budget still returns at least one row and says so: `data.truncated: true`,
+`data.truncation` (`returned`, `total`, `omitted`, `nextOffset`, `hint`), a
+`RESULT_TRUNCATED` info diagnostic and a `nextActions` entry that repeats the
+call with `offset: nextOffset`. Page with that offset or narrow the filters;
+a larger `limit` returns the same page. One row past the budget is cut and
+lists the parts it left out in `omittedFields`. `kb_coverage` and `kb_query`
+without an `id` list summary rows, and `kb_coverage` returns its plans as
+summaries; pass `fields: "full"` with a small `limit` or a narrow filter for
+the full rows and plans. A `kb_check` with `rules` lists its findings in pages
+the same way. A read whose data is still over 64,000 characters fails with
+`RESULT_TOO_LARGE`: narrow the call.
+
 ## Exact Git attachment
 
 The active ref is the exact KB identity. `KIBI_BRANCH` is used verbatim; Git's

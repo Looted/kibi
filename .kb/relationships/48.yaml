@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cef6a7ee0ed2
+  - type: assumes
+    from: SCEN-result-ceiling
+    to: FACT-result-ceiling-chars
+    created_at: 2026-11-19T15:26:47.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-825a6b9ef24b

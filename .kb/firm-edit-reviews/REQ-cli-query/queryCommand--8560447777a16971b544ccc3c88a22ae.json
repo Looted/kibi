@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-query",
+  "sourceFile": "packages/cli/src/commands/query.ts",
+  "symbol": "queryCommand",
+  "verdict": "keeps",
+  "note": "kibi query still filters by type, id, tags and source file and prints full entities as a table or JSON; it now asks kb_query for full fields explicitly.",
+  "statementHash": "sha256:e614f687213d17f21123931e27e8470409df35b9ed59b2898feda3d0666d5ea5",
+  "codeHash": "sha256:1462f9ce4ea3de66dd84f0b08669e923a6c73f179a83b3855ee75f905b01dce8",
+  "startLine": 30,
+  "endLine": 81,
+  "recordedAt": "2026-11-19T15:20:19.988Z"
+}

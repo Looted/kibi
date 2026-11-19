@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d064b018069
+  - type: implements
+    from: SYM-cli-execute-graph
+    to: REQ-kibi-discovery-inspection
+    created_at: 2026-11-19T15:48:04.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-780bfa102731
+  - type: covered_by
+    from: SYM-cli-execute-graph
+    to: TEST-mcp-search-discovery
+    created_at: 2026-11-19T15:48:04.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d9030a4a341

@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9069e0c88f0
+  - type: assumes
+    from: SCEN-NEG-check-rule-selection-pages-FULL-LISTING
+    to: FACT-NEG-check-rule-selection-page-chars-FULL-LISTING
+    created_at: 2026-11-19T15:29:21.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05549f85c2d5

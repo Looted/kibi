@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-449ae32ba6d9
+  - type: implements
+    from: SYM-result-budget-result-budget-for
+    to: REQ-result-budget-declared
+    created_at: 2026-11-19T15:29:10.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd4c4cbfeb8
+  - type: covered_by
+    from: SYM-result-budget-result-budget-for
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:29:10.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8ea53f58c9b

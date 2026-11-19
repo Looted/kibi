@@ -38,6 +38,12 @@
           ],
           "type": "string"
         },
+        "fields": {
+          "default": "summary",
+          "description": "summary: identifying fields per listed entity; full: every field. A lookup by id is always full.",
+          "enum": ["summary", "full"],
+          "type": "string"
+        },
         "id": {
           "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
           "type": "string"
@@ -56,7 +62,8 @@
         },
         "limit": {
           "default": 100,
-          "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
+          "description": "Optional max rows after filtering. Default: 100; a result past its size budget returns fewer and names the next offset.",
+          "minimum": 0,
           "type": "number"
         },
         "namespace": {

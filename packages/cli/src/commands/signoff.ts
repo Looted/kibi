@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { RuntimeOperationSpec } from "../public/operations/runtime-types.js";
-import { coverageSpec } from "../public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../public/operations/specs/reporting.js";
 import {
   certificateRejectionLines,
   earliestUnmetGate,
@@ -116,14 +119,14 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
   let result: Awaited<ReturnType<typeof coverageSpec.execute>>;
   try {
     result = await coverageSpec.execute(
-      {
+      withFullListing({
         by: "req",
         tags: [],
         includePassing: true,
         includeTransitive: true,
         limit: 100_000,
         offset: 0,
-      },
+      }),
       context,
     );
   } catch (error) {

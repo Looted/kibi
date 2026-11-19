@@ -247,7 +247,7 @@ test.each([
               });
               const readback = await client.callTool({
                 name: "kb_query",
-                arguments: { type: "req" },
+                arguments: { type: "req", fields: "full" },
               });
               const entities = (
                 readback.structuredContent as { data: { entities: unknown[] } }

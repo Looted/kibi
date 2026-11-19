@@ -38,6 +38,11 @@
             ],
             "type": "string"
           },
+          "fields": {
+            "description": "summary: identifying fields per listed entity; full: every field. A lookup by id is always full.",
+            "enum": ["summary", "full"],
+            "type": "string"
+          },
           "id": {
             "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
             "type": "string"
@@ -54,7 +59,8 @@
             "type": "string"
           },
           "limit": {
-            "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
+            "description": "Optional max rows after filtering. Default: 100; a result past its size budget returns fewer and names the next offset.",
+            "minimum": 0,
             "type": "number"
           },
           "namespace": {
@@ -157,6 +163,14 @@
                 "type": "array"
               },
               "factQuery": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "truncation": {
                 "additionalProperties": {},
                 "properties": {},
                 "type": "object"
@@ -483,6 +497,11 @@
               },
               "truncated": {
                 "type": "boolean"
+              },
+              "truncation": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "required": ["results", "count"],
@@ -1135,9 +1154,9 @@
             "type": "string"
           },
           "limit": {
-            "description": "Maximum rows to return; count reports the full total.",
+            "description": "Maximum rows; count reports the total. A result past its size budget returns fewer and names the next offset.",
             "maximum": 9007199254740991,
-            "minimum": -9007199254740991,
+            "minimum": 0,
             "type": "integer"
           },
           "missingRelationships": {
@@ -1219,6 +1238,14 @@
                 "type": "array"
               },
               "summary": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "truncation": {
                 "additionalProperties": {},
                 "properties": {},
                 "type": "object"
@@ -1353,7 +1380,7 @@
         "readOnlyHint": true,
         "title": "Report Kibi coverage and proofs"
       },
-      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Rows give each requirement's proof-stage statuses with repair and migration plan summaries; fields full adds the stage evidence and the plans' batches and actions. A result stays within its size budget and says the offset to call again with. No mutation side effects.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -1361,6 +1388,11 @@
           "by": {
             "description": "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type).",
             "enum": ["req", "symbol", "type"],
+            "type": "string"
+          },
+          "fields": {
+            "description": "summary: stage statuses and plan summaries; full: stage evidence and full plans, fewer rows per page.",
+            "enum": ["summary", "full"],
             "type": "string"
           },
           "includeMigrationPreview": {
@@ -1383,9 +1415,9 @@
             "type": "string"
           },
           "limit": {
-            "description": "Maximum rows to return. When the repair plan reports scope.complete false, rerun with offset 0 and a larger limit.",
+            "description": "Maximum rows to return. A result past its size budget returns fewer and says the offset to call again with.",
             "maximum": 9007199254740991,
-            "minimum": -9007199254740991,
+            "minimum": 0,
             "type": "integer"
           },
           "migrationLimit": {
@@ -1453,6 +1485,11 @@
                 "properties": {},
                 "type": "object"
               },
+              "matched": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
               "meta": {
                 "additionalProperties": {},
                 "properties": {},
@@ -1463,7 +1500,23 @@
                 "properties": {},
                 "type": "object"
               },
+              "migrationPlanSummary": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "omittedFields": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "repairPlan": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "repairPlanSummary": {
                 "additionalProperties": {},
                 "properties": {},
                 "type": "object"
@@ -1482,6 +1535,19 @@
                 "type": "object"
               },
               "symbolRepairPlan": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "symbolRepairPlanSummary": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "truncation": {
                 "additionalProperties": {},
                 "properties": {},
                 "type": "object"
@@ -1648,14 +1714,20 @@
           },
           "maxEdges": {
             "description": "Stop and set truncated once this many edges are reached.",
-            "maximum": 9007199254740991,
-            "minimum": -9007199254740991,
+            "maximum": 5000,
+            "minimum": 1,
             "type": "integer"
           },
           "maxNodes": {
             "description": "Stop and set truncated once this many nodes are reached.",
+            "maximum": 2000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Zero-based offset into the reached nodes (sorted by id); each page lists the edges that leave its nodes.",
             "maximum": 9007199254740991,
-            "minimum": -9007199254740991,
+            "minimum": 0,
             "type": "integer"
           },
           "relationships": {
@@ -1701,6 +1773,11 @@
                 "properties": {},
                 "type": "object"
               },
+              "nodeCount": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
               "nodes": {
                 "items": {
                   "additionalProperties": {},
@@ -1711,6 +1788,11 @@
               },
               "truncated": {
                 "type": "boolean"
+              },
+              "truncation": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "type": "object"
@@ -3775,6 +3857,12 @@
             "minimum": 0,
             "type": "integer"
           },
+          "offset": {
+            "description": "With rules: the first finding to list; findings come in pages within the size budget.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
           "rules": {
             "description": "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
             "items": {
@@ -3939,6 +4027,11 @@
                           "type": "object"
                         },
                         "type": "array"
+                      },
+                      "filesOmitted": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
                       },
                       "total": {
                         "maximum": 9007199254740991,

@@ -360,3 +360,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73db0a450398
+  - type: implements
+    from: SYM-cli-coverage-clock-window-ms
+    to: REQ-coverage-report-reuse
+    created_at: 2026-11-19T15:48:18.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-541401c47d93
+  - type: covered_by
+    from: SYM-cli-coverage-clock-window-ms
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:18.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65994843a660

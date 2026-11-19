@@ -21,6 +21,7 @@ import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
 import type { OmittedViolations } from "./check-helpers.js";
 import type { MigrationPlan } from "./migration-plan.js";
+import { RESULT_BUDGET_CHARS, type ResultTruncation } from "./result-budget.js";
 import type { SymbolDebt } from "./symbol-debt.js";
 
 export interface CheckDiagnostic {
@@ -134,7 +135,7 @@ export function summarizeMigrationPlan(
 }
 
 /** Characters a check's structured result may take, scoped or not. */
-export const SCOPED_CHECK_BUDGET_CHARS = 24_000;
+export const SCOPED_CHECK_BUDGET_CHARS = RESULT_BUDGET_CHARS;
 const GROUP_ENTITY_IDS_SHOWN = 20;
 
 const sizeOf = (value: unknown) => JSON.stringify(value).length;
@@ -157,7 +158,7 @@ export function fitScopedCheckToBudget(
   if (sizeOf(content) <= budget) return content;
   const truncation = {
     budgetChars: budget,
-    hint: `The result was cut to its size budget. ${scoped ? "Narrow sourceFiles, or pass" : "Pass"} rules to list those rules' findings in full; kibi check --format json lists every finding.`,
+    hint: `The result was cut to its size budget. ${scoped ? "Narrow sourceFiles, or pass" : "Pass"} rules to page through those rules' findings; kibi check --format json lists every finding.`,
   };
   let fitted: CheckStructuredContent = {
     ...content,
@@ -206,6 +207,22 @@ export function fitScopedCheckToBudget(
   }
 
   // List blocking findings in full while they fit, then by rule and id.
+  // The grouped rest gets a fifth of the budget, and less detail when the
+  // groups need more room.
+  let listed = listBlockingFindings(content, fitted, budget, 0.8);
+  for (const share of [0.6, 0.4, 0.2, 0]) {
+    if (sizeOf(listed) <= budget) break;
+    listed = listBlockingFindings(content, fitted, budget, share);
+  }
+  return listed;
+}
+
+function listBlockingFindings(
+  content: CheckStructuredContent,
+  fitted: CheckStructuredContent,
+  budget: number,
+  share: number,
+): CheckStructuredContent {
   const base = sizeOf({ ...fitted, violations: [], diagnostics: [] });
   const detailed: Violation[] = [];
   const detailedDiagnostics: unknown[] = [];
@@ -219,8 +236,7 @@ export function fitScopedCheckToBudget(
       sizeOf(violation) +
       (diagnostic === undefined ? 0 : sizeOf(diagnostic)) +
       2;
-    // Leave a fifth of the budget for the grouped rest.
-    if (used + cost > budget * 0.8) break;
+    if (used + cost > budget * share) break;
     detailed.push(violation);
     if (diagnostic !== undefined) detailedDiagnostics.push(diagnostic);
     used += cost;
@@ -245,6 +261,10 @@ export function fitScopedCheckToBudget(
     }
     groups.set(violation.rule, group);
   }
+  // A group keeps the tag of its findings, so tagging the result again
+  // does not grow it past the budget.
+  const tagged = (group: { first: Violation }) =>
+    (group.first as { blocks?: unknown }).blocks;
   return {
     ...fitted,
     violations: detailed,
@@ -257,7 +277,8 @@ export function fitScopedCheckToBudget(
       ...(group.first.suggestion !== undefined
         ? { suggestion: group.first.suggestion }
         : {}),
-    })),
+      ...(tagged(group) !== undefined ? { blocks: tagged(group) } : {}),
+    })) as ViolationGroup[],
   };
 }
 
@@ -549,4 +570,103 @@ export function buildSummary(
   }
   if (input.truncation !== undefined) sections.push(input.truncation.hint);
   return sections.join("\n");
+}
+
+/**
+ * A rule selection's findings from `offset`, as many as the size budget
+ * holds (at least one), with the truncation that names the next offset.
+ * `count` keeps the full number. What is left past the budget (advisory
+ * findings, a plan) is then cut as any other check's.
+ */
+const PAGE_HINT =
+  "The rule selection's findings are listed in pages; call again with offset for the next page. kibi check --format json lists every finding.";
+const LAST_PAGE_HINT =
+  "This is the last page of the rule selection's findings.";
+
+export function pageCheckFindings(
+  content: CheckStructuredContent,
+  offset: number,
+  scoped: boolean,
+  keepPlan: boolean,
+  budget: number = SCOPED_CHECK_BUDGET_CHARS,
+): CheckStructuredContent {
+  const total = content.violations.length;
+  if (offset === 0 && sizeOf(content) <= budget) return content;
+  // The page marker is counted up front at its largest, so the page it
+  // marks still fits.
+  const marker: ResultTruncation = {
+    budgetChars: budget,
+    returned: total,
+    total,
+    omitted: total,
+    nextOffset: total,
+    hint: PAGE_HINT,
+  };
+  let used = sizeOf({
+    ...content,
+    violations: [],
+    diagnostics: [],
+    truncated: true,
+    truncation: marker,
+  });
+  const violations: Violation[] = [];
+  const diagnostics: CheckDiagnostic[] = [];
+  for (let index = offset; index < total; index += 1) {
+    const violation = content.violations[index] as Violation;
+    const diagnostic = content.diagnostics[index];
+    const cost =
+      sizeOf(violation) +
+      (diagnostic === undefined ? 0 : sizeOf(diagnostic)) +
+      2;
+    if (violations.length > 0 && used + cost > budget) break;
+    violations.push(violation);
+    if (diagnostic !== undefined) diagnostics.push(diagnostic);
+    used += cost;
+  }
+  const next = offset + violations.length;
+  const truncation: ResultTruncation = {
+    budgetChars: budget,
+    returned: violations.length,
+    total,
+    omitted: Math.max(0, total - next),
+    ...(next < total ? { nextOffset: next } : {}),
+    hint: next < total ? PAGE_HINT : LAST_PAGE_HINT,
+  };
+  const paged: CheckStructuredContent = {
+    ...content,
+    violations,
+    diagnostics,
+    ...(next < total || offset > 0
+      ? { truncated: true as const, truncation }
+      : {}),
+  };
+  return sizeOf(paged) <= budget
+    ? paged
+    : fitScopedCheckToBudget(paged, budget, scoped, keepPlan);
+}
+
+/**
+ * The symbol debt with its per-file list cut to what the size budget leaves
+ * after the check's own result; `filesOmitted` counts the files left out.
+ */
+export function fitSymbolDebtToBudget(
+  content: CheckStructuredContent,
+  debt: SymbolDebt,
+  budget: number = SCOPED_CHECK_BUDGET_CHARS,
+): SymbolDebt {
+  const files = debt.files;
+  if (files === undefined || sizeOf({ ...content, symbolDebt: debt }) <= budget)
+    return debt;
+  let used = sizeOf({
+    ...content,
+    symbolDebt: { ...debt, files: [], filesOmitted: files.length },
+  });
+  const shown: NonNullable<SymbolDebt["files"]> = [];
+  for (const file of files) {
+    const cost = sizeOf(file) + 1;
+    if (used + cost > budget) break;
+    shown.push(file);
+    used += cost;
+  }
+  return { ...debt, files: shown, filesOmitted: files.length - shown.length };
 }

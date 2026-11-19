@@ -521,3 +521,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0950ba4d8b80
+  - type: assumes
+    from: SCEN-result-budget-declared
+    to: FACT-result-budget-declared
+    created_at: 2026-11-19T15:29:02.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec47975941b4

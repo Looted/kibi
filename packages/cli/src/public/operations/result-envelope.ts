@@ -243,6 +243,11 @@ function refusalDetail(row: Record<string, unknown>): string {
     : "";
 }
 
+/** `list` with `more` after it; `list` itself when there is nothing more. */
+function appended<T>(list: readonly T[], more: readonly T[] | undefined) {
+  return more === undefined || more.length === 0 ? list : [...list, ...more];
+}
+
 export function toKibiResult<T>(
   spec: {
     readonly name: OperationName | string;
@@ -259,6 +264,10 @@ export function toKibiResult<T>(
      * failed.
      */
     readonly attempted?: boolean;
+    /** Diagnostics added after the operation's own (a size-budget cut). */
+    readonly appendDiagnostics?: KibiResult["diagnostics"];
+    /** Next actions added after the operation's own (paging on). */
+    readonly appendNextActions?: KibiResult["nextActions"];
   } = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
@@ -317,11 +326,17 @@ export function toKibiResult<T>(
       ...spec.effects.map((effect) => effectStatus(effect, row, outcome)),
       ...extraFailedEffects(spec.effects, row),
     ],
-    diagnostics: options.diagnostics ?? [
-      ...diagnostics(row?.diagnostics),
-      ...uncompiledStoreDiagnostics(String(spec.name), row),
-    ],
-    nextActions: options.nextActions ?? nextActions(row?.nextActions),
+    diagnostics: appended(
+      options.diagnostics ?? [
+        ...diagnostics(row?.diagnostics),
+        ...uncompiledStoreDiagnostics(String(spec.name), row),
+      ],
+      options.appendDiagnostics,
+    ),
+    nextActions: appended(
+      options.nextActions ?? nextActions(row?.nextActions),
+      options.appendNextActions,
+    ),
     ...(resultError ? { error: resultError } : {}),
   };
 }
@@ -396,3 +411,11 @@ export function appendPayloadCountField(
   fields.result_summary =
     count === null ? `${noun} count unavailable` : `${count} ${noun}`;
 }
+
+export {
+  RESULT_BUDGET_CHARS,
+  RESULT_CEILING_CHARS,
+  RESULT_TOO_LARGE,
+  RESULT_TRUNCATED,
+  fitOperationResult,
+} from "./result-budget.js";

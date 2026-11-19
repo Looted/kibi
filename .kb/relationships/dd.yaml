@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fb284b646c2
+  - type: implements
+    from: SYM-cli-coverage-full-listing
+    to: REQ-coverage-plan-summaries
+    created_at: 2026-11-19T15:48:21.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc2b61f5cbb0
+  - type: covered_by
+    from: SYM-cli-coverage-full-listing
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:21.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbd623aaf1d5

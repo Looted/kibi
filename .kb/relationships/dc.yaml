@@ -293,3 +293,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acba79b84e17
+  - type: specified_by
+    from: REQ-check-rule-selection-pages
+    to: SCEN-check-rule-selection-pages
+    created_at: 2026-11-19T15:29:24.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77909a7f8457
+  - type: specified_by
+    from: REQ-check-rule-selection-pages
+    to: SCEN-NEG-check-rule-selection-pages-FULL-LISTING
+    created_at: 2026-11-19T15:29:24.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3abf772b1b2
+  - type: verified_by
+    from: REQ-check-rule-selection-pages
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:29:24.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15f648121c5d
+  - type: constrains
+    from: REQ-check-rule-selection-pages
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-19T15:29:24.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df33572f33c1
+  - type: requires_property
+    from: REQ-check-rule-selection-pages
+    to: FACT-check-rule-selection-page-chars
+    created_at: 2026-11-19T15:29:24.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6871f42d470a
