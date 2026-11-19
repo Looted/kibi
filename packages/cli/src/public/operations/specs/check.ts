@@ -43,6 +43,15 @@ export const checkSpec = {
         [ADVERTISED_DESCRIPTION]:
           "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary.",
       },
+      offset: {
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "With rules: the first finding to list. A rule selection lists its findings in pages that keep to the size budget, and a cut page names the next offset.",
+        [ADVERTISED_DESCRIPTION]:
+          "With rules: the first finding to list; findings come in pages within the size budget.",
+      },
       includeSymbolDebt: {
         type: "boolean",
         description:

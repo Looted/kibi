@@ -423,3 +423,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a1f802b947e
+  - type: implements
+    from: SYM-cli-fit-symbol-debt-to-budget
+    to: REQ-result-budget-chars
+    created_at: 2026-11-19T15:47:26.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51e8cbf3f4b7
+  - type: covered_by
+    from: SYM-cli-fit-symbol-debt-to-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:26.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3317b122fbb

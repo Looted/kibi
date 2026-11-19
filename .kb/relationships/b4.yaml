@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f674c752635
+  - type: assumes
+    from: SCEN-result-budget-chars
+    to: FACT-result-budget-chars
+    created_at: 2026-11-19T15:25:04.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd7e7058bd3b
+  - type: implements
+    from: SYM-tools-budgeted-tool-result
+    to: REQ-result-route-parity
+    created_at: 2026-11-19T15:28:51.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8da464ce48ff
+  - type: covered_by
+    from: SYM-tools-budgeted-tool-result
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:51.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e0fcb5e4dea

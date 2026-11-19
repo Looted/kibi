@@ -208,8 +208,13 @@ export {
 export {
   KIBI_PROTOCOL_VERSION,
   KbRejection,
+  RESULT_BUDGET_CHARS,
+  RESULT_CEILING_CHARS,
+  RESULT_TOO_LARGE,
+  RESULT_TRUNCATED,
   appendPayloadCountField,
   codedErrorOf,
+  fitOperationResult,
   isKbRejection,
   normalizeResultPayload,
   operationData,

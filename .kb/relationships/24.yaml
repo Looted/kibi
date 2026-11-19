@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-477276f04a81
+  - type: assumes
+    from: SCEN-NEG-coverage-plan-summaries-FULL-PLANS
+    to: FACT-NEG-coverage-plan-summaries-FULL-PLANS
+    created_at: 2026-11-19T15:27:54.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb531834c913

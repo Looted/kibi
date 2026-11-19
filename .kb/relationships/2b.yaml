@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79b92e5741f4
+  - type: implements
+    from: SYM-reporting-summarize-coverage-row
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:27:44.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5c62f89df90
+  - type: covered_by
+    from: SYM-reporting-summarize-coverage-row
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:27:44.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26ee74f702ca
+  - type: implements
+    from: SYM-result-budget-result-budgets
+    to: REQ-result-budget-declared
+    created_at: 2026-11-19T15:29:09.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0c872d606d5
+  - type: covered_by
+    from: SYM-result-budget-result-budgets
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:29:09.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-078ce32933d7
+  - type: implements
+    from: SYM-cli-coverage-input
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:48:07.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a3db977a8f2
+  - type: covered_by
+    from: SYM-cli-coverage-input
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:07.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e2131f8e9d9

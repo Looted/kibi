@@ -272,7 +272,9 @@ describe("dependency-ordered requirement repair plans", () => {
     expect(plan?.status).toBe("partial");
     expect(plan?.scope.complete).toBe(false);
     expect(plan?.scope.excludedByPagination).toBe(2);
-    expect(plan?.diagnostics[0]).toContain("larger limit");
+    expect(plan?.diagnostics[0]).toContain(
+      "read the following pages with offset",
+    );
   });
 
   test("reports no repairs for a complete proven scope and omits non-requirement plans", () => {

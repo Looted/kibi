@@ -53,8 +53,9 @@ function workspaceWithSource(): ConsumerWorkspace {
 }
 
 function symbols(workspace: ConsumerWorkspace): Json[] {
-  return (workspace.json(["query"], { type: "symbol" }).data as Json)
-    .entities as Json[];
+  return (
+    workspace.json(["query"], { type: "symbol", fields: "full" }).data as Json
+  ).entities as Json[];
 }
 
 describe("kb_upsert implementedBy through the real CLI", () => {

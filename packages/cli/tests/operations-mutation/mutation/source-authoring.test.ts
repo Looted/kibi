@@ -124,7 +124,16 @@ function markdown(
 describe("pending source receipts", () => {
   test("write an owner-only receipt that binds the path to its hash", () => {
     const root = workspace();
-    writePendingSourceReceipt(root, "docs/a.md", "h1");
+    // Outside a Git work tree the receipt names no branch, unless the
+    // environment names one (CI's proof run sets KIBI_BRANCH).
+    const configuredBranch = process.env.KIBI_BRANCH;
+    delete process.env.KIBI_BRANCH;
+    try {
+      writePendingSourceReceipt(root, "docs/a.md", "h1");
+    } finally {
+      if (configuredBranch !== undefined)
+        process.env.KIBI_BRANCH = configuredBranch;
+    }
     const file = receiptFile(root, "docs/a.md");
     const receipt = JSON.parse(fs.readFileSync(file, "utf8"));
     expect(receipt).toEqual({

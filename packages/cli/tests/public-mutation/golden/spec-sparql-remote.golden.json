@@ -59,6 +59,13 @@
           "rows": {
             "type": "array",
             "items": {}
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "truncation": {
+            "type": "object",
+            "additionalProperties": true
           }
         }
       },

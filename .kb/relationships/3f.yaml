@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2bcd8f7968e
+  - type: implements
+    from: SYM-discovery-executors-summary-entity
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:27:42.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c24db65222d
+  - type: covered_by
+    from: SYM-discovery-executors-summary-entity
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:27:42.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6895bccd0b37

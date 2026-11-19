@@ -76,6 +76,13 @@
       "body": {
         "type": "object",
         "additionalProperties": true
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
@@ -115,6 +122,10 @@
         ]
       },
       "branchStore": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "truncation": {
         "type": "object",
         "additionalProperties": true
       }
@@ -261,6 +272,13 @@
       "meta": {
         "type": "object",
         "additionalProperties": true
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
@@ -295,6 +313,34 @@
         "type": "object",
         "additionalProperties": true
       },
+      "repairPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "symbolRepairPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "migrationPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "matched": {
+        "type": "integer"
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "omittedFields": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
       "meta": {
         "type": "object",
         "additionalProperties": true
@@ -322,6 +368,13 @@
       "truncated": {
         "type": "boolean"
       },
+      "nodeCount": {
+        "type": "integer"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
+      },
       "meta": {
         "type": "object",
         "additionalProperties": true
@@ -338,6 +391,13 @@
       "rows": {
         "type": "array",
         "items": {}
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
@@ -1298,6 +1358,9 @@
                     }
                   }
                 }
+              },
+              "filesOmitted": {
+                "type": "integer"
               }
             },
             "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."

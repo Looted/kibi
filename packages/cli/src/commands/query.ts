@@ -66,6 +66,8 @@ export async function queryCommand(
         ...(options.source !== undefined ? { sourceFile: options.source } : {}),
         limit,
         offset,
+        // The command prints every field; kb_query lists summary rows.
+        fields: "full",
       },
       { workspaceRoot: process.cwd() },
     );

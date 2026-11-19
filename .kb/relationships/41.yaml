@@ -510,3 +510,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a97d57139b02
+  - type: specified_by
+    from: REQ-summary-rows-default
+    to: SCEN-summary-rows-default
+    created_at: 2026-11-19T15:27:40.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49c3acc101d6
+  - type: specified_by
+    from: REQ-summary-rows-default
+    to: SCEN-NEG-summary-rows-default-FULL-BY-DEFAULT
+    created_at: 2026-11-19T15:27:40.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9fc54936dd3
+  - type: verified_by
+    from: REQ-summary-rows-default
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:27:40.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a93437d5be2
+  - type: constrains
+    from: REQ-summary-rows-default
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:27:40.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f0ed7d02af
+  - type: requires_property
+    from: REQ-summary-rows-default
+    to: FACT-summary-rows-default
+    created_at: 2026-11-19T15:27:40.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41697ed395dc
