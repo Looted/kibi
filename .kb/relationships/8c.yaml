@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e9b9758a82f0
+  - type: implements
+    from: SYM-cli-protocol-budgeted-operation-result
+    to: REQ-result-route-parity
+    created_at: 2026-11-19T15:28:52.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb501195b2e
+  - type: covered_by
+    from: SYM-cli-protocol-budgeted-operation-result
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:52.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec46bec072aa

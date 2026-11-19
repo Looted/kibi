@@ -21,17 +21,17 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-94594108f07cb14c688f4236
+    receipt_id: PR-d4ba0fa5a79bcf5670282de7
     test_id: TEST-kibi-scoped-check-output
     scope: end_to_end
     outcome: passed
-    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-17T07:50:58.451Z'
-    finished_at: '2026-11-17T07:50:59.003Z'
-    artifact_digest: 2b5ae4fe542337b83e92177544ff86ea752f344fcfad5bf00f3245722e69b73b
+    code_snapshot: 124d452d979c4b2d1c6c7420b3eeb54c5cff6f5364670bb741a45c62f81bf5da
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-19T15:39:17.720Z'
+    finished_at: '2026-11-19T15:39:18.568Z'
+    artifact_digest: 6baccbf8bf3682304bd09f138f983e16f5dd45b30b4f372e5b0b574c7e4e73e8
     contract_hash: 4105393760b29a145766c945a816117a18f7861680851dfdad11f8ab16ef1c73
-    binding_hash: 7882e0e8a953117ab821400ebc47a5ac4a7629ad3da22474596fc31d8ca72877
+    binding_hash: 5494c172b9b6928161a4501eac8313bd88b145032e0ec4f8e2e6983e4988075f
     fingerprint: d097d6fcce9fd32db47228efe4f8d414f3ae61ca8e01b8485449ec72703e2578
     fingerprint_components:
       contract: 4105393760b29a145766c945a816117a18f7861680851dfdad11f8ab16ef1c73
@@ -56,6 +56,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Runs the scoping, counting, migration-plan summary and budget steps of a kb_check scoped to sourceFiles (packages/cli/tests/public/operations/check-scope.test.ts), including the KB documents a Git work tree reports changed, the same budget on a check without sourceFiles with its own hint and a summarized migration plan unless includeMigrationPlan is set, and the check executor with thirteen blocking violations of which three concern the change, a rule selection and the full-listing command left uncut, and an unscoped result of 412 findings cut to budget with the asked-for symbol debt list on top (packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts).
+Runs the scoping, counting, migration-plan summary and budget steps of a kb_check scoped to sourceFiles (packages/cli/tests/public/operations/check-scope.test.ts), including the KB documents a Git work tree reports changed, the same budget on a check without sourceFiles with its own hint and a summarized migration plan unless includeMigrationPlan is set, and the check executor with thirteen blocking violations of which three concern the change, a rule selection and the full-listing command left uncut, and an unscoped result of 412 findings cut to budget with the asked-for symbol debt list fitted into what the budget leaves (packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts).
 
 A false pass would be a test that drops omitted violations without counting them, so a scoped check reads as passing while the KB still blocks, or one that cuts the result and loses a blocking rule.

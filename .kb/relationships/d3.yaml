@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92c1e88d28a0
+  - type: assumes
+    from: SCEN-NEG-result-budget-declared-UNDECLARED
+    to: FACT-NEG-result-budget-declared-UNDECLARED
+    created_at: 2026-11-19T15:29:03.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6600d97245fe

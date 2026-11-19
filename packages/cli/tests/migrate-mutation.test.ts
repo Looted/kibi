@@ -57,7 +57,10 @@ import * as runtimeTypes from "../src/public/operations/runtime-types.js";
 import { checkSpec } from "../src/public/operations/specs/check.js";
 import { statusSpec } from "../src/public/operations/specs/discovery.js";
 import { applyPlanSpec } from "../src/public/operations/specs/planning.js";
-import { coverageSpec } from "../src/public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../src/public/operations/specs/reporting.js";
 import * as cliRuntime from "../src/runtime/cli-runtime.js";
 import * as telemetry from "../src/usage-telemetry.js";
 import * as branchResolver from "../src/utils/branch-resolver.js";
@@ -2328,8 +2331,8 @@ describe("migration plan", () => {
     expect(h.calls).toStrictEqual([
       ["status", {}],
       ["check", {}],
-      ["req", { by: "req", limit: 10_000, offset: 0 }],
-      ["symbol", { by: "symbol", limit: 10_000, offset: 0 }],
+      ["req", withFullListing({ by: "req", limit: 10_000, offset: 0 })],
+      ["symbol", withFullListing({ by: "symbol", limit: 10_000, offset: 0 })],
     ]);
     expect(ids(plan).sort()).toStrictEqual(["c1", "c2", "q1"]);
   });

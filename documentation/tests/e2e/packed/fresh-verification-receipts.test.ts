@@ -281,7 +281,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
           );
           const mcpCoverage = await sendMcpRequest(mcp, 3, "tools/call", {
             name: "kb_coverage",
-            arguments: { by: "req", includePassing: true },
+            arguments: { by: "req", includePassing: true, fields: "full" },
           });
           assert.ifError(mcpCoverage.error);
           const mcpCoverageEnvelope = mcpCoverage.result?.structuredContent as

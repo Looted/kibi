@@ -643,3 +643,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3dd07b697bbe
+  - type: assumes
+    from: SCEN-NEG-result-budget-paging-notice-SILENT-CUT
+    to: FACT-NEG-result-budget-paging-notice-SILENT-CUT
+    created_at: 2026-11-19T15:26:15.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edbb5e0d4032
+  - type: implements
+    from: SYM-cli-coverage-options
+    to: REQ-coverage-plan-summaries
+    created_at: 2026-11-19T15:48:15.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a6b07616142
+  - type: covered_by
+    from: SYM-cli-coverage-options
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:15.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dccc32633cb

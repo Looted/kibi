@@ -11406,6 +11406,10 @@ symbols:
         target: TEST-kibi-legacy-migration-preview
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-matched-count
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
   - id: SYM-test-conservative-requirement-proof-chain
@@ -46366,3 +46370,495 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-18T10:54:53.322Z
+  - id: SYM-test-kibi-result-budget
+    title: Result budget suite
+    status: active
+    sourceFile: packages/cli/tests/public/operations/result-budget.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-result-budget
+  - id: SYM-result-budget-fit-operation-result
+    title: fitOperationResult
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:25:43.606Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-chars
+      - type: implements
+        target: REQ-result-budget-paging-notice
+  - id: SYM-result-budget-result-budget-chars
+    title: RESULT_BUDGET_CHARS
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:25:44.968Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-chars
+  - id: SYM-result-budget-rows-within-budget
+    title: rowsWithinBudget
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:26:04.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-min-row
+  - id: SYM-result-budget-truncation-sentence
+    title: truncationSentence
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:26:20.707Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-paging-notice
+  - id: SYM-result-budget-cut-row-to-budget
+    title: cutRowToBudget
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:26:37.457Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-row-cut
+  - id: SYM-result-budget-refuse-over-ceiling
+    title: refuseOverCeiling
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:26:52.865Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-ceiling
+  - id: SYM-result-budget-result-ceiling-chars
+    title: RESULT_CEILING_CHARS
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:26:54.254Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-ceiling
+  - id: SYM-discovery-executors-summary-entity
+    title: summaryEntity
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:27:41.807Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-summary-rows-default
+  - id: SYM-reporting-summarize-coverage-row
+    title: summarizeCoverageRow
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:27:43.430Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-summary-rows-default
+  - id: SYM-reporting-summarize-repair-plan
+    title: summarizeRepairPlan
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:27:59.187Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-plan-summaries
+  - id: SYM-reporting-summarize-symbol-repair-plan
+    title: summarizeSymbolRepairPlan
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:28:00.695Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-plan-summaries
+  - id: SYM-reporting-coverage-check-time
+    title: coverageCheckTime
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:28:33.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-report-reuse
+  - id: SYM-tools-budgeted-tool-result
+    title: budgetedToolResult
+    sourceFile: packages/mcp/src/server/tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:28:50.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-route-parity
+  - id: SYM-cli-protocol-budgeted-operation-result
+    title: budgetedOperationResult
+    sourceFile: packages/cli/src/cli-protocol.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:28:51.777Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-route-parity
+  - id: SYM-result-budget-result-budgets
+    title: RESULT_BUDGETS
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:29:08.488Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-declared
+  - id: SYM-result-budget-result-budget-for
+    title: resultBudgetFor
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:29:10.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-declared
+  - id: SYM-check-format-shared-page-check-findings
+    title: pageCheckFindings
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T15:29:25.816Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-check-rule-selection-pages
+  - id: SYM-cli-fit-symbol-debt-to-budget
+    title: fitSymbolDebtToBudget
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-chars
+  - id: SYM-cli-query-input
+    title: QueryInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-summary-rows-default
+  - id: SYM-cli-id-list-text
+    title: idListText
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-paging-notice
+  - id: SYM-cli-edges-from-nodes
+    title: edgesFromNodes
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-chars
+  - id: SYM-cli-result-budget-declaration
+    title: ResultBudgetDeclaration
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-declared
+  - id: SYM-cli-result-truncation
+    title: ResultTruncation
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-paging-notice
+  - id: SYM-cli-fitted-result
+    title: FittedResult
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-route-parity
+  - id: SYM-cli-result-truncated-code
+    title: RESULT_TRUNCATED
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-budget-paging-notice
+  - id: SYM-cli-result-too-large-code
+    title: RESULT_TOO_LARGE
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-result-ceiling
+  - id: SYM-cli-execute-find-gaps
+    title: executeFindGaps
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-discovery-inspection
+  - id: SYM-cli-read-coverage-pages
+    title: readCoveragePages
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-proof-retention-limits
+  - id: SYM-cli-with-full-listing
+    title: withFullListing
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-plan-summaries
+  - id: SYM-cli-execute-graph
+    title: executeGraph
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-discovery-inspection
+  - id: SYM-cli-coverage-input
+    title: CoverageInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-summary-rows-default
+  - id: SYM-cli-graph-input
+    title: GraphInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-discovery-inspection
+  - id: SYM-cli-graph-payload
+    title: GraphPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-discovery-inspection
+  - id: SYM-cli-coverage-options
+    title: CoverageOptions
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-plan-summaries
+  - id: SYM-cli-coverage-clock-window-ms
+    title: COVERAGE_CLOCK_WINDOW_MS
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-report-reuse
+  - id: SYM-cli-coverage-full-listing
+    title: COVERAGE_FULL_LISTING
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-result-budget
+      - type: implements
+        target: REQ-coverage-plan-summaries
+  - id: SYM-mcp-job-snapshot
+    title: jobSnapshot
+    status: active
+    sourceFile: packages/mcp/src/server/jobs.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T16:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
+      - type: implements
+        target: REQ-bootstrap-apply-long-running

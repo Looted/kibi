@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0b51c19f9cc
+  - type: implements
+    from: SYM-cli-graph-payload
+    to: REQ-kibi-discovery-inspection
+    created_at: 2026-11-19T15:48:12.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23b2ad8ed02e
+  - type: covered_by
+    from: SYM-cli-graph-payload
+    to: TEST-mcp-search-discovery
+    created_at: 2026-11-19T15:48:12.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06247394894b

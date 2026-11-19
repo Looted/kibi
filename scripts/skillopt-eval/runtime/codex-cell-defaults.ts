@@ -176,7 +176,8 @@ function latestContent(
   return null;
 }
 
-function proofStateFromCoverage(
+/** The proof state a final-state coverage read shows, if it read every row. */
+export function proofStateFromCoverage(
   coverage: Record<string, unknown> | null,
 ): "tested" | "mixed" | "unresolved" | "not_evaluated" {
   if (coverage === null) return "not_evaluated";
@@ -185,7 +186,14 @@ function proofStateFromCoverage(
       ? coverage.repairPlan.scope.complete
       : undefined) ??
     (isRecord(coverage.scope) ? coverage.scope.complete : undefined);
-  if (scope !== true) return "not_evaluated";
+  // A report read page by page lists every matched row, though each page's
+  // plan only covers that page.
+  const everyRowRead =
+    typeof coverage.matched === "number" &&
+    Array.isArray(coverage.rows) &&
+    coverage.rows.length === coverage.matched &&
+    coverage.truncated !== true;
+  if (scope !== true && !everyRowRead) return "not_evaluated";
   const summary = isRecord(coverage.summary) ? coverage.summary : null;
   const tested = summary?.proofTested;
   const missing = summary?.proofMissing;

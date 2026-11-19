@@ -40,6 +40,8 @@ export interface SymbolDebt {
   fileCount: number;
   /** Per file, only when the check was asked to list them. */
   files?: Array<{ path: string; unrecorded: string[] }>;
+  /** Files left out of `files` to keep the result within its size budget. */
+  filesOmitted?: number;
 }
 
 /** The debt as counts, with the per-file list only when `list` is set. */

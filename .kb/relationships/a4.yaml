@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa79a405cab4
+  - type: assumes
+    from: SCEN-NEG-result-budget-row-cut-UNCUT-ROW
+    to: FACT-NEG-result-budget-row-cut-UNCUT-ROW
+    created_at: 2026-11-19T15:26:33.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4059e2cd9a16

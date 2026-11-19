@@ -405,3 +405,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a5798410757
+  - type: specified_by
+    from: REQ-result-budget-min-row
+    to: SCEN-result-budget-min-row
+    created_at: 2026-11-19T15:26:03.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-441c3fd26cf6
+  - type: specified_by
+    from: REQ-result-budget-min-row
+    to: SCEN-NEG-result-budget-min-row-NO-ROWS
+    created_at: 2026-11-19T15:26:03.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46d33830def3
+  - type: verified_by
+    from: REQ-result-budget-min-row
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:03.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5430026aa753
+  - type: constrains
+    from: REQ-result-budget-min-row
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:26:03.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-166b67e89a05
+  - type: requires_property
+    from: REQ-result-budget-min-row
+    to: FACT-result-budget-min-row
+    created_at: 2026-11-19T15:26:03.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26bcfe35b6f5
+  - type: implements
+    from: SYM-cli-query-input
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:47:29.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6028d39f0ed0
+  - type: covered_by
+    from: SYM-cli-query-input
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:29.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83e584b28f33
