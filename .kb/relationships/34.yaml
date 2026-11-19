@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f20a9e0e9614
+  - type: specified_by
+    from: REQ-vibe-workspace-resolution
+    to: SCEN-NEG-vibe-workspace-cwd-only
+    created_at: 2026-11-19T22:37:31.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-892d1d9aa5df

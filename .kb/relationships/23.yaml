@@ -423,3 +423,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10c0fb3ff3c1
+  - type: specified_by
+    from: REQ-vibe-mcp-launcher-contract
+    to: SCEN-NEG-vibe-mcp-launcher-connect-outside
+    created_at: 2026-11-19T22:37:29.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ec212b32c9b
