@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-4E46CD7CA044ACA0
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a043ab05382790455555ae54
+    receipt_id: PR-d3442aeaa4ea71a7bf87e2ea
     test_id: TEST-proof-claude-mcp-launcher
     scope: unit
     outcome: passed
-    code_snapshot: deaa38704483739241c070e9b69174f84cdb3a042e29025eeecfcee689f8b8db
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T09:25:02.861Z'
-    finished_at: '2026-10-27T09:25:03.032Z'
-    artifact_digest: 3b999fc243e866c41dd80a41c1babed7751d52542353f2b5e03ed0ac02d4dc89
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 5e4ea72183e6bb67d7ac5fb9a2e4a8a30cb5f33ff4f497f41b214da3d7d10206
-    binding_hash: 12c9f8d6b064c583973a8e64a9dae468f31679cef1feed34df2860e81937c456
+    binding_hash: 65ef718ee98bc4b2de34640d09c8503cbffc75eb8cf49e48415ba667b2f0c9fb
     fingerprint: 18982f2afdd03918a0ad43146e12bba9390a26a8b0053896571d54e01b790fef
     fingerprint_components:
       contract: 5e4ea72183e6bb67d7ac5fb9a2e4a8a30cb5f33ff4f497f41b214da3d7d10206
@@ -75,13 +75,15 @@ proof_receipts:
       model:
         members:
           - ${CLAUDE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
-    certificate_digest: 56ce7f39bb457c8e27e3e4439dc7be9f6206ac5c82fa238d971679b334b4f916
+        sequence:
+          - ${CLAUDE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
+    certificate_digest: 8639cb0738f5584b29d19c0983071e14eab24db4078200926253da66fb688110
     claim_bindings:
       - claim_key: CLAIM-4E46CD7CA044ACA0
         requirement_id: REQ-claude-plugin-package
         fact_id: FACT-claude-mcp-server-launcher
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

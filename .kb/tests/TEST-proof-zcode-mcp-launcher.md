@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-DA997A6FCF6F4FF1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d08281cf5b977f74ca737d7f
+    receipt_id: PR-e52d602263947b50c1d23063
     test_id: TEST-proof-zcode-mcp-launcher
     scope: unit
     outcome: passed
-    code_snapshot: deaa38704483739241c070e9b69174f84cdb3a042e29025eeecfcee689f8b8db
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T09:24:52.514Z'
-    finished_at: '2026-10-27T09:24:52.844Z'
-    artifact_digest: e90e0fa72d395f8cd92f5c0fe64eae59d4693f1411188e9790db2976b3ef7168
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 39e651fbbb17ca008ef8085981187ad7d62053a331b0d16110f0313d96603853
-    binding_hash: 581c1a99ee62af2c3803717ef601a5abb286b073a0541ad95bee8b60bb3a3b94
+    binding_hash: a4d045ec4f4f7d29be8af4e78787cc584b43d289f21ac6c717cc6a4dab049868
     fingerprint: 9a25954881d18f0d4fe50f259387bedf7b2f0f6869e0f42235564b6ca363414a
     fingerprint_components:
       contract: 39e651fbbb17ca008ef8085981187ad7d62053a331b0d16110f0313d96603853
@@ -75,13 +75,15 @@ proof_receipts:
       model:
         members:
           - ${ZCODE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
-    certificate_digest: b5d172ae6949d3b55f54dcc6b861fed62b1edad1f421c4121864cfca8a020838
+        sequence:
+          - ${ZCODE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
+    certificate_digest: f16fe7540fcfebd89cee5c04a67abcb4ce94dfbeb34b9d42e897bb96e5444ef6
     claim_bindings:
       - claim_key: CLAIM-DA997A6FCF6F4FF1
         requirement_id: REQ-zcode-plugin-package
         fact_id: FACT-zcode-mcp-server-launcher
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

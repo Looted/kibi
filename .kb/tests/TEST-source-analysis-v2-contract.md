@@ -25,17 +25,17 @@ proof_bindings:
     native_id: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts::passes a baseline, rejects an unowned declaration, and accepts its authored owner in Python, Go, and Rust
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-018f174fad8ba72d45436b51
+    receipt_id: PR-7e425d98bcfef0ec39a5d958
     test_id: TEST-source-analysis-v2-contract
     scope: end_to_end
     outcome: passed
-    code_snapshot: 97a1f8ae8b5497330ab28e93a9d81f8e7d9ff5ea036c1beb3794253bf0b278cb
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T08:18:42.277Z'
-    finished_at: '2026-11-16T08:19:20.475Z'
-    artifact_digest: f0342b4dc6519f0912cb8546d4ea03e4b7233952a911b0b9df0e6f15af09cc57
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 7cca64eeeb76cb3a50bccbcc856100da4dc5e1f3ed13f169ab3347a0784f6f35
-    binding_hash: 510f14c781b0ad2af11116cef8dc8dc3c382b4bf31b0430a44704d30d22307a6
+    binding_hash: 35fe2c644584dc7e6c81d35a040603e34c2f5b99d9b525a4b2603cc90f5bbcba
     fingerprint: 1f87cbd90cbf32481869095020e3132c8714995feac55cc2e2221a13c2ed64ae
     fingerprint_components:
       contract: 7cca64eeeb76cb3a50bccbcc856100da4dc5e1f3ed13f169ab3347a0784f6f35

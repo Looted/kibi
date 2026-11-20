@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-EC9C4089EB04AF7B
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-86aa11bd15f30de1c6dd4f22
+    receipt_id: PR-7d6e8bc06f988a4798b168f4
     test_id: TEST-proof-cursor-mcp-launcher
     scope: unit
     outcome: passed
-    code_snapshot: deaa38704483739241c070e9b69174f84cdb3a042e29025eeecfcee689f8b8db
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T09:25:13.221Z'
-    finished_at: '2026-10-27T09:25:13.416Z'
-    artifact_digest: cc78c612d7d5a44311295110d94c6a0b4170ec183d4866c0b5746446a8ae62d0
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: d86f19eae5b7a13f79192cd86e24164b0c425bb67dd657961462d8a4da53c251
-    binding_hash: 72735e883fc97920d70e6956d5db287887566e42cdc3e53d1126a193a0febc1e
+    binding_hash: f6d2fe4aa5246611699eb65a3c34537c0542ab0e7a38bb5709222ba8fc7941b2
     fingerprint: 429bef2cb14ded63005309776e08b78fab11af15a906c2ce6320f49436eab65e
     fingerprint_components:
       contract: d86f19eae5b7a13f79192cd86e24164b0c425bb67dd657961462d8a4da53c251
@@ -76,13 +76,16 @@ proof_receipts:
         members:
           - ${CURSOR_PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs
           - ${workspaceFolder}
-    certificate_digest: 509ce0196a2f8668ba342ee9ff901b4c966b0c24fb8e4c89f429c34e4e2dd68e
+        sequence:
+          - ${CURSOR_PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs
+          - ${workspaceFolder}
+    certificate_digest: c25c72925ed44940ec1548fed511fcd0bc0969e20c5cc65834e93d809984ffda
     claim_bindings:
       - claim_key: CLAIM-EC9C4089EB04AF7B
         requirement_id: REQ-cursor-plugin-package
         fact_id: FACT-cursor-mcp-server-launcher
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

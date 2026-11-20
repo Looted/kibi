@@ -28,15 +28,15 @@ id: TEST-proof-non-behavioral-symbol-roles
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-850c2c4ad8fa1ca504da2186
+    receipt_id: PR-fe913279b7d7bf5c009951ae
     test_id: TEST-proof-non-behavioral-symbol-roles
     scope: unit
     outcome: passed
-    code_snapshot: 922722505874a39bf824680c85dc86f0274e2312643033c33145a58404c54cae
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T18:38:14.424Z'
-    finished_at: '2026-11-16T18:39:38.286Z'
-    artifact_digest: a5e4e29fe982ebfc9ccda171bec12129ced7ff78384dba1a8ac7d044b1e4eb0a
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 5e4eae3da6d84b405e70fa0ba75b8273f07507a2b988c0530a262583716da10f
     binding_hash: 483994c11c8d3a6754c4ed7a3f5d1a598d6bad3618a86e52688a5919d0589c41
     fingerprint: 92698ff2c4a0ee6aac3e5cdb307b0539f709127e42abf94c598e4e4a63303be9
