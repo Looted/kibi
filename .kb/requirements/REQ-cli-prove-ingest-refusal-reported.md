@@ -21,6 +21,8 @@ logic_claims:
   - CLAIM-51C2E6202DFE60FA
 origin:
   kind: agent
+  approved_by: maintainer
+  ref: 'Maintainer reply (2026-11-20) to the request to sign off the two requirements recorded for GitHub issue 825, shown with their exact statements: "OK"'
   recorded_at: '2026-11-20T16:11:15.944Z'
 id: REQ-cli-prove-ingest-refusal-reported
 type: req
