@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bdea1d3d50e0
-  - type: assumes
-    from: SCEN-CASE-prolog-win32-prebuilt-pe-audit-EXE
-    to: FACT-CASE-prolog-win32-prebuilt-pe-audit-EXE
-    created_at: 2026-11-20T12:19:04.013Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e825fc1a1808
   - type: verified_by
     from: SCEN-CASE-prolog-win32-prebuilt-pe-audit-EXE
     to: TEST-prolog-win32-repack-contract
@@ -307,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e7edf2d3087
+  - type: assumes
+    from: SCEN-CASE-prolog-win32-prebuilt-pe-audit-EXE
+    to: FACT-prolog-win32-prebuilt-clean-runner-pe-audit
+    created_at: 2026-11-20T14:54:44.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-707ef5aa04ff

@@ -1,10 +1,10 @@
 ---
-title: repack runs only on a clean windows-2025 runner and audits the shipped PE binaries, which include *.exe and *.dll
+title: repack runs only on a clean windows-2025 runner and audits exactly the shipped PE binaries *.exe and *.dll
 status: active
 fact_kind: property_value
 subject_key: kibi.prolog.win32_prebuilt
 property_key: clean_runner_repack_with_pe_import_audit
-operator: includes
+operator: eq
 value_type: set
 value_set:
   - '*.exe'

@@ -5,6 +5,7 @@ import { describe, expect, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -345,5 +346,49 @@ describe("trim and archive", () => {
     );
     expect(r3.status).toBe(1);
     expect(r3.stderr).toContain("only in GitHub Actions");
+  });
+
+  test("smoke-archive extracts the verified archive, audits it and writes report.json", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "repack-smoke-"));
+    try {
+      const prefix = path.join(dir, "pkg");
+      mkdirSync(path.join(prefix, "lib", "swipl", "bin"), { recursive: true });
+      writeFileSync(
+        path.join(prefix, "lib", "swipl", "bin", "swipl.exe"),
+        Buffer.from(syntheticPe(0x8664, ["KERNEL32.dll"]), "hex"),
+      );
+      writeFileSync(path.join(prefix, "build-manifest.json"), "{}");
+      const archiveName: string = py(
+        `m.write_archive(__import__("pathlib").Path(${JSON.stringify(prefix)}), ${JSON.stringify(PINS_JSON)}, __import__("pathlib").Path(${JSON.stringify(dir)})).name`,
+      );
+      const archive = path.join(dir, archiveName);
+      const checksum = `${archive}.sha256`;
+      const work = path.join(dir, "smoke");
+      // The runner guard and the swipl.exe smoke need a real Windows runner;
+      // stub them so the archive handling itself is what this test exercises.
+      const driver = [
+        "import importlib.util, json, argparse",
+        `spec = importlib.util.spec_from_file_location("repack", ${JSON.stringify(SCRIPT)})`,
+        "m = importlib.util.module_from_spec(spec)",
+        "spec.loader.exec_module(m)",
+        "m.require_windows_actions_runner = lambda: None",
+        "m.smoke_payload = lambda prefix, manifest, work, report: None",
+        `ns = argparse.Namespace(target="win32-x64", manifest=${JSON.stringify(PINS)}, workdir=${JSON.stringify(work)}, archive=${JSON.stringify(archive)}, checksum=${JSON.stringify(checksum)})`,
+        "import io, contextlib",
+        "buf = io.StringIO()",
+        "with contextlib.redirect_stdout(buf):",
+        "    m.cmd_smoke_archive(ns)",
+        `print(json.dumps(json.load(open(${JSON.stringify(path.join(work, "report.json"))}))))`,
+      ].join("\n");
+      const run = spawnSync("python3", ["-c", driver], { encoding: "utf8" });
+      if (run.status !== 0) throw new Error(run.stderr);
+      const report = JSON.parse(run.stdout);
+      expect(report.target).toBe("win32-x64");
+      expect(report.checks["pe-audit"]).toBe("passed");
+      expect(report.checks.smoke).toBe("passed");
+      expect(existsSync(path.join(work, "prefix", "lib", "swipl", "bin", "swipl.exe"))).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
