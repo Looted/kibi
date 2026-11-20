@@ -411,7 +411,7 @@ def cmd_smoke_archive(args: argparse.Namespace) -> None:
     work = Path(args.workdir).resolve()
     work.mkdir(parents=True, exist_ok=True)
     prefix = work / "prefix"
-    with tarfile.open(archive) as tar:
+    with tarfile.open(args.archive) as tar:
         for member in tar.getmembers():
             if member.issym() or member.islnk() or not member.isfile() and not member.isdir():
                 raise ValueError(f"archive member is not a regular file or directory: {member.name}")
