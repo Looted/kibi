@@ -21,18 +21,18 @@ origin:
 id: TEST-mcp-apply-plan-async-preflight
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-f6c61d5bd1ae13166868786f
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-aa5ea289230de792d006e713
     test_id: TEST-mcp-apply-plan-async-preflight
     scope: end_to_end
     outcome: passed
-    code_snapshot: 5bcd0d322a2e6c7d354ab67006c2435d002496d92294aa2d93965813f4aabe00
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-07T19:05:22.838Z'
-    finished_at: '2026-10-07T19:05:23.276Z'
-    artifact_digest: 0895d3d0962b89ca4112695d7029f56d9c7e88f56137c9360b1af360f32a8e91
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: dcfb6a89a323b7967bcfb849d6051f5ccc4beb84dedb8b7855d14ea26c267ff2
-    binding_hash: 28e463d9fb098ec3081fe41d5b4be93fae496fb37d5abaaaaf728cef319ce330
+    binding_hash: 71cb631805827aa9b1d5fa3d550e84a5a8e4a52ae77f5342d253fd150e31f173
     fingerprint: 4b9d15ecb80541bb0a3900343462d8b92d8213205d9646c8849cf485986791aa
     fingerprint_components:
       contract: dcfb6a89a323b7967bcfb849d6051f5ccc4beb84dedb8b7855d14ea26c267ff2
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/mcp/tests/server/kb-apply-plan-async-preflight.test.ts`, which calls the registered `kb_apply_plan` handler with `async: true` and a bootstrap plan whose approved hash is missing, malformed, or mismatched, and checks that the call fails and the apply never runs.

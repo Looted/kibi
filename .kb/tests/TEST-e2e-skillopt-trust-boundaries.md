@@ -18,17 +18,17 @@ id: TEST-e2e-skillopt-trust-boundaries
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-462cdbd0451151d3dbf563da
+    receipt_id: PR-6067af246ea1fb2473215b4a
     test_id: TEST-e2e-skillopt-trust-boundaries
     scope: end_to_end
     outcome: passed
-    code_snapshot: c05f77bba7df77f015b0b2d3c442676cd9c4f40576ae886f262844f8bf718d9b
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-10T10:06:32.031Z'
-    finished_at: '2026-11-10T10:06:34.297Z'
-    artifact_digest: 206bfdec2fa3a8f8e13c439ce12ce3383f45852d9739f0114fd250c62f21408e
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 9020824a8e1d04d5bdf1177ebadc073b9c5a92e28cc227941f1dd81f3a509009
-    binding_hash: 52d17fd243f5139638d021ce2689535a0d0f4bfdc52eff8a30ea452a42ada1a8
+    binding_hash: db8913414a88ceee63950023dc2d9085d75802c791e083e7744b257128184856
     fingerprint: 88e534076ad7041d09154b93c898e71b247f6063a280809d0ee97a038a1bd02e
     fingerprint_components:
       contract: 9020824a8e1d04d5bdf1177ebadc073b9c5a92e28cc227941f1dd81f3a509009

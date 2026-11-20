@@ -34,18 +34,18 @@ origin:
   recorded_at: '2026-10-21T12:59:56.000Z'
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-52239789b6618a693c6f4abd
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-9ed74cfffe90a25c2bf92d56
     test_id: TEST-kibi-check-proof-evidence-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 502e7f169b9bb45c13f10a0dc9585971f9efa4956e3fc449f0cd25ee14a876b4
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-21T13:02:06.559Z'
-    finished_at: '2026-10-21T13:02:11.365Z'
-    artifact_digest: 4e5b2026b5bacc50993fb664c48ff8db5ae2d9579f399161ee11fed76e233a78
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 29b14547910cae3a8d6a3b2bae1423f510045c2bd20a4685fecb80d1f041f168
-    binding_hash: 0fdd1b47c62b5260fa42126b2b26682889ad3650f0f6a1e06362fc33c67bdaa5
+    binding_hash: 6148635e61b7195df03d21a0222729e70bdf484a15a7c347026d6be1e37433a9
     fingerprint: bc87bd142060642b5e8b9b96eedccabcd858017ec4b61c4e7b312ee8462f5848
     fingerprint_components:
       contract: 29b14547910cae3a8d6a3b2bae1423f510045c2bd20a4685fecb80d1f041f168
@@ -67,6 +67,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 
 Drives `kibi check`, `kibi prove` and `kibi coverage` through the built `kibi` binary against a fixture requirement whose only scenario test is still `status: active` (`packages/cli/tests/consumer/check-proof-evidence.test.ts`).

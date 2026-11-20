@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-binding-placeholders
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-3011f01893d81509d8128a2a
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-e486dfb3b22e32a95375eb39
     test_id: TEST-model-predicates-binding-placeholders
     scope: end_to_end
     outcome: passed
-    code_snapshot: 958d97d1ca714d740f6d17315006a0e8f256102a370d9ee44f2b88223fb57c12
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T09:33:51.748Z'
-    finished_at: '2026-10-08T09:33:51.872Z'
-    artifact_digest: ec46e984a46e8bb91d2b997f72da628591a832e9441fcfb41fed537a1d29804e
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: ada9e82e170aee7094da671eb2ec87c6bb8aae16f697d680aaa00132cac018d1
-    binding_hash: deea96438869812367d02cfdc40184600fbd4eba9383847b3db5f8b05edc8357
+    binding_hash: 5a6564b649ad02238517d7a9d697c827ec20a88c046f4830de26a394983e7552
     fingerprint: f19766aa9ddd6d2110360d60d676853d4430b0cb5a8766138f25dea16f4c13ce
     fingerprint_components:
       contract: ada9e82e170aee7094da671eb2ec87c6bb8aae16f697d680aaa00132cac018d1
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/operations/predicate-binding-placeholders.test.ts`, which classifies bindings that repeat their own or another argument name, stop words, booleans and declared constants, runs predicate suggestion with schema-named and with claim-derived bindings, and checks the `bindingHints` shape and summary text.

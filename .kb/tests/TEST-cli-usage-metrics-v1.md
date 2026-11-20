@@ -23,21 +23,21 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-5550b6516fd1cfa65a4de963
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-c66ee08c005b746673f89bd8
     test_id: TEST-cli-usage-metrics-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: 20a60e54df1ffce9dae9639e4b6009d54ea102a86bb4cbdcde5a431f990f4f7b
-    binding_hash: 2119ad458cdeb6d3156dfb88c29c51d89e05384a2c29f72795bcff126f41f626
-    fingerprint: ee4a7f87378b245720a07fbd8e1fb904ddc07a73c453e01a0bf09dd19494ea9e
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
+    contract_hash: f4d6e27453227177ae299ea9f6f5a714f90be961eabbe1460a8edad88b86187c
+    binding_hash: 14663ae68dba9801cd06b6bb9e2fbf60d8c7833dfa63f9ae8f8783a323c99aef
+    fingerprint: 9918469dde898f6c2b5406dce0d5b927db2ec659ba3b30f953b11dbff15588df
     fingerprint_components:
-      contract: 20a60e54df1ffce9dae9639e4b6009d54ea102a86bb4cbdcde5a431f990f4f7b
+      contract: f4d6e27453227177ae299ea9f6f5a714f90be961eabbe1460a8edad88b86187c
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -50,12 +50,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-cli-usage-metrics-v1
+      - symbol_id: SYM-e2e-telemetry-acceptance-gate
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

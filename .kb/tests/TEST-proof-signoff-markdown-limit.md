@@ -26,17 +26,17 @@ id: TEST-proof-signoff-markdown-limit
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1323cbe478203bda6b636e7a
+    receipt_id: PR-510c364f35646f9c800d251e
     test_id: TEST-proof-signoff-markdown-limit
     scope: unit
     outcome: passed
-    code_snapshot: 791218adb43be4736ecbc355d33b13ce116b91fc38de5fcb5e6927fe6a7ad310
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T10:17:20.934Z'
-    finished_at: '2026-10-28T10:17:21.051Z'
-    artifact_digest: 9199c47ad08cca7e39a38f5335356c7afb3e2c64af53e2fc6ca4271e41fabf0a
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 4303a6096eff515b3df3498631ba13aff1e8fd752c2fffeaaafc19717b8c52ed
-    binding_hash: 8a661a90dafbcc1bdbd2b8fefed78eb163ec8f1942baec86d62169a0020ebe0a
+    binding_hash: d97f952ee312c10d8f0604864caba9ffa81cdc644c7c91e44bd282aa06851660
     fingerprint: dbf06c991e16634d687e12ad1a52851f54991ff7c2d2180f40db37335da27caa
     fingerprint_components:
       contract: 4303a6096eff515b3df3498631ba13aff1e8fd752c2fffeaaafc19717b8c52ed

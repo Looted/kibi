@@ -14,15 +14,15 @@ id: TEST-e2e-schema-version-surface
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-661204200275adbd61647e19
+    receipt_id: PR-55d693e6667218abcc8c86e2
     test_id: TEST-e2e-schema-version-surface
     scope: end_to_end
     outcome: passed
-    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-10T05:33:42.441Z'
-    finished_at: '2026-11-10T05:36:08.645Z'
-    artifact_digest: dc8736db249dfdd88751ad8485abe81283e5b9591ca84f894b18a7ce3504ead7
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 917d8c0d204f88993958886f633f0a9421e6c2d89e444e5124e76423ae7487b7
     binding_hash: c0b74ebb63cdc2a50bf3505045cad154430be36519074160339d2b5af42db29b
     fingerprint: 1ec9d10fa085b0d11545b0706b906c620c3737ddaa7ff3ce2602598d94ed1c8a

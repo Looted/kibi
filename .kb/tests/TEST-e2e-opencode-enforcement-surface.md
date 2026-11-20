@@ -13,18 +13,18 @@ proof_contract:
 id: TEST-e2e-opencode-enforcement-surface
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-666c46a64d5840920e1f9383
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-2ad2a06c0b5d5b2caf364832
     test_id: TEST-e2e-opencode-enforcement-surface
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 2c49920c3049bc329f54700c30024b15fe7aadc2b052830377ee28bdb1e8f779
-    binding_hash: 96f32157ec8c77f1b5cc288e3446b2140b172c4bd17e89c9852ed0c8b0d946d4
+    binding_hash: 25e6a032b54006cf2590e2d174cc896571fe4f5a56608b03275819586eb5eeac
     fingerprint: 79de88a44b9c8a9d38748e5ee0d6bdb8619a2a157813bb6c700ff73286f262fb
     fingerprint_components:
       contract: 2c49920c3049bc329f54700c30024b15fe7aadc2b052830377ee28bdb1e8f779
@@ -46,6 +46,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'

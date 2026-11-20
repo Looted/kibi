@@ -56,5 +56,44 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-49fac5690f47f415a5cee5a4
+    test_id: TEST-kibi-prolog-source-readers
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 62e5cc210045c5756c2162eecbb07710514aa6bb30a4fc1e4445b437935454f2
+    contract_hash: 91e966aa0e07777479fabbd5967600d26d7b687f51da4950b3ec0df4fae28b1c
+    binding_hash: 3a89ef5597c1aea76ea8237291cd3f29391211a71bbffb02c54670b324303900
+    fingerprint: 80ce64fcd087c7e0eec68fe0d3112c9277466b06a105a47cd90c340d34c4eb35
+    fingerprint_components:
+      contract: 91e966aa0e07777479fabbd5967600d26d7b687f51da4950b3ec0df4fae28b1c
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-packed-prolog-source-readers
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-packed-prolog-source-readers
+        target: default
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
+    kind: e2e
+    evidence_level: tested
 ---
 Packs the CLI, installs it into a SWI-Prolog pack and runs kibi prove on source tests over pack.pl and the pack's modules. The requires, imports, environment and never-call claims are proved; a module that calls a goal held in a variable is refused with its place, and a pack.pl that requires an extra pack is rejected.

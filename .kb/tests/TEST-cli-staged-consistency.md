@@ -28,18 +28,18 @@ origin:
 id: TEST-cli-staged-consistency
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-65f46b4ddf5645ec832c4a14
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-30254eec9e3918656acdd297
     test_id: TEST-cli-staged-consistency
     scope: end_to_end
     outcome: passed
-    code_snapshot: fb61e675e7ac34900a14b7190c4c1a61ca293f8e5d6ba460d7b280c07f80b94f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-06T19:18:24.282Z'
-    finished_at: '2026-10-06T19:18:32.689Z'
-    artifact_digest: 45f56c68c18772f11aed6c019e54f3e7e140863a5e98b65235425fcef473f19a
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 8b8500bf372cdec2689745e11f5d012f74cdfb789c37ab56dd763a4db95b831d
-    binding_hash: a88d346ae84251720f260c558eb9929301282978a81f49ba6c37a583f89ae362
+    binding_hash: 2ec778e9b0e3ac6e4396bce3e8f021186ac6a5c0f8f6f358970f97387a11bd76
     fingerprint: 31a5ce022fa1f36eb62abc681c3ef46ac3d991c2faefe26dea09e36dcfd4ec24
     fingerprint_components:
       contract: 8b8500bf372cdec2689745e11f5d012f74cdfb789c37ab56dd763a4db95b831d
@@ -61,6 +61,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Consumer test for REQ-cli-staged-consistency (SCEN-cli-staged-consistency). It runs `kibi check --staged --format json` in a temporary consumer Git workspace and asserts two observable outcomes. Staging a success scenario that a current requirement forbids exits with status 1 and a single scenario-feasibility violation on that scenario. After that state is committed, staging an unrelated change exits with status 0 and no violations.
 

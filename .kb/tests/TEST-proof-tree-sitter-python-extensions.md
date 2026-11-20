@@ -27,17 +27,17 @@ id: TEST-proof-tree-sitter-python-extensions
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-407efa575d7268e377a0784e
+    receipt_id: PR-4644b1b131c430a927ea02eb
     test_id: TEST-proof-tree-sitter-python-extensions
     scope: unit
     outcome: passed
-    code_snapshot: afb3cdbea213e763f387c3323e2e66996394012a39dd7d3623545ab9b3cd5977
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:42:54.815Z'
-    finished_at: '2026-10-28T22:42:54.924Z'
-    artifact_digest: 01629d5c4d09cebfa39040e266e99c8c3295dd11140fb69962c3c0481b13ce00
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 13f780720627028ad3a3f6659629a855f4e2726cb56f4e4f4fb85fdef8e7a05a
-    binding_hash: 18d504ba5f5efb768e85e35c4bad2ef2b9151e3b16e14deef34aa3208e4639c8
+    binding_hash: 7474d8596baa4f630c8af90cfbaa0792cad852d51ed2ed34c552f0c3e17568d0
     fingerprint: 3317bcdd0e598a1522dd2a7490aaa4a4231246c7b65d4d0f5275e29ba2859238
     fingerprint_components:
       contract: 13f780720627028ad3a3f6659629a855f4e2726cb56f4e4f4fb85fdef8e7a05a

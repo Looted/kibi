@@ -21,18 +21,18 @@ origin:
 id: TEST-check-strict-pairing-predicate-grounding
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-d9da54393bfdad470801368a
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-a608dd45ca9f28d9862fddc2
     test_id: TEST-check-strict-pairing-predicate-grounding
     scope: end_to_end
     outcome: passed
-    code_snapshot: 3464ae42f083c2b6e9ed9b482fa7e54f58e94f0d5628e4ace6c2f8d99ecacd37
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T21:30:46.081Z'
-    finished_at: '2026-10-08T21:30:52.229Z'
-    artifact_digest: e3e67400745b385faef1d540ddb8cf48f7886d2b4c68975dba9fd2545e1a68b1
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: a69786424a2d829b18cd840d70e1e27b51dbb0867f3d5b69e275ca5b142ec37f
-    binding_hash: 57f48dd2edec26dcba3139d123025eaf16cacd7fadc0ab792529ac9d45e6f3e2
+    binding_hash: 007529f7a89f204f010d0d46a12b4340d5b8649df98303c0ac51cc6912dcb159
     fingerprint: 0fc9e2b31aa9d580a01a5e4aa04ea56d5e71cc57f6692737ade4813ebe68b120
     fingerprint_components:
       contract: a69786424a2d829b18cd840d70e1e27b51dbb0867f3d5b69e275ca5b142ec37f
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the Prolog `checks_coverage_gaps` pairing tests in `packages/core/tests/kb.plt` (a predicate about the constrained subject pairs it, a predicate about another subject does not, and strict readiness reports a single level) and the MCP stdio round trip in `packages/mcp/tests/predicate-plan-roundtrip.test.ts`, which applies a replacement plan unchanged and checks both the blocking and the advisory lane of `kb_check`.

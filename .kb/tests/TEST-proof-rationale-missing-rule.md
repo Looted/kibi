@@ -26,17 +26,17 @@ id: TEST-proof-rationale-missing-rule
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6964c270ddd8c2c840e143d1
+    receipt_id: PR-eadd4984ed67211bddd60fbe
     test_id: TEST-proof-rationale-missing-rule
     scope: unit
     outcome: passed
-    code_snapshot: e25a1f0385dac8dcff3382f76f7940204d134ea7aa298c9b083cb2fcd11015b2
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-04T18:30:31.148Z'
-    finished_at: '2026-11-04T18:30:31.284Z'
-    artifact_digest: 1b933c145f51c973df20b1df4f6b5af27a67a66a67bbbd8bcbca52c83011901e
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 5aac1ecbd699f527142fefc22d7b5021cbc177723d966a386ae45f1489b480dc
-    binding_hash: 4dac84ac42127a18668eac40476d4babbbfdd09e3d81604b91793079d2b1be65
+    binding_hash: 8380fc9a3b60e4a41a905aa2cd812a1cc11f3c27795bf691573360349b635e6d
     fingerprint: 7e1e15cbc33ccd56f0de1852b361aec7b8920fabb7b45295e2f469e68ba0db0c
     fingerprint_components:
       contract: 5aac1ecbd699f527142fefc22d7b5021cbc177723d966a386ae45f1489b480dc

@@ -26,17 +26,17 @@ id: TEST-proof-ontology-pack-capability-id
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-26df56abb9ebccd38954f865
+    receipt_id: PR-d7c9aa368d41a89cfd963a83
     test_id: TEST-proof-ontology-pack-capability-id
     scope: unit
     outcome: passed
-    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-30T19:52:03.852Z'
-    finished_at: '2026-10-30T19:52:03.956Z'
-    artifact_digest: 5664d0d0080786e7668408e9ca058b4ce6fbddb61d8cab5c9e0b2b71129e7180
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: c8faa19c95435f8ba1e1afabca73edb303bb151e8ec456617bc6736252d4770c
-    binding_hash: 3a918bc6787c80030383e5dd6d0f85bb25f30ad55d3ebbfba76cdee4a902de43
+    binding_hash: e0705d96e80b5a51c354ad4730a4fd6493906b3232ad5415bab0526e78ad1cf7
     fingerprint: b9e55b52780772c14dc9aece217df9e1b741186d4e73bf219bba307013cb25f8
     fingerprint_components:
       contract: c8faa19c95435f8ba1e1afabca73edb303bb151e8ec456617bc6736252d4770c

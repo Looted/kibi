@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-B65B400C4EE4B605
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-571cc6e162222f7645257b65
+    receipt_id: PR-d44edff395b6f63d4528cc3f
     test_id: TEST-proof-entity-required-fields
     scope: unit
     outcome: passed
-    code_snapshot: 71649ed10705e0ff14dfa0f500ef70fff1f548eb2351356f6278688a26e40e5e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:19:50.746Z'
-    finished_at: '2026-10-27T07:19:50.958Z'
-    artifact_digest: f1fc7a8593e5880e24786a939d36d162d5d490a66ed8505b378af85f942545a8
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: ec55a9b789ded191340298fe0c4a5f4fb76e3b239cc6e3610590e7984f1db2ad
-    binding_hash: ddb6cfc7a5b119ef567196816b7edd64ec34c25cc07aeb15b3ea2b9e4f35283c
+    binding_hash: 04d75a6367c126900f028f07a9cc34ac9351ff371b7f083775de721e187ed0b4
     fingerprint: bd9c7ffe8ea47f3ea942ae7bd0dfa612b44971b183ef04fee534598479b1809e
     fingerprint_components:
       contract: ec55a9b789ded191340298fe0c4a5f4fb76e3b239cc6e3610590e7984f1db2ad
@@ -81,13 +81,21 @@ proof_receipts:
           - title
           - type
           - updated_at
-    certificate_digest: 2be12efac7dd6c9d6b377f9be398932a906c57bb9754dc523e324037364f48d3
+        sequence:
+          - id
+          - title
+          - status
+          - created_at
+          - updated_at
+          - source
+          - type
+    certificate_digest: ff71702a671bf4183793a89c30dcd5be5b34ee62abe5586dfff6072caad8c1cc
     claim_bindings:
       - claim_key: CLAIM-B65B400C4EE4B605
         requirement_id: REQ-004
         fact_id: FACT-entity-record-required-fields
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

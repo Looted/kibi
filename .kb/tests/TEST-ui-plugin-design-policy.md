@@ -24,18 +24,18 @@ proof_contract:
 id: TEST-ui-plugin-design-policy
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-884ab442e45b62a2bf4cbd9c
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d902dd407d04f0696afa9cc3
     test_id: TEST-ui-plugin-design-policy
     scope: end_to_end
     outcome: passed
-    code_snapshot: 06bcb9d0b41a820d7ba77a759d45cbb22b0404df99c99db8f9b25cdbc68306f0
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-09T12:33:55.261Z'
-    finished_at: '2026-10-09T12:33:55.380Z'
-    artifact_digest: 62c7d54d3af311b44a51446f4b4e97ea4eeb45b108fc47f12c322d16f1251340
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 0922df5acf1929c32f4a2e2421a51e77333007b3689f0f1521b1594e11c2d2ac
-    binding_hash: 61a5f8422bc6055fb3508868eb7e667e02a20510379756f38f1cbb8bada1bfc1
+    binding_hash: 23f881b60b3bf44e2edb0da5f0bf41a2d9e03be7dc8e9599e2ebde8a6e20307c
     fingerprint: d9cab29cf4ff256b8919ebc445f92ea9d728def75ab55244baf644fe2bb37271
     fingerprint_components:
       contract: 0922df5acf1929c32f4a2e2421a51e77333007b3689f0f1521b1594e11c2d2ac
@@ -63,5 +63,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the kibi-plugin-ui suite, which checks that the packed policy file validates and matches the exported document and that the plugin export carries no permissions, and the check policy rules suite, whose shipped-policy case evaluates React, Angular, props, hook, story, member and store symbols against the real check-policy.json.

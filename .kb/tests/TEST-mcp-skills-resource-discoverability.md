@@ -20,20 +20,20 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-73560543f97736da86a51e30
+    receipt_id: PR-36855bb1d7d9aad124d5c861
     test_id: TEST-mcp-skills-resource-discoverability
     scope: end_to_end
     outcome: passed
-    code_snapshot: 48cc5f2c6340fb17a7d99816b8c9a340c61bcad65b834285c14663cdc1f2d7fa
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T19:26:02.820Z'
-    finished_at: '2026-10-28T19:26:03.164Z'
-    artifact_digest: ef6c5d3bc61adda33d28e54b24abb4f2c9bb03e9cdc259ea91daf762700d0ff3
-    contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
-    binding_hash: e192a29fc3025878aa709ec4503480bde4f035cfa7f5d30aeb37b841bc6cfd3e
-    fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
+    contract_hash: 4d5bdf0192c0e9dfeb46523808093cf45e8fd0986b879f7f1580d9cfdfadfc30
+    binding_hash: 8ec6d891303a6d5a0e27f3893ee50413f2d0022e12842075a9b6156dfd6a3c99
+    fingerprint: ad81c4249cdcf903dd8ce7e4b481127bd853e96da1e9cbb43cb11114acd2a783
     fingerprint_components:
-      contract: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
+      contract: 4d5bdf0192c0e9dfeb46523808093cf45e8fd0986b879f7f1580d9cfdfadfc30
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -46,7 +46,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
+      - symbol_id: SYM-e2e-mcp-cli-help
         target: default
         outcome: passed
         binding: aggregate_run

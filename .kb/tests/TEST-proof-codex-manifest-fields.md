@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-AEF7587DBC190FD1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-4c81da98fe5d0472a3ada41c
+    receipt_id: PR-77aa1b6297e3bb96b27b082a
     test_id: TEST-proof-codex-manifest-fields
     scope: unit
     outcome: passed
-    code_snapshot: 328fc65d0a8f68d784d40380e03d82ed697fd6e20aa7eac41f724a6c4fd7718a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:49:46.051Z'
-    finished_at: '2026-10-27T07:49:46.220Z'
-    artifact_digest: 1fff5ad9ffd5df496f627a8d04ecd21c4c60d12a6c6cde5292dcac51ca05b6d4
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d827e7249b61b847ea0e7dc2762b61c339162f249ae4523e9431c935a1702a0b
-    binding_hash: 52643c89b37d36b5be5c87b8fc0bb3f46f1583557e9b710a887a527c4e767611
+    binding_hash: a15327ac81676ff54202c2940fafb02a539498e106271477fffae7b1b402e061
     fingerprint: 8130e931cb9fd396091c1eb9bf5c187357ad1b76d3cff92602962f9a5f365fdc
     fingerprint_components:
       contract: d827e7249b61b847ea0e7dc2762b61c339162f249ae4523e9431c935a1702a0b
@@ -91,7 +91,7 @@ proof_receipts:
         requirement_id: REQ-codex-plugin-package
         fact_id: FACT-codex-manifest-declares-plugin-parts
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

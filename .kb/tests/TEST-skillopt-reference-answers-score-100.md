@@ -28,17 +28,17 @@ id: TEST-skillopt-reference-answers-score-100
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-4b779297a7533d2d44a59a75
+    receipt_id: PR-590103d11e9ef238a6018a7e
     test_id: TEST-skillopt-reference-answers-score-100
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6d8b811a6fc4f63413758c1fa458cbf88f9dc764d12dc1198b48d610e0cb6958
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-14T04:51:58.033Z'
-    finished_at: '2026-11-14T04:52:16.202Z'
-    artifact_digest: ffc069a5cc85b5e21bb898c6728547433ee0f2a3ca32b300330e94aaf772be76
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 96bcbdd9512fc92fa7393a5eb84dbdc6d39a65921bd660fd29ed688186c0791d
-    binding_hash: 600da69679bda53568fe300adb1d9c069b0c50a250956719ff55b4741827d1c4
+    binding_hash: ac35376370fff256294705ddaa9266457613119824c0bcc24644d7b59c51fc60
     fingerprint: 7054fa99d5f3d75f4f54bf768620a6865072ef62dc4501a5254526905fdd326c
     fingerprint_components:
       contract: 96bcbdd9512fc92fa7393a5eb84dbdc6d39a65921bd660fd29ed688186c0791d

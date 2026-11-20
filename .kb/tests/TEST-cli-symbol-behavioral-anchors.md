@@ -25,20 +25,20 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d23ff97390e49ce4112074aa
+    receipt_id: PR-085e65decd268b82978e5483
     test_id: TEST-cli-symbol-behavioral-anchors
     scope: end_to_end
     outcome: passed
-    code_snapshot: f978b6e9b5fcce43bf3cbf2642f823bfa13a3389978b17ba625fe7b9e3299f1e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T19:11:12.447Z'
-    finished_at: '2026-10-28T19:12:11.189Z'
-    artifact_digest: 3e505f9d1194090cf0d64e10e52794bea573ee5f3ab22e001798fed8cb13f407
-    contract_hash: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
-    binding_hash: 0d1315fdc1aae7204f80a75fc6b6aabc53f8df4f06ce211064bd26924670234c
-    fingerprint: ec91f649101797464653cc8f2341a75f0bb0fcd259afbc69262f051508425456
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
+    contract_hash: 30efd2e8b483afc8b190ec3627b46645c2b760e58a48372c15e853ca18b4cf23
+    binding_hash: a1861981fad06fe76bcbb88dead2ef1ba8d4983f2f6df9269e0dc2385f730e31
+    fingerprint: 21d469418c2a2c6e33dc4553ae7dcafe22d6a9f67c4c3f22bf083a97bbf51068
     fingerprint_components:
-      contract: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
+      contract: 30efd2e8b483afc8b190ec3627b46645c2b760e58a48372c15e853ca18b4cf23
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -51,7 +51,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-cli-symbol-behavioral-anchors
+      - symbol_id: SYM-e2e-source-relationship-parity
         target: default
         outcome: passed
         binding: aggregate_run

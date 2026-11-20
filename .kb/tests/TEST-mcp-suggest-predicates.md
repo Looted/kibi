@@ -24,21 +24,21 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-d82e673cc580b083b77f69b1
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-9c2b8edba1d5194ad9fb4118
     test_id: TEST-mcp-suggest-predicates
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: a07bade69813f89e22de06d9c85b75dd78d33c0d15a5c32a6122a6d191fb1e36
-    binding_hash: 594b59c94637b50860771dd4b324bcdba94741b8233659385056e71616bd05d7
-    fingerprint: d59db9961d9acae5f85f026a34d62d8f0f0df1790c6815832e565a974fec1505
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
+    contract_hash: e092b6bf33d7fd29a52293aee3315f2f79eacd27f5ff919cbfef4bcfc58cab1b
+    binding_hash: 423a2ac5883f4d814b6b598faf6d6387286798fd6d216bfbb65ccda2691a20b0
+    fingerprint: 33139d2d3b766b02cc220617d1c855d2dffbe74f55cdacb7d405fff19097cec0
     fingerprint_components:
-      contract: a07bade69813f89e22de06d9c85b75dd78d33c0d15a5c32a6122a6d191fb1e36
+      contract: e092b6bf33d7fd29a52293aee3315f2f79eacd27f5ff919cbfef4bcfc58cab1b
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -51,12 +51,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-mcp-suggest-predicates
+      - symbol_id: SYM-e2e-predicate-suggestion-relevance
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

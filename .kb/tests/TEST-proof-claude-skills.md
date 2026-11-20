@@ -28,17 +28,17 @@ proof_contract:
     - CLAIM-356FB1F64A34B134
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-fb1cca5830526530f76b8450
+    receipt_id: PR-52b1bd563ace4b3b3dae1bee
     test_id: TEST-proof-claude-skills
     scope: unit
     outcome: passed
-    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-03T10:50:45.170Z'
-    finished_at: '2026-11-03T10:50:45.379Z'
-    artifact_digest: 62641970bfbdcc1223bb74c86a7b30b195788f1726307c3b654fd1f660329c3a
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 40c835539a953fdbd23c4de684c81dd4d28a6f6f5590710c44ec8b6d06636671
-    binding_hash: 0a708f052615730d326593bfd3dd48c8bd7a79d7f9a0ae44e6235e2f0617022c
+    binding_hash: 68ce7a72b7e3d91e47b0504bebfcc1ec456ed17a800ccf9ef704e77251f78b08
     fingerprint: 143a3addd3eee08d39aa3e5341a5a1c093e7c3b4da07e8b737d6788e3d9c4d43
     fingerprint_components:
       contract: 40c835539a953fdbd23c4de684c81dd4d28a6f6f5590710c44ec8b6d06636671
