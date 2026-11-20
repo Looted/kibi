@@ -489,3 +489,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee169f29d5aa
+  - type: assumes
+    from: SCEN-NEG-impact-review-author-write-COPIED-EVIDENCE
+    to: FACT-NEG-impact-review-author-evidence-source-COPIED-EVIDENCE
+    created_at: 2026-11-19T19:11:39.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9eb09c454b1

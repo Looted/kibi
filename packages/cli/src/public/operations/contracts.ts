@@ -140,34 +140,6 @@ const reviewFileEvidence = {
     { properties: { after: reviewSideEvidence } },
   ],
 };
-const recordTemplateFile = {
-  ...objectData(
-    {
-      ...((reviewFileEvidence as OperationJsonSchema).properties as Record<
-        string,
-        OperationJsonSchema
-      >),
-      analysisReviews: { type: "null" },
-      decision: { type: "null" },
-    },
-    [
-      "path",
-      "status",
-      "analysisDepth",
-      "disposition",
-      "oldHunkRanges",
-      "newHunkRanges",
-      "before",
-      "after",
-      "analysisReviews",
-      "decision",
-    ],
-  ),
-  anyOf: [
-    { properties: { before: reviewSideEvidence } },
-    { properties: { after: reviewSideEvidence } },
-  ],
-};
 const impactRecordHeaders = objectData(
   {
     contractVersion: { const: "kibi.impact-review.v1" },
@@ -276,14 +248,93 @@ const requirementContext = {
     ),
   ],
 };
-const requirementScope = objectData(
+const requirementBindingSide = {
+  oneOf: [
+    objectData(
+      {
+        state: { const: "present" },
+        entityFingerprint: sha256Fingerprint,
+        artifactPath: stringValue,
+      },
+      ["state", "entityFingerprint", "artifactPath"],
+    ),
+    objectData(
+      {
+        state: { const: "absent" },
+        entityFingerprint: { type: "null" },
+        artifactPath: { type: "null" },
+      },
+      ["state", "entityFingerprint", "artifactPath"],
+    ),
+  ],
+};
+const requirementBinding = objectData(
+  {
+    id: stringValue,
+    before: requirementBindingSide,
+    after: requirementBindingSide,
+  },
+  ["id", "before", "after"],
+);
+const reviewAnalysisStatus = {
+  enum: ["ok", "partial", "unsupported", "failed", null],
+};
+const reviewFileRow = objectData(
   {
     path: stringValue,
+    status: { enum: ["A", "M", "R", "C", "T", "D"] },
+    disposition: { enum: ["checked", "advisory", "skipped"] },
+    analysisDepth: { enum: ["symbol", "metadata", "file", "none"] },
+    analysis: objectData(
+      { before: reviewAnalysisStatus, after: reviewAnalysisStatus },
+      ["before", "after"],
+    ),
     requirementIds: stringArray,
-    before: { type: "array", items: requirementContext },
-    after: { type: "array", items: requirementContext },
+    pendingObligations: integerValue,
+    omittedFields: stringArray,
   },
-  ["path", "requirementIds", "before", "after"],
+  [
+    "path",
+    "status",
+    "disposition",
+    "analysisDepth",
+    "analysis",
+    "requirementIds",
+    "pendingObligations",
+  ],
+);
+const namedReviewEvidence = {
+  ...reviewFileEvidence,
+  properties: {
+    ...((reviewFileEvidence as OperationJsonSchema).properties as Record<
+      string,
+      OperationJsonSchema
+    >),
+    requirements: objectData(
+      {
+        before: { type: "array", items: requirementContext },
+        after: { type: "array", items: requirementContext },
+      },
+      ["before", "after"],
+    ),
+  },
+  required: [
+    ...((reviewFileEvidence as OperationJsonSchema).required as string[]),
+    "requirements",
+  ],
+};
+const impactReviewAuthoring = objectData(
+  {
+    operation: { const: "kb_author_impact_review" },
+    recordPath: { const: ".kibi/impact-review.json" },
+    authoredFields: stringArray,
+    schema: objectData(
+      { id: stringValue, skill: stringValue, resource: stringValue },
+      ["id", "skill", "resource"],
+    ),
+    instructions: stringValue,
+  },
+  ["operation", "recordPath", "authoredFields", "schema", "instructions"],
 );
 const residualReviewObligation: OperationJsonSchema = {
   oneOf: [
@@ -331,67 +382,6 @@ const residualReviewObligation: OperationJsonSchema = {
     ),
   ],
 };
-const unauthoredRecordTemplate = objectData(
-  {
-    contractVersion: { const: "kibi.impact-review.v1" },
-    policy: (
-      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
-    ).policy as OperationJsonSchema,
-    evaluator: (
-      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
-    ).evaluator as OperationJsonSchema,
-    scope: (
-      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
-    ).scope as OperationJsonSchema,
-    reviewer: objectData(
-      { id: { type: "null" }, source: { const: "self-claimed-local" } },
-      ["id", "source"],
-    ),
-    reviewedAt: { type: "null" },
-    files: { type: "array", items: recordTemplateFile },
-  },
-  [
-    "contractVersion",
-    "policy",
-    "evaluator",
-    "scope",
-    "reviewer",
-    "reviewedAt",
-    "files",
-  ],
-);
-const impactReviewAuthorship = objectData(
-  {
-    templateVersion: { const: "kibi.impact-review-authoring-template.v1" },
-    isValidImpactReviewRecord: { const: false },
-    instructions: stringValue,
-    authoredFields: stringArray,
-    recordSchema: recordValue,
-    decisionSchema: recordValue,
-    analysisReviewSchema: recordValue,
-    templateSchema: recordValue,
-    recordTemplate: objectData(
-      {
-        templateVersion: { const: "kibi.impact-review-authoring-template.v1" },
-        isValidImpactReviewRecord: { const: false },
-        record: unauthoredRecordTemplate,
-      },
-      ["templateVersion", "isValidImpactReviewRecord", "record"],
-    ),
-  },
-  [
-    "templateVersion",
-    "isValidImpactReviewRecord",
-    "instructions",
-    "authoredFields",
-    "recordSchema",
-    "decisionSchema",
-    "analysisReviewSchema",
-    "templateSchema",
-    "recordTemplate",
-  ],
-);
-
 /**
  * kibi.job.v1 receipt returned by async-mode operations (kb_check and
  * kb_apply_plan with `async: true`) instead of the synchronous payload. Agents poll
@@ -850,27 +840,54 @@ const BASE_DATA_SCHEMAS: Readonly<
   },
   kb_prepare_impact_review: objectData(
     {
-      preparationVersion: { const: "kibi.impact-review-preparation.v1" },
+      preparationVersion: { const: "kibi.impact-review-preparation.v2" },
       status: { const: "ready_for_authoring" },
       snapshot: reviewSnapshotIdentity,
       recordHeaders: impactRecordHeaders,
-      files: { type: "array", items: reviewFileEvidence },
-      requirementScopes: { type: "array", items: requirementScope },
+      fileCount: integerValue,
+      files: { type: "array", items: reviewFileRow },
+      requirements: { type: "array", items: requirementBinding },
       residualReviewObligations: {
         type: "array",
         items: residualReviewObligation,
       },
-      authorship: impactReviewAuthorship,
+      evidence: { type: "array", items: namedReviewEvidence },
+      authoring: impactReviewAuthoring,
+      truncated: booleanValue,
+      truncation: recordValue,
     },
     [
       "preparationVersion",
       "status",
       "snapshot",
       "recordHeaders",
+      "fileCount",
       "files",
-      "requirementScopes",
+      "requirements",
       "residualReviewObligations",
-      "authorship",
+      "authoring",
+    ],
+  ),
+  kb_author_impact_review: objectData(
+    {
+      recordPath: { const: ".kibi/impact-review.json" },
+      written: { const: true },
+      scopeFingerprint: sha256Fingerprint,
+      fileCount: integerValue,
+      decided: stringArray,
+      carried: stringArray,
+      dropped: stringArray,
+      staged: { const: false },
+    },
+    [
+      "recordPath",
+      "written",
+      "scopeFingerprint",
+      "fileCount",
+      "decided",
+      "carried",
+      "dropped",
+      "staged",
     ],
   ),
   kb_compile_intent: objectData({
@@ -1010,6 +1027,9 @@ const EFFECT_OVERRIDES: Readonly<
   },
   kb_check: {},
   kb_prepare_impact_review: {},
+  kb_author_impact_review: {
+    "workspace-write": { destructive: true, retrySafety: "safe" },
+  },
   kb_review_firm_edit: {},
   kb_compile_intent: {},
   kb_apply_plan: {

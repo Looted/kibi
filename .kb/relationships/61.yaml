@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d07c23d9d65e
+  - type: assumes
+    from: SCEN-NEG-impact-review-preparation-paging-NARROWED
+    to: FACT-NEG-impact-review-preparation-page-chars-NARROWED
+    created_at: 2026-11-19T19:10:44.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-906af8c9289b
+  - type: assumes
+    from: SCEN-NEG-impact-review-preparation-paging-NARROWED
+    to: FACT-NEG-impact-review-preparation-paging-NARROWED
+    created_at: 2026-11-19T19:10:44.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cfec415acc7

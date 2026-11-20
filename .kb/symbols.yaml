@@ -46862,3 +46862,354 @@ symbols:
         target: TEST-bootstrap-apply-long-running
       - type: implements
         target: REQ-bootstrap-apply-long-running
+  - id: SYM-test-impact-review-authoring
+    title: Impact-review authoring suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-review-authoring.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-impact-review-authoring
+  - id: SYM-impact-review-preparation-named-evidence
+    title: namedEvidence
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:10:09.360Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-named-evidence
+  - id: SYM-impact-review-preparation-requirement-bindings
+    title: requirementBindings
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:10:24.435Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-requirements-once
+  - id: SYM-result-budget-preparation-after-cut
+    title: preparationAfterCut
+    sourceFile: packages/cli/src/public/operations/result-budget.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:11:13.232Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-preparation-paging
+  - id: SYM-impact-review-preparation-build-preparation
+    title: buildPreparation
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:11:14.662Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-preparation-paging
+  - id: SYM-impact-review-preparation-impact-review-schema-resource
+    title: IMPACT_REVIEW_SCHEMA_RESOURCE
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:11:29.289Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-schema-resource
+  - id: SYM-impact-review-authoring-execute-author-impact-review
+    title: executeAuthorImpactReview
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:11:44.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-no-generation
+      - type: implements
+        target: REQ-impact-review-author-write
+  - id: SYM-impact-review-authoring-write-record
+    title: writeRecord
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:11:46.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-write
+  - id: SYM-impact-review-authoring-assert-scope-fingerprint
+    title: assertScopeFingerprint
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:12:00.521Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-scope-fingerprint
+  - id: SYM-impact-review-authoring-validated-record
+    title: validatedRecord
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:12:15.334Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-strict
+  - id: SYM-impact-review-authoring-sent-decisions
+    title: sentDecisions
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:12:16.791Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-strict
+  - id: SYM-impact-review-authoring-carried-decisions
+    title: carriedDecisions
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:12:37.668Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-carry
+  - id: SYM-impact-review-authoring-decisions-for-scope
+    title: decisionsForScope
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:12:39.148Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-authoring
+      - type: implements
+        target: REQ-impact-review-author-carry
+  - id: SYM-impact-review-preparation-file-row
+    title: fileRow
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T19:15:11.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-test-impact-review-compact-preparation
+    title: Compact impact-review preparation suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-review-preparation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-impact-review-compact-preparation
+  - id: SYM-impact-review-authoring-authored-impact-file
+    title: AuthoredImpactFile
+    status: active
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:45.196Z
+  - id: SYM-impact-review-authoring-author-impact-review-input
+    title: AuthorImpactReviewInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/impact-review-authoring.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:47.610Z
+  - id: SYM-impact-review-preparation-prepare-impact-review-input
+    title: PrepareImpactReviewInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:50.257Z
+  - id: SYM-impact-review-preparation-impact-review-schema-id
+    title: IMPACT_REVIEW_SCHEMA_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:52.800Z
+  - id: SYM-impact-review-preparation-captured-impact-review
+    title: CapturedImpactReview
+    status: active
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:55.316Z
+  - id: SYM-impact-review-authoring-author-impact-review-description
+    title: AUTHOR_IMPACT_REVIEW_DESCRIPTION
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/impact-review-authoring.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:41:57.738Z
+  - id: SYM-impact-review-authoring-author-impact-review-spec
+    title: authorImpactReviewSpec
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/impact-review-authoring.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:00.171Z
+  - id: SYM-impact-review-preparation-prepare-impact-review-description
+    title: PREPARE_IMPACT_REVIEW_DESCRIPTION
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/impact-review-preparation.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:02.678Z
+  - id: SYM-types-operation-name
+    title: OperationName
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:05.176Z
+  - id: SYM-decision-seeds-impact-decisions-path
+    title: IMPACT_DECISIONS_PATH
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/decision-seeds.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:07.585Z
+  - id: SYM-mcp-broker-required-kibi-tools
+    title: REQUIRED_KIBI_TOOLS
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:10.122Z
+  - id: SYM-impact-review-preparation-without-analysis-reviews
+    title: withoutAnalysisReviews
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:15.252Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-named-evidence
+  - id: SYM-impact-review-preparation-record-headers
+    title: recordHeaders
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:20.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-review-preparation-capture-impact-review
+    title: captureImpactReview
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:21.989Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-impact-review-compact-preparation
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-codex-cell-runner-read-workspace-sources
+    title: readWorkspaceSources
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:26.853Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-decision-signals-decision-forbidden-observed
+    title: decisionForbiddenObserved
+    sourceFile: scripts/skillopt-eval/runtime/decision-signals.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:42:28.497Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100

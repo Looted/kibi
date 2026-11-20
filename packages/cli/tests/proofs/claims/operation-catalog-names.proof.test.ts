@@ -10,7 +10,7 @@ import {
  * The operations Kibi's catalog defines, read from the name of each catalog entry. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */
 
-/** A Kibi catalog operation shall be one of the 26 operations the catalog names. */
+/** A Kibi catalog operation shall be one of the 27 operations the catalog names. */
 export async function operationCatalogNamesCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-operation-catalog-names",
@@ -26,10 +26,11 @@ export async function operationCatalogNamesCertificate(): Promise<CodeCertificat
 }
 
 describe("Kibi operation catalog names", () => {
-  test("A Kibi catalog operation shall be one of the 26 operations the catalog names", async () => {
+  test("A Kibi catalog operation shall be one of the 27 operations the catalog names", async () => {
     writeCodeCertificate(await operationCatalogNamesCertificate());
     expect(OPERATION_CATALOG.map((member) => member.name).sort()).toEqual([
       "kb_apply_plan",
+      "kb_author_impact_review",
       "kb_check",
       "kb_compile_intent",
       "kb_coverage",

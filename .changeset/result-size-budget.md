@@ -16,6 +16,6 @@ Every operation result now keeps its data within 24,000 characters, on MCP and o
 - A repeated `kb_coverage` call on an unchanged store reuses the computed report instead of recomputing it for every page.
 - A `kb_check` with `rules` lists its findings in pages (new `offset` input) instead of in full. The `symbolDebt` file list fits into what the budget leaves and counts the rest in `filesOmitted`.
 - `kb_graph` takes `offset` and reports `nodeCount`; `maxNodes` and `maxEdges` are capped at 2,000 and 5,000.
-- A list or report read whose data is still over 64,000 characters is refused with `RESULT_TOO_LARGE`. Outputs with no smaller form, such as `kb_prepare_impact_review`, are returned whole.
+- A list or report read whose data is still over 64,000 characters is refused with `RESULT_TOO_LARGE`. Outputs with no smaller form, such as `kb_status`, are returned whole.
 - `kb_job_status` returns a finished job's data once instead of with its text.
 - The `kibi coverage`, `report`, `signoff`, `migrate` and `query` commands still print the whole report.

@@ -545,3 +545,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06247394894b
+  - type: specified_by
+    from: REQ-impact-review-author-no-generation
+    to: SCEN-impact-review-author-no-generation
+    created_at: 2026-11-19T19:12:53.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e5a05bbbb1a
+  - type: specified_by
+    from: REQ-impact-review-author-no-generation
+    to: SCEN-NEG-impact-review-author-no-generation-SELF-DECIDED
+    created_at: 2026-11-19T19:12:53.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67a343d05768
+  - type: verified_by
+    from: REQ-impact-review-author-no-generation
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:53.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c09c235d1364
+  - type: constrains
+    from: REQ-impact-review-author-no-generation
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:12:53.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f22c9ee95d7f
+  - type: requires_property
+    from: REQ-impact-review-author-no-generation
+    to: FACT-impact-review-author-no-generation
+    created_at: 2026-11-19T19:12:53.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3a3158cd6da

@@ -8,6 +8,7 @@ import { checkSpec } from "./specs/check.js";
 import { modelSpec, skillsSpec } from "./specs/composite.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
 import { reviewFirmEditSpec } from "./specs/firm-edit-review.js";
+import { authorImpactReviewSpec } from "./specs/impact-review-authoring.js";
 import { prepareImpactReviewSpec } from "./specs/impact-review-preparation.js";
 import {
   modelRequirementSpec,
@@ -57,6 +58,7 @@ export const OPERATION_CATALOG = [
   deleteSpec,
   checkSpec,
   prepareImpactReviewSpec,
+  authorImpactReviewSpec,
   reviewFirmEditSpec,
   sparqlRemoteSpec,
   compileIntentSpec,

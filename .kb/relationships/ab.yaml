@@ -528,3 +528,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec47975941b4
+  - type: assumes
+    from: SCEN-impact-review-author-write
+    to: FACT-impact-review-author-evidence-source
+    created_at: 2026-11-19T19:11:38.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83965a5a59cb

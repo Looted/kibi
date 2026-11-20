@@ -2874,85 +2874,65 @@ function normalizeRelativePath(value) {
     : "";
 }
 
-function assignSyntheticReviewIdentity(
-  record,
-  reviewedAt = new Date().toISOString(),
-) {
-  if (!isRecord(record.reviewer)) {
-    throw new Error("Prepared impact-review template has no reviewer object");
-  }
+/** The synthetic reviewer fields of the record kibi author-impact-review writes. */
+function syntheticReviewIdentity(reviewedAt = new Date().toISOString()) {
   if (
     Number.isNaN(Date.parse(reviewedAt)) ||
     new Date(reviewedAt).toISOString() !== reviewedAt
   ) {
     throw new Error("Synthetic review timestamp must be a valid ISO timestamp");
   }
-  record.reviewer = {
-    ...record.reviewer,
-    id: "synthetic-benchmark-author",
-    source: "self-claimed-local",
-  };
-  record.reviewedAt = reviewedAt;
-  return record;
+  return { reviewer: { id: "synthetic-benchmark-author" }, reviewedAt };
 }
 
-function authorPreparedRecord(preparation, sources, workspace) {
-  if (preparation.preparationVersion !== "kibi.impact-review-preparation.v1") {
+/**
+ * The kibi author-impact-review input for the prepared staged scope: one
+ * decision per prepared file, from the explicit benchmark rules only.
+ */
+function authorPreparedDecisions(preparation, sources) {
+  if (preparation.preparationVersion !== "kibi.impact-review-preparation.v2") {
     throw new Error(
       "Public prepare-impact-review returned an unsupported contract version",
     );
   }
-  const template = preparation.authorship?.recordTemplate;
+  const scopeFingerprint = preparation.recordHeaders?.scope?.fingerprint;
+  if (typeof scopeFingerprint !== "string")
+    throw new Error("Preparation omitted the scope fingerprint");
   if (
-    !isRecord(template) ||
-    template.isValidImpactReviewRecord !== false ||
-    !isRecord(template.record)
-  ) {
-    throw new Error(
-      "Preparation must return the explicitly invalid authoring template",
-    );
-  }
-  const record = structuredClone(template.record);
-  assignSyntheticReviewIdentity(record);
-  if (!Array.isArray(record.files))
-    throw new Error("Prepared record template has no files array");
-  if (
-    !Array.isArray(preparation.requirementScopes) ||
+    !Array.isArray(preparation.files) ||
+    !Array.isArray(preparation.requirements) ||
     !Array.isArray(preparation.residualReviewObligations)
   ) {
     throw new Error(
-      "Preparation omitted requirement scopes or residual review obligations",
+      "Preparation omitted file rows, requirements or residual review obligations",
     );
   }
-  const scopes = new Map(
-    preparation.requirementScopes.map((scope) => [
-      normalizeRelativePath(scope.path),
-      scope,
-    ]),
+  if (preparation.fileCount !== preparation.files.length)
+    throw new Error(
+      `Preparation listed ${preparation.files.length} of ${preparation.fileCount} files; the benchmark scope must fit one page`,
+    );
+  const requirements = new Map(
+    preparation.requirements.map((binding) => [binding.id, binding]),
   );
   const residuals = preparation.residualReviewObligations.filter(
     (entry) => entry.pending === true,
   );
-  const templatePaths = new Set(
-    record.files.map((file) => normalizeRelativePath(file.path)),
+  const preparedPaths = new Set(
+    preparation.files.map((file) => normalizeRelativePath(file.path)),
   );
   for (const obligation of residuals) {
-    if (!templatePaths.has(normalizeRelativePath(obligation.path))) {
+    if (!preparedPaths.has(normalizeRelativePath(obligation.path))) {
       throw new Error(
-        "Preparation returned a pending obligation outside its authored file inventory",
+        "Preparation returned a pending obligation outside its file inventory",
       );
     }
   }
   const codePaths = new Set(sources.map(({ relativePath }) => relativePath));
-  const writtenPaths = [];
+  const files = [];
 
-  for (const file of record.files) {
-    const filePath = normalizeRelativePath(file.path);
-    if (!filePath || file.decision !== null || file.analysisReviews !== null) {
-      throw new Error(
-        "Preparation file entries must retain null decision/reviews until authorship",
-      );
-    }
+  for (const row of preparation.files) {
+    const filePath = normalizeRelativePath(row.path);
+    if (!filePath) throw new Error("Preparation file row has no path");
     const pending = residuals.filter(
       (obligation) => normalizeRelativePath(obligation.path) === filePath,
     );
@@ -2967,35 +2947,32 @@ function authorPreparedRecord(preparation, sources, workspace) {
         `Parser scope requires an unsupported/partial human review for ${filePath}; refusing synthetic approval (${details})`,
       );
     }
-    file.analysisReviews = [];
-    if (codePaths.has(filePath)) {
-      const scope = scopes.get(filePath);
-      const requirementIds = [...new Set(scope?.requirementIds ?? [])].sort();
-      if (requirementIds.length === 0) {
+    if (!codePaths.has(filePath))
+      throw new Error(
+        `No explicit benchmark decision rule covers prepared path ${filePath}`,
+      );
+    const requirementIds = [...new Set(row.requirementIds ?? [])].sort();
+    if (requirementIds.length === 0) {
+      throw new Error(
+        `Prepared scope has no requirement ownership for staged parser input ${filePath}`,
+      );
+    }
+    for (const requirementId of requirementIds) {
+      const binding = requirements.get(requirementId);
+      if (
+        !binding ||
+        binding.before?.state !== "present" ||
+        binding.after?.state !== "present" ||
+        binding.before.entityFingerprint !== binding.after.entityFingerprint
+      ) {
         throw new Error(
-          `Prepared scope has no requirement ownership for staged parser input ${filePath}`,
+          `Requirement ${requirementId} is not unchanged across the prepared parser-file scope`,
         );
       }
-      for (const requirementId of requirementIds) {
-        const before = scope.before.find(
-          (context) => context.id === requirementId,
-        );
-        const after = scope.after.find(
-          (context) => context.id === requirementId,
-        );
-        if (
-          !before ||
-          !after ||
-          before.state !== "present" ||
-          after.state !== "present" ||
-          before.entityFingerprint !== after.entityFingerprint
-        ) {
-          throw new Error(
-            `Requirement ${requirementId} is not unchanged across the prepared parser-file scope`,
-          );
-        }
-      }
-      file.decision = {
+    }
+    files.push({
+      path: filePath,
+      decision: {
         kind: "impact",
         requirementIds,
         knowledge: {
@@ -3003,27 +2980,26 @@ function authorPreparedRecord(preparation, sources, workspace) {
           rationale:
             "The staged inert parser declarations change only the synthetic input bodies; the linked benchmark requirement and its intent remain unchanged.",
         },
-      };
-    } else {
-      throw new Error(
-        `No explicit benchmark decision rule covers prepared path ${filePath}`,
-      );
-    }
-    writtenPaths.push(filePath);
+      },
+      analysisReviews: [],
+    });
   }
+  const authoredFilePaths = files.map((file) => file.path);
   for (const sourcePath of codePaths) {
-    if (!writtenPaths.includes(sourcePath))
+    if (!authoredFilePaths.includes(sourcePath))
       throw new Error(
-        `Prepared record omitted staged parser file ${sourcePath}`,
+        `Prepared scope omitted staged parser file ${sourcePath}`,
       );
   }
-
-  const recordPath = path.join(workspace, ".kibi", "impact-review.json");
-  mkdirSync(path.dirname(recordPath), { recursive: true });
-  writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`, {
-    flag: "wx",
-  });
-  return { recordPath, authoredFilePaths: writtenPaths };
+  return {
+    input: {
+      scope: { kind: "staged" },
+      scopeFingerprint,
+      ...syntheticReviewIdentity(),
+      files,
+    },
+    authoredFilePaths,
+  };
 }
 
 function safeText(text, replacements) {
@@ -3469,7 +3445,16 @@ async function runScenario({
       },
     );
     const prepared = publicData(preparation.output);
-    const authored = authorPreparedRecord(prepared, sources, workspace);
+    const authored = authorPreparedDecisions(prepared, sources);
+    const authoring = await invokeKibi(
+      cliEntry,
+      ["author-impact-review", "--input", "-"],
+      workspace,
+      env,
+      { input: authored.input, json: true, sampleMemory: true },
+    );
+    if (publicData(authoring.output).written !== true)
+      throw new Error("Public author-impact-review did not write the record");
     runGit(["add", "-f", "--", ".kibi/impact-review.json"], workspace, env);
     const reviewScopeVerification = await invokeKibi(
       cliEntry,
@@ -3503,6 +3488,7 @@ async function runScenario({
         ? prepared.files.length
         : null,
       authoredDecisionFileCount: authored.authoredFilePaths.length,
+      authoringSpawnToCloseMs: authoring.command.spawnToCloseMs,
       reviewTransportExclusionVerified: true,
       reviewScopeVerificationSpawnToCloseMs:
         reviewScopeVerification.command.spawnToCloseMs,
@@ -3869,9 +3855,9 @@ async function main() {
 }
 
 export {
-  assignSyntheticReviewIdentity,
+  syntheticReviewIdentity,
   assertAcceptedCheckTimingCoverage,
-  authorPreparedRecord,
+  authorPreparedDecisions,
   buildRequirementInput,
   capturePerformanceTraceOffsets,
   checkStagedImpactReviewRequired,

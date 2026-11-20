@@ -237,3 +237,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b5d544b59cd
+  - type: implements
+    from: SYM-result-budget-preparation-after-cut
+    to: REQ-impact-review-preparation-paging
+    created_at: 2026-11-19T19:11:14.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0095f38d734f
+  - type: covered_by
+    from: SYM-result-budget-preparation-after-cut
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:57.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c993a3971fe3
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-named-evidence
+    created_at: 2026-11-19T19:21:56.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2746aa7a6d52
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
+    created_at: 2026-11-19T19:21:56.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6407e43a3f35
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-requirements-once
+    created_at: 2026-11-19T19:21:56.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbeb3a96c572
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-requirements-once-REPEATED
+    created_at: 2026-11-19T19:21:56.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-162650783712
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-preparation-paging
+    created_at: 2026-11-19T19:21:56.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7874bb613a7c
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-preparation-paging-NARROWED
+    created_at: 2026-11-19T19:21:56.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b63cf5609e5a
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-schema-resource
+    created_at: 2026-11-19T19:21:56.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e8bf03eecbd
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:21:56.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f294272bc064
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-public-preparation
+    created_at: 2026-11-19T19:21:56.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53e7c0c15e54
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-public-preparation-ROWLESS
+    created_at: 2026-11-19T19:21:56.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2a7cfc5914f
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-requirements-once-MISSING
+    created_at: 2026-11-19T20:18:33.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-227516290ae9

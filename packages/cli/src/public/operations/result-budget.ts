@@ -68,6 +68,14 @@ export type ResultBudgetDeclaration =
       afterCut?: (data: Data, kept: readonly unknown[]) => Data;
       /** Rebuild the text summary from the fitted data. */
       text?: (data: Data, input: Data) => string;
+      /** Top-level keys a cut row keeps (default `id` and `type`). */
+      keep?: readonly string[];
+      /**
+       * A list outside the rows whose entries belong to one row each, matched
+       * on `by`: an entry counts toward its row's size and stays only with a
+       * kept row.
+       */
+      companion?: Readonly<{ key: string; by: string }>;
     }>
   | Readonly<{ kind: "fitted"; reason: string }>
   | Readonly<{ kind: "bounded"; reason: string }>;
@@ -141,6 +149,32 @@ export function edgesFromNodes(data: Data, kept: readonly unknown[]): Data {
   return {
     ...data,
     edges: edges.filter((edge) => isRecord(edge) && ids.has(String(edge.from))),
+  };
+}
+
+/**
+ * A cut page keeps the requirements and obligations of the files it still
+ * lists, so every page stays self-describing.
+ */
+export function preparationAfterCut(
+  data: Data,
+  kept: readonly unknown[],
+): Data {
+  const rows = kept.filter(isRecord);
+  const paths = new Set(rows.map((row) => String(row.path)));
+  const ids = new Set(
+    rows.flatMap((row) =>
+      Array.isArray(row.requirementIds) ? row.requirementIds.map(String) : [],
+    ),
+  );
+  const list = (key: string) =>
+    Array.isArray(data[key]) ? data[key].filter(isRecord) : [];
+  return {
+    ...data,
+    requirements: list("requirements").filter((row) => ids.has(String(row.id))),
+    residualReviewObligations: list("residualReviewObligations").filter((row) =>
+      paths.has(String(row.path)),
+    ),
   };
 }
 
@@ -234,9 +268,15 @@ export const RESULT_BUDGETS: Readonly<
     kind: "bounded",
     reason: "Proportional to the ids the call deletes.",
   },
-  kb_prepare_impact_review: {
+  kb_prepare_impact_review: rowsDeclaration("files", {
+    total: (data) => integer(data.fileCount),
+    afterCut: preparationAfterCut,
+    keep: ["path"],
+    companion: { key: "evidence", by: "path" },
+  }),
+  kb_author_impact_review: {
     kind: "bounded",
-    reason: "One review template for the reviewed range.",
+    reason: "Counts and the decided file paths, not the written record.",
   },
   kb_review_firm_edit: {
     kind: "bounded",
@@ -262,6 +302,28 @@ export function resultBudgetFor(
   return (RESULT_BUDGETS as Readonly<Record<string, ResultBudgetDeclaration>>)[
     operation
   ];
+}
+
+/**
+ * The declared companion list of `data`, with the entries that belong to a
+ * row; none when the declaration names none or the data holds no such list.
+ */
+function companionOf(
+  declaration: Extract<ResultBudgetDeclaration, { kind: "rows" }>,
+  data: Data,
+):
+  | Readonly<{ key: string; entriesOf: (row: unknown) => unknown[] }>
+  | undefined {
+  const declared = declaration.companion;
+  if (!declared || !Array.isArray(data[declared.key])) return undefined;
+  const entries = (data[declared.key] as unknown[]).filter(isRecord);
+  return {
+    key: declared.key,
+    entriesOf: (row) =>
+      isRecord(row)
+        ? entries.filter((entry) => entry[declared.by] === row[declared.by])
+        : [],
+  };
 }
 
 /**
@@ -479,11 +541,32 @@ export function fitOperationResult<T>(
     sizeOf(data) > budget
   ) {
     const rows = data[declaration.rows] as unknown[];
-    const base = { ...data, [declaration.rows]: [] };
-    const count = rowsWithinBudget(base, rows, budget);
+    const companion = companionOf(declaration, data);
+    const base = {
+      ...data,
+      [declaration.rows]: [],
+      ...(companion ? { [companion.key]: [] } : {}),
+    };
+    const count = rowsWithinBudget(
+      base,
+      companion ? rows.map((row) => [row, companion.entriesOf(row)]) : rows,
+      budget,
+    );
     let kept = rows.slice(0, count);
-    if (count === 1 && sizeOf({ ...base, [declaration.rows]: kept }) > budget) {
-      kept = [cutRowToBudget(kept[0], budget - sizeOf(base) - 2)];
+    const companionSize = companion
+      ? sizeOf(kept.flatMap((row) => companion.entriesOf(row)))
+      : 0;
+    if (
+      count === 1 &&
+      sizeOf({ ...base, [declaration.rows]: kept }) + companionSize > budget
+    ) {
+      kept = [
+        cutRowToBudget(
+          kept[0],
+          Math.max(0, budget - sizeOf(base) - companionSize - 2),
+          declaration.keep,
+        ),
+      ];
     }
     const offset = integer(args.offset) ?? 0;
     const total = declaration.total?.(data);
@@ -510,6 +593,13 @@ export function fitOperationResult<T>(
       truncated: true,
       truncation,
     };
+    if (companion)
+      fitted = {
+        ...fitted,
+        [companion.key]: rows
+          .slice(0, count)
+          .flatMap((row) => companion.entriesOf(row)),
+      };
     if (declaration.afterCut) fitted = declaration.afterCut(fitted, kept);
     data = fitted;
     content = replaceText(
