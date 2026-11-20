@@ -95,17 +95,17 @@ proof_bindings:
     line: 472
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a5658b13aa1240a0b503b4c0
+    receipt_id: PR-95d581d2b80c5784db87b463
     test_id: TEST-claude-code-kibi-plugin-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: dc322ea99b905a7f62915c1ab44e1d46704fb6d9a8bb5c5a94cfe8e2545b705f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T16:34:44.297Z'
-    finished_at: '2026-10-29T16:34:46.683Z'
-    artifact_digest: 748f388968b826c3793720f464dbe1f1865a1f0ae56fa9d67e6ceeb30b48b370
+    code_snapshot: 1cce070b58a41a8b83ad20355dfafcc8bf9204a17fc3e42bec566c34dcbdb108
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T20:52:57.030Z'
+    finished_at: '2026-11-20T21:00:32.826Z'
+    artifact_digest: 72437aeebe8bced7d78bf5ec8960912e9704efb029d0f157508f3226ba5af3b8
     contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
-    binding_hash: 806d78624c122a645528e9078c5b8f8853cbc2fc84d3fa88e3e3647e07847899
+    binding_hash: 928357aa99808449c9850b309fb0ad8306bd61f60d0581509e907846374ff79d
     fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
     fingerprint_components:
       contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
@@ -187,135 +187,6 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
-    kind: e2e
-    evidence_level: tested
-  - version: kibi.proof-receipt.v2
-    receipt_id: PR-518b85c2f8f1165a915c4060
-    test_id: TEST-claude-code-kibi-plugin-v1
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
-    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-20T19:26:36.497Z'
-    finished_at: '2026-11-20T20:25:50.166Z'
-    artifact_digest: 62e5cc210045c5756c2162eecbb07710514aa6bb30a4fc1e4445b437935454f2
-    contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
-    binding_hash: 928357aa99808449c9850b309fb0ad8306bd61f60d0581509e907846374ff79d
-    fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
-    fingerprint_components:
-      contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: ba6dc1da8fcf102e684965991676f5f03673de3b43157c2aea9a98dae3d99528
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-read-snippet-once
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-edit-focus
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-stop-reminder-once
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-advisory-boundary
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-scanner-equivalence
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-shipped-bundle-runs
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-optional-package-contract
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-claude-case-usage-telemetry
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed), SYM-claude-case-advisory-boundary (failed) +8 more'
-      - symbol_id: SYM-claude-case-read-snippet-once
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed), SYM-claude-case-advisory-boundary (failed) +8 more'
-      - symbol_id: SYM-claude-case-edit-focus
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed), SYM-claude-case-advisory-boundary (failed) +8 more'
-      - symbol_id: SYM-claude-case-stop-reminder-once
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-prefixed-check-acknowledges (failed), SYM-claude-case-advisory-boundary (failed) +8 more'
-      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-advisory-boundary (failed) +8 more'
-      - symbol_id: SYM-claude-case-advisory-boundary
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
-      - symbol_id: SYM-claude-case-scanner-equivalence
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
-      - symbol_id: SYM-claude-case-shipped-bundle-runs
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
-      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
-      - symbol_id: SYM-claude-case-optional-package-contract
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
-      - symbol_id: SYM-claude-case-usage-telemetry
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
     kind: e2e
     evidence_level: tested
 origin:

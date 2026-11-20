@@ -28,15 +28,15 @@ id: TEST-skillopt-pooled-family-gate
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-5465b15d9e9eb1251dddc282
+    receipt_id: PR-c6ed8d41323582c8155e90f3
     test_id: TEST-skillopt-pooled-family-gate
     scope: end_to_end
     outcome: passed
-    code_snapshot: 41b98f775e0148449028662ea19d93ed52c2cb6f387740f5edf43e66905435b4
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-13T19:58:37.792Z'
-    finished_at: '2026-11-13T19:58:37.857Z'
-    artifact_digest: feb7d9f97ffa8953ae175031b0f002fc63835c03a7a4cd1ca28344251e27875e
+    code_snapshot: 1cce070b58a41a8b83ad20355dfafcc8bf9204a17fc3e42bec566c34dcbdb108
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T20:52:57.030Z'
+    finished_at: '2026-11-20T21:00:32.826Z'
+    artifact_digest: 72437aeebe8bced7d78bf5ec8960912e9704efb029d0f157508f3226ba5af3b8
     contract_hash: 29db14063a2465662343ddf10a330e171f0641a5baafbdcb15680c6b28348a1d
     binding_hash: 7df8ebae1b0d1f56533160d8f31a5a4bff4b99bc6da1494169e2012ac3215a9f
     fingerprint: e5df62a6daef0cd3ad91b77233f90b8c91d081f2518967239ee3d99b716514d8

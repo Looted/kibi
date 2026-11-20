@@ -58,15 +58,15 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-aa709685aad2fae6da2acecb
+    receipt_id: PR-3770081ab0d14988396d3209
     test_id: TEST-mcp-kb-freshness
     scope: end_to_end
     outcome: failed
-    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    code_snapshot: 1cce070b58a41a8b83ad20355dfafcc8bf9204a17fc3e42bec566c34dcbdb108
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-20T19:26:36.497Z'
-    finished_at: '2026-11-20T20:25:50.166Z'
-    artifact_digest: 62e5cc210045c5756c2162eecbb07710514aa6bb30a4fc1e4445b437935454f2
+    started_at: '2026-11-20T20:52:57.030Z'
+    finished_at: '2026-11-20T21:00:32.826Z'
+    artifact_digest: 8685bdeb02380cd9dcfb91e0423d4ad1c262993bb923aebfc480711a06370698
     contract_hash: e7c4bb73116c831d679581255f2a0676bd8d24ee2b909b00ef6ae91592fcaa5c
     binding_hash: 8891f36aabf5c4b07b6e33f772f36574164978900ac42480f7568344a4c770df
     fingerprint: 103254618500a69c12e629668bfc81f4dc0030610a854f04dbbb0302fde0d5dd
@@ -93,7 +93,7 @@ proof_receipts:
     gaps:
       - symbol_id: SYM-e2e-test-mcp-kb-freshness
         target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-claude-case-unconfigured-workspace-silent (failed), SYM-claude-case-read-snippet-once (failed), SYM-claude-case-edit-focus (failed), SYM-claude-case-stop-reminder-once (failed), SYM-claude-case-prefixed-check-acknowledges (failed) +8 more'
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-intervals-differential (failed), SYM-e2e-packed-prolog-source-readers (failed)'
     kind: e2e
     evidence_level: tested
 origin:
