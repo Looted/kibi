@@ -40,7 +40,9 @@ logic_claims:
   - CLAIM-5B61A708BC19FE6A
 origin:
   kind: agent
-  recorded_at: '2026-11-20T11:18:20.198Z'
+  ref: Operator-approved plan for the win32-x64 bundled SWI-Prolog PR, 2026-11-20
+  approved_by: maintainer
+  recorded_at: '2026-11-20T13:30:00.000Z'
 id: REQ-prolog-win32-prebuilt-provenance
 type: req
 ---
