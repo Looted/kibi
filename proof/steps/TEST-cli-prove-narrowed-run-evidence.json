@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-prove-narrowed-run-evidence",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/operations-mutation/proof/ingest-proof.test.ts"
+    ]
+  ]
+}

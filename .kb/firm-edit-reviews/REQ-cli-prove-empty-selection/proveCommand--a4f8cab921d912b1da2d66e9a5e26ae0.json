@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-prove-empty-selection",
+  "sourceFile": "packages/cli/src/commands/prove.ts",
+  "symbol": "proveCommand",
+  "verdict": "keeps",
+  "note": "The empty-selection branch and its summary are untouched; the change only adds notNarrowed and reports ingest refusals of later integrations.",
+  "statementHash": "sha256:697c97c03203c1b4665f357503316d29a67596c4fb180dc847a3d8d06b7cf83b",
+  "codeHash": "sha256:2f290e6bcebb6e8ac6599ecb8d44d24bd89d14ba173e243360ddbff91ec2d217",
+  "startLine": 595,
+  "endLine": 984,
+  "recordedAt": "2026-11-20T16:11:34.100Z"
+}

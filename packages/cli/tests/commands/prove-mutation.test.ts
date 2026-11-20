@@ -16,6 +16,7 @@ import {
   buildCommandRunArtifacts,
   commandEnvironment,
   describeWorkspaceDrift,
+  isIngestRefusal,
   narrowedPlaywrightCommand,
   parseIntegrationSelector,
   partitionArtifactPath,
@@ -2534,5 +2535,127 @@ describe("prove summary", () => {
     const run = (h.summary().runs as Array<Record<string, unknown>>)[0];
     expect(run?.attribution).toBe("aggregate");
     expect(String(run?.attributionReason)).toContain("is not valid JSON");
+  });
+});
+
+describe("prove ingest refusals", () => {
+  const refuse = (h: Harness, refused: (call: IngestCall) => boolean) => {
+    const ingest = ingestWith(h);
+    return async (call: IngestCall) => {
+      if (refused(call)) {
+        h.ingests.push(call);
+        throw new Error("Proof ingest failed: refused here");
+      }
+      return ingest(call);
+    };
+  };
+
+  test("tells a refusal from other errors", () => {
+    expect(isIngestRefusal(new Error("Proof ingest failed: x"))).toBe(true);
+    expect(isIngestRefusal(new Error("engine down"))).toBe(false);
+    expect(isIngestRefusal("Proof ingest failed: x")).toBe(false);
+  });
+
+  test("fails the refused integration and reports the others", async () => {
+    const h = harness({
+      integrations: [web, cmd],
+      tests: [proofTest("T-1", "web"), proofTest("T-2", "cmd")],
+      child: (argv, io) => (argv[0] === "playwright" ? emits()(argv, io) : 0),
+    });
+    const outcome = await proveCommand(
+      { all: true },
+      {
+        runtime: h.runtime,
+        ingestProof: refuse(h, (call) => call.testIds.includes("T-1")) as never,
+      },
+    );
+    expect(outcome).toEqual({ exitCode: 1 });
+    const summary = h.summary();
+    expect(
+      summary.runs.map((run: { integration: string }) => run.integration),
+    ).toEqual(["cmd"]);
+    expect(summary.failures).toEqual([
+      "integration 'web': Proof ingest failed: refused here",
+    ]);
+    expect(readJson(progressFile()).ingested).toEqual({ cmd: ["T-2"] });
+  });
+
+  test("keeps the receipts of partitions ingested before a refusal", async () => {
+    const h = harness({
+      integrations: [cmd],
+      tests: [proofTest("T-1", "cmd"), proofTest("T-2", "cmd")],
+      child: (_argv, { env }) => {
+        writeFileSync(
+          String(env.KIBI_PROOF_TEST_REPORT),
+          JSON.stringify({
+            version: "kibi.proof-test-report.v1",
+            tests: [
+              reportEntry("T-1", "passed", 0),
+              reportEntry("T-2", "failed", 3),
+            ],
+          }),
+        );
+        return 1;
+      },
+    });
+    await proveCommand(
+      { all: true },
+      {
+        runtime: h.runtime,
+        ingestProof: refuse(h, (call) => call.testIds.includes("T-2")) as never,
+      },
+    );
+    const summary = h.summary();
+    expect(summary.passed).toBe(1);
+    expect(summary.failures).toEqual([
+      "integration 'cmd': Proof ingest failed: refused here",
+    ]);
+    expect(readJson(progressFile()).ingested).toEqual({});
+  });
+
+  test("ends the command on an error that is not a refusal", async () => {
+    const h = harness({
+      integrations: [web],
+      tests: [proofTest("T-1", "web")],
+      child: emits(),
+    });
+    await expect(
+      proveCommand(
+        { all: true },
+        {
+          runtime: h.runtime,
+          ingestProof: (async () => {
+            throw new Error("engine down");
+          }) as never,
+        },
+      ),
+    ).rejects.toThrow("engine down");
+  });
+
+  test("lists integrations a narrowing selector ran whole", async () => {
+    const run = async (command: string[]) => {
+      const h = harness({
+        integrations: [{ ...web, command }],
+        tests: [
+          proofTest("T-1", "web", {
+            proof_bindings: [{ source_file: "a.spec.ts" }],
+          }),
+        ],
+        child: emits(),
+      });
+      await proveCommand(
+        { testId: "T-1" },
+        { runtime: h.runtime, ingestProof: ingestWith(h) as never },
+      );
+      return h.summary().notNarrowed;
+    };
+    expect(await run(["playwright", "test"])).toBeUndefined();
+    expect(await run(["npm", "test"])).toEqual([
+      {
+        integration: "web",
+        reason:
+          "the command is not a direct `playwright test` invocation; narrow it from KIBI_PROOF_SOURCE_FILES",
+      },
+    ]);
   });
 });
