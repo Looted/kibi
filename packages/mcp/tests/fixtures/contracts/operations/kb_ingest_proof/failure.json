@@ -216,7 +216,7 @@
                 ],
                 "type": "object"
               },
-              "maxItems": 1000,
+              "maxItems": 100000,
               "minItems": 1,
               "type": "array"
             },

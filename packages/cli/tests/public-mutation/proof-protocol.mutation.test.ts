@@ -242,7 +242,8 @@ describe("proofRunArtifactErrors", () => {
         }),
         resultsString: patch(ARTIFACT, { proof_results: "x" }),
         resultsEmpty: patch(ARTIFACT, { proof_results: [] }),
-        resultsTooMany: patch(ARTIFACT, { proof_results: results(1001) }),
+        resultsTooMany: patch(ARTIFACT, { proof_results: results(100001) }),
+        resultsAtCap: patch(ARTIFACT, { proof_results: results(100000) }),
         resultsDuplicate: patch(ARTIFACT, {
           proof_results: [
             RESULT,
