@@ -36,7 +36,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 ## Quick start
 
-Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
+Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+), macOS (Apple silicon or Intel) and Windows x64 there is nothing else to install. On other platforms, such as Alpine/musl or Windows arm64 (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
 
 **Recommended: let your agent set it up.** Paste this into Claude Code, Cursor, Codex, OpenCode, or any coding agent that can run commands in your repository:
 
