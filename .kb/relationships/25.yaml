@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1200c1ff7d0b
+  - type: assumes
+    from: SCEN-NEG-impact-review-requirements-once-MISSING
+    to: FACT-NEG-impact-review-requirements-once-MISSING
+    created_at: 2026-11-19T20:18:29.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5d9704a116

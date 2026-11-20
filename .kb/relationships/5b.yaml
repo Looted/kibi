@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab218b4e52f6
+  - type: assumes
+    from: SCEN-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
+    to: FACT-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
+    created_at: 2026-11-19T19:09:40.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15782b72148

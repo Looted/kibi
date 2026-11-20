@@ -447,3 +447,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6056c9b40dd
+  - type: specified_by
+    from: REQ-impact-review-author-carry
+    to: SCEN-impact-review-author-carry
+    created_at: 2026-11-19T19:12:36.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccafbd56a760
+  - type: specified_by
+    from: REQ-impact-review-author-carry
+    to: SCEN-NEG-impact-review-author-carry-STALE-KEPT
+    created_at: 2026-11-19T19:12:36.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90c86d2912dd
+  - type: verified_by
+    from: REQ-impact-review-author-carry
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:36.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-affaf3f59857
+  - type: constrains
+    from: REQ-impact-review-author-carry
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:12:36.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83a80498bdc0
+  - type: requires_property
+    from: REQ-impact-review-author-carry
+    to: FACT-impact-review-author-carry
+    created_at: 2026-11-19T19:12:36.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554f1c3a5aea
+  - type: requires_property
+    from: REQ-impact-review-author-carry
+    to: FACT-impact-review-author-dropped-reported
+    created_at: 2026-11-19T19:12:36.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e712cae46597

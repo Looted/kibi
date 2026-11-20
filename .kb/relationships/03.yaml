@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1abd04417832
+  - type: assumes
+    from: SCEN-impact-review-author-no-generation
+    to: FACT-impact-review-author-no-generation
+    created_at: 2026-11-19T19:12:49.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d17357a2bc9b

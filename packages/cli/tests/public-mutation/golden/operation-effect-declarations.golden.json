@@ -879,6 +879,50 @@
       "openWorld": false
     }
   ],
+  "kb_author_impact_review": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
   "kb_compile_intent": [
     {
       "kind": "local-read",
