@@ -1,10 +1,10 @@
 ---
-title: the audited PE set includes *.dll
+title: the audited PE set equals [*dll]
 status: active
 fact_kind: property_value
 subject_key: kibi.prolog.win32_prebuilt
 property_key: clean_runner_repack_with_pe_import_audit
-operator: includes
+operator: eq
 value_type: set
 value_set:
   - '*.dll'
@@ -15,4 +15,4 @@ origin:
 id: FACT-CASE-prolog-win32-prebuilt-pe-audit-DLL
 type: fact
 ---
-Case member of FACT-prolog-win32-prebuilt-clean-runner-pe-audit: the *.dll binaries shipped in the win32-x64 payload.
+Case member of FACT-prolog-win32-prebuilt-clean-runner-pe-audit: the dll PE binaries shipped in the win32-x64 payload.
