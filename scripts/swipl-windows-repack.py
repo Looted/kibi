@@ -54,11 +54,17 @@ SYSTEM_DLLS = frozenset({
 })
 SYSTEM_DLL_PREFIXES = ("api-ms-", "ext-ms-")
 
-# Licence members inside the already-pinned dependency source archives.
+# Licence members inside the already-pinned dependency source archives. Each
+# dependency lists candidate members because upstream renames the file between
+# releases (pcre2 10.47 ships LICENCE.md, older releases LICENCE; zlib 1.3.2
+# ships LICENSE, the repo also carries LICENSE.md); the first present wins.
 DEP_LICENSE_MEMBERS = {
-    "openssl": ("openssl-{version}/LICENSE.txt", "openssl-LICENSE.txt"),
-    "pcre2": ("pcre2-{version}/LICENCE", "pcre2-LICENCE.txt"),
-    "zlib": ("zlib-{version}/LICENSE.md", "zlib-LICENSE.md"),
+    "openssl": (("openssl-{version}/LICENSE.txt",), "openssl-LICENSE.txt"),
+    "pcre2": (
+        ("pcre2-{version}/LICENCE.md", "pcre2-{version}/LICENCE"),
+        "pcre2-LICENCE.txt",
+    ),
+    "zlib": (("zlib-{version}/LICENSE", "zlib-{version}/LICENSE.md"), "zlib-LICENSE"),
 }
 
 
@@ -249,12 +255,25 @@ def apply_trim(root: Path, trim: dict) -> None:
 def collect_licenses(extracted: Path, manifest: dict, prebuilt: dict, work: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(extracted / "LICENSE", out_dir / "swi-prolog-LICENSE.txt")
-    for dep, (member_tpl, out_name) in DEP_LICENSE_MEMBERS.items():
+    for dep, (member_tpls, out_name) in DEP_LICENSE_MEMBERS.items():
         entry = manifest["dependencies"][dep]
         archive = work / f"licenses-{dep}{Path(entry['url']).suffix}"
         spike.download_archive(entry["url"], archive, entry["sha256"])
-        member = member_tpl.format(version=entry["version"])
         with tarfile.open(archive) as tar:
+            names = set(tar.getnames())
+            member = next(
+                (
+                    tpl.format(version=entry["version"])
+                    for tpl in member_tpls
+                    if tpl.format(version=entry["version"]) in names
+                ),
+                None,
+            )
+            if member is None:
+                raise ValueError(
+                    f"{archive.name} has none of the pinned license members "
+                    f"{[tpl.format(version=entry['version']) for tpl in member_tpls]}"
+                )
             extracted_file = tar.extractfile(member)
             if extracted_file is None:
                 raise ValueError(f"{archive.name} has no member {member}")
