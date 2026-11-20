@@ -32,18 +32,18 @@ origin:
 id: TEST-kibi-conditional-feasibility-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-03efc775a84b161532bd6a05
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-52fef48837a94f826366f422
     test_id: TEST-kibi-conditional-feasibility-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: fe6e6e97a063e60a6bf8e87a96e9beab4bb6b1dca4557a6f6d3e31dbe3ab4133
-    binding_hash: 80cd070fefbc1d4c1b1a257c0073fe35d8e45fa36ceebbd764eb7bc512012a1e
+    binding_hash: 61600799b99ad0c140a5a6041bfed9352ed30753d634c9463ea5aaee48ff0298
     fingerprint: 6d3d0b5082eaad74bbdaa1977e0c60cb1b277d85ee3890fd1efa9fd96a42bb5c
     fingerprint_components:
       contract: fe6e6e97a063e60a6bf8e87a96e9beab4bb6b1dca4557a6f6d3e31dbe3ab4133
@@ -65,6 +65,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI compiles only-when prose to a forbid rule that decides scenarios by scope, validity window and approved exception
 

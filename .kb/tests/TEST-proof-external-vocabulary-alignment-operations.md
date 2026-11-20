@@ -26,17 +26,17 @@ id: TEST-proof-external-vocabulary-alignment-operations
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d3873e3ae53b5e30c65cac0c
+    receipt_id: PR-d0742f8b07344f2bb1a00e16
     test_id: TEST-proof-external-vocabulary-alignment-operations
     scope: unit
     outcome: passed
-    code_snapshot: 21d66c39388dd023f2c152ed795ba97e2485062cdf1073bf4aee8a7a789cbe7a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T14:51:29.956Z'
-    finished_at: '2026-10-28T14:51:30.079Z'
-    artifact_digest: 13874cf36ed6b085e95c1bb688b51e0339df6798317a82c99cc29b12a58dca52
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 219a878b69880cd1ef6838c33094b426c272fce1e438aea1a21b668cd12d07cc
-    binding_hash: ce3c6057140eeb8b5997824b6f07eef8b10309b9c7d5d69428aea08dbfef214b
+    binding_hash: ca62a6dbfdf4239f857d005102736b3f7fdd67924db7e7f2309d76cf4f559d9b
     fingerprint: d9b850413fb58439b81464119f373e8bb21ee41323f5ee8fef1492480fb6718e
     fingerprint_components:
       contract: 219a878b69880cd1ef6838c33094b426c272fce1e438aea1a21b668cd12d07cc

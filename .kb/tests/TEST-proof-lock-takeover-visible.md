@@ -26,17 +26,17 @@ id: TEST-proof-lock-takeover-visible
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-75a25e40d3888e56356aa8c9
+    receipt_id: PR-db787e6e05db4bdf456d8700
     test_id: TEST-proof-lock-takeover-visible
     scope: unit
     outcome: passed
-    code_snapshot: 6c1d4b48c8c790bbc509e46899ccd457757c7db5641cef07df4b567f347481bf
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:45:28.753Z'
-    finished_at: '2026-10-28T20:45:28.876Z'
-    artifact_digest: 13b6868c2a1995a2813385d3d594c45039ba4933fb615cdea082ef8d6c92fb9d
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: c2448f55ef62b1ea5c882e5204e30275a9e069c558f87582b9cd2bcc08ce92eb
-    binding_hash: 5871901843fcc0ffedc5a9d6c890b3073869158873ce00fbfceb5f4517278a28
+    binding_hash: 96dc12e98b6615df18ec102df2b9707a5f744870ea9beea9bb78fd2e3fe02795
     fingerprint: 9df6db73a2f50fddb4901c97e48749b591592088d6e9a14365a587224b5bc692
     fingerprint_components:
       contract: c2448f55ef62b1ea5c882e5204e30275a9e069c558f87582b9cd2bcc08ce92eb

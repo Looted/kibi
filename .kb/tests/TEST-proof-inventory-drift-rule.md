@@ -26,17 +26,17 @@ id: TEST-proof-inventory-drift-rule
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-dc28f7145fc1dfbadc45d2b4
+    receipt_id: PR-c3a5c95ea68efb44cf5e8402
     test_id: TEST-proof-inventory-drift-rule
     scope: unit
     outcome: passed
-    code_snapshot: df3286680d86baf1d58f9da1509cadbfec13659d696c7a2fa63220020f268bb5
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-03T10:58:33.597Z'
-    finished_at: '2026-11-03T10:58:33.804Z'
-    artifact_digest: c507b0eb1aae9c558b64673f4d0149ebc83a9c12bd283c7e7177264e7b30d550
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 1b887ceb14a6045ff8b5c31d55475c52ae4b6440267c950a58239d2cdddea378
-    binding_hash: 5c68c8f4665faa07819709dd1243cabe7f77f7b9296b4324029fa2d15725f8e1
+    binding_hash: 72a66b6b79cb404cfab22c967a25d62679514ba17d194d2ae7a42155194ea480
     fingerprint: 92b7de767d548e30b88425ec16af6d6224df5d3a88f102f01b09a89f72f44448
     fingerprint_components:
       contract: 1b887ceb14a6045ff8b5c31d55475c52ae4b6440267c950a58239d2cdddea378

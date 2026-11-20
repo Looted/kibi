@@ -24,18 +24,18 @@ proof_contract:
 id: TEST-bootstrap-ui-plugin-offer
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-622b3487800bed84bbdb902c
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-441644f587cd63a19d9ac898
     test_id: TEST-bootstrap-ui-plugin-offer
     scope: end_to_end
     outcome: passed
-    code_snapshot: 06bcb9d0b41a820d7ba77a759d45cbb22b0404df99c99db8f9b25cdbc68306f0
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-09T12:34:00.319Z'
-    finished_at: '2026-10-09T12:34:00.506Z'
-    artifact_digest: c73558acc375cbd8520ffe5a5097e0c394081b8e95ca0788815069de7f8e4dd7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 123ac7914ced0d3353be47477834baf25e872c68b47b2b343df16908f290c3dd
-    binding_hash: 5d6d39f0a35388a69c9a91e8682fb80c99853dcf8ff6c09b072c835beeb4f908
+    binding_hash: e5931d5da646365d03bb69383af18f0f4a1a5346d0770dcf8a5d53b77aa5b7a3
     fingerprint: 24c052619ea273a6a5f3ff1277b39c1f51782492e26a9144566a309a9a2df527
     fingerprint_components:
       contract: 123ac7914ced0d3353be47477834baf25e872c68b47b2b343df16908f290c3dd
@@ -63,5 +63,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the bootstrap plugin offers suite, which plans temporary workspaces with and without production components, with stories only, and with the plugin declined or activated, and checks the plugin_offer recommended action; and the plugin SDK check policy suite, whose declinedPlugins cases accept bare names and reject paths and non-strings.

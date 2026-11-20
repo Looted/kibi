@@ -27,20 +27,20 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-14139701b28035348d92e246
+    receipt_id: PR-e0eee899514a775641d58a68
     test_id: TEST-kibi-logical-requirement-coverage
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1fcdc3b2c318886286faffa28fc34e8ae59ae46515e4d9f13da5489d1bc40d6e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T17:20:05.517Z'
-    finished_at: '2026-10-28T17:21:32.442Z'
-    artifact_digest: 84eb940300cc082e2ef3d63e8e4a2c3e9c96bb19f23b37df14ca05a5ea366372
-    contract_hash: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
-    binding_hash: 70ceb04cbd13beace742b45228e36d16cdcbd63d5ee3565174a94dd0b1d222a4
-    fingerprint: 39433cadb755c70041e3e080507df0a234fe35369581e29b1f82603195b3ca81
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
+    contract_hash: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
+    binding_hash: f4f0e7adef7e5e4bea1bee68d419d6f0a3c3fc5dd7c4c78509f546e0424ceb06
+    fingerprint: 5802a43cc4640a02573b20e676f828c1d5e5aff77b3354c3d78855fbba53e8ae
     fingerprint_components:
-      contract: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
+      contract: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -53,7 +53,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
+      - symbol_id: SYM-e2e-cli-workflows
         target: default
         outcome: passed
         binding: aggregate_run

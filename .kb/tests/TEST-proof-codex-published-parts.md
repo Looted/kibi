@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-E17040C703A7CF28
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a8bd1bda14042873949dd2ba
+    receipt_id: PR-f02eccb40e94fe74f272404d
     test_id: TEST-proof-codex-published-parts
     scope: unit
     outcome: passed
-    code_snapshot: 328fc65d0a8f68d784d40380e03d82ed697fd6e20aa7eac41f724a6c4fd7718a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:49:36.972Z'
-    finished_at: '2026-10-27T07:49:37.165Z'
-    artifact_digest: 9de01a8eb88f40d08f7616998d71a3b47ae94fbd804bebbaa76499a83c66bcc6
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
-    binding_hash: 8e64e706a03419e35de6d9cf6963f519a3c8e4fc52e95f38d38298b069189e0b
+    binding_hash: 75e567313a1aaf9288d4be4ed360fac83a5e8d539141f41b36ec19db158d8899
     fingerprint: 487d50247390ec4a03357161320d10db8822c7ba58a5b407374986a7915d2667
     fingerprint_components:
       contract: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
@@ -83,13 +83,23 @@ proof_receipts:
           - dist
           - hooks
           - skills
-    certificate_digest: ab5d3725802f955d0aba6baa0ea47883bc20499798d45fdd4e44a4ea5e788e4f
+        sequence:
+          - .codex-plugin
+          - .mcp.json
+          - hooks
+          - skills
+          - bin
+          - dist
+          - CHANGELOG.md
+          - LICENSE
+          - SECURITY.md
+    certificate_digest: 1dd724854272f6989ee1810e3b4e650964a10e3882e4dc6a9b13ddfb63ebe563
     claim_bindings:
       - claim_key: CLAIM-E17040C703A7CF28
         requirement_id: REQ-codex-plugin-package
         fact_id: FACT-codex-package-published-parts
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

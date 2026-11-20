@@ -25,17 +25,17 @@ id: TEST-agent-core-shared-hook-inputs
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-3f2e4d93c5c5b5a69df03108
+    receipt_id: PR-4bccdd2f42da351c29614f78
     test_id: TEST-agent-core-shared-hook-inputs
     scope: unit
     outcome: passed
-    code_snapshot: 012ccdf9f502cdd0a6b3bdbf322b88f696ef30fc7ae0375e8cc665c5914062c7
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-04T14:42:03.956Z'
-    finished_at: '2026-11-04T14:42:04.038Z'
-    artifact_digest: ec44fbfda49fa753b79ac5776b2c8bf351e7d9cc3cce03b80055cea04c0614de
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 43bf924e57bd6ec34ae7f092d9155d79eba8e8ad4b0eb1393c09c46475743292
-    binding_hash: 4aecee4873772e349dd4e3bfac2268863a4c7cc62d081ce06cbef54e130b524f
+    binding_hash: 2d360c61dc03008c02c5d198cd325ab9fc58af980c23d6c3eb93c2513199f8b0
     fingerprint: 72e3996a247df907a49880340e24824abc57a5afa71aa690827f6de85ec81312
     fingerprint_components:
       contract: 43bf924e57bd6ec34ae7f092d9155d79eba8e8ad4b0eb1393c09c46475743292
