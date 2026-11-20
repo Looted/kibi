@@ -18,10 +18,11 @@ hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9
 | Linux arm64 | `kibi-swipl-linux-arm64-gnu` | glibc 2.28 or newer |
 | macOS arm64 (Apple silicon) | `kibi-swipl-darwin-arm64` | macOS 12 or newer |
 | macOS x64 (Intel) | `kibi-swipl-darwin-x64` | macOS 12 or newer |
+| Windows x64 (native) | `kibi-swipl-win32-x64` | Windows 10 or newer |
 
 On these platforms `npm install --save-dev kibi-cli kibi-mcp kibi-core` followed by `kibi init` works on a machine with no SWI-Prolog at all. The build is relocatable, ships its own libraries and licenses, and is tested with the same Prolog suites Kibi's own CI runs.
 
-Not covered by a bundled build: Alpine and other musl-based Linux, and native Windows. On Windows, run Kibi inside WSL (a glibc distribution uses the bundled build); otherwise install SWI-Prolog yourself as described below.
+Not covered: Alpine and other musl-based Linux, and native Windows arm64. On those, run Kibi inside WSL (a glibc distribution uses the bundled build), or install SWI-Prolog yourself as described below.
 
 ### Which SWI-Prolog Kibi uses
 
@@ -54,7 +55,7 @@ The usual causes:
 - Installing with `--omit=optional` or `--no-optional` (or `npm_config_omit=optional`, `optional=false`). Install without it.
 - pnpm `supportedArchitectures` (in `pnpm-workspace.yaml` or `package.json`) that does not include your platform, for example a Docker build that fixes `os`/`cpu` to another machine. Add your platform to it, or build the image for the platform it runs on.
 - Installing on one platform and running on another (copying `node_modules` from macOS into a Linux container, or the reverse). Install on the machine, or in the image, that runs Kibi.
-- An Alpine/musl or Windows host, which has no bundled build; see below.
+- An Alpine/musl host or Windows arm64, which has no bundled build; see below.
 
 ### Installing SWI-Prolog yourself
 
@@ -87,7 +88,7 @@ brew install swi-prolog
 
 #### Windows
 
-Use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or set `KIBI_SWIPL` to the full path of `swipl.exe`. Alternatively run Kibi inside WSL, which uses the bundled build and needs no SWI-Prolog install.
+Windows x64 needs nothing extra: the `kibi-swipl-win32-x64` optional dependency ships the runtime. Windows arm64 has no bundled build: use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or set `KIBI_SWIPL` to the full path of `swipl.exe`. Alternatively run Kibi inside WSL, which uses the bundled build and needs no SWI-Prolog install.
 
 #### Verify a system install
 

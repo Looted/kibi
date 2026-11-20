@@ -32,12 +32,13 @@ describe("kibi-swipl package family metadata", () => {
       expect(manifest.cpu).toEqual([entry.cpu]);
       expect(manifest.libc).toEqual("libc" in entry ? [entry.libc] : undefined);
       expect(manifest.preferUnplugged).toBe(true);
-      expect(manifest.files).toEqual([
-        "bin/",
-        "lib/",
-        "licenses/",
-        "build-manifest.json",
-      ]);
+      // The win32 payload nests the whole upstream tree under lib/, so it has
+      // no top-level bin/; POSIX packages ship bin/ plus lib/.
+      expect(manifest.files).toEqual(
+        key === "win32-x64"
+          ? ["lib/", "licenses/", "build-manifest.json"]
+          : ["bin/", "lib/", "licenses/", "build-manifest.json"],
+      );
       for (const hook of ["preinstall", "install", "postinstall"]) {
         expect(manifest.scripts?.[hook]).toBeUndefined();
       }

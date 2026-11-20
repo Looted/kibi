@@ -498,7 +498,7 @@ optional dependencies (`--omit=optional`, `--no-optional`, pnpm
 `supportedArchitectures` that excludes the runner's platform) or the lockfile
 lacks the platform package. Install with the package manager's defaults, or add
 `kibi-swipl-linux-x64-gnu` explicitly. On a runner without a bundled build
-(Alpine/musl containers, self-hosted Windows), install SWI-Prolog 9.0+ from the
+(Alpine/musl containers, self-hosted Windows arm64 runners), install SWI-Prolog 9.0+ from the
 [SWI-Prolog PPA](install.md#ubuntu-recommended) or your platform package
 manager and put `swipl` on `PATH`; see
 [Installation](install.md#which-swi-prolog-kibi-uses).

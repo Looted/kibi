@@ -1,5 +1,5 @@
 ---
-title: A SWI-Prolog build target outside the four launch targets is refused before any work directory is kept
+title: A SWI-Prolog build target outside the five launch targets is refused before any work directory is kept
 status: active
 expects: rejection
 tags:
@@ -10,6 +10,4 @@ origin:
 id: SCEN-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
 type: scenario
 ---
-Given a pinned SWI-Prolog build manifest, when the pipeline configuration is verified for the target win32-x64, then the command exits 1 with no output, stderr names the unsupported target, and the temporary work directory is removed.
-
-This is the failure side of the launch target set: the build pipeline must not quietly produce or accept an archive for a platform Kibi does not ship. scripts/tests/swipl-spike-config.test.ts "rejects a target outside the spike target set" exercises it.
+Given a build target that is not one of the five accepted launch targets, when the pipeline configuration is validated, then the target is refused before any work directory is kept. scripts/tests/swipl-build-pipeline.test.ts and scripts/tests/swipl-windows-repack.test.ts cover the refusal.
