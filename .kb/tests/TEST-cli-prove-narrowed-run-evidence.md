@@ -5,7 +5,7 @@ priority: should
 tags:
   - proof
   - cli
-verification_scope: integration
+verification_scope: end_to_end
 verification_perspective: internal
 proof_contract:
   version: kibi.proof-contract.v1

@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb9383ae440e
+  - type: assumes
+    from: SCEN-NEG-cli-prove-narrowed-run-evidence-SKIPPED-SPEC
+    to: FACT-NEG-cli-prove-narrowed-run-evidence-SKIPPED-SPEC
+    created_at: 2026-11-20T16:29:06.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25cd207161c5
