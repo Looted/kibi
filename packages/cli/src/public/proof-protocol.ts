@@ -14,6 +14,12 @@ export const PROOF_RECEIPT_VERSIONS = [
 /** The certificate a certificate-kind proof leaves for Kibi to re-check. */
 export const CODE_CERTIFICATE_VERSION = "kibi.code-certificate.v1" as const;
 export const PROOF_INTEGRATION_VERSION = "kibi.proof-integration.v1" as const;
+/**
+ * Most results one kibi.proof-run.v1 artifact may carry. A producer reports
+ * every case it ran, so a large suite's run carries a result per case and
+ * project even when only a few of them are bound to proof obligations.
+ */
+export const MAX_PROOF_RUN_RESULTS = 100000;
 
 export const PROOF_RUN_OUTCOMES = [
   "passed",
@@ -254,7 +260,7 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
     proof_results: {
       type: "array",
       minItems: 1,
-      maxItems: 1000,
+      maxItems: MAX_PROOF_RUN_RESULTS,
       items: PROOF_RESULT_SCHEMA,
     },
     integration: { type: "string", minLength: 1 },
@@ -698,8 +704,10 @@ export function proofRunArtifactErrors(value: unknown): string[] {
       "artifact.proof_results must be a non-empty array of proof results with symbol_id, target, outcome, binding, and attempts",
     );
   } else {
-    if (artifact.proof_results.length > 1000)
-      errors.push("artifact.proof_results must contain at most 1000 results");
+    if (artifact.proof_results.length > MAX_PROOF_RUN_RESULTS)
+      errors.push(
+        `artifact.proof_results must contain at most ${MAX_PROOF_RUN_RESULTS} results; received ${artifact.proof_results.length} (narrow the integration's command to the selected tests)`,
+      );
     const seen = new Set<string>();
     artifact.proof_results.forEach((entry, index) => {
       const label = `artifact.proof_results[${index}]`;

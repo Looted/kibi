@@ -7,7 +7,10 @@ import * as lockModule from "../../../src/operations/mutation/workspace-mutation
 import * as claimsModule from "../../../src/operations/proof/claim-bindings.js";
 import * as certificatesModule from "../../../src/operations/proof/code-certificates.js";
 import * as scopeModule from "../../../src/operations/proof/code-scope.js";
-import { executeIngestProof } from "../../../src/operations/proof/ingest-proof.js";
+import {
+  commandArgvAccepted,
+  executeIngestProof,
+} from "../../../src/operations/proof/ingest-proof.js";
 import * as compaction from "../../../src/operations/proof/receipt-compaction.js";
 import {
   loadProofIntegrations,
@@ -39,6 +42,7 @@ type Row = Record<string, unknown>;
 
 const SNAPSHOT = "a".repeat(64);
 const COMMAND = ["node", "run.mjs"];
+const PLAYWRIGHT = ["npx", "playwright", "test"];
 const CONTRACT = {
   version: "kibi.proof-contract.v1",
   integration: "self-proof",
@@ -144,6 +148,7 @@ beforeEach(() => {
       integrations: [
         { id: "self-proof", producer: "command", command: COMMAND },
         { id: "other", producer: "command", command: ["node", "other.mjs"] },
+        { id: "web", producer: "playwright", command: PLAYWRIGHT },
       ],
     }),
     ".kb/tests/TEST-1.md": AUTHORED,
@@ -870,5 +875,88 @@ describe("native case bindings", () => {
     expect(await failure(() => ingest(native("case-1")))).toBe(
       "Proof ingest failed: test TEST-1 native_id 'case-1' has an ambiguous proof_binding",
     );
+  });
+});
+
+describe("a playwright run kibi prove narrowed to the selected specs", () => {
+  const bound = (id: string, ...files: string[]) =>
+    testEntity(id, {
+      proof_contract: { ...CONTRACT, integration: "web" },
+      proof_bindings: files.map((file) => ({
+        symbol_id: "SYM-1",
+        target: "default",
+        source_file: file,
+      })),
+    });
+  const narrowed = (...files: string[]) => ({
+    integration: "web",
+    producer: { name: "kibi-playwright-producer" },
+    command_argv: [...PLAYWRIGHT, ...files],
+  });
+
+  test("is evidence for the tests whose specs it ran", async () => {
+    tests = { "TEST-1": bound("TEST-1", "e2e/a.spec.ts") };
+    const result = await ingest(narrowed("e2e/a.spec.ts"));
+    expect(result.structuredContent.passed).toBe(1);
+    expect(receiptsOf()[0]?.command_argv).toEqual([...PLAYWRIGHT, "e2e/a.spec.ts"]);
+  });
+
+  test("is evidence for each test ingested together from it", async () => {
+    tests = {
+      "TEST-1": bound("TEST-1", "e2e/a.spec.ts"),
+      "TEST-2": bound("TEST-2", "e2e/b.spec.ts"),
+    };
+    const result = await ingest(narrowed("e2e/a.spec.ts", "e2e/b.spec.ts"), {
+      testIds: ["TEST-1", "TEST-2"],
+    });
+    expect(result.structuredContent.passed).toBe(2);
+  });
+
+  test("is refused for a test it skipped or a spec no ingested test names", async () => {
+    const refused =
+      "Proof ingest failed: artifact command_argv does not match the configured command for integration 'web'";
+    tests = {
+      "TEST-1": bound("TEST-1", "e2e/a.spec.ts"),
+      "TEST-2": bound("TEST-2", "e2e/b.spec.ts"),
+    };
+    expect([
+      await failure(() => ingest(narrowed("e2e/b.spec.ts"), { testIds: ["TEST-1", "TEST-2"] })),
+      await failure(() => ingest(narrowed("e2e/a.spec.ts", "e2e/c.spec.ts"))),
+    ]).toEqual([refused, refused]);
+  });
+});
+
+describe("commandArgvAccepted", () => {
+  const files = (...names: string[]) => () => names;
+  const allowed =
+    (...names: string[]) =>
+    () =>
+      new Set(names);
+  const never = () => {
+    throw new Error("not read");
+  };
+
+  test("accepts the configured command without reading bindings", () => {
+    expect(commandArgvAccepted(PLAYWRIGHT, PLAYWRIGHT, "playwright", never, never)).toBe(true);
+    expect(commandArgvAccepted(COMMAND, COMMAND, "command", never, never)).toBe(true);
+  });
+
+  test("accepts only a playwright command with the judged test's specs appended", () => {
+    const argv = [...PLAYWRIGHT, "a.ts", "b.ts"];
+    const accepted = (
+      run: readonly string[],
+      producer: string,
+      own: () => readonly string[],
+      narrowable: () => ReadonlySet<string>,
+    ) => commandArgvAccepted(run, PLAYWRIGHT, producer, own, narrowable);
+    expect([
+      accepted(argv, "playwright", files("a.ts"), allowed("a.ts", "b.ts")),
+      accepted(argv, "command", never, never),
+      accepted(["npx", "playwright"], "playwright", never, never),
+      accepted(["npx", "playwright", "list", "a.ts"], "playwright", never, never),
+      accepted(argv, "playwright", files(), allowed("a.ts", "b.ts")),
+      accepted(argv, "playwright", files("a.ts"), allowed("a.ts")),
+      accepted(argv, "playwright", files("a.ts", "c.ts"), allowed("a.ts", "b.ts", "c.ts")),
+    ]).toEqual([true, false, false, false, false, false, false]);
   });
 });
