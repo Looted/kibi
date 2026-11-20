@@ -2572,7 +2572,7 @@ describe("prove ingest refusals", () => {
     expect(outcome).toEqual({ exitCode: 1 });
     const summary = h.summary();
     expect(
-      summary.runs.map((run: { integration: string }) => run.integration),
+      (summary.runs as { integration: string }[]).map((run) => run.integration),
     ).toEqual(["cmd"]);
     expect(summary.failures).toEqual([
       "integration 'web': Proof ingest failed: refused here",
