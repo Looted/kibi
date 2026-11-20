@@ -5,8 +5,9 @@
 // 1. outside Kibi workspaces the stdio launcher serves a silent zero-tool MCP
 //    server and exits 0 (never "MCP failed to connect");
 // 2. inside a Kibi workspace the launcher answers initialize + tools/list
-//    with the 16 kb_* tools (skipped when the project-local kibi-mcp bin is
-//    not built, e.g. unit-test runs before `bun run build`);
+//    with the full kb_* tool list from the MCP contract fixture (skipped when
+//    the project-local kibi-mcp bin is not built, e.g. unit-test runs before
+//    `bun run build`);
 // 3. each shipped hook either emits a valid Vibe structured response with
 //    hook_specific_output.additional_context or fails open with exit 0 and no
 //    stack trace on stderr.
@@ -16,7 +17,7 @@
 // elsewhere it spawns the project-local bin directly.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -32,24 +33,20 @@ const LAUNCHER = join(
 );
 const HOOKS = join(REPO_ROOT, "packages", "vibe", "bin", "hooks");
 
-const EXPECTED_KB_TOOLS = [
-  "kb_apply_plan",
-  "kb_check",
-  "kb_compile_intent",
-  "kb_coverage",
-  "kb_delete",
-  "kb_find_gaps",
-  "kb_graph",
-  "kb_ingest_proof",
-  "kb_model",
-  "kb_plan_bootstrap",
-  "kb_prepare_impact_review",
-  "kb_query",
-  "kb_search",
-  "kb_skills",
-  "kb_status",
-  "kb_upsert",
-];
+// The full tool list is owned by the MCP package's contract fixture, so the
+// launcher test tracks it instead of hardcoding a count that drifts as tools
+// are added.
+const MCP_TOOLS_FIXTURE = join(
+  REPO_ROOT,
+  "packages",
+  "mcp",
+  "tests",
+  "fixtures",
+  "contracts",
+  "tools-list.base.json",
+);
+const EXPECTED_KB_TOOLS = JSON.parse(readFileSync(MCP_TOOLS_FIXTURE, "utf8"))
+  .tools.map((tool) => tool.name);
 
 function rpcSpawn(args, cwd) {
   return spawn(process.execPath, args, {
@@ -180,7 +177,7 @@ const workspaceReady =
   existsSync(join(REPO_ROOT, ".kb", "manifest.json")) && existsSync(kibiMcpBin);
 
 test(
-  "stdio handshake lists the 16 kb_* tools",
+  "stdio handshake lists the full kb_* tool list",
   {
     timeout: 180_000,
     skip: !workspaceReady && "project-local kibi-mcp not built",
@@ -200,7 +197,9 @@ test(
   },
   async () => {
     const result = await handshake(LAUNCHER, REPO_ROOT);
-    assert.ok(Array.isArray(result.tools) && result.tools.length === 16);
+    assert.ok(
+      Array.isArray(result.tools) && result.tools.length === EXPECTED_KB_TOOLS.length,
+    );
   },
 );
 
