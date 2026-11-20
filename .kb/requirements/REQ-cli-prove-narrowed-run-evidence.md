@@ -24,6 +24,7 @@ origin:
   recorded_at: '2026-11-20T16:11:11.347Z'
 id: REQ-cli-prove-narrowed-run-evidence
 type: req
+required_evidence: tested
 ---
 Proof ingest must accept a playwright run that kibi prove narrowed to the selected tests' spec files as evidence for each ingested test whose bound spec files the run included, and refuse it for any other test.
 

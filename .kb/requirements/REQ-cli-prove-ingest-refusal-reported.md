@@ -24,6 +24,7 @@ origin:
   recorded_at: '2026-11-20T16:11:15.944Z'
 id: REQ-cli-prove-ingest-refusal-reported
 type: req
+required_evidence: tested
 ---
 kibi prove must report an integration whose run artifact proof ingest refused as a failure of that integration, and still print its JSON summary with the receipts of every other integration.
 

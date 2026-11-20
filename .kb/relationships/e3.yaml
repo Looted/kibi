@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17daa3afcbe9
+  - type: assumes
+    from: SCEN-NEG-cli-prove-ingest-refusal-reported-THROWN
+    to: FACT-NEG-cli-prove-ingest-refusal-reported-THROWN
+    created_at: 2026-11-20T16:29:08.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b00550f482a
