@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-prolog-win32-repack-contract",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./scripts/tests/swipl-windows-repack.test.ts"
+    ]
+  ]
+}
