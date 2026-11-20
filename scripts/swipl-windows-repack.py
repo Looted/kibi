@@ -311,7 +311,10 @@ def smoke_payload(prefix: Path, manifest: dict, work: Path, report: dict) -> Non
 
 
 def build_manifest(extracted: Path, manifest: dict, prebuilt: dict) -> dict:
-    binary = extracted / BINARY_REL
+    # `extracted` is the SWI home (lib/swipl inside the package), so the binary
+    # is at bin/swipl.exe relative to it; the manifest records the package-
+    # relative BINARY_REL.
+    binary = extracted / "bin" / "swipl.exe"
     if not binary.is_file() or binary.is_symlink():
         raise ValueError(f"Repacked prefix must contain a regular {BINARY_REL}")
     return {
