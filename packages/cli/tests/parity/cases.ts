@@ -136,6 +136,12 @@ const SEED_INPUTS = {
     },
   },
   kb_prepare_impact_review: { scope: { kind: "staged" } },
+  kb_author_impact_review: {
+    scope: { kind: "staged" },
+    scopeFingerprint: `sha256:${"0".repeat(64)}`,
+    reviewer: { id: "parity@example.invalid" },
+    files: [],
+  },
   kb_review_firm_edit: {
     reviews: [
       {

@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52ce44c041df
+  - type: assumes
+    from: SCEN-impact-review-public-preparation
+    to: FACT-impact-review-preparation-file-rows
+    created_at: 2026-11-19T19:21:23.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1afa6b5d3f35

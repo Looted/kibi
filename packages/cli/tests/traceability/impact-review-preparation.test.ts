@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import Ajv2020 from "ajv/dist/2020.js";
-import { executePrepareImpactReview } from "../../src/public/operations/impact-review-preparation.js";
+import {
+  IMPACT_REVIEW_SCHEMA_RESOURCE,
+  executePrepareImpactReview,
+} from "../../src/public/operations/impact-review-preparation.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 
 const roots: string[] = [];
@@ -97,21 +100,25 @@ async function prepare(
   scope:
     | { kind: "staged" }
     | { kind: "diff"; baseCommit: string; headCommit: string },
+  extra: { paths?: string[]; offset?: number } = {},
 ) {
-  const result = await executePrepareImpactReview({ scope }, context(root));
+  const result = await executePrepareImpactReview(
+    { scope, ...extra },
+    context(root),
+  );
   return { text: result.content, data: result.structuredContent as Row };
 }
 
-function scopeFor(data: Row, path: string): Row {
-  const scope = (data.requirementScopes as Row[]).find(
+function evidenceFor(data: Row, path: string): Row {
+  const evidence = (data.evidence as Row[] | undefined)?.find(
     (row) => row.path === path,
   );
-  if (!scope) throw new Error(`missing requirement scope for ${path}`);
-  return scope;
+  if (!evidence) throw new Error(`missing evidence for ${path}`);
+  return evidence;
 }
 
 describe("executePrepareImpactReview", () => {
-  test("staged scope projects file evidence, requirement context and an unauthored template", async () => {
+  test("staged scope lists a row per file and each requirement once", async () => {
     const { root, git, write } = repo();
     const baseCommit = git("rev-parse", "HEAD");
     write("src/service.ts", "export function run() { return 2; }\n");
@@ -119,8 +126,10 @@ describe("executePrepareImpactReview", () => {
 
     const { text, data } = await prepare(root, { kind: "staged" });
 
-    expect(text[0]?.text).toContain("staged impact-review authoring inputs");
-    expect(data.preparationVersion).toBe("kibi.impact-review-preparation.v1");
+    expect(text[0]?.text).toContain(
+      "Prepared the complete staged impact-review scope: 1 file(s)",
+    );
+    expect(data.preparationVersion).toBe("kibi.impact-review-preparation.v2");
     expect(data.status).toBe("ready_for_authoring");
     expect(data.snapshot).toEqual({
       kind: "staged",
@@ -133,19 +142,53 @@ describe("executePrepareImpactReview", () => {
     const headers = data.recordHeaders as Row;
     expect(headers.contractVersion).toBe("kibi.impact-review.v1");
     expect((headers.policy as Row).id).toBe("fixture-policy");
-
-    const files = data.files as Row[];
-    expect(files.map((file) => file.path)).toEqual(["src/service.ts"]);
-    expect(files[0]).not.toHaveProperty("analysisReviews");
-    expect(files[0]?.status).toBe("M");
+    expect(data.fileCount).toBe(1);
+    expect(data.files).toEqual([
+      {
+        path: "src/service.ts",
+        status: "M",
+        disposition: "checked",
+        analysisDepth: "symbol",
+        analysis: { before: "ok", after: "ok" },
+        requirementIds: ["REQ-impact"],
+        pendingObligations: 0,
+      },
+    ]);
     expect(data.residualReviewObligations).toEqual([]);
+    const [requirement] = data.requirements as Row[];
+    expect(requirement?.id).toBe("REQ-impact");
+    const after = requirement?.after as Row;
+    expect(after.state).toBe("present");
+    expect(after.artifactPath).toBe(".kb/requirements/REQ-impact.md");
+    expect(String(after.entityFingerprint)).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(requirement?.before).toEqual(after);
+    // Full evidence only for named paths.
+    expect(data).not.toHaveProperty("evidence");
+  }, 60_000);
 
-    const scope = scopeFor(data, "src/service.ts");
-    expect(scope.requirementIds).toEqual(["REQ-impact"]);
-    const [after] = scope.after as Row[];
+  test("named paths return complete evidence and requirement context", async () => {
+    const { root, git, write } = repo();
+    write("src/service.ts", "export function run() { return 2; }\n");
+    git("add", ".");
+
+    const { data } = await prepare(
+      root,
+      { kind: "staged" },
+      { paths: ["src/service.ts"] },
+    );
+    expect((data.files as Row[]).map((file) => file.path)).toEqual([
+      "src/service.ts",
+    ]);
+    const evidence = evidenceFor(data, "src/service.ts");
+    expect(evidence).not.toHaveProperty("analysisReviews");
+    expect(evidence.status).toBe("M");
+    expect(Array.isArray(evidence.newHunkRanges)).toBe(true);
+    const requirements = evidence.requirements as Row;
+    const [after] = requirements.after as Row[];
     expect(after?.state).toBe("present");
-    expect(after?.artifactPath).toBe(".kb/requirements/REQ-impact.md");
-    expect(String(after?.entityFingerprint)).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(after?.entityFingerprint).toBe(
+      ((data.requirements as Row[])[0]?.after as Row).entityFingerprint,
+    );
     // Only semantic edges are projected; relates_to is navigation, not intent.
     expect(after?.relationships).toEqual([
       { type: "depends_on", from: "REQ-impact", to: "REQ-base" },
@@ -161,53 +204,88 @@ describe("executePrepareImpactReview", () => {
     expect(base).not.toHaveProperty("created_at");
     expect(base).not.toHaveProperty("updated_at");
     expect(Object.keys(base)).toEqual([...Object.keys(base)].sort());
-    expect(scope.before).toEqual(scope.after);
+    expect(requirements.before).toEqual(requirements.after);
   }, 60_000);
 
-  test("authoring template validates against its own schema but not as a record", async () => {
+  test("a named path outside the captured inventory is refused", async () => {
+    const { root, git, write } = repo();
+    write("src/service.ts", "export function run() { return 2; }\n");
+    git("add", ".");
+    await expect(
+      prepare(root, { kind: "staged" }, { paths: ["src/other.ts"] }),
+    ).rejects.toThrow("Not in the captured review inventory: src/other.ts");
+  }, 60_000);
+
+  test("offset pages the rows but never the scope", async () => {
+    const { root, git, write } = repo();
+    write("src/tool.rb", "puts 1\n");
+    write("src/service.ts", "export function run() { return 4; }\n");
+    git("add", ".");
+
+    const whole = await prepare(root, { kind: "staged" });
+    const { text, data } = await prepare(
+      root,
+      { kind: "staged" },
+      { offset: 1 },
+    );
+    expect(text[0]?.text).toContain("2 file(s), 1 listed from offset 1");
+    expect(data.fileCount).toBe(2);
+    expect(data.recordHeaders).toEqual(whole.data.recordHeaders);
+    expect((data.files as Row[]).map((file) => file.path)).toEqual([
+      "src/tool.rb",
+    ]);
+    // Requirements and obligations follow the rows on the page.
+    expect(data.requirements).toEqual([]);
+    expect(
+      (data.residualReviewObligations as Row[]).map((row) => row.path),
+    ).toEqual(["src/tool.rb"]);
+  }, 60_000);
+
+  test("authoring points to the write operation and the published schema", async () => {
     const { root, git, write } = repo();
     write("src/service.ts", "export function run() { return 3; }\n");
     git("add", ".");
 
     const { data } = await prepare(root, { kind: "staged" });
-    const authorship = data.authorship as Row;
-    expect(authorship.isValidImpactReviewRecord).toBe(false);
-    expect(authorship.authoredFields).toEqual([
+    const authoring = data.authoring as Row;
+    expect(authoring.operation).toBe("kb_author_impact_review");
+    expect(authoring.recordPath).toBe(".kibi/impact-review.json");
+    expect(authoring.authoredFields).toEqual([
       "files[].decision",
       "files[].analysisReviews",
       "reviewer.id",
       "reviewedAt",
     ]);
-
-    const template = authorship.recordTemplate as Row;
-    const record = template.record as Row;
-    expect(record.reviewer).toEqual({ id: null, source: "self-claimed-local" });
-    expect(record.reviewedAt).toBeNull();
-    expect(record.contractVersion).toEqual(
-      (data.recordHeaders as Row).contractVersion,
-    );
-    const [file] = record.files as Row[];
-    expect(file?.path).toBe("src/service.ts");
-    expect(file?.decision).toBeNull();
-    expect(file?.analysisReviews).toBeNull();
-
-    const ajv = new Ajv2020({ strict: false, allErrors: true });
-    const validTemplate = ajv.compile(authorship.templateSchema as object);
-    expect(validTemplate(template)).toBe(true);
-    const strict = new Ajv2020({ strict: false, allErrors: true }).compile(
-      authorship.recordSchema as object,
-    );
-    expect(strict(record)).toBe(false);
-    // The template schema is a copy: the shipped record schema keeps its id.
-    const templateProperties = (authorship.templateSchema as Row)
-      .properties as Row;
-    expect((templateProperties.record as Row).$id).toBe(
-      "urn:kibi:impact-review-authoring-record-template:v1",
-    );
-    expect((authorship.recordSchema as Row).$id).toBe(
-      "urn:kibi:impact-review:v1",
-    );
+    expect(authoring.schema).toEqual({
+      id: "urn:kibi:impact-review:v1",
+      skill: "kibi-commit-review",
+      resource: IMPACT_REVIEW_SCHEMA_RESOURCE,
+    });
+    // No schema copy or record template rides along.
+    expect(JSON.stringify(data)).not.toContain("$schema");
   }, 60_000);
+
+  test("the skill resource is the shipped record schema", () => {
+    const shipped = readFileSync(
+      join(import.meta.dir, "../../src/traceability/impact-review.schema.json"),
+      "utf8",
+    );
+    for (const skills of [
+      "../../../runtime/src/skills",
+      "../../src/public/skills",
+    ])
+      expect(
+        readFileSync(
+          join(
+            import.meta.dir,
+            skills,
+            "kibi-commit-review",
+            IMPACT_REVIEW_SCHEMA_RESOURCE,
+          ),
+          "utf8",
+        ),
+      ).toBe(shipped);
+  });
 
   test("unsupported files become pending whole-file review obligations", async () => {
     const { root, git, write } = repo();
@@ -246,13 +324,29 @@ describe("executePrepareImpactReview", () => {
     write("src/service.ts", "export function run() { return 5; }\n");
     git("add", ".");
 
-    const { data } = await prepare(root, { kind: "staged" });
-    const scope = scopeFor(data, "src/service.ts");
-    expect(scope.requirementIds).toEqual(["REQ-added", "REQ-impact"]);
-    const before = (scope.before as Row[]).find(
+    const { data } = await prepare(
+      root,
+      { kind: "staged" },
+      { paths: ["src/service.ts"] },
+    );
+    const added = (data.requirements as Row[]).find(
       (row) => row.id === "REQ-added",
     );
-    const after = (scope.after as Row[]).find((row) => row.id === "REQ-added");
+    expect(added?.before).toEqual({
+      state: "absent",
+      entityFingerprint: null,
+      artifactPath: null,
+    });
+    expect((added?.after as Row).state).toBe("present");
+    const evidence = evidenceFor(data, "src/service.ts");
+    expect(evidence.requirements).toBeDefined();
+    const requirements = evidence.requirements as Row;
+    const before = (requirements.before as Row[]).find(
+      (row) => row.id === "REQ-added",
+    );
+    const after = (requirements.after as Row[]).find(
+      (row) => row.id === "REQ-added",
+    );
     expect(before).toEqual({
       id: "REQ-added",
       state: "absent",
@@ -278,7 +372,9 @@ describe("executePrepareImpactReview", () => {
       baseCommit,
       headCommit,
     });
-    expect(text[0]?.text).toContain("diff impact-review authoring inputs");
+    expect(text[0]?.text).toContain(
+      "Prepared the complete diff impact-review scope: 1 file(s)",
+    );
     expect(data.snapshot).toEqual({
       kind: "diff",
       baseCommit,

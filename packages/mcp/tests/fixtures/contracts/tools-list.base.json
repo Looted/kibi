@@ -4439,11 +4439,25 @@
         "readOnlyHint": true,
         "title": "Prepare an impact review"
       },
-      "description": "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+      "description": "Prepare an impact review of the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns the record headers, a row per changed file with its requirement ids and pending obligations, each scoped requirement once with its fingerprints, and full evidence only for the paths you name; rows page with offset. It does not decide, approve, sign, stage, or prove the review; write the record with kb_author_impact_review.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "offset": {
+            "description": "First file row to return, from truncation.nextOffset.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "paths": {
+            "description": "Changed paths to return full evidence and requirement context for; the rows still list the whole scope.",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
           "scope": {
             "description": "{\"kind\":\"staged\"} for the staged snapshot, or {\"kind\":\"diff\",\"baseCommit\",\"headCommit\"} with full hashes."
           },
@@ -4463,184 +4477,170 @@
           "data": {
             "additionalProperties": false,
             "properties": {
-              "authorship": {
+              "authoring": {
                 "additionalProperties": false,
                 "properties": {
-                  "analysisReviewSchema": {
-                    "additionalProperties": {},
-                    "properties": {},
-                    "type": "object"
-                  },
                   "authoredFields": {
                     "items": {
                       "type": "string"
                     },
                     "type": "array"
                   },
-                  "decisionSchema": {
-                    "additionalProperties": {},
-                    "properties": {},
-                    "type": "object"
-                  },
                   "instructions": {
                     "type": "string"
                   },
-                  "isValidImpactReviewRecord": {
-                    "const": false,
-                    "type": "boolean"
+                  "operation": {
+                    "const": "kb_author_impact_review",
+                    "type": "string"
                   },
-                  "recordSchema": {
-                    "additionalProperties": {},
-                    "properties": {},
-                    "type": "object"
+                  "recordPath": {
+                    "const": ".kibi/impact-review.json",
+                    "type": "string"
                   },
-                  "recordTemplate": {
+                  "schema": {
                     "additionalProperties": false,
                     "properties": {
-                      "isValidImpactReviewRecord": {
-                        "const": false,
-                        "type": "boolean"
+                      "id": {
+                        "type": "string"
                       },
-                      "record": {
-                        "additionalProperties": false,
-                        "properties": {
-                          "contractVersion": {
-                            "const": "kibi.impact-review.v1",
-                            "type": "string"
-                          },
-                          "evaluator": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "contractVersion": {
-                                "const": "kibi.impact-evaluator.v1",
-                                "type": "string"
-                              },
-                              "fingerprint": {
-                                "pattern": "^sha256:[0-9a-f]{64}$",
-                                "type": "string"
-                              }
-                            },
-                            "required": ["contractVersion", "fingerprint"],
-                            "type": "object"
-                          },
-                          "files": {
-                            "items": {
-                              "anyOf": [{}, {}]
-                            },
-                            "type": "array"
-                          },
-                          "policy": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "fingerprint": {
-                                "pattern": "^sha256:[0-9a-f]{64}$",
-                                "type": "string"
-                              },
-                              "id": {
-                                "type": "string"
-                              },
-                              "version": {
-                                "type": "string"
-                              }
-                            },
-                            "required": ["id", "version", "fingerprint"],
-                            "type": "object"
-                          },
-                          "reviewedAt": {
-                            "type": "null"
-                          },
-                          "reviewer": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "id": {
-                                "type": "null"
-                              },
-                              "source": {
-                                "const": "self-claimed-local",
-                                "type": "string"
-                              }
-                            },
-                            "required": ["id", "source"],
-                            "type": "object"
-                          },
-                          "scope": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "fingerprint": {
-                                "pattern": "^sha256:[0-9a-f]{64}$",
-                                "type": "string"
-                              },
-                              "knowledgeFingerprint": {
-                                "pattern": "^sha256:[0-9a-f]{64}$",
-                                "type": "string"
-                              },
-                              "providerSetFingerprint": {
-                                "pattern": "^sha256:[0-9a-f]{64}$",
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "fingerprint",
-                              "knowledgeFingerprint",
-                              "providerSetFingerprint"
-                            ],
-                            "type": "object"
-                          }
-                        },
-                        "required": [
-                          "contractVersion",
-                          "policy",
-                          "evaluator",
-                          "scope",
-                          "reviewer",
-                          "reviewedAt",
-                          "files"
-                        ],
-                        "type": "object"
+                      "resource": {
+                        "type": "string"
                       },
-                      "templateVersion": {
-                        "const": "kibi.impact-review-authoring-template.v1",
+                      "skill": {
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "templateVersion",
-                      "isValidImpactReviewRecord",
-                      "record"
-                    ],
+                    "required": ["id", "skill", "resource"],
                     "type": "object"
-                  },
-                  "templateSchema": {
-                    "additionalProperties": {},
-                    "properties": {},
-                    "type": "object"
-                  },
-                  "templateVersion": {
-                    "const": "kibi.impact-review-authoring-template.v1",
-                    "type": "string"
                   }
                 },
                 "required": [
-                  "templateVersion",
-                  "isValidImpactReviewRecord",
-                  "instructions",
+                  "operation",
+                  "recordPath",
                   "authoredFields",
-                  "recordSchema",
-                  "decisionSchema",
-                  "analysisReviewSchema",
-                  "templateSchema",
-                  "recordTemplate"
+                  "schema",
+                  "instructions"
                 ],
                 "type": "object"
               },
-              "files": {
+              "evidence": {
                 "items": {
                   "anyOf": [{}, {}]
                 },
                 "type": "array"
               },
+              "fileCount": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "files": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "analysis": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "after": {
+                          "anyOf": [
+                            {
+                              "const": "ok",
+                              "type": "string"
+                            },
+                            {
+                              "const": "partial",
+                              "type": "string"
+                            },
+                            {
+                              "const": "unsupported",
+                              "type": "string"
+                            },
+                            {
+                              "const": "failed",
+                              "type": "string"
+                            },
+                            {
+                              "const": null,
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "before": {
+                          "anyOf": [
+                            {
+                              "const": "ok",
+                              "type": "string"
+                            },
+                            {
+                              "const": "partial",
+                              "type": "string"
+                            },
+                            {
+                              "const": "unsupported",
+                              "type": "string"
+                            },
+                            {
+                              "const": "failed",
+                              "type": "string"
+                            },
+                            {
+                              "const": null,
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": ["before", "after"],
+                      "type": "object"
+                    },
+                    "analysisDepth": {
+                      "enum": ["symbol", "metadata", "file", "none"],
+                      "type": "string"
+                    },
+                    "disposition": {
+                      "enum": ["checked", "advisory", "skipped"],
+                      "type": "string"
+                    },
+                    "omittedFields": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "pendingObligations": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "requirementIds": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "status": {
+                      "enum": ["A", "M", "R", "C", "T", "D"],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "status",
+                    "disposition",
+                    "analysisDepth",
+                    "analysis",
+                    "requirementIds",
+                    "pendingObligations"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
               "preparationVersion": {
-                "const": "kibi.impact-review-preparation.v1",
+                "const": "kibi.impact-review-preparation.v2",
                 "type": "string"
               },
               "recordHeaders": {
@@ -4709,29 +4709,17 @@
                 "required": ["contractVersion", "policy", "evaluator", "scope"],
                 "type": "object"
               },
-              "requirementScopes": {
+              "requirements": {
                 "items": {
                   "additionalProperties": false,
                   "properties": {
-                    "after": {
-                      "items": {},
-                      "type": "array"
-                    },
-                    "before": {
-                      "items": {},
-                      "type": "array"
-                    },
-                    "path": {
+                    "after": {},
+                    "before": {},
+                    "id": {
                       "type": "string"
-                    },
-                    "requirementIds": {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
                     }
                   },
-                  "required": ["path", "requirementIds", "before", "after"],
+                  "required": ["id", "before", "after"],
                   "type": "object"
                 },
                 "type": "array"
@@ -4775,6 +4763,14 @@
               "status": {
                 "const": "ready_for_authoring",
                 "type": "string"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "truncation": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "required": [
@@ -4782,10 +4778,11 @@
               "status",
               "snapshot",
               "recordHeaders",
+              "fileCount",
               "files",
-              "requirementScopes",
+              "requirements",
               "residualReviewObligations",
-              "authorship"
+              "authoring"
             ],
             "type": "object"
           },
@@ -4888,6 +4885,280 @@
           },
           "resultVersion": {
             "const": "kibi.kb_prepare_impact_review.v1",
+            "type": "string"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Write an impact-review record"
+      },
+      "description": "Write .kibi/impact-review.json for the staged snapshot from your per-file decisions. Kibi captures the evidence itself, keeps an earlier decision only while its file and requirements are unchanged, validates the whole record and writes it atomically. Pass scopeFingerprint from kb_prepare_impact_review. It does not stage the record, decide for you or prove anything; the record schema is the kibi-commit-review skill's impact-review.schema.json resource.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "description": "Decisions for files you decide now; files the earlier record already decided may be left out while they are unchanged.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "analysisReviews": {
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "kind": {
+                        "enum": ["unsupported_review", "partial_review"],
+                        "type": "string"
+                      },
+                      "side": {
+                        "enum": ["before", "after"],
+                        "type": "string"
+                      }
+                    },
+                    "required": ["kind", "side"],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "decision": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "kind": {
+                      "enum": ["impact", "no_impact", "not_applicable"],
+                      "type": "string"
+                    }
+                  },
+                  "required": ["kind"],
+                  "type": "object"
+                },
+                "path": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["path", "decision"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "reviewedAt": {
+            "type": "string"
+          },
+          "reviewer": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["id"],
+            "type": "object"
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "staged",
+                "type": "string"
+              }
+            },
+            "required": ["kind"],
+            "type": "object"
+          },
+          "scopeFingerprint": {
+            "description": "recordHeaders.scope.fingerprint from kb_prepare_impact_review.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
+            "type": "string"
+          }
+        },
+        "required": ["scope", "scopeFingerprint", "reviewer", "files"],
+        "type": "object"
+      },
+      "name": "kb_author_impact_review",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "carried": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "decided": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "dropped": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "fileCount": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "recordPath": {
+                "const": ".kibi/impact-review.json",
+                "type": "string"
+              },
+              "scopeFingerprint": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "staged": {
+                "const": false,
+                "type": "boolean"
+              },
+              "written": {
+                "const": true,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "recordPath",
+              "written",
+              "scopeFingerprint",
+              "fileCount",
+              "decided",
+              "carried",
+              "dropped",
+              "staged"
+            ],
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "minItems": 3,
+            "type": "array"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1,
+            "type": "number"
+          },
+          "nextActions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_author_impact_review",
+            "type": "string"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_author_impact_review.v1",
             "type": "string"
           },
           "status": {

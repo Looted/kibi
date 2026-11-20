@@ -4,10 +4,10 @@
   "sourceFile": "packages/mcp/src/server/docs.ts",
   "symbol": "PROMPTS",
   "verdict": "keeps",
-  "note": "Only the overview prompt tool list changed; it now says the non-core tools also run through the project CLI, so MCP and CLI stay peers.",
+  "note": "Only adds kb_author_impact_review to the tool lists, naming its CLI peer author-impact-review; MCP and CLI stay presented as peers.",
   "statementHash": "sha256:9d2ebc0267c4e29f1a9abe87102d1dace6aeb6b22fc78ec79b12522eab235a4d",
-  "codeHash": "sha256:d1c50dcd07a83a1f22498ea428f33634b7f1896772ee43df15940ce9520c9b25",
+  "codeHash": "sha256:0c53276e47fe7d602858893bc0be5b3b28c83252ca7138a6f3fefee61d198f4a",
   "startLine": 71,
   "endLine": 185,
-  "recordedAt": "2026-11-18T19:37:05.495Z"
+  "recordedAt": "2026-11-19T20:34:32.079Z"
 }

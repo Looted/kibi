@@ -36,7 +36,7 @@ An operation that has not declared a cut, or one whose cut fails, must not hand 
 
 ## Context
 
-refuseOverCeiling runs after the cut on both routes. A write has already committed, so its result is returned as it is. An operation declared bounded (a status, a skill, the prepare-impact-review template) has no smaller form to ask for and is returned whole. Maintainer decision, 2026-11-19: outputs that cannot be narrowed are exempt.
+refuseOverCeiling runs after the cut on both routes. A write has already committed, so its result is returned as it is. An operation declared bounded (a status, a skill) has no smaller form to ask for and is returned whole. Maintainer decision, 2026-11-19: outputs that cannot be narrowed are exempt.
 
 ## Source
 

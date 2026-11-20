@@ -14,8 +14,8 @@ describe("parity registry completeness", () => {
       );
     }
 
-    expect(specs).toHaveLength(26);
-    expect(PARITY_CASES).toHaveLength(26);
+    expect(specs).toHaveLength(27);
+    expect(PARITY_CASES).toHaveLength(27);
     for (const spec of specs) {
       expect(
         counts.get(spec.name),
