@@ -350,7 +350,7 @@ export function populatePlatformPackage({
     mkdirSync(staged);
     copyPayload(prefix, staged, payloadEntries);
     const links = materializeSymlinks(staged);
-    copyPayload(staged, packageDir);
+    copyPayload(staged, packageDir, payloadEntries);
     const problems = verifySwiplPayload(packageDir);
     if (problems.length > 0) {
       throw new Error(
