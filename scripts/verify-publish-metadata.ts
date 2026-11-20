@@ -179,8 +179,14 @@ export function verifySwiplFamilyMetadata(
     if (JSON.stringify(manifest.libc) !== JSON.stringify(libc)) {
       problem(`libc must be ${JSON.stringify(libc)}`);
     }
-    if (JSON.stringify(manifest.files) !== JSON.stringify(PAYLOAD_FILES)) {
-      problem(`files must be exactly ${JSON.stringify(PAYLOAD_FILES)}`);
+    // The win32 payload nests the whole upstream tree under lib/, so it has
+    // no top-level bin/; POSIX packages ship bin/ plus lib/.
+    const expectedFiles =
+      target === "win32-x64"
+        ? ["lib/", "licenses/", "build-manifest.json"]
+        : PAYLOAD_FILES;
+    if (JSON.stringify(manifest.files) !== JSON.stringify(expectedFiles)) {
+      problem(`files must be exactly ${JSON.stringify(expectedFiles)}`);
     }
     for (const hook of INSTALL_HOOKS) {
       if (manifest.scripts?.[hook] !== undefined) {
