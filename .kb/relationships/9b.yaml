@@ -300,3 +300,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21866d7f0399
+  - type: constrains
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: FACT-SUBJ-kibi-prove-command
+    created_at: 2026-11-20T16:11:12.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5425a50b893
+  - type: requires_property
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: FACT-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-20T16:11:12.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-853839c2667f
+  - type: specified_by
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: SCEN-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-20T16:11:12.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34def1553ac3
+  - type: specified_by
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: SCEN-NEG-cli-prove-narrowed-run-evidence-SKIPPED-SPEC
+    created_at: 2026-11-20T16:11:12.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c92c457207b4

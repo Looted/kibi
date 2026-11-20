@@ -437,3 +437,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3317b122fbb
+  - type: executable_for
+    from: SYM-test-cli-prove-ingest-refusal-reported
+    to: TEST-cli-prove-ingest-refusal-reported
+    created_at: 2026-11-20T16:10:52.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2417b5518a40

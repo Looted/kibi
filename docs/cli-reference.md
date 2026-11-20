@@ -295,7 +295,9 @@ as `{"tests": [...], "shard": "K/N"}` and runs nothing. With `--test`, `--requir
 `--stale`, a `playwright` integration whose command is a direct
 `playwright test` invocation runs only the selected tests'
 `proof_bindings[].source_file` spec files; every producer also receives them
-as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
+as `KIBI_PROOF_SOURCE_FILES` (a JSON array). An integration that runs whole
+under these selectors is listed in the JSON summary's `notNarrowed` with the
+reason.
 `--integration` accepts one or more comma-separated integration ids.
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no
