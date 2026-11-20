@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-proof-protocol-schemas",
+  "sourceFile": "packages/cli/src/public/proof-protocol.ts",
+  "symbol": "proofRunArtifactErrors",
+  "verdict": "keeps",
+  "note": "Artifacts over the cap are still rejected with a named error that now states the count; every other check is unchanged.",
+  "statementHash": "sha256:09198fbe08d54a13ab4f1dcc36f5ae31de7c570796a1cad5b65a39c3d3c99b0d",
+  "codeHash": "sha256:3161248f3d41eecd446106e1fa8752e27177ac8e8a84b7277e02524e4a156d03",
+  "startLine": 639,
+  "endLine": 757,
+  "recordedAt": "2026-11-20T16:11:34.100Z"
+}
