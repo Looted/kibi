@@ -33,18 +33,18 @@ origin:
 id: TEST-vibe-plugin-contract-v1
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-f230506087fa64356f174b17
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d5c1215a596930fb2084bd6d
     test_id: TEST-vibe-plugin-contract-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 13f57a802059f870323fed0c61415e400a27ca72d293cea636d9e813e595fb1b
+    code_snapshot: 63f0529da27c5828a0f26c4789e8416b8890b6c2202fdbc740e60b4d4e7cd3f0
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-19T22:15:08.338Z'
-    finished_at: '2026-11-19T22:15:20.026Z'
-    artifact_digest: 855af151e1747f9adb2a72cf8ae84c6aaaf00458a384b1dbe6c81e38d510f23a
+    started_at: '2026-11-20T00:14:22.611Z'
+    finished_at: '2026-11-20T00:14:29.110Z'
+    artifact_digest: 16cb035997957753ba1c18b1613d24778cf91769e1204e441f2fbf8faa5e48a1
     contract_hash: d66ebf1e83c402ba89ac3a88ac6045a2a8c452821ba7cf85b865cda31151dcdd
-    binding_hash: 717c0a11ab45bfbab4993d2c51fb17c47b0d60d8391ca87c62476368a41d3376
+    binding_hash: 07b1f41c4b2689c455f99f50b40813e381bc43b21317b2828fe9ee1d2e5395b5
     fingerprint: e9ad321199c3400c2220dcacebb4377c0e1158b0503e00222aefaddbb9c35a76
     fingerprint_components:
       contract: d66ebf1e83c402ba89ac3a88ac6045a2a8c452821ba7cf85b865cda31151dcdd
@@ -114,5 +114,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs via proof/steps/TEST-vibe-plugin-contract-v1.json: node --test packages/vibe/tests/runtime.test.mjs packages/vibe/tests/launcher-contract.test.mjs. Covers the 16 kb_* tools handshake in a Kibi workspace, the silent zero-tool server outside Kibi workspaces, the WSL-safe spawn argv (no shell string, -d distro, hard fail on unconvertible paths), workspace resolution order, and fail-open hooks.
