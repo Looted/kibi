@@ -47512,3 +47512,61 @@ symbols:
         target: TEST-skillopt-reference-answers-score-100
       - type: implements
         target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-test-cli-prove-narrowed-run-evidence
+    title: proof ingest operation suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/proof/ingest-proof.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T16:10:34.749Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-narrowed-run-evidence
+  - id: SYM-test-cli-prove-ingest-refusal-reported
+    title: kibi prove command mutation suite
+    status: active
+    sourceFile: packages/cli/tests/commands/prove-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T16:10:52.105Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-ingest-refusal-reported
+  - id: SYM-ingest-proof-command-argv-accepted
+    title: commandArgvAccepted
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T16:11:12.827Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prove-narrowed-run-evidence
+      - type: implements
+        target: REQ-cli-prove-narrowed-run-evidence
+  - id: SYM-prove-is-ingest-refusal
+    title: isIngestRefusal
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T16:11:17.347Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prove-ingest-refusal-reported
+      - type: implements
+        target: REQ-cli-prove-ingest-refusal-reported
+  - id: SYM-proof-protocol-max-proof-run-results
+    title: MAX_PROOF_RUN_RESULTS
+    status: active
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T16:11:19.609Z
