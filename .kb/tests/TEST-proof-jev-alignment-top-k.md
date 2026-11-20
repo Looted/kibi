@@ -26,17 +26,17 @@ id: TEST-proof-jev-alignment-top-k
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-fbc7a0da886cb6b5a8bed3e8
+    receipt_id: PR-045f236c26555f3da0df0ad3
     test_id: TEST-proof-jev-alignment-top-k
     scope: unit
     outcome: passed
-    code_snapshot: 4015792e45e163c9ef221115c30a79374921664a5f8d7ef4db0f94d2f35e6043
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T16:58:31.680Z'
-    finished_at: '2026-10-29T16:58:31.854Z'
-    artifact_digest: 48fa335970f6a8a4170418691c8272b6181e00320dd2a4a3c3102296196ef527
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 197b702d32b18c4d750e7030b6da938cf358770b2d246df02b76bb3d0c5623ef
-    binding_hash: f27bcd779366573c3c59c0ab7bbf98e5b3dd595b4b4606fef37f585fd92c898e
+    binding_hash: eed9c5e3a53f8f7c89c0bb107f981a04168c92ce3bc4fa2a1d739cb3b0bd6c6b
     fingerprint: 278a6428e0f9af077d6156e21e509aaf0c7f7ce46835ae1423c035848b6b087e
     fingerprint_components:
       contract: 197b702d32b18c4d750e7030b6da938cf358770b2d246df02b76bb3d0c5623ef

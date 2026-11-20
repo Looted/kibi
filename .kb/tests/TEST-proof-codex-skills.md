@@ -28,17 +28,17 @@ proof_contract:
     - CLAIM-3C03F93E59BE963F
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1dd0ec39b31f6ce20349acd5
+    receipt_id: PR-bdc2192190ff054e0a4102e5
     test_id: TEST-proof-codex-skills
     scope: unit
     outcome: passed
-    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-03T10:50:50.125Z'
-    finished_at: '2026-11-03T10:50:50.346Z'
-    artifact_digest: 2f1fad614724a700336e9aa118ccd7a1fa5f2c5c2103beac5e4f8dc654d5b1ee
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 12d8554dc021d85eae53c2b7bb5c82e94024a60f425408ab61d248b65dbbfd91
-    binding_hash: 2b1d61fd91861328ed10660603d630277636facf9ff4d35a14eedaba0a30c61f
+    binding_hash: 165a305a4e539b9203903b5bf75e1f81ec36c0f65deda4529d09012bd5767d79
     fingerprint: 46f041ca04a8be8226856a0dbfb0b541d9dab4b372eea5e46bfa723e42058cea
     fingerprint_components:
       contract: 12d8554dc021d85eae53c2b7bb5c82e94024a60f425408ab61d248b65dbbfd91

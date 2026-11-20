@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-128507649E0FD413
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d005b6c9e7e602ae5837fbe1
+    receipt_id: PR-ae9fbb989fd03cee0d88fa2e
     test_id: TEST-proof-entity-accepted-fields
     scope: unit
     outcome: passed
-    code_snapshot: 71649ed10705e0ff14dfa0f500ef70fff1f548eb2351356f6278688a26e40e5e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:20:01.994Z'
-    finished_at: '2026-10-27T07:20:02.146Z'
-    artifact_digest: 0dcccf585167de0007644000d58027c6d3118751f86701daa6544afc4140d6f2
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: b145fe6bf48923f418e7c1a2e01aa3269942d9a2a16d9f68392931585e3a8c51
-    binding_hash: 2b75342c604f909faab7bd3fd184ad3b6fe627e27f2990d652131eba593733a9
+    binding_hash: 89a2892cd5558223e601f1e30bda32c08ac0ea0486b76788bd2acbb45816dbc6
     fingerprint: db11a00aa014989701d79f31effb7ae51b18386b66a68e31cbb17228f002d340
     fingerprint_components:
       contract: b145fe6bf48923f418e7c1a2e01aa3269942d9a2a16d9f68392931585e3a8c51
@@ -83,25 +83,35 @@ proof_receipts:
           - argument_names
           - argument_types
           - canonical_key
+          - case_waiver
+          - case_waiver_approved_by
           - claim_key
           - claim_span_end
           - claim_span_start
           - claim_text
           - closed_world
           - created_at
+          - dimension_waiver
+          - dimension_waiver_approved_by
+          - distinct_from
           - examples
           - exempts_claims
           - expects
           - fact_kind
+          - failure_side_waiver
+          - failure_side_waiver_approved_by
           - firmness
           - granularity_reason
           - id
           - key_arguments
+          - kind_of
           - links
           - logic_claims
           - operator
           - origin
           - owner
+          - pair_reviews
+          - part_of
           - polarity
           - predicate_args
           - predicate_arity
@@ -116,6 +126,7 @@ proof_receipts:
           - property_key
           - rationale
           - required_evidence
+          - retired_reason
           - rule_hash
           - rule_ir
           - rule_name
@@ -150,13 +161,13 @@ proof_receipts:
           - value_type
           - verification_perspective
           - verification_scope
-    certificate_digest: 6dbc59e4138dee1b108278bbf42ab825a5a228ca3836b21288b122bae4271e65
+    certificate_digest: 0d4c42a6e2d11cc96bfb5829ac9f30bb4c2c64c08ef8d34a0c5659fa9d6c65db
     claim_bindings:
       - claim_key: CLAIM-128507649E0FD413
         requirement_id: REQ-004
         fact_id: FACT-entity-record-accepted-fields
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

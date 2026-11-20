@@ -381,3 +381,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b178b265253
+  - type: implements
+    from: SYM-vibe-runKibi
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T21:37:16.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ede1d46dd088
+  - type: covered_by
+    from: SYM-vibe-runKibi
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:16.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-597044a6d5d5

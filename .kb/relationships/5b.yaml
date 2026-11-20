@@ -426,6 +426,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab218b4e52f6
+  - type: implements
+    from: SYM-vibe-spawnKibiMcp
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T21:37:06.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf3e38209696
+  - type: implements
+    from: SYM-vibe-spawnKibiMcp
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T21:37:06.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcaa298059f7
+  - type: covered_by
+    from: SYM-vibe-spawnKibiMcp
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:06.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a046d47fc23f
   - type: assumes
     from: SCEN-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
     to: FACT-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
