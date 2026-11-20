@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-proof-protocol-schemas",
+  "sourceFile": "packages/cli/src/public/proof-protocol.ts",
+  "symbol": "PROOF_RUN_ARTIFACT_SCHEMA",
+  "verdict": "keeps",
+  "note": "The schema still bounds proof_results; only the published maxItems rises from 1000 to MAX_PROOF_RUN_RESULTS (100000).",
+  "statementHash": "sha256:09198fbe08d54a13ab4f1dcc36f5ae31de7c570796a1cad5b65a39c3d3c99b0d",
+  "codeHash": "sha256:f0d8b435ff64e7f910194d83c7f91e2a5924e130380404b1630cb00b9d57189c",
+  "startLine": 206,
+  "endLine": 282,
+  "recordedAt": "2026-11-20T16:11:34.100Z"
+}

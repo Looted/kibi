@@ -105,12 +105,15 @@ export function evaluateContractAgainstRun(
   const gaps: ProofGap[] = [];
   const projectedResults: ProofResult[] = [];
 
+  // Indexed once: a large suite's run carries a result for every case it
+  // ran. The first result for a target/symbol_id wins, as a scan would.
+  const byKey = new Map<string, ProofResult>();
+  for (const result of artifact.proof_results) {
+    const key = `${result.target}\0${result.symbol_id}`;
+    if (!byKey.has(key)) byKey.set(key, result);
+  }
   for (const obligation of contract.required_proofs) {
-    const observed = artifact.proof_results.find(
-      (result) =>
-        result.symbol_id === obligation.symbol_id &&
-        result.target === obligation.target,
-    );
+    const observed = byKey.get(`${obligation.target}\0${obligation.symbol_id}`);
     if (observed) projectedResults.push(observed);
     if (judgeOwnResults && observed?.binding === "aggregate_run") {
       gaps.push({

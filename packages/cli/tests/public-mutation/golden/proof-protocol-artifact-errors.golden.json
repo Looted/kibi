@@ -97,8 +97,9 @@
     "artifact.proof_results must be a non-empty array of proof results with symbol_id, target, outcome, binding, and attempts"
   ],
   "resultsTooMany": [
-    "artifact.proof_results must contain at most 1000 results"
+    "artifact.proof_results must contain at most 100000 results; received 100001 (narrow the integration's command to the selected tests)"
   ],
+  "resultsAtCap": [],
   "resultsDuplicate": [
     "artifact.proof_results[1] must be an object with symbol_id, target, outcome, binding, and attempts",
     "artifact.proof_results[2].symbol_id must be a non-empty proof symbol ID (SYM-*)",
