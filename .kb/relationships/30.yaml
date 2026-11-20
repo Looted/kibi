@@ -580,3 +580,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4653bfb1b77f
+  - type: implements
+    from: SYM-prolog-build-build
+    to: REQ-prolog-build-workflow-targets-v2
+    created_at: 2026-11-20T11:44:50.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e626a4e54b9f

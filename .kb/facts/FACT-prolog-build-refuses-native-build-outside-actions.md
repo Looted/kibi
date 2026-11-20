@@ -1,5 +1,5 @@
 ---
-title: Refuses Native Build Outside Actions = true
+title: The build command refuses native compilation outside GitHub Actions
 status: active
 text_ref: scripts/swipl-spike.py
 tags:
@@ -27,3 +27,4 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+Native compilation refuses to run outside GitHub Actions; the win32-x64 repack additionally requires a clean windows-2025 runner with no swipl on PATH.

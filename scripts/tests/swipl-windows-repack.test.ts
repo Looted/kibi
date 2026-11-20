@@ -4,7 +4,13 @@
 import { describe, expect, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -14,6 +20,7 @@ const PINS = path.join(ROOT, "scripts", "swipl-version.json");
 const PINS_JSON = JSON.parse(readFileSync(PINS, "utf8"));
 
 /** Import the repack module in python and evaluate an expression; returns parsed JSON. */
+// biome-ignore lint/suspicious/noExplicitAny: loose JSON from the python child
 function py(expr: string): any {
   const wrapped = [
     "import importlib.util, json, sys",
@@ -89,7 +96,11 @@ function syntheticPe(machine: number, imports: string[]): string {
 
 describe("repack pin validation", () => {
   test("verify-config accepts the committed pins", () => {
-    const r = spawnSync("python3", [SCRIPT, "verify-config", "--manifest", PINS], { encoding: "utf8" });
+    const r = spawnSync(
+      "python3",
+      [SCRIPT, "verify-config", "--manifest", PINS],
+      { encoding: "utf8" },
+    );
     expect(r.status).toBe(0);
     const out = JSON.parse(r.stdout);
     expect(out.target).toBe("win32-x64");
@@ -103,14 +114,33 @@ describe("repack pin validation", () => {
     const prebuilt = PINS_JSON.prebuilt["win32-x64"];
     const cases: Array<[string, unknown]> = [
       ["missing installer", { ...prebuilt, installer: undefined }],
-      ["http installer url", { ...prebuilt, installer: { url: "http://x", sha256: "0".repeat(64) } }],
-      ["bad installer sha", { ...prebuilt, installer: { url: "https://x", sha256: "zz" } }],
-      ["unsafe trim path", { ...prebuilt, trim: { dirs: ["../doc"], files: [] } }],
+      [
+        "http installer url",
+        { ...prebuilt, installer: { url: "http://x", sha256: "0".repeat(64) } },
+      ],
+      [
+        "bad installer sha",
+        { ...prebuilt, installer: { url: "https://x", sha256: "zz" } },
+      ],
+      [
+        "unsafe trim path",
+        { ...prebuilt, trim: { dirs: ["../doc"], files: [] } },
+      ],
       ["non-list trim", { ...prebuilt, trim: { dirs: "doc", files: [] } }],
-      ["bad license pin", { ...prebuilt, licenseSources: { gmp: { url: "https://x", sha256: "nope", member: "m", name: "n" } } }],
+      [
+        "bad license pin",
+        {
+          ...prebuilt,
+          licenseSources: {
+            gmp: { url: "https://x", sha256: "nope", member: "m", name: "n" },
+          },
+        },
+      ],
     ];
     for (const [label, value] of cases) {
-      const err = pyError(`m.validate_prebuilt(${JSON.stringify(PINS_JSON)}, ${JSON.stringify(value)})`);
+      const err = pyError(
+        `m.validate_prebuilt(${JSON.stringify(PINS_JSON)}, ${JSON.stringify(value)})`,
+      );
       expect(err, label).toContain("VALUEERROR:");
     }
   });
@@ -119,14 +149,21 @@ describe("repack pin validation", () => {
 describe("PE audit", () => {
   test("reads the machine field and import names of a synthetic PE32+", () => {
     const hex = syntheticPe(0x8664, ["KERNEL32.dll", "libswipl.dll"]);
-    expect(py(`m.pe_machine(bytes.fromhex(${JSON.stringify(hex)}))`)).toBe(0x8664);
-    expect(py(`m.pe_imports(bytes.fromhex(${JSON.stringify(hex)}))`)).toEqual(["KERNEL32.dll", "libswipl.dll"]);
+    expect(py(`m.pe_machine(bytes.fromhex(${JSON.stringify(hex)}))`)).toBe(
+      0x8664,
+    );
+    expect(py(`m.pe_imports(bytes.fromhex(${JSON.stringify(hex)}))`)).toEqual([
+      "KERNEL32.dll",
+      "libswipl.dll",
+    ]);
   });
 
   test("rejects non-PE bytes and reports other machines", () => {
     expect(pyError(`m.pe_machine(b"not a pe")`)).toContain("VALUEERROR:");
     const hex = syntheticPe(0xaa64, []);
-    expect(py(`m.pe_machine(bytes.fromhex(${JSON.stringify(hex)}))`)).toBe(0xaa64);
+    expect(py(`m.pe_machine(bytes.fromhex(${JSON.stringify(hex)}))`)).toBe(
+      0xaa64,
+    );
   });
 
   test("audit_payload flags wrong machine and non-system imports, passes a clean tree", () => {
@@ -134,15 +171,45 @@ describe("PE audit", () => {
     try {
       const bin = path.join(dir, "bin");
       mkdirSync(bin);
-      writeFileSync(path.join(bin, "libswipl.dll"), Buffer.from(syntheticPe(0x8664, ["KERNEL32.dll", "libgmp-10.dll"]), "hex"));
-      writeFileSync(path.join(bin, "libgmp-10.dll"), Buffer.from(syntheticPe(0x8664, ["api-ms-win-core-console-l1-1-0.dll"]), "hex"));
-      writeFileSync(path.join(bin, "evil.dll"), Buffer.from(syntheticPe(0x8664, ["evilcore.dll"]), "hex"));
-      writeFileSync(path.join(bin, "arm.exe"), Buffer.from(syntheticPe(0xaa64, []), "hex"));
-      const problems: string[] = py(`m.audit_payload(__import__("pathlib").Path(${JSON.stringify(dir)}))`);
-      expect(problems.some((p) => p.includes("evil.dll") && p.includes("evilcore.dll"))).toBe(true);
-      expect(problems.some((p) => p.includes("arm.exe") && p.includes("x86-64"))).toBe(true);
-      expect(problems.filter((p) => p.includes("libswipl.dll"))).toHaveLength(0);
-      expect(problems.filter((p) => p.includes("libgmp-10.dll"))).toHaveLength(0);
+      writeFileSync(
+        path.join(bin, "libswipl.dll"),
+        Buffer.from(
+          syntheticPe(0x8664, ["KERNEL32.dll", "libgmp-10.dll"]),
+          "hex",
+        ),
+      );
+      writeFileSync(
+        path.join(bin, "libgmp-10.dll"),
+        Buffer.from(
+          syntheticPe(0x8664, ["api-ms-win-core-console-l1-1-0.dll"]),
+          "hex",
+        ),
+      );
+      writeFileSync(
+        path.join(bin, "evil.dll"),
+        Buffer.from(syntheticPe(0x8664, ["evilcore.dll"]), "hex"),
+      );
+      writeFileSync(
+        path.join(bin, "arm.exe"),
+        Buffer.from(syntheticPe(0xaa64, []), "hex"),
+      );
+      const problems: string[] = py(
+        `m.audit_payload(__import__("pathlib").Path(${JSON.stringify(dir)}))`,
+      );
+      expect(
+        problems.some(
+          (p) => p.includes("evil.dll") && p.includes("evilcore.dll"),
+        ),
+      ).toBe(true);
+      expect(
+        problems.some((p) => p.includes("arm.exe") && p.includes("x86-64")),
+      ).toBe(true);
+      expect(problems.filter((p) => p.includes("libswipl.dll"))).toHaveLength(
+        0,
+      );
+      expect(problems.filter((p) => p.includes("libgmp-10.dll"))).toHaveLength(
+        0,
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -154,7 +221,9 @@ describe("trim and archive", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "repack-trim-"));
     try {
       mkdirSync(path.join(dir, "doc"));
-      const err = pyError(`m.apply_trim(__import__("pathlib").Path(${JSON.stringify(dir)}), {"dirs": ["doc", "xpce"], "files": []})`);
+      const err = pyError(
+        `m.apply_trim(__import__("pathlib").Path(${JSON.stringify(dir)}), {"dirs": ["doc", "xpce"], "files": []})`,
+      );
       expect(err).toContain("trim dir does not exist");
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -167,10 +236,19 @@ describe("trim and archive", () => {
       const prefix = path.join(dir, "pkg");
       mkdirSync(path.join(prefix, "lib", "swipl", "bin"), { recursive: true });
       mkdirSync(path.join(prefix, "licenses"));
-      writeFileSync(path.join(prefix, "lib", "swipl", "bin", "swipl.exe"), Buffer.from(syntheticPe(0x8664, ["KERNEL32.dll"]), "hex"));
-      writeFileSync(path.join(prefix, "lib", "swipl", "bin", "libswipl.dll"), Buffer.from(syntheticPe(0x8664, []), "hex"));
+      writeFileSync(
+        path.join(prefix, "lib", "swipl", "bin", "swipl.exe"),
+        Buffer.from(syntheticPe(0x8664, ["KERNEL32.dll"]), "hex"),
+      );
+      writeFileSync(
+        path.join(prefix, "lib", "swipl", "bin", "libswipl.dll"),
+        Buffer.from(syntheticPe(0x8664, []), "hex"),
+      );
       writeFileSync(path.join(prefix, "lib", "swipl", "boot.prc"), "boot");
-      writeFileSync(path.join(prefix, "licenses", "swi-prolog-LICENSE.txt"), "bsd");
+      writeFileSync(
+        path.join(prefix, "licenses", "swi-prolog-LICENSE.txt"),
+        "bsd",
+      );
       writeFileSync(path.join(prefix, "build-manifest.json"), "{}");
       const archiveName: string = py(
         `m.write_archive(__import__("pathlib").Path(${JSON.stringify(prefix)}), ${JSON.stringify(PINS_JSON)}, __import__("pathlib").Path(${JSON.stringify(dir)})).name`,
@@ -178,14 +256,22 @@ describe("trim and archive", () => {
       const archive = path.join(dir, archiveName);
       expect(archiveName).toBe("swipl-10.0.2-win32-x64.tar.gz");
       const sidecar = readFileSync(`${archive}.sha256`, "utf8");
-      expect(sidecar).toBe(`${createHash("sha256").update(readFileSync(archive)).digest("hex")}  ${archiveName}\n`);
-      const listing = execFileSync("tar", ["-tvzf", archive], { encoding: "utf8" });
+      expect(sidecar).toBe(
+        `${createHash("sha256").update(readFileSync(archive)).digest("hex")}  ${archiveName}\n`,
+      );
+      const listing = execFileSync("tar", ["--force-local", "-tvzf", archive], {
+        encoding: "utf8",
+      });
       expect(listing).toContain("lib/swipl/bin/swipl.exe");
       expect(listing).toContain("build-manifest.json");
       for (const line of listing.split("\n")) {
         if (line.endsWith("swipl.exe") || line.endsWith("libswipl.dll")) {
           expect(line.startsWith("-rwxr-xr-x")).toBe(true);
-        } else if (line.includes("boot.prc") || line.includes("LICENSE") || line.includes("build-manifest")) {
+        } else if (
+          line.includes("boot.prc") ||
+          line.includes("LICENSE") ||
+          line.includes("build-manifest")
+        ) {
           expect(line.startsWith("-rw-r--r--")).toBe(true);
         }
         expect(line.startsWith("l")).toBe(false); // no symlinks
@@ -203,26 +289,60 @@ describe("trim and archive", () => {
       const hash = createHash("sha256").update("payload").digest("hex");
       const sidecar = path.join(dir, "good.sha256");
       writeFileSync(sidecar, `${hash}  swipl-10.0.2-win32-x64.tar.gz\n`);
-      expect(py(`(lambda: (m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(sidecar)}), ${JSON.stringify(PINS_JSON)}), "ok"))()[1]`)).toBe("ok");
+      expect(
+        py(
+          `(lambda: (m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(sidecar)}), ${JSON.stringify(PINS_JSON)}), "ok"))()[1]`,
+        ),
+      ).toBe("ok");
       const badName = path.join(dir, "swipl-10.0.2-linux-x64-gnu.tar.gz");
       writeFileSync(badName, "payload");
-      expect(pyError(`m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(badName)}), __import__("pathlib").Path(${JSON.stringify(sidecar)}), ${JSON.stringify(PINS_JSON)})`)).toContain("Archive name");
+      expect(
+        pyError(
+          `m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(badName)}), __import__("pathlib").Path(${JSON.stringify(sidecar)}), ${JSON.stringify(PINS_JSON)})`,
+        ),
+      ).toContain("Archive name");
       const badHash = path.join(dir, "bad.sha256");
-      writeFileSync(badHash, `${"0".repeat(64)}  swipl-10.0.2-win32-x64.tar.gz\n`);
-      expect(pyError(`m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(badHash)}), ${JSON.stringify(PINS_JSON)})`)).toContain("SHA-256 mismatch");
+      writeFileSync(
+        badHash,
+        `${"0".repeat(64)}  swipl-10.0.2-win32-x64.tar.gz\n`,
+      );
+      expect(
+        pyError(
+          `m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(badHash)}), ${JSON.stringify(PINS_JSON)})`,
+        ),
+      ).toContain("SHA-256 mismatch");
       const badSidecar = path.join(dir, "bad2.sha256");
       writeFileSync(badSidecar, "not-a-sidecar\n");
-      expect(pyError(`m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(badSidecar)}), ${JSON.stringify(PINS_JSON)})`)).toContain("sidecar");
+      expect(
+        pyError(
+          `m.verify_archive_files(__import__("pathlib").Path(${JSON.stringify(good)}), __import__("pathlib").Path(${JSON.stringify(badSidecar)}), ${JSON.stringify(PINS_JSON)})`,
+        ),
+      ).toContain("sidecar");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
   test("build-archive refuses a target other than win32-x64 and off-runner execution", () => {
-    const r2 = spawnSync("python3", [SCRIPT, "build-archive", "--target", "linux-x64-gnu", "--workdir", "/tmp/x"], { encoding: "utf8" });
+    const r2 = spawnSync(
+      "python3",
+      [
+        SCRIPT,
+        "build-archive",
+        "--target",
+        "linux-x64-gnu",
+        "--workdir",
+        "/tmp/x",
+      ],
+      { encoding: "utf8" },
+    );
     expect(r2.status).toBe(1);
     expect(r2.stderr).toContain("Unsupported repack target");
-    const r3 = spawnSync("python3", [SCRIPT, "build-archive", "--target", "win32-x64", "--workdir", "/tmp/x"], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "false" } });
+    const r3 = spawnSync(
+      "python3",
+      [SCRIPT, "build-archive", "--target", "win32-x64", "--workdir", "/tmp/x"],
+      { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "false" } },
+    );
     expect(r3.status).toBe(1);
     expect(r3.stderr).toContain("only in GitHub Actions");
   });
