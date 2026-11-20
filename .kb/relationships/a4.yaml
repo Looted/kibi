@@ -524,3 +524,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4059e2cd9a16
+  - type: implements
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-11-19T20:42:22.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c86e2ef8bcd
+  - type: covered_by
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-19T20:42:22.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c598569994d
+  - type: covered_by
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T20:42:22.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee130fc878e2

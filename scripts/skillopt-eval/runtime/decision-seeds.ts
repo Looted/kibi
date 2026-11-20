@@ -39,6 +39,12 @@ export const INHERITED_SOURCE_PATH = "src/inherited.ts";
 /** Path of the impact-review record the review variant drafts. */
 export const IMPACT_REVIEW_PATH = ".kibi/impact-review.json";
 
+/**
+ * Path of the decisions an agent drafts for a person who signs the record:
+ * the kb_author_impact_review input, run by that person with their id.
+ */
+export const IMPACT_DECISIONS_PATH = ".kibi/impact-review-decisions.json";
+
 /** Path of the impact policy the review variant commits. */
 export const IMPACT_POLICY_PATH = ".kibi/impact-policy.json";
 

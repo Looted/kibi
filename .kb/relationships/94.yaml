@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc6e2f51d7b1
+  - type: implements
+    from: SYM-impact-review-preparation-requirement-bindings
+    to: REQ-impact-review-requirements-once
+    created_at: 2026-11-19T19:10:25.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1d464effb42
+  - type: covered_by
+    from: SYM-impact-review-preparation-requirement-bindings
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:32.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52d1fb38eb5e

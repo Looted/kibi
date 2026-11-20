@@ -72,6 +72,8 @@ const A = {
   idempotentHint: true,
   openWorldHint: false,
 };
+// Replaces the impact-review record; the same input writes the same file.
+const D = { ...W, idempotentHint: true };
 
 describe("tool annotations", () => {
   test("every exposed tool has its title and effect hints", () => {
@@ -90,6 +92,7 @@ describe("tool annotations", () => {
       ["kb_check", "Validate Kibi knowledge base", R],
       ["kb_review_firm_edit", "Record a firm-edit review", A],
       ["kb_prepare_impact_review", "Prepare an impact review", R],
+      ["kb_author_impact_review", "Write an impact-review record", D],
       ["kb_plan_bootstrap", "Plan Kibi bootstrap", R],
       ["kb_compile_intent", "Compile Kibi change intent", R],
       ["kb_apply_plan", "Apply an approved Kibi plan", W],

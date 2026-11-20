@@ -608,3 +608,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d9f956a410f
+  - type: assumes
+    from: SCEN-impact-review-named-evidence
+    to: FACT-impact-review-named-evidence
+    created_at: 2026-11-19T19:09:39.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-326236a41ac5
+  - type: specified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: SCEN-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:11:59.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f18978eb7b24
+  - type: specified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: SCEN-NEG-impact-review-author-scope-fingerprint-STALE-SCOPE
+    created_at: 2026-11-19T19:11:59.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edd75784d785
+  - type: verified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:11:59.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f65b97b652
+  - type: constrains
+    from: REQ-impact-review-author-scope-fingerprint
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:11:59.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d747bd382b
+  - type: requires_property
+    from: REQ-impact-review-author-scope-fingerprint
+    to: FACT-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:11:59.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42002f8de845

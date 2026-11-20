@@ -162,32 +162,11 @@ relationships:
     id: rel-3443f3133e93
   - type: requires_rule
     from: REQ-impact-review-public-preparation
-    to: FACT-RULE-6396B235B06A72C7
-    created_at: 2026-09-27T17:30:30.612Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-709698c46e7f
-  - type: requires_rule
-    from: REQ-impact-review-public-preparation
-    to: FACT-RULE-946698B37C85C4D6
-    created_at: 2026-09-27T17:30:30.629Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ffaf66a26a67
-  - type: requires_rule
-    from: REQ-impact-review-public-preparation
     to: FACT-RULE-B8A85CEBDE16F44C
     created_at: 2026-09-27T17:30:30.667Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e38b6a2298cd
-  - type: requires_rule
-    from: REQ-impact-review-public-preparation
-    to: FACT-RULE-DD8C0E7936EB3849
-    created_at: 2026-09-27T17:30:30.687Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-684483c63d61
   - type: requires_rule
     from: REQ-impact-review-public-preparation
     to: FACT-RULE-DFD15DB6A2E0E50B
@@ -587,3 +566,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d609d53a4b3
+  - type: requires_property
+    from: REQ-impact-review-public-preparation
+    to: FACT-impact-review-preparation-file-rows
+    created_at: 2026-11-19T19:15:10.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c47a4fcfed19
+  - type: specified_by
+    from: REQ-impact-review-public-preparation
+    to: SCEN-NEG-impact-review-public-preparation-ROWLESS
+    created_at: 2026-11-19T19:21:24.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adc298018257
+  - type: verified_by
+    from: REQ-impact-review-public-preparation
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:21:25.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f43c6d12719
+  - type: constrains
+    from: REQ-impact-review-public-preparation
+    to: FACT-SUBJECT-kibi-impact-review-preparation
+    created_at: 2026-11-19T20:31:22.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b87b2e794263

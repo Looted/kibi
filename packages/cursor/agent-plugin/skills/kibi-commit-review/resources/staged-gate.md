@@ -124,18 +124,31 @@ for the file's declarations.
 
 ## Impact-review record
 
-`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) takes only
+`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) takes
 `scope`: `{"kind":"staged"}`, or
 `{"kind":"diff","baseCommit":"<sha>","headCommit":"<sha>"}` with full
 lowercase 40- or 64-hex commit ids. It returns `status: ready_for_authoring`,
 the `snapshot` identity, `recordHeaders` (policy, evaluator and scope
-fingerprints), complete per-file evidence in `files`, `requirementScopes`,
-`residualReviewObligations`, and `authorship` with the record schemas and an
-unauthored `recordTemplate`.
+fingerprints), `fileCount`, a row per changed file in `files` (status,
+disposition, analysis status, `requirementIds`, `pendingObligations`),
+`requirements` (each scoped requirement once, with its before and after
+fingerprints), `residualReviewObligations` and `authoring`. Rows page within
+the result budget: call again with `offset: truncation.nextOffset`. Pass
+`paths` to get a file's complete evidence and its requirements' statements
+and links in `evidence`; each file's evidence comes on the page that lists
+its row, and the rows still list the whole scope.
 
-Fill only the authored fields (`files[].decision`, `files[].analysisReviews`,
-`reviewer.id`, `reviewedAt`) and write the record to `.kibi/impact-review.json`,
-then stage it. A file `decision` is one of:
+For the staged scope, write the record with `kb_author_impact_review` (CLI
+`kibi author-impact-review --input -`): `scope: {"kind":"staged"}`,
+`scopeFingerprint` (`recordHeaders.scope.fingerprint`), `reviewer: {"id":
+"..."}`, optional `reviewedAt`, and `files: [{"path", "decision",
+"analysisReviews"}]`. Kibi captures the evidence itself, keeps an earlier
+decision only for a file whose evidence and requirements are unchanged (it
+reports the decisions it drops), refuses a changed scope or an invalid record
+without touching the file, and never stages it. A diff-scope record is written
+by hand against `resources/impact-review.schema.json`, with the complete
+evidence of every file. Stage the record with
+`git add -f .kibi/impact-review.json`. A file `decision` is one of:
 
 - `{"kind":"impact","requirementIds":[...],"knowledge":{"state":"still_current","rationale":"..."}}`
 - `{"kind":"impact","requirementIds":[...],"knowledge":{"state":"updated","entities":[{"entityId":"...","artifactPath":"...","beforeFingerprint":"<sha256 or null>","afterFingerprint":"<sha256>"}]}}`
@@ -145,6 +158,12 @@ then stage it. A file `decision` is one of:
 
 `reviewer.source` is `self-claimed-local`: the record says who reviewed, it
 does not prove it. Put the person's id there only when they reviewed it.
+
+When the person will review and sign the record themselves, draft instead of
+writing: save the author input with `"reviewer": {"id": ""}` to
+`.kibi/impact-review-decisions.json`, and tell them to put their id in it and
+run `npx --no-install kibi author-impact-review --input .kibi/impact-review-decisions.json`,
+then `git add -f .kibi/impact-review.json`. Never fill in their id.
 
 ## Commands
 

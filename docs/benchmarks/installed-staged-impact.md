@@ -70,7 +70,8 @@ small scenario and forty per language for the large one. The added functions
 are inert parser input and are never called. The Rust additions return string
 literals rather than invoking macros, so parser partial coverage remains a
 blocking condition. Staging changes return markers, refreshes coordinates
-through the public CLI, and authors a local impact record from the public
+through the public CLI, and writes a local impact record with the public
+`author-impact-review` command from decisions drawn from the public
 `prepare-impact-review` result. The synthetic requirement retains advisor
 roles, spans, and payload hashes, then grounds each core language-count claim
 with a strict typed property fact. The record supplies a synthetic self-claimed
@@ -107,8 +108,9 @@ event through child close. It measures the installed public CLI's `--version`
 startup separately. The local `kibi check --staged --format json` result is
 accepted only when it exits successfully, has an empty blocking `violations`
 array, and no `staged_file_impact_review_needed` diagnostic. The report also
-times public `kibi status`, `kibi engine status`, and
-`kibi prepare-impact-review` invocations separately.
+times public `kibi status`, `kibi engine status`,
+`kibi prepare-impact-review` and `kibi author-impact-review` invocations
+separately.
 
 The benchmark enables timing observations only inside each scenario and gives
 the owned engine a private trace directory outside the checkout and temporary

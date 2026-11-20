@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1e4ead45688
+  - type: implements
+    from: SYM-impact-review-preparation-record-headers
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-11-19T20:42:21.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a88e18958949
+  - type: covered_by
+    from: SYM-impact-review-preparation-record-headers
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-19T20:42:21.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8de4aad197d
+  - type: covered_by
+    from: SYM-impact-review-preparation-record-headers
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T20:42:21.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6514cc50e77

@@ -244,6 +244,7 @@ if (RUN_NODE_TEST_SUITE) {
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
                 "kb_apply_plan",
+                "kb_author_impact_review",
                 "kb_check",
                 "kb_compile_intent",
                 "kb_coverage",
