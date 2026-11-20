@@ -302,7 +302,7 @@ function firmNotice(
   return undefined;
 }
 
-// dist/hook-runner.js sits one level below the plugin root.
+// bin/hook-runner.mjs sits one level below the plugin root.
 const packageVersion = readPackageVersion(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
 );

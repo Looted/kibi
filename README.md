@@ -186,7 +186,7 @@ Add Kibi to `.vscode/mcp.json`:
 <details>
 <summary>ZCode and other MCP clients</summary>
 
-Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from the Kibi marketplace or a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
 
 </details>
 
@@ -348,7 +348,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
 | `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |
 | `kibi-opencode` | OpenCode guidance (including requirement context for edits) and background maintenance |
-| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (local checkout) |
+| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (marketplace or local checkout) |
 | `kibi-vscode` | VS Code knowledge explorer and traceability view |
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |

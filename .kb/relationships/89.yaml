@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3f324fa248b
+  - type: verified_by
+    from: SCEN-zcode-marketplace-install-hooks
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-20T15:22:57.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea5f48f288b4
