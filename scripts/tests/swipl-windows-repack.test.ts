@@ -391,4 +391,61 @@ describe("trim and archive", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  test("extract-archive verifies and extracts on any host (no runner guard)", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "repack-extract-"));
+    try {
+      const prefix = path.join(dir, "pkg");
+      mkdirSync(path.join(prefix, "lib", "swipl", "bin"), { recursive: true });
+      writeFileSync(
+        path.join(prefix, "lib", "swipl", "bin", "swipl.exe"),
+        Buffer.from(syntheticPe(0x8664, ["KERNEL32.dll"]), "hex"),
+      );
+      writeFileSync(path.join(prefix, "build-manifest.json"), "{}");
+      const archiveName: string = py(
+        `m.write_archive(__import__("pathlib").Path(${JSON.stringify(prefix)}), ${JSON.stringify(PINS_JSON)}, __import__("pathlib").Path(${JSON.stringify(dir)})).name`,
+      );
+      const archive = path.join(dir, archiveName);
+      const run = spawnSync(
+        "python3",
+        [
+          SCRIPT,
+          "extract-archive",
+          "--target",
+          "win32-x64",
+          "--archive",
+          archive,
+          "--checksum",
+          `${archive}.sha256`,
+          "--workdir",
+          path.join(dir, "out"),
+        ],
+        { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "false" } },
+      );
+      expect(run.status).toBe(0);
+      const result = JSON.parse(run.stdout.trim().split("\n").pop());
+      expect(existsSync(path.join(result.prefix, "lib", "swipl", "bin", "swipl.exe"))).toBe(true);
+      // A second run into the same workdir must refuse to reuse the destination.
+      const again = spawnSync(
+        "python3",
+        [
+          SCRIPT,
+          "extract-archive",
+          "--target",
+          "win32-x64",
+          "--archive",
+          archive,
+          "--checksum",
+          `${archive}.sha256`,
+          "--workdir",
+          path.join(dir, "out"),
+        ],
+        { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "false" } },
+      );
+      expect(again.status).toBe(1);
+      expect(again.stderr).toContain("Archive destination must be new");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

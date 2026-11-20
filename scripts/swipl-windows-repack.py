@@ -402,6 +402,17 @@ def verify_archive_files(archive: Path, checksum: Path, manifest: dict) -> None:
         raise ValueError("Archive SHA-256 mismatch")
 
 
+def extract_archive_safe(archive: Path, prefix: Path) -> None:
+    """Extract a verified tar.gz of regular files and directories only."""
+    with tarfile.open(archive) as tar:
+        for member in tar.getmembers():
+            if member.issym() or member.islnk() or not member.isfile() and not member.isdir():
+                raise ValueError(f"archive member is not a regular file or directory: {member.name}")
+            if member.name.startswith("/") or ".." in Path(member.name).parts:
+                raise ValueError(f"unsafe archive member: {member.name}")
+        tar.extractall(prefix, filter="data")
+
+
 def cmd_smoke_archive(args: argparse.Namespace) -> None:
     if args.target != TARGET:
         raise ValueError(f"Unsupported repack target: {args.target} (only {TARGET})")
@@ -411,13 +422,7 @@ def cmd_smoke_archive(args: argparse.Namespace) -> None:
     work = Path(args.workdir).resolve()
     work.mkdir(parents=True, exist_ok=True)
     prefix = work / "prefix"
-    with tarfile.open(args.archive) as tar:
-        for member in tar.getmembers():
-            if member.issym() or member.islnk() or not member.isfile() and not member.isdir():
-                raise ValueError(f"archive member is not a regular file or directory: {member.name}")
-            if member.name.startswith("/") or ".." in Path(member.name).parts:
-                raise ValueError(f"unsafe archive member: {member.name}")
-        tar.extractall(prefix, filter="data")
+    extract_archive_safe(Path(args.archive), prefix)
     problems = audit_payload(prefix / HOME_REL)
     if problems:
         raise ValueError("PE audit failed:\n" + "\n".join(problems))
@@ -426,6 +431,22 @@ def cmd_smoke_archive(args: argparse.Namespace) -> None:
     report["checks"]["smoke"] = "passed"
     (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
+
+
+def cmd_extract_archive(args: argparse.Namespace) -> None:
+    # Release packaging runs on a Linux runner: verify the sidecar and hash,
+    # then extract safely. No runner guard, no PE audit, no swipl execution.
+    if args.target != TARGET:
+        raise ValueError(f"Unsupported repack target: {args.target} (only {TARGET})")
+    manifest = load_pins(Path(args.manifest))
+    verify_archive_files(Path(args.archive), Path(args.checksum), manifest)
+    work = Path(args.workdir).resolve()
+    work.mkdir(parents=True, exist_ok=True)
+    prefix = work / "extracted"
+    if prefix.exists() or prefix.is_symlink():
+        raise ValueError(f"Archive destination must be new: {prefix}")
+    extract_archive_safe(Path(args.archive), prefix)
+    print(json.dumps({"prefix": str(prefix)}))
 
 
 def cmd_verify_config(args: argparse.Namespace) -> None:
@@ -443,7 +464,7 @@ def cmd_verify_config(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("verify-config", "build-archive", "smoke-archive"))
+    parser.add_argument("command", choices=("verify-config", "build-archive", "smoke-archive", "extract-archive"))
     parser.add_argument("--target", default=os.getenv("KIBI_SWIPL_REPACK_TARGET", TARGET))
     parser.add_argument("--manifest", default=os.getenv("KIBI_SWIPL_SPIKE_MANIFEST", str(Path(__file__).with_name("swipl-version.json"))))
     parser.add_argument("--workdir", default=None)
@@ -457,6 +478,10 @@ def main() -> None:
             if not args.workdir:
                 raise ValueError("build-archive needs --workdir")
             cmd_build_archive(args)
+        elif args.command == "extract-archive":
+            if not (args.workdir and args.archive and args.checksum):
+                raise ValueError("extract-archive needs --workdir, --archive and --checksum")
+            cmd_extract_archive(args)
         else:
             if not (args.workdir and args.archive and args.checksum):
                 raise ValueError("smoke-archive needs --workdir, --archive and --checksum")

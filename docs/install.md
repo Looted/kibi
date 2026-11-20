@@ -18,10 +18,11 @@ hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9
 | Linux arm64 | `kibi-swipl-linux-arm64-gnu` | glibc 2.28 or newer |
 | macOS arm64 (Apple silicon) | `kibi-swipl-darwin-arm64` | macOS 12 or newer |
 | macOS x64 (Intel) | `kibi-swipl-darwin-x64` | macOS 12 or newer |
+| Windows x64 (native) | `kibi-swipl-win32-x64` | Windows 10 or newer |
 
 On these platforms `npm install --save-dev kibi-cli kibi-mcp kibi-core` followed by `kibi init` works on a machine with no SWI-Prolog at all. The build is relocatable, ships its own libraries and licenses, and is tested with the same Prolog suites Kibi's own CI runs.
 
-Windows x64 is covered by a bundled build (`kibi-swipl-win32-x64`). Not covered: Alpine and other musl-based Linux, and Windows arm64. On those, run Kibi inside WSL (a glibc distribution uses the bundled build), or install SWI-Prolog yourself as described below.
+Not covered: Alpine and other musl-based Linux, and native Windows arm64. On those, run Kibi inside WSL (a glibc distribution uses the bundled build), or install SWI-Prolog yourself as described below.
 
 ### Which SWI-Prolog Kibi uses
 
