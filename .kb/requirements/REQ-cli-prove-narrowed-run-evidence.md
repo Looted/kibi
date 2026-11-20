@@ -21,6 +21,8 @@ logic_claims:
   - CLAIM-5E3CE03D8D48D980
 origin:
   kind: agent
+  approved_by: maintainer
+  ref: 'Maintainer reply (2026-11-20) to the request to sign off the two requirements recorded for GitHub issue 825, shown with their exact statements: "OK"'
   recorded_at: '2026-11-20T16:11:11.347Z'
 id: REQ-cli-prove-narrowed-run-evidence
 type: req
