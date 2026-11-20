@@ -1,5 +1,5 @@
 ---
-title: The default MCP tool catalog holds 18 tools, by an arithmetic proof
+title: The default MCP tool catalog holds 19 tools, by an arithmetic proof
 status: passing
 tags:
   - proof
@@ -19,7 +19,7 @@ proof_contract:
     - symbol_id: SYM-TOOLS
       measure: count
   proves:
-    - CLAIM-F3C444E68F357320
+    - CLAIM-AADF94FC9C4869B4
 origin:
   kind: agent
   recorded_at: '2026-10-28T09:29:59.255Z'
@@ -27,20 +27,20 @@ id: TEST-proof-mcp-default-tool-count
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-3765a7efca385ea99a3517d8
+    receipt_id: PR-4dd2a0df131dc219c6736413
     test_id: TEST-proof-mcp-default-tool-count
     scope: unit
     outcome: passed
-    code_snapshot: 32ee33b73de52a5faea88037234ee6420cfcba340ad0940b4021a05c62fa772d
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T16:02:21.292Z'
-    finished_at: '2026-11-17T16:02:35.948Z'
-    artifact_digest: 7fee44c7173f04cc6c1d41506ff4f01a61ca97343e63bd0be3549d23d5dee245
-    contract_hash: 7bf12f03be2cabf004fb561e2b077acb4b814feb265c55a231ec6eda56ecb72b
-    binding_hash: f8f191f904268403ac34abca34655a73a4302d727c3b110093267f235104e9e6
-    fingerprint: c771df512fb4c39933db88cb88d6913f720e6344cba06ddda570d21add4ff524
+    code_snapshot: 3cbdf32b0ca578c0e6fb1cb36066284a666736978a016aff5518fbb451bb6544
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-20T04:36:20.009Z'
+    finished_at: '2026-11-20T04:36:21.758Z'
+    artifact_digest: b166234eecda283a5db95b7b5107cea375290e0a9b1ac4debfda58174e43703a
+    contract_hash: a72734e9f9bb752140cebd5b74d1d7e0208d4fefb964c5821821b2292f02411d
+    binding_hash: 9a2b2652fcecd5d44d216d1c44de0ce4c1c6c4cd7e7d80bcf4e0650eb0f7b5c6
+    fingerprint: a2f253be6202e1aa8aded84d4fae7e6e8be6b5f656ebbec88afb198edffb2191
     fingerprint_components:
-      contract: 7bf12f03be2cabf004fb561e2b077acb4b814feb265c55a231ec6eda56ecb72b
+      contract: a72734e9f9bb752140cebd5b74d1d7e0208d4fefb964c5821821b2292f02411d
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -69,13 +69,13 @@ proof_receipts:
       value_type: int
       assumptions:
         - operator: eq
-          value: 18
+          value: 19
       claim:
         operator: eq
-        value: 18
-    certificate_digest: d9afd1970758e47833e23cc4ce7fb0d29caf714b8b725c3cd6dc0366d7089a80
+        value: 19
+    certificate_digest: fdd8ebc2680828a45bc298c5e3fff806819b04f5d34d0aa32448a9d6a6f60c2e
     claim_bindings:
-      - claim_key: CLAIM-F3C444E68F357320
+      - claim_key: CLAIM-AADF94FC9C4869B4
         requirement_id: REQ-kibi-mcp-tool-catalog
         fact_id: FACT-mcp-default-tool-count
         binding: derived
@@ -83,7 +83,7 @@ proof_receipts:
         obligation:
           kind: numeric_constraint
           operator: eq
-          value: 18
+          value: 19
           value_type: int
           variable: default_tool_count
 ---

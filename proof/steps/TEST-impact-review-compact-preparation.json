@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-impact-review-compact-preparation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/traceability/impact-review-preparation.test.ts",
+      "./packages/cli/tests/public-mutation/operations/impact-review-preparation.mutation.test.ts",
+      "./packages/cli/tests/public/operations/result-budget.test.ts"
+    ]
+  ]
+}

@@ -2,11 +2,13 @@ import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import { executePrepareImpactReview } from "../impact-review-preparation.js";
 import type { OperationSpec } from "../types.js";
 
+export const PREPARE_IMPACT_REVIEW_DESCRIPTION =
+  "Prepare an impact review of the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns the record headers, a row per changed file with its requirement ids and pending obligations, each scoped requirement once with its fingerprints, and full evidence only for the paths you name; rows page with offset. It does not decide, approve, sign, stage, or prove the review; write the record with kb_author_impact_review.";
+
 export const prepareImpactReviewSpec = {
   name: "kb_prepare_impact_review",
   cliName: "prepare-impact-review",
-  description:
-    "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+  description: PREPARE_IMPACT_REVIEW_DESCRIPTION,
   businessInputSchema: {
     type: "object",
     additionalProperties: false,
@@ -41,6 +43,17 @@ export const prepareImpactReviewSpec = {
             },
           },
         ],
+      },
+      paths: {
+        type: "array",
+        description:
+          "Changed paths to return full evidence and requirement context for; the rows still list the whole scope.",
+        items: { type: "string", minLength: 1 },
+      },
+      offset: {
+        type: "integer",
+        minimum: 0,
+        description: "First file row to return, from truncation.nextOffset.",
       },
     },
   },

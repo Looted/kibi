@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb531834c913
+  - type: assumes
+    from: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    to: FACT-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:11:25.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68021509c232

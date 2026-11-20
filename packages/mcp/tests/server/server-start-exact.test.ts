@@ -52,7 +52,8 @@ describe("startServer", () => {
     try {
       await startServer();
     } finally {
-      if (profile === undefined) Reflect.deleteProperty(process.env, "KIBI_MCP_TOOLS");
+      if (profile === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_MCP_TOOLS");
       else process.env.KIBI_MCP_TOOLS = profile;
     }
 
@@ -111,7 +112,7 @@ describe("startServer", () => {
         SESSION_BRIEF,
         "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_record records a stated rule; kb_upsert writes and models; kb_check validates; kb_status reports freshness.",
         "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
-        "This server lists kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status, kb_skills, kb_review_firm_edit. The other Kibi operations (kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_delete, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -).",
+        "This server lists kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status, kb_skills, kb_review_firm_edit. The other Kibi operations (kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_delete, kb_prepare_impact_review, kb_author_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -).",
       ].join("\n"),
     );
     expect(
