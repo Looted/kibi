@@ -10,6 +10,7 @@ import {
 } from "../../src/public/proof-fingerprint.js";
 import {
   ATTEMPTS_STATUS,
+  MAX_PROOF_RUN_RESULTS,
   PROOF_BINDINGS_SCHEMA,
   PROOF_BINDING_KINDS,
   PROOF_CONTRACT_SCHEMA,
@@ -316,17 +317,23 @@ describe("kibi.proof-run.v1", () => {
     expect(
       proofRunArtifactErrors({ ...validArtifact(), run: null }).join(" "),
     ).toContain("artifact.run must be an object");
+    const resultRows = (length: number) =>
+      Array.from({ length }, (_, index) => ({
+        symbol_id: `SYM-${index}`,
+        target: "default",
+        outcome: "passed",
+        binding: "aggregate_run",
+        attempts: { status: "unavailable" },
+      }));
+    // A large suite reports a result per case it ran.
+    const largeSuite = validArtifact();
+    largeSuite.proof_results = resultRows(1001);
+    expect(proofRunArtifactErrors(largeSuite)).toEqual([]);
     const oversized = validArtifact();
-    oversized.proof_results = Array.from({ length: 1001 }, (_, index) => ({
-      symbol_id: `SYM-${index}`,
-      target: "default",
-      outcome: "passed",
-      binding: "aggregate_run",
-      attempts: { status: "unavailable" },
-    }));
-    expect(proofRunArtifactErrors(oversized).join(" ")).toContain(
-      "at most 1000",
-    );
+    oversized.proof_results = resultRows(MAX_PROOF_RUN_RESULTS + 1);
+    expect(proofRunArtifactErrors(oversized)).toEqual([
+      `artifact.proof_results must contain at most 100000 results; received 100001 (narrow the integration's command to the selected tests)`,
+    ]);
     expect(
       proofRunArtifactErrors({ ...validArtifact(), producer: null }).join(" "),
     ).toContain("producer must be an object");
