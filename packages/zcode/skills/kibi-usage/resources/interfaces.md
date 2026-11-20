@@ -29,10 +29,11 @@ catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
 The MCP server lists every Kibi tool unless the project chooses the core
 profile, which lists `kb_search`, `kb_query`, `kb_record`, `kb_upsert`,
 `kb_check`, `kb_status`, `kb_skills` and `kb_review_firm_edit`. Under core,
-`kb_model`, `kb_compile_intent`, `kb_delete`, `kb_prepare_impact_review` and
-the other tools run through the CLI with the same input (`kibi model --input -`,
-`kibi compile-intent --input -`, `kibi delete --input -`,
-`kibi prepare-impact-review --input -`); the server's initialize instructions
+`kb_model`, `kb_compile_intent`, `kb_delete`, `kb_prepare_impact_review`,
+`kb_author_impact_review` and the other tools run through the CLI with the
+same input (`kibi model --input -`, `kibi compile-intent --input -`,
+`kibi delete --input -`, `kibi prepare-impact-review --input -`,
+`kibi author-impact-review --input -`); the server's initialize instructions
 name them. The core profile is chosen with `KIBI_MCP_TOOLS=core`,
 `kibi-mcp --tools core`, `"kibi": { "mcpTools": "core" }` in package.json or
 `"mcpTools": "core"` in `.kb/setup.json`.

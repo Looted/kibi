@@ -40,6 +40,7 @@ const AGENT_FACING_TOOLS = [
   "kb_check",
   "kb_review_firm_edit",
   "kb_prepare_impact_review",
+  "kb_author_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
@@ -165,7 +166,7 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists all 18 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists all 19 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
     const listed = await connect(workspace);
     expect((await listed.listTools()).tools.map((tool) => tool.name)).toEqual(
@@ -328,7 +329,7 @@ describe("kibi-mcp consolidated tool surface", () => {
           JSON.stringify(tool.inputSchema).length,
         0,
       );
-    expect(size(tools)).toBeLessThanOrEqual(122_000);
+    expect(size(tools)).toBeLessThanOrEqual(126_000);
     expect(modelFacing(tools)).toBeLessThanOrEqual(62_000);
     // The core profile of an empty KB lists ten tools at about half.
     const core = (await (await connect(workspace, CORE)).listTools()).tools;

@@ -167,7 +167,9 @@ type ImpactReviewRecord = Readonly<{
     analysisReviews: readonly AnalysisReview[];
     decision: ImpactDecision;
   }>[];
-  scope: Readonly<{ providerSetFingerprint: string }>;
+  scope: Readonly<{ providerSetFingerprint: string; fingerprint: string }>;
+  reviewer: Readonly<{ id: string; source: string }>;
+  reviewedAt: string;
 }>;
 type ImpactEvaluation = Readonly<{
   passed: boolean;
@@ -602,58 +604,73 @@ async function prepareReview(
   }
   assert.equal(
     preparation.preparationVersion,
-    "kibi.impact-review-preparation.v1",
+    "kibi.impact-review-preparation.v2",
   );
-  const authorship = requireRecord(
-    preparation.authorship,
-    "preparation authorship",
-  );
-  const templateEnvelope = requireRecord(
-    authorship.recordTemplate,
-    "preparation record template",
-  );
-  assert.equal(templateEnvelope.isValidImpactReviewRecord, false);
-  const recordTemplate = requireRecord(
-    templateEnvelope.record,
-    "preparation record template body",
-  );
-  const scopes = objectArray(
-    preparation.requirementScopes,
-    "requirementScopes",
-  );
+  const rows = objectArray(preparation.files, "prepared file rows");
+  assert.equal(preparation.fileCount, rows.length);
+  const authoring = requireRecord(preparation.authoring, "authoring");
+  assert.equal(authoring.operation, "kb_author_impact_review");
+  // Complete evidence comes only for the paths a call names.
+  assert.equal(preparation.evidence, undefined);
+  // Named evidence pages with its rows; collect every page.
+  const namedEvidence: Record<string, unknown>[] = [];
+  for (let offset: number | undefined = 0; offset !== undefined; ) {
+    const namedResult = await kibiInput(sandbox, "prepare-impact-review", {
+      ...input,
+      offset,
+      paths: rows.map((row) => requireString(row, "path", "file row")),
+    });
+    assertExit(namedResult, 0, "prepare named impact-review evidence");
+    const named = requireRecord(
+      parseJson(namedResult, "named impact-review evidence").data,
+      "named preparation data",
+    );
+    assert.deepEqual(named.recordHeaders, preparation.recordHeaders);
+    assert.equal(named.fileCount, rows.length);
+    namedEvidence.push(...objectArray(named.evidence, "named evidence"));
+    const truncation = isRecord(named.truncation) ? named.truncation : {};
+    offset =
+      typeof truncation.nextOffset === "number"
+        ? truncation.nextOffset
+        : undefined;
+  }
+  assert.equal(namedEvidence.length, rows.length);
+  const recordTemplate = {
+    ...requireRecord(preparation.recordHeaders, "record headers"),
+    files: namedEvidence.map(
+      ({ requirements: _requirements, ...file }) => file,
+    ),
+  };
   const scopesByPath = new Map(
-    scopes.map((scope) => [
-      requireString(scope, "path", "requirement scope"),
-      Array.isArray(scope.requirementIds)
-        ? (scope.requirementIds as string[])
-        : [],
+    rows.map((row) => [
+      requireString(row, "path", "file row"),
+      Array.isArray(row.requirementIds) ? (row.requirementIds as string[]) : [],
     ]),
   );
+  const bindings = objectArray(preparation.requirements, "requirements");
   const rowsFor = (side: "before" | "after") =>
     new Map(
-      scopes.flatMap((scope) => {
-        const rows = objectArray(scope[side], `${side} requirement context`);
-        return rows.flatMap((row) => {
-          if (
-            row.state !== "present" ||
-            typeof row.id !== "string" ||
-            typeof row.entityFingerprint !== "string" ||
-            typeof row.artifactPath !== "string"
-          )
-            return [];
-          return [
-            [
-              row.id,
-              {
-                fingerprint: row.entityFingerprint,
-                artifactPath: row.artifactPath,
-              },
-            ] as const,
-          ];
-        });
+      bindings.flatMap((binding) => {
+        const row = isRecord(binding[side]) ? binding[side] : {};
+        if (
+          row.state !== "present" ||
+          typeof binding.id !== "string" ||
+          typeof row.entityFingerprint !== "string" ||
+          typeof row.artifactPath !== "string"
+        )
+          return [];
+        return [
+          [
+            binding.id,
+            {
+              fingerprint: row.entityFingerprint,
+              artifactPath: row.artifactPath,
+            },
+          ] as const,
+        ];
       }),
     );
-  const fileEvidence = objectArray(preparation.files, "prepared file evidence");
+  const fileEvidence = recordTemplate.files;
   const publicObligations = objectArray(
     preparation.residualReviewObligations,
     "residualReviewObligations",
@@ -765,10 +782,7 @@ async function prepareReview(
     decisions.set(file.path, { decision, analysisReviews });
   }
 
-  const templateFiles = objectArray(
-    recordTemplate.files,
-    "record template files",
-  );
+  const templateFiles = recordTemplate.files;
   const record = {
     ...recordTemplate,
     reviewer: {
@@ -1703,10 +1717,23 @@ async function runInstalledImpactPolicyWorkflow(
           "The trusted policy permits a self-claimed human review of this unsupported text file; the entire captured file was considered.",
       },
     ]);
-    writeFileSync(
-      reviewPath,
-      `${JSON.stringify(partialAnalysis.record, null, 2)}\n`,
-      "utf8",
+    // The public write operation turns the same decisions into the same
+    // record, from the evidence it captures itself.
+    const authored = await kibiInput(sandbox, "author-impact-review", {
+      scope: { kind: "staged" },
+      scopeFingerprint: partialAnalysis.record.scope.fingerprint,
+      reviewer: { id: partialAnalysis.record.reviewer.id },
+      reviewedAt: partialAnalysis.record.reviewedAt,
+      files: partialAnalysis.record.files.map((file) => ({
+        path: file.path,
+        decision: file.decision,
+        analysisReviews: file.analysisReviews,
+      })),
+    });
+    assertExit(authored, 0, "write the impact review through the public CLI");
+    assert.deepEqual(
+      JSON.parse(readFileSync(reviewPath, "utf8")),
+      JSON.parse(JSON.stringify(partialAnalysis.record)),
     );
     const stageValidReview = await stage(sandbox, [".kibi/impact-review.json"]);
     assertExit(stageValidReview, 0, "stage complete initial impact review");

@@ -5,8 +5,10 @@ import { executeValidateUpsert } from "../../../../src/operations/mutation/valid
 import { executeIngestProof } from "../../../../src/operations/proof/ingest-proof.js";
 import { withContractDefaults } from "../../../../src/public/operations/catalog.js";
 import { executeCheck } from "../../../../src/public/operations/check-executor.js";
+import { executeAuthorImpactReview } from "../../../../src/public/operations/impact-review-authoring.js";
 import { executePrepareImpactReview } from "../../../../src/public/operations/impact-review-preparation.js";
 import { checkSpec } from "../../../../src/public/operations/specs/check.js";
+import { authorImpactReviewSpec } from "../../../../src/public/operations/specs/impact-review-authoring.js";
 import { prepareImpactReviewSpec } from "../../../../src/public/operations/specs/impact-review-preparation.js";
 import {
   deleteSpec,
@@ -33,6 +35,14 @@ describe("declarative operation specs", () => {
       withContractDefaults(prepareImpactReviewSpec),
     );
     expect(prepareImpactReviewSpec.execute).toBe(executePrepareImpactReview);
+  });
+
+  test("kb_author_impact_review", () => {
+    expectGolden(
+      "spec-author-impact-review",
+      withContractDefaults(authorImpactReviewSpec),
+    );
+    expect(authorImpactReviewSpec.execute).toBe(executeAuthorImpactReview);
   });
 
   test("kb_check", () => {

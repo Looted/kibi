@@ -1,14 +1,14 @@
 ---
-title: The default MCP tool catalog holds 18 tools
+title: The default MCP tool catalog holds 19 tools
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
 property_key: default_tool_count
 operator: eq
 value_type: int
-value_int: 18
-claim_key: CLAIM-F3C444E68F357320
-claim_text: The default Kibi MCP tool catalog shall hold 18 tools
+value_int: 19
+claim_key: CLAIM-AADF94FC9C4869B4
+claim_text: The default Kibi MCP tool catalog shall hold 19 tools
 text_ref: REQ-kibi-mcp-tool-catalog
 origin:
   kind: agent

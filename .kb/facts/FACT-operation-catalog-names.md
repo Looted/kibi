@@ -1,10 +1,10 @@
 ---
-title: A Kibi catalog operation shall be one of the 26 operations the catalog names
+title: A Kibi catalog operation shall be one of the 27 operations the catalog names
 status: active
 fact_kind: property_value
 subject_key: kibi.operations.catalog_names
-claim_key: CLAIM-E336EB29BBCA15CD
-claim_text: A Kibi catalog operation shall be one of the 26 operations the catalog names
+claim_key: CLAIM-62E78938175836BF
+claim_text: A Kibi catalog operation shall be one of the 27 operations the catalog names
 text_ref: REQ-kibi-operation-catalog-names
 property_key: operation_names
 operator: eq
@@ -31,6 +31,7 @@ value_set:
   - kb_delete
   - kb_check
   - kb_prepare_impact_review
+  - kb_author_impact_review
   - kb_review_firm_edit
   - kb_sparql_remote
   - kb_compile_intent
