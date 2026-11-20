@@ -28,28 +28,47 @@ export const PLATFORM_PACKAGES = Object.freeze({
     os: "linux",
     cpu: "x64",
     libc: "glibc",
+    binary: BUNDLED_BINARY_PATH,
   }),
   "linux-arm64-gnu": Object.freeze({
     package: "kibi-swipl-linux-arm64-gnu",
     os: "linux",
     cpu: "arm64",
     libc: "glibc",
+    binary: BUNDLED_BINARY_PATH,
   }),
   "darwin-arm64": Object.freeze({
     package: "kibi-swipl-darwin-arm64",
     os: "darwin",
     cpu: "arm64",
+    binary: BUNDLED_BINARY_PATH,
   }),
   "darwin-x64": Object.freeze({
     package: "kibi-swipl-darwin-x64",
     os: "darwin",
     cpu: "x64",
+    binary: BUNDLED_BINARY_PATH,
+  }),
+  "win32-x64": Object.freeze({
+    package: "kibi-swipl-win32-x64",
+    os: "win32",
+    cpu: "x64",
+    binary: "lib/swipl/bin/swipl.exe",
   }),
 });
 
 /**
+ * The bundled swipl executable's path inside a platform package. POSIX targets
+ * share BUNDLED_BINARY_PATH; the win32 payload nests the upstream install tree
+ * under lib/swipl so its home is a relative path other than ".".
+ */
+export function bundledBinaryPath(key) {
+  return PLATFORM_PACKAGES[key]?.binary;
+}
+
+/**
  * Map a host to a platform key, or undefined when no bundle is published for
- * it (native Windows, musl Linux, other architectures).
+ * it (musl Linux, Windows arm64, other architectures).
  */
 export function platformKey({ platform, arch, glibc }) {
   if (platform === "linux") {
@@ -58,6 +77,9 @@ export function platformKey({ platform, arch, glibc }) {
   }
   if (platform === "darwin") {
     return arch === "x64" || arch === "arm64" ? `darwin-${arch}` : undefined;
+  }
+  if (platform === "win32") {
+    return arch === "x64" ? "win32-x64" : undefined;
   }
   return undefined;
 }
@@ -132,10 +154,16 @@ export function validateBuildManifest(manifest, expected) {
   const binary = manifest.binary;
   if (binary === null || typeof binary !== "object")
     return { ok: false, reason: "manifest binary entry is missing" };
-  if (binary.path !== BUNDLED_BINARY_PATH)
+  const expectedBinaryPath = bundledBinaryPath(expected.target);
+  if (expectedBinaryPath === undefined)
     return {
       ok: false,
-      reason: `manifest binary.path must be ${BUNDLED_BINARY_PATH}`,
+      reason: `unknown target ${JSON.stringify(expected.target)}`,
+    };
+  if (binary.path !== expectedBinaryPath)
+    return {
+      ok: false,
+      reason: `manifest binary.path must be ${expectedBinaryPath}`,
     };
   if (
     typeof binary.sha256 !== "string" ||

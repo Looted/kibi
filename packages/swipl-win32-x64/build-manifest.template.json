@@ -1,0 +1,17 @@
+{
+  "schema": "kibi.swipl-build.v1",
+  "target": "win32-x64",
+  "swiplVersion": "10.0.2",
+  "prebuilt": {
+    "url": "https://www.swi-prolog.org/download/stable/bin/swipl-10.0.2-1.x64.exe",
+    "sha256": "<sha256 of the pinned upstream NSIS installer, 64 lowercase hex digits>"
+  },
+  "sourceCommit": "<GITHUB_SHA of the producing workflow run>",
+  "workflowRunId": "<GITHUB_RUN_ID of the producing workflow run>",
+  "binary": {
+    "path": "lib/swipl/bin/swipl.exe",
+    "sha256": "<sha256 of lib/swipl/bin/swipl.exe, 64 lowercase hex digits>"
+  },
+  "home": "lib/swipl",
+  "requiredLibraries": ["<the library names the pipeline smoke-tested>"]
+}

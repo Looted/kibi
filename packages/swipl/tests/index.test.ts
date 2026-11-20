@@ -8,6 +8,7 @@ import {
   MANIFEST_FILE,
   MANIFEST_SCHEMA,
   PLATFORM_PACKAGES,
+  bundledBinaryPath,
   locatePlatformPackage,
   platformKey,
   sha256File,
@@ -52,22 +53,32 @@ describe("constants", () => {
         os: "linux",
         cpu: "x64",
         libc: "glibc",
+        binary: "bin/swipl",
       },
       "linux-arm64-gnu": {
         package: "kibi-swipl-linux-arm64-gnu",
         os: "linux",
         cpu: "arm64",
         libc: "glibc",
+        binary: "bin/swipl",
       },
       "darwin-arm64": {
         package: "kibi-swipl-darwin-arm64",
         os: "darwin",
         cpu: "arm64",
+        binary: "bin/swipl",
       },
       "darwin-x64": {
         package: "kibi-swipl-darwin-x64",
         os: "darwin",
         cpu: "x64",
+        binary: "bin/swipl",
+      },
+      "win32-x64": {
+        package: "kibi-swipl-win32-x64",
+        os: "win32",
+        cpu: "x64",
+        binary: "lib/swipl/bin/swipl.exe",
       },
     });
     expect(Object.keys(PLATFORM_PACKAGES)).toStrictEqual([
@@ -75,6 +86,7 @@ describe("constants", () => {
       "linux-arm64-gnu",
       "darwin-arm64",
       "darwin-x64",
+      "win32-x64",
     ]);
     expect(Object.isFrozen(PLATFORM_PACKAGES)).toBe(true);
     for (const entry of Object.values(PLATFORM_PACKAGES)) {
@@ -120,11 +132,32 @@ describe("platformKey", () => {
     ).toBeUndefined();
   });
 
+  test("maps Windows x64 to its bundle", () => {
+    expect(platformKey({ platform: "win32", arch: "x64" })).toBe("win32-x64");
+    expect(platformKey({ platform: "win32", arch: "x64", glibc: true })).toBe(
+      "win32-x64",
+    );
+  });
+
   test("has no bundle for other platforms", () => {
     expect(
-      platformKey({ platform: "win32", arch: "x64", glibc: true }),
+      platformKey({ platform: "win32", arch: "arm64" }),
     ).toBeUndefined();
     expect(platformKey({ platform: "freebsd", arch: "arm64" })).toBeUndefined();
+  });
+});
+
+describe("bundledBinaryPath", () => {
+  test("returns the per-target binary path", () => {
+    expect(bundledBinaryPath("linux-x64-gnu")).toBe("bin/swipl");
+    expect(bundledBinaryPath("darwin-arm64")).toBe("bin/swipl");
+    expect(bundledBinaryPath("win32-x64")).toBe("lib/swipl/bin/swipl.exe");
+  });
+
+  test("returns undefined for an unknown target", () => {
+    expect(
+      bundledBinaryPath("aix-ppc64" as Parameters<typeof bundledBinaryPath>[0]),
+    ).toBeUndefined();
   });
 });
 
@@ -276,6 +309,45 @@ describe("validateBuildManifest", () => {
         "manifest binary.path must be bin/swipl",
       );
     }
+  });
+
+  test("judges the binary path against the target", () => {
+    const winExpected = { target: "win32-x64", swiplVersion: "10.0.2" };
+    const winManifest = manifest({
+      target: "win32-x64",
+      binary: { path: "lib/swipl/bin/swipl.exe", sha256: SHA },
+    });
+    expect(validateBuildManifest(winManifest, winExpected)).toStrictEqual({
+      ok: true,
+      swiplVersion: "10.0.2",
+      binaryPath: "lib/swipl/bin/swipl.exe",
+      binarySha256: SHA,
+      home: "lib/swipl",
+    });
+    // The POSIX path is wrong for win32 and the win32 path is wrong for linux.
+    expect(
+      reason(
+        manifest({ target: "win32-x64", binary: { path: "bin/swipl", sha256: SHA } }),
+        winExpected,
+      ),
+    ).toBe("manifest binary.path must be lib/swipl/bin/swipl.exe");
+    expect(
+      reason(
+        manifest({
+          target: "linux-x64-gnu",
+          binary: { path: "lib/swipl/bin/swipl.exe", sha256: SHA },
+        }),
+      ),
+    ).toBe("manifest binary.path must be bin/swipl");
+  });
+
+  test("rejects an unknown target", () => {
+    expect(
+      reason(manifest({ target: "aix-ppc64" }), {
+        target: "aix-ppc64",
+        swiplVersion: "10.0.2",
+      }),
+    ).toBe('unknown target "aix-ppc64"');
   });
 
   test("rejects a malformed sha256", () => {

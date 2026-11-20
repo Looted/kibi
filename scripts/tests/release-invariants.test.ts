@@ -190,6 +190,7 @@ describe("release invariants: develop-to-master model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
 
@@ -281,6 +282,7 @@ describe("release invariants: develop-to-master model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
 
@@ -369,6 +371,7 @@ describe("release invariants: develop-to-master model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
 
@@ -433,6 +436,7 @@ describe("release invariants: develop-to-master model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
   });
@@ -485,6 +489,7 @@ describe("release invariants: develop-to-master model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
 
