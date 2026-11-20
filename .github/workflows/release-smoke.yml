@@ -95,6 +95,7 @@ jobs:
         run: |
           ls -l packages/swipl-${{ matrix.target }}/kibi-swipl-${{ matrix.target }}-*.tgz
       - name: Run the bundled runtime e2e
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
@@ -104,6 +105,16 @@ jobs:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_PACKED_REQUIRE_BUNDLED_SWIPL: "1"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 20
+      # The packed-e2e harness spawns npm without a shell, which fails on
+      # Windows runners; system-swipl-smoke drives npm through the shell and
+      # asserts the bundled runtime is the one Kibi resolves.
+      - name: Run the bundled runtime smoke on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: node scripts/system-swipl-smoke.mjs --tarballs packages --require-bundled
+        env:
+          KIBI_TELEMETRY: "0"
         timeout-minutes: 20
       - name: Require no SWI-Prolog after the run
         if: always()
@@ -173,8 +184,17 @@ jobs:
           name: ${{ inputs.tarballs-artifact }}
           path: packages
       - name: Follow the README quick start with the packed tarballs
+        if: runner.os != 'Windows'
         shell: bash
         run: node scripts/simulate-readme-quickstart.mjs --tarballs packages
+        timeout-minutes: 20
+      # Same reason as the smoke job: no shell-less npm spawn on Windows.
+      - name: Smoke the packed tarballs on Windows (quick-start equivalent)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: node scripts/system-swipl-smoke.mjs --tarballs packages --require-bundled
+        env:
+          KIBI_TELEMETRY: "0"
         timeout-minutes: 20
       - name: Require no SWI-Prolog after the run
         if: always()

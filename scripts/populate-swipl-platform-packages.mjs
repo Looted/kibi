@@ -23,6 +23,8 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  accessSync,
+  constants,
   cpSync,
   existsSync,
   lstatSync,
@@ -361,7 +363,11 @@ export function populatePlatformPackage({
       readFileSync(path.join(packageDir, "build-manifest.json"), "utf8"),
     );
     const binary = path.join(packageDir, manifest.binary.path);
-    if ((statSync(binary).mode & 0o111) === 0) {
+    // X_OK keeps the exec-bit check on POSIX (where tar modes survive) and
+    // degrades to an existence check on Windows, matching the resolver.
+    try {
+      accessSync(binary, constants.X_OK);
+    } catch {
       throw new Error(
         `${manifest.binary.path} is not executable after extraction`,
       );
