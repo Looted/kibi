@@ -60,6 +60,7 @@ logic_claims:
   - CLAIM-C116F79F9C6B93F5
 id: REQ-vibe-launcher-win32-workspace-routing
 type: req
+firmness: firm
 ---
 ## Context
 
