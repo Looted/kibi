@@ -56,15 +56,15 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-3a560d4ab48655536895a563
+    receipt_id: PR-faf8d750063708b1ba4e7107
     test_id: TEST-kibi-intervals-differential
     scope: end_to_end
     outcome: failed
-    code_snapshot: 1cce070b58a41a8b83ad20355dfafcc8bf9204a17fc3e42bec566c34dcbdb108
+    code_snapshot: 7419ad5232bdbe1da8fca26f74b4b9ead24f00ba6d0d7de0f96f555646c2e065
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-20T20:52:57.030Z'
-    finished_at: '2026-11-20T21:00:32.826Z'
-    artifact_digest: 8685bdeb02380cd9dcfb91e0423d4ad1c262993bb923aebfc480711a06370698
+    started_at: '2026-11-20T21:09:11.644Z'
+    finished_at: '2026-11-20T21:19:43.232Z'
+    artifact_digest: 0a97cdf02778422e06bf9c7a319cca99d81a7e78c8ccff6fb147484c3137f818
     contract_hash: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
     binding_hash: c86f1cfac45457824ad3b21d0a99ad2e043c2a9f86c996a45dda745d11816303
     fingerprint: a44bf9394d3fc74dca24bcf644a0d2c407f60e59b386cf830ba57304deba315b
@@ -91,7 +91,7 @@ proof_receipts:
     gaps:
       - symbol_id: SYM-test-intervals-differential
         target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-packed-prolog-source-readers (failed), SYM-e2e-test-mcp-kb-freshness (failed)'
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-mcp-cli-operation-parity (failed), SYM-e2e-packed-prolog-source-readers (failed), SYM-e2e-test-mcp-kb-freshness (failed)'
     kind: e2e
     evidence_level: tested
 ---
