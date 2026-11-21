@@ -30,17 +30,17 @@ id: TEST-kibi-telemetry-skill-load-routes-cli
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1e183c7181edaf55257f4a97
+    receipt_id: PR-056c6aa543c045895a74430f
     test_id: TEST-kibi-telemetry-skill-load-routes-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 7e6c189cb19db3329b39243bbd1d9c444019f127086cda9058aeab2c530bd46c
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-13T20:22:30.370Z'
-    finished_at: '2026-11-13T20:22:44.169Z'
-    artifact_digest: 41c061311f92f4f70e58358deab81b51777de76384b649c4718997e8ed5fde9f
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: f60e6a5423f0b2f6f65a5f5cdfdf5a4444133304a6594f17d54e55ec8b79cdd1
-    binding_hash: daf21a0809c38314684e584d9e894653e7fe9dc65308c025250bfcf65e49d150
+    binding_hash: 314e93433a7b8b84c83448faf71a34b359780bd204e461a7a4a7c274cf58b0ff
     fingerprint: cec4636da50e859913822a41f7d0deed0a14a6e4c9275fd21fe65352079a0f7e
     fingerprint_components:
       contract: f60e6a5423f0b2f6f65a5f5cdfdf5a4444133304a6594f17d54e55ec8b79cdd1

@@ -55,5 +55,44 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-faf8d750063708b1ba4e7107
+    test_id: TEST-kibi-intervals-differential
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 7419ad5232bdbe1da8fca26f74b4b9ead24f00ba6d0d7de0f96f555646c2e065
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T21:09:11.644Z'
+    finished_at: '2026-11-20T21:19:43.232Z'
+    artifact_digest: 0a97cdf02778422e06bf9c7a319cca99d81a7e78c8ccff6fb147484c3137f818
+    contract_hash: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
+    binding_hash: c86f1cfac45457824ad3b21d0a99ad2e043c2a9f86c996a45dda745d11816303
+    fingerprint: a44bf9394d3fc74dca24bcf644a0d2c407f60e59b386cf830ba57304deba315b
+    fingerprint_components:
+      contract: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-test-intervals-differential
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-test-intervals-differential
+        target: default
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-mcp-cli-operation-parity (failed), SYM-e2e-packed-prolog-source-readers (failed), SYM-e2e-test-mcp-kb-freshness (failed)'
+    kind: e2e
+    evidence_level: tested
 ---
 Builds the Lean project in proof/lean (the proofs and the executable model), then generates 200000 seeded cases and decides each with intervals.pl on the bundled SWI-Prolog, with the Lean executable and with a CLP(Q) and CLP(FD) oracle, failing on any disagreement. A second run plants a misdecision: intervals.pl runs through a wrapper that flips its answer on the first one-variable satisfiability case, then on the first one-variable entailment case, and documentation/tests/e2e/intervals-differential-planted.e2e.ts requires the differential to exit 1, count one disagreement and print that case with each side's answer.

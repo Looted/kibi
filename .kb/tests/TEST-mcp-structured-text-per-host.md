@@ -22,18 +22,18 @@ origin:
 id: TEST-mcp-structured-text-per-host
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-16e204eab6f9652185ae13c9
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-81205abd66b8cbb16166d661
     test_id: TEST-mcp-structured-text-per-host
     scope: end_to_end
     outcome: passed
-    code_snapshot: ebee35cf7bfcefc43baf562016134e8b96aaaf06d3b204787024c6d7eea12a3c
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T20:42:03.300Z'
-    finished_at: '2026-10-11T20:42:08.846Z'
-    artifact_digest: 72a70dfbc1449cd9686e56454babd1a704fbbea4f3e6f4f7801d9179d40f3f05
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 23943e860a92e95155c2ace8eab0839c8653278238c87dd1f97305f1f896015d
-    binding_hash: 283d7edbd00a18f9483ea978507f2b10d80172de6d35dfe5a837aef16494b128
+    binding_hash: fe4fb616b0f9d43e008c2b47054d505238c12d58e55b5e45628fa687024d0ea7
     fingerprint: 7815685d0c7ae7deff638869eee73d7812c395702d5233196fec94c76f07bc44
     fingerprint_components:
       contract: 23943e860a92e95155c2ace8eab0839c8653278238c87dd1f97305f1f896015d
@@ -55,6 +55,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Discovery results reach each MCP host once and kb_search pages at ten rows by default
 

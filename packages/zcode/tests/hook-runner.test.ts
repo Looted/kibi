@@ -1405,10 +1405,10 @@ describe("ZCode hook runner session isolation", () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-sess5");
     const hookRunnerPath = path.resolve(
       import.meta.dir,
-      "../dist/hook-runner.js",
+      "../bin/hook-runner.mjs",
     );
     if (!fs.existsSync(hookRunnerPath)) {
-      throw new Error("dist/hook-runner.js missing — run bun run build:zcode");
+      throw new Error("bin/hook-runner.mjs missing — run bun run build:zcode");
     }
 
     function invoke(event: HookEventInput): Promise<string> {

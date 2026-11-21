@@ -26,17 +26,17 @@ id: TEST-proof-logic-rule-max-atoms
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d07529783b6b483564ef97d8
+    receipt_id: PR-f2bda1507cdef8a0875bb9e5
     test_id: TEST-proof-logic-rule-max-atoms
     scope: unit
     outcome: passed
-    code_snapshot: 1fcdc3b2c318886286faffa28fc34e8ae59ae46515e4d9f13da5489d1bc40d6e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T17:21:44.562Z'
-    finished_at: '2026-10-28T17:21:44.686Z'
-    artifact_digest: 39f16fe9169fd81fdaab6efe91147493b524fb83a7b3d8b0b584a06977902555
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d4a00337bb908d4673f53a467703db494cb3de42bfeb176b1cde331511897e09
-    binding_hash: 2bb2341a5592fcef51a1249576333314a6abe06c7d7813711760e99a8e06690b
+    binding_hash: 0ca71a4bfad64d40b65cb66b15d52c2d213134ebab18653212c07797d143bfbe
     fingerprint: 4e9718662934697ffe1ebd083de23842690f9e59537bb57638afc30c7832abe2
     fingerprint_components:
       contract: d4a00337bb908d4673f53a467703db494cb3de42bfeb176b1cde331511897e09

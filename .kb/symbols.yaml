@@ -14089,10 +14089,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-zcode-unowned-workspace-silence
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-zcode-hooks-invoke-hook-runner
+      - type: implements
+        target: REQ-zcode-unowned-workspace-silence
   - id: SYM-zcode-packageName
     title: packageName
     sourceFile: packages/zcode/src/index.ts
@@ -47213,6 +47215,38 @@ symbols:
         target: TEST-skillopt-reference-answers-score-100
       - type: implements
         target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-zcode-case-tracked-hook-targets
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/hooks.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Hooks point at hook files a source checkout contains
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:22.857Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-copied-install-runtime-files
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/install-artifact.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Copied marketplace install contains declared runtime files
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:24.666Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-run-zcode-proof-zcode-native-cases
+    sourceFile: scripts/run-zcode-proof.mjs
+    status: active
+    symbol_role: type-shape
+    title: ZCODE_NATIVE_CASES
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:43:00.119Z
   - id: SYM-test-cli-prove-narrowed-run-evidence
     title: proof ingest operation suite
     status: active

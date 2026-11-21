@@ -28,15 +28,15 @@ id: TEST-skillopt-refused-kb-read-not-critical
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-ae9f902c56266f3c9aa87a61
+    receipt_id: PR-a6153cf5691d2e446d9a84ac
     test_id: TEST-skillopt-refused-kb-read-not-critical
     scope: end_to_end
     outcome: passed
-    code_snapshot: 253dc5aa6f8408a67a46510d4a1b162c9ca77ba89a4ef76681922fdf4eaec2e2
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-13T19:21:59.162Z'
-    finished_at: '2026-11-13T19:21:59.270Z'
-    artifact_digest: e70b0596716678af5612d46cadd5293b1b60e51da56f4f6674d32c2d6a59158b
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: ca77110849a9b9ad066226ec7de4db68f98b90b541236647f93fcaaaed68cfb1
     binding_hash: c484df862d7886a566e51c8532ca6ca6bf93e7cff5467ea420f07a74f159cc0a
     fingerprint: 0cca18003391fbd5744c1ddf2e73324dafae580a6b5f284d70bb163c5ba07b8e

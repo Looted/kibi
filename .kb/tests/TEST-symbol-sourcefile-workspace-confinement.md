@@ -24,18 +24,18 @@ proof_bindings:
     source_file: packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts
     line: 36
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-768446703a78d4521237ec32
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-2072ecb7b1fb4f2f2496643d
     test_id: TEST-symbol-sourcefile-workspace-confinement
     scope: end_to_end
     outcome: passed
-    code_snapshot: d1a22132537bfad9f8ef9a933acfa7993c7c3767a5f827fc984524a96c1fd569
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-10-19T14:32:43.449Z'
-    finished_at: '2026-10-19T14:32:47.532Z'
-    artifact_digest: 1e2aa2e7a4c6739431c0a1cf70ceb50210099a5d6e2d9910fe9da259e97fc1cd
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: db6265a911023e2c15768e94e70c6c32c77d57eca5a1d4bf460e871b74519554
-    binding_hash: 5038cd9200cedd8d3a6d19c853f9a6292c56936ab08988a7ae4997431db4419e
+    binding_hash: 22436b203084de1d40934ae868ad37d07d77f5e19ba1fa77174e4153268add65
     fingerprint: bae6ee86c5d8b755bfdb177c22dcf936be4f0b1e88f266d4a412ab26e44f7faf
     fingerprint_components:
       contract: db6265a911023e2c15768e94e70c6c32c77d57eca5a1d4bf460e871b74519554
@@ -57,6 +57,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Drives a fresh workspace through the built `kibi` binary (`packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts`). It asks the public write surface to accept a symbol whose `sourceFile` is absolute or uses a `..` escape, and asserts the payload is refused with a workspace-relative path error so coordinate refresh cannot probe outside the repository.
 

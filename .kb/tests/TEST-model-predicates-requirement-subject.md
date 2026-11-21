@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-requirement-subject
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-3d224131e13dfffc15b43d8d
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-19105da1df0e2c0141279982
     test_id: TEST-model-predicates-requirement-subject
     scope: end_to_end
     outcome: passed
-    code_snapshot: 3464ae42f083c2b6e9ed9b482fa7e54f58e94f0d5628e4ace6c2f8d99ecacd37
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T21:31:01.029Z'
-    finished_at: '2026-10-08T21:31:05.868Z'
-    artifact_digest: f12173e6829bdb4f8699537e980b3b15af6c4fedf82abb77eb3941d46239160d
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 71e629f239ea9b5dc8bf7574430bf2afe3bf7afe6761083f9aec5c339f38114e
-    binding_hash: 00b8094e54f6975556684a1dd4054f6509f44375c196d023e39ba8513c46296e
+    binding_hash: 583a9bfabbc8a57431070582793e291d10e404c1c2fa229c9a9da58ff984044f
     fingerprint: d16ba384b056223b58011aa9bda3d52e19217a5af1df8ad686318c3932041818
     fingerprint_components:
       contract: 71e629f239ea9b5dc8bf7574430bf2afe3bf7afe6761083f9aec5c339f38114e
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts`, which answers the requirement's `constrains` lookup from a stubbed KB and checks the bound subject, its provenance, the plan's `predicate_args`, the `subjectHint` override, the unbound subject without a subject fact and the binding examples for several subject facts, and the MCP stdio round trip that checks the applied predicate's first argument.

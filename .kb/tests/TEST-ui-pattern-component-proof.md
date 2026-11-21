@@ -22,18 +22,18 @@ proof_contract:
 id: TEST-ui-pattern-component-proof
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-18b3aec8e53ef0ff02aaf00f
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-0d5e8d995dea2b75eb0db08a
     test_id: TEST-ui-pattern-component-proof
     scope: end_to_end
     outcome: passed
-    code_snapshot: 06bcb9d0b41a820d7ba77a759d45cbb22b0404df99c99db8f9b25cdbc68306f0
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-09T12:33:51.826Z'
-    finished_at: '2026-10-09T12:33:52.817Z'
-    artifact_digest: 6815db972773859e002eff77d6f563da573b423508efead307a2f2b59acaa9b0
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 6bdb6e3326bc3d3dc11472be2e1d0cbf600abaedb65fa3ca5571b962f5be5150
-    binding_hash: 93c1d0264b290a928929b6974eed6b8b6d4f53079457bba86b0e4cc1c9bd25ab
+    binding_hash: f5e42b09e0e2a1e3ebccb85a72df8fc53448ae8345ebf415acea409031a62022
     fingerprint: 534d6634462189555cbaccd0bab8821c1f5b54a7d88b2dcb7b0f0d9d8d7e2336
     fingerprint_components:
       contract: 6bdb6e3326bc3d3dc11472be2e1d0cbf600abaedb65fa3ca5571b962f5be5150
@@ -55,5 +55,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the Prolog ui_pattern_component_proof unit, which builds a requirement grounded in ui_pattern and same_pattern facts with a unit-scope test and a fresh passing receipt, checks that the proof ladder accepts it and reports the widened accepted scopes, then links a ui_container fact and checks that the same test no longer proves the requirement.

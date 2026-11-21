@@ -102,6 +102,9 @@ jobs:
       - name: Check Cursor hook bundle drift
         run: bun run --filter kibi-cursor check:hook-bundle
 
+      - name: Check ZCode hook bundle drift
+        run: bun run --filter kibi-zcode check:hook-bundle
+
       - name: Typecheck matrix
         run: bun run typecheck
       - name: Verify generated schema parity

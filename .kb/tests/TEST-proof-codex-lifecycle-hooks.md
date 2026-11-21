@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-EEAA3048360DABE2
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b375e1c199a93d5059c148d0
+    receipt_id: PR-917f3e07368efd46e2389a04
     test_id: TEST-proof-codex-lifecycle-hooks
     scope: unit
     outcome: passed
-    code_snapshot: 328fc65d0a8f68d784d40380e03d82ed697fd6e20aa7eac41f724a6c4fd7718a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:50:04.018Z'
-    finished_at: '2026-10-27T07:50:04.201Z'
-    artifact_digest: 6371badbc1e3e4a55801969689daa889a1685b0a683bf3c14d70923a2cb9d362
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 76f6e92edd548f73405ce709f28b87181fe4c39d9354a83d8f4e58a373736e7a
-    binding_hash: 32395b0516c8fe2036ce1bc39cf59fb682fd251aec7a8ea05b90acd7aad030e0
+    binding_hash: 8c482020cb368f4edd0b3c8c5be8e7ad58f6a7b72cb1572428462259c91aa3b9
     fingerprint: 6002fe1fdd26f9a53f6876fda27569e29838599efa4b886e1789e19a946146bc
     fingerprint_components:
       contract: 76f6e92edd548f73405ce709f28b87181fe4c39d9354a83d8f4e58a373736e7a
@@ -85,7 +85,7 @@ proof_receipts:
         requirement_id: REQ-codex-plugin-package
         fact_id: FACT-codex-lifecycle-hooks
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

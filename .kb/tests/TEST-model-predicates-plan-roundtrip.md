@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-plan-roundtrip
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-a11956a40b119e204936b0c5
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-351c54e553cc42931c062360
     test_id: TEST-model-predicates-plan-roundtrip
     scope: end_to_end
     outcome: passed
-    code_snapshot: 958d97d1ca714d740f6d17315006a0e8f256102a370d9ee44f2b88223fb57c12
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T09:34:03.191Z'
-    finished_at: '2026-10-08T09:34:06.924Z'
-    artifact_digest: ae8795ffdfb7dfd20f648c8664cc5e8e5d4f3ca9a19e79eeee4e1dbaf0580ab8
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d3360762e3c0bfe0a82c7395c2205d59d28bcd94c8896c753322f0afb124261f
-    binding_hash: ef8754f22e61532bef3dfe249bd78b8545552fc707a1b33e63fa897d2695cfe5
+    binding_hash: e4515d18da3b1ae3120c701480bec099eb14b7dbf1caa35f7b87bfe50d50f6e4
     fingerprint: c8f6ea434312c49ed9a623d1e7888a99da5226e383d88cabd365fa95e3d0dc21
     fingerprint_components:
       contract: d3360762e3c0bfe0a82c7395c2205d59d28bcd94c8896c753322f0afb124261f
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/mcp/tests/predicate-plan-roundtrip.test.ts`, which starts the real kibi-mcp server over stdio in a fresh workspace, grounds two requirements through the strict lane, and applies the `record_ontology_gap` observation and the `replace_grounding` steps from `kb_model` mode `predicates` with `kb_upsert` and `kb_delete` exactly as returned, checking `kb_check` after every step; and `packages/cli/tests/operations/review-observation-plans.test.ts` and `packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts`, which check the plan shapes.

@@ -24,18 +24,18 @@ origin:
 id: TEST-kibi-hooks-flow-manifest
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-cf8cb08f5fa6f8029f6525ea
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-4b539f633b6074bdc56e4ddc
     test_id: TEST-kibi-hooks-flow-manifest
     scope: end_to_end
     outcome: passed
-    code_snapshot: 81a5c3c2b22b1be133f282a758c831f95d16db0cf3534dd111c5e8c290f54eb8
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T17:51:22.607Z'
-    finished_at: '2026-10-11T17:51:24.848Z'
-    artifact_digest: d9bee28df3abcc3acfcae459ec863de92424195219f74dd77c7857ed46b2d9aa
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 85094e4e0ce61e6255ddadc789ea8600f47914c88261a567f9efcad6d8ec61ed
-    binding_hash: 0db30f77fc38be98bd190b314b3340c03d29e9263b69cc09f5d886dfe646eeff
+    binding_hash: fc74cd04ea05828cf2c2d56eef04c05e31543b57297b5226f562804328c817b1
     fingerprint: 6c9c09d97848fa1b7c0123cf767c46b952524174ee7f52236b9566a791ea56c4
     fingerprint_components:
       contract: 85094e4e0ce61e6255ddadc789ea8600f47914c88261a567f9efcad6d8ec61ed
@@ -57,6 +57,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Flow-layout symbol manifests are read by the hook bundle and normalised by kibi sync
 

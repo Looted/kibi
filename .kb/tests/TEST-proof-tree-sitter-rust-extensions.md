@@ -27,17 +27,17 @@ id: TEST-proof-tree-sitter-rust-extensions
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d81d992d1d507d34b9756482
+    receipt_id: PR-e48bb6655ddfc1f91c415a5d
     test_id: TEST-proof-tree-sitter-rust-extensions
     scope: unit
     outcome: passed
-    code_snapshot: afb3cdbea213e763f387c3323e2e66996394012a39dd7d3623545ab9b3cd5977
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:43:04.938Z'
-    finished_at: '2026-10-28T22:43:05.022Z'
-    artifact_digest: 0367bfaf2aa6a41fc17432e6aff93edb11b32c37e6bb082d21bdcc3e9997e307
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: ff5b194f6a7b64529a4127974d490f325fa2375046010067afa959cf00629a63
-    binding_hash: 9e16797df74feeb94dfa31399470f9ce14e4c07d455c0d79b64fcd4b82b13fe7
+    binding_hash: 725b4aee3e7626f5267de59359bfe06da207437f39f15b86fbbd40212740e349
     fingerprint: 8dd14202d182083fef0af95f4d5d56ac62740c32c91f6408121b84a1ff2144d5
     fingerprint_components:
       contract: ff5b194f6a7b64529a4127974d490f325fa2375046010067afa959cf00629a63

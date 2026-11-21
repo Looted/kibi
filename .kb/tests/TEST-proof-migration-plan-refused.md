@@ -26,17 +26,17 @@ id: TEST-proof-migration-plan-refused
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-348868203984d8d2e2c84c5e
+    receipt_id: PR-210de1c9cdb3956b41041929
     test_id: TEST-proof-migration-plan-refused
     scope: unit
     outcome: passed
-    code_snapshot: 45723d09ccc2f66812136995f1e9ff533e86cd9788676661b6338c4073cf1090
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:58:08.676Z'
-    finished_at: '2026-10-28T20:58:08.892Z'
-    artifact_digest: 34bd5eaf0d160c793f2b9d4595595bae134d0261f3ea8ac2e648ef375d875697
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 75a20bc079bca249d5e4a92fdf44528d68faf626dea7180b93754f2b09f304c0
-    binding_hash: af0462f7f09d25589ae0f665dc639ef800c7ddf7544bad4952c31d91d967e9ea
+    binding_hash: 419d1655a07ee7e21bff77083010e8c888d1fa10901ea63ad4d76dbea23358c9
     fingerprint: 72f0ad1e23d51f8cd2fb69f000176fc8df2546441d98b7eaa8005d59eb7d211c
     fingerprint_components:
       contract: 75a20bc079bca249d5e4a92fdf44528d68faf626dea7180b93754f2b09f304c0

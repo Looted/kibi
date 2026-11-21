@@ -21,18 +21,18 @@ origin:
 id: TEST-upsert-unknown-field-guidance
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-9a4d28905fae0d8cec5968a8
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-95aef39342f00d71f07926b5
     test_id: TEST-upsert-unknown-field-guidance
     scope: end_to_end
     outcome: passed
-    code_snapshot: cc8892f6b26a6bce333fed4ab83d38c5adac2b6948a74264981d91f29d4edfb0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-07T12:46:03.733Z'
-    finished_at: '2026-10-07T12:46:04.080Z'
-    artifact_digest: 3916fb7019ecbe69d756b92ecac3f71532f1822a1ab15b21ba84b3a8d27e1a98
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 96b7873c19c7fbe6a61930662f30584de2e4ba6457a823495417caa8b93a0f65
-    binding_hash: 8ab9c5313b4fe2a3974068954a03e0d4a8e7bc810542567187ab60e32de9117f
+    binding_hash: 253d14d62c93b8fbb933b7215395d70725e1e7f104aafc7cfb461aedfdcde89e
     fingerprint: 025fb1466a1df834b05cc084557c3048895e51a5fcc62a1fecf00adcce5c1fed
     fingerprint_components:
       contract: 96b7873c19c7fbe6a61930662f30584de2e4ba6457a823495417caa8b93a0f65
@@ -54,6 +54,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the real upsert validator on scenarios and requirements with prose and non-prose unknown properties and checks the error names each one and the document.body hint appears only for prose keys; it then reads the scenario example from the kibi-bootstrap SKILL.md, validates it as an upsert and checks its body passes the entity context rule (packages/cli/tests/operations/upsert-unknown-property-guidance.test.ts).
 

@@ -21,18 +21,18 @@ origin:
 id: TEST-bootstrap-apply-long-running
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-6023ab33e9f4f6a2ccf11932
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-6310797565972d8f10a9921a
     test_id: TEST-bootstrap-apply-long-running
     scope: end_to_end
     outcome: passed
-    code_snapshot: cc8892f6b26a6bce333fed4ab83d38c5adac2b6948a74264981d91f29d4edfb0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-07T12:45:54.165Z'
-    finished_at: '2026-10-07T12:45:55.324Z'
-    artifact_digest: 46fe04de8c03b3488e600dfb5afe494552cbd566bd9b27905905cf930e749fe2
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 439358821672d71f4ce8d63322a53f3c5a9d369427c9e1394695c22d1cad620a
-    binding_hash: 05c2e4c1df5d9121020736e96c05340f4458e917439e9fa2d053eb5d355d90db
+    binding_hash: 337bebd385167b6d41230177132655b051f000981eab7768c39f13cac3e68098
     fingerprint: 9da9d2d478268fc2b788909e61c6e87e06742d5290aa6315863c574712d99775
     fingerprint_components:
       contract: 439358821672d71f4ce8d63322a53f3c5a9d369427c9e1394695c22d1cad620a
@@ -54,6 +54,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Applies a real bootstrap plan in a temporary workspace with a filesystem that stops accepting journal writes after an action commits, which leaves the journal applying with an active action exactly like a killed process, plants a lock owned by a dead pid, and recovers with recoveryJournalId; it asserts per-action progress, the re-applied interrupted action, the reclaimed lock recorded in the journal and the refusals for live holders and unexplained drift (packages/cli/tests/operations/apply-plan-interrupted-recovery.test.ts). The MCP suite drives kb_apply_plan through the registration path to check notifications/progress and the async job receipt (packages/mcp/tests/server/kb-apply-plan-progress.test.ts).
 

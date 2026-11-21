@@ -26,17 +26,17 @@ id: TEST-proof-policy-ownership-rule
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-fd1d3bf70d2e0b1101529fa4
+    receipt_id: PR-902da46ee859bc8aac8542d1
     test_id: TEST-proof-policy-ownership-rule
     scope: unit
     outcome: passed
-    code_snapshot: 1527b4cbcc3ade2f38aa86a1134590cb549c79eb8db739cb67bcdea1f5054201
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:24:51.294Z'
-    finished_at: '2026-10-28T20:24:51.487Z'
-    artifact_digest: b74ab0ae22be04dcd62cc3c03fd16af7cc2388383c5266fb83ee0957c28853c6
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d38640e68cc2948480c0b06af68467e2ace613021928d1482a067021e774b03e
-    binding_hash: e34d268eed07acb6c3714c8bbb8d295bed4db726ae2070107508f556435e693b
+    binding_hash: 38d6aaf315a9a0fde87a189cb943550479d6d0fa69ec363fab095276b33396c4
     fingerprint: 95a7d980c81074e669457497fc74bbfca8993ef5f7c1f5efdd993e9991e05e32
     fingerprint_components:
       contract: d38640e68cc2948480c0b06af68467e2ace613021928d1482a067021e774b03e
@@ -71,7 +71,7 @@ proof_receipts:
     certificate_digest: 01769df8508e73720c2b51f223f657f72a7d8bf0a1370089ee0cb35d0d93f9f8
     claim_bindings:
       - claim_key: CLAIM-07BF06E3E4B8056F
-        requirement_id: REQ-kibi-check-rule-names
+        requirement_id: REQ-kibi-policy-rule-names
         fact_id: FACT-policy-ownership-rule
         binding: derived
         scope: code

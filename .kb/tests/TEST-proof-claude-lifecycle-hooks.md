@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-CBAE2462F2FAD2EE
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-faa21af629b74c6f05cfe7cd
+    receipt_id: PR-f99b64446500d651cab92593
     test_id: TEST-proof-claude-lifecycle-hooks
     scope: unit
     outcome: passed
-    code_snapshot: d2d6cab6dbd3f50aadeb2fd0d2dda459b10875fcef0d6b8408b3f76d0b95066d
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:44:45.373Z'
-    finished_at: '2026-10-27T07:44:45.563Z'
-    artifact_digest: 4ad192451d166889cce98d5d5212969be11110a997b024d64dcf43420a554429
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: fead50119030a5b6ae6cbf8062689e4e2e2eec4c00171a93d23792692268e637
-    binding_hash: 4c4145f8e7dc3ad8e1eca6a4f49a86577a767fbe135959155924132ffceb81ca
+    binding_hash: bd16cc218fe250ac70b41cc3f19e0bc6a7388bed588c6b01e47a8e7e8345033b
     fingerprint: 05e416552899d98801b9991313b7512e95e9317ed5eef5e66ffb6e00328db6d3
     fingerprint_components:
       contract: fead50119030a5b6ae6cbf8062689e4e2e2eec4c00171a93d23792692268e637
@@ -86,7 +86,7 @@ proof_receipts:
         requirement_id: REQ-claude-plugin-package
         fact_id: FACT-claude-lifecycle-hooks
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

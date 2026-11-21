@@ -29,17 +29,17 @@ id: TEST-proof-mcp-excludes-jev
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-08f5145c517400614a73de91
+    receipt_id: PR-776abd436a557769ab5c1e1c
     test_id: TEST-proof-mcp-excludes-jev
     scope: unit
     outcome: passed
-    code_snapshot: bdaf6778db7b4bd8038f4810e2f16d71b67f6fcfa8bc512d4e83a235f1b5b5c5
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T10:26:47.667Z'
-    finished_at: '2026-10-28T10:26:47.791Z'
-    artifact_digest: 51a3b6b151bc6bb2954e273a575ca95fa13ef263cc2fb73b29058bc7d366f993
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: ac888c75c68ad6ccae2eba0f4d6619ac27b7811a93e318c631a0b1f359abe36f
-    binding_hash: 3d639cc2fd770c2b5d70189e678e5a063583aee4a7b2240e334ccc0964144040
+    binding_hash: 6d9a5f27f7203d2899a49a547244e41ca19d6d5c65c70ea7c9813b4c0ddbb586
     fingerprint: 3fc69cacc0cf871ea16e0d5165b56eadcf3d4e9261252545715f31e350686fad
     fingerprint_components:
       contract: ac888c75c68ad6ccae2eba0f4d6619ac27b7811a93e318c631a0b1f359abe36f
@@ -81,10 +81,11 @@ proof_receipts:
           - fast-glob
           - gray-matter
           - js-yaml
+          - kibi-agent-core
           - kibi-core
           - kibi-runtime
           - zod
-    certificate_digest: c2e16d98473ab7e6eb24e078197101672d4ced291b3200dd36b5cb0cf7754361
+    certificate_digest: 451d0f7d1f848800c32141bbd34ab7016ddc8267adb92e3b17406879601467f4
     claim_bindings:
       - claim_key: CLAIM-EF4F96A11A712F75
         requirement_id: REQ-capability-plugin-jev-optional-dependency

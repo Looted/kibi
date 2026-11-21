@@ -25,20 +25,20 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-ac563c71a2db5849de4f4f4b
+    receipt_id: PR-2528ec463ec16c4d7032719c
     test_id: TEST-mcp-tag-filtering-server-side
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6a50f2c502f50261f2dc53bb28dd92e536697075ad7758a3fe3fd4e599444636
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T13:16:35.957Z'
-    finished_at: '2026-10-25T13:16:59.550Z'
-    artifact_digest: cf8459326b19f6031e320cbb6d991c7d0884c855a504b2516edb633d2725e8da
-    contract_hash: a1910f0eebcde372209a607e53570b6f367fcdfe2e80557f03c46d13c2abe254
-    binding_hash: adc842b98b4da10bd83c6c2a51a2800f8e19cb1f20b4444b93f7391b33ab133d
-    fingerprint: 4a68d378bfccf5bbcb864681282860fea3e6c47eb55ca366f1dbdd460be75e1a
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
+    contract_hash: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
+    binding_hash: 85975cd443558d61fe1864dfcf4dcee87c76689829e117439b90bf3072320fdc
+    fingerprint: 10eff81d0bc3303e3c216878cb7d8d04f482e9e8c5fedb54c67b66ea0199712f
     fingerprint_components:
-      contract: a1910f0eebcde372209a607e53570b6f367fcdfe2e80557f03c46d13c2abe254
+      contract: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -51,7 +51,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-mcp-tag-filtering-server-side
+      - symbol_id: SYM-e2e-mcp-cli-operation-parity
         target: default
         outcome: passed
         binding: aggregate_run

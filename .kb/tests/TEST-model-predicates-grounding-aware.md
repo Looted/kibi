@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-grounding-aware
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-eb4347e1f1db3a3809dc67f3
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-36a156b7142ddd4d03579081
     test_id: TEST-model-predicates-grounding-aware
     scope: end_to_end
     outcome: passed
-    code_snapshot: 40cff72e51ee5de378fa19b9d2f70cfd31ec2d07500ff730d68dc96f142b281f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-12T19:35:22.513Z'
-    finished_at: '2026-10-12T19:35:22.876Z'
-    artifact_digest: e065af7413f4ce32b60cb540d31e6e74b364e5b47a0399d0888d0b7025592bb2
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 953805cbcb8f30e109990bf04b454614f4c98de76b1d842ddd8062cdb24cd74d
-    binding_hash: 199cb6fd0acc06118660eb6c8f2941744b0b6edac4be60dae7e4d20b963144b0
+    binding_hash: 0f0f9b504b614cdaa6be0c1f1b8ffb6a8c4b58096dfc51b0d720466b2d33f52d
     fingerprint: 737f0a27ee4fa63047709bec3db870ddd761f4e9dd27e1d369c4593248648a7f
     fingerprint_components:
       contract: 953805cbcb8f30e109990bf04b454614f4c98de76b1d842ddd8062cdb24cd74d
@@ -54,6 +54,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs predicate suggestion against a KB port that answers the requirement's requires_property link and the grounding fact's claim key, and checks the already_grounded result, the ordered replacement plan with one grounding link per claim, and the relationship target for both grounded and ungrounded claims (packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts).
 

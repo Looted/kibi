@@ -21,17 +21,17 @@ id: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-7e5fdce6526e37f101a51c60
+    receipt_id: PR-681d9427aa4e5bb38ec2f44d
     test_id: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
     scope: end_to_end
     outcome: passed
-    code_snapshot: afb3cdbea213e763f387c3323e2e66996394012a39dd7d3623545ab9b3cd5977
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:42:44.276Z'
-    finished_at: '2026-10-28T22:42:44.671Z'
-    artifact_digest: 1b1ce7380624c2e9e4f55e25942b6c80d28fe69ecad8cd916faebab313158f8a
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d8493fae13afc1ee41a4d099883b25fc44f2acbce39b2f9b66acac0de875e980
-    binding_hash: 099c6700e4698038c7058cbf21a8056fc28f2e4880add16603a8aa6a89349f5d
+    binding_hash: 4a93ea4522201b337584baaa6b87d589b02fcdf84a708676ae76485382fbfcf5
     fingerprint: 24107bce074e90e7c0883b3904cfdbb682a9a8d71d9b9cf375940a93958a51a0
     fingerprint_components:
       contract: d8493fae13afc1ee41a4d099883b25fc44f2acbce39b2f9b66acac0de875e980

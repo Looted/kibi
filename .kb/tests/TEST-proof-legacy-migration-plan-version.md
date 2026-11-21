@@ -26,17 +26,17 @@ id: TEST-proof-legacy-migration-plan-version
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1dd65478d2a379ef9a400d35
+    receipt_id: PR-198e884b4f432537338693df
     test_id: TEST-proof-legacy-migration-plan-version
     scope: unit
     outcome: passed
-    code_snapshot: 45723d09ccc2f66812136995f1e9ff533e86cd9788676661b6338c4073cf1090
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:57:55.351Z'
-    finished_at: '2026-10-28T20:57:55.510Z'
-    artifact_digest: 47a32512ad7c60f4eb2f8c046e7785267c1b6e2f256a5a4f1162abda46e747d7
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 237ed7b8a48476ea769bfe62ae2d29c0c7a74ead9e8caa4e3a271672bffa3502
-    binding_hash: 61ef3cc15a298b553c3fcf023e3b4bd36f8b297e02e48c275c4a1efa1a0fd5b9
+    binding_hash: 9c7dca1b7da971da1306d264bce9e8fb43ada7a735a532814bbdef6d7bec7b84
     fingerprint: 7b6568a10d772b055d15be3d17ed4e745f12ef623daaa698ff4a98eefbeca269
     fingerprint_components:
       contract: 237ed7b8a48476ea769bfe62ae2d29c0c7a74ead9e8caa4e3a271672bffa3502

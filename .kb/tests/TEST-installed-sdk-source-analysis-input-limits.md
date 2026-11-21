@@ -24,17 +24,17 @@ proof_bindings:
     native_id: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts::enforces the installed SDK UTF-16 input limit using its public export and validator
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f5743515b9f52373e3ddcd05
+    receipt_id: PR-de1bf49de96de8b464b256ca
     test_id: TEST-installed-sdk-source-analysis-input-limits
     scope: end_to_end
     outcome: passed
-    code_snapshot: b25666605ac0edaa4ee40b2fa05536cd246e3cf2513f28f59962e0d6a743d647
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T10:52:32.978Z'
-    finished_at: '2026-10-28T10:53:37.478Z'
-    artifact_digest: a352c213878487a480abc89cb1daa7f06be98e201927e8d5a9e9128bca2a84f6
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: d08a6fea5d3239bcec4d9396720e54e7a31966e6cbfb6cd9b5dd4939cbb06ccd
-    binding_hash: e7e770cd7d0f81266574e8fa8887ef8b02459f463346cb4c77c80f685368cf60
+    binding_hash: 15f80f17e767428067dea09a3b7a67ff8b16227e3df1afa2fedfa46fd4970901
     fingerprint: 3136e1ecbe6666728b8d6958d7f53eeabca41a0bdb7035f8515eb5399789a8fd
     fingerprint_components:
       contract: d08a6fea5d3239bcec4d9396720e54e7a31966e6cbfb6cd9b5dd4939cbb06ccd

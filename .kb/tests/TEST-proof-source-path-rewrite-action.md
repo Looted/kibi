@@ -26,17 +26,17 @@ id: TEST-proof-source-path-rewrite-action
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-66f3e8a2eabb47f251a6b77c
+    receipt_id: PR-8805d0f166c9d1cb5a176b07
     test_id: TEST-proof-source-path-rewrite-action
     scope: unit
     outcome: passed
-    code_snapshot: 4b699c9b07afd709892fdd2513cb5f73a7167d1881b1a2daf6c70078e8f98147
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T17:31:02.817Z'
-    finished_at: '2026-10-28T17:31:02.963Z'
-    artifact_digest: f5ccc68c4110d57c2b6d933e1533bb2a3928922062741c562fc94e47f5466e86
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 964275352df194f0567bed7eb7405028689cda4681b131742fcab62c7043da3d
-    binding_hash: ab16ef66a9fcdb4fa35eff23b3e2e2244584feb05cede5c4c1383135e7e4a07e
+    binding_hash: 5c159166547dd6f7337896d99c843645ba881fc9482c028920edd03ddf280ab3
     fingerprint: 2dc29a9d60fadaca0a48d410ed63b802448a345cf360e233e1ade27a3cbd5093
     fingerprint_components:
       contract: 964275352df194f0567bed7eb7405028689cda4681b131742fcab62c7043da3d
@@ -71,7 +71,7 @@ proof_receipts:
     certificate_digest: 2ebd204d80ed57f04c0c4bfe386f2871a151f9f68015a424d5a1eb8058179fc1
     claim_bindings:
       - claim_key: CLAIM-9FCD149FC09937EF
-        requirement_id: REQ-kibi-lifecycle-check-codes
+        requirement_id: REQ-kibi-source-path-codes
         fact_id: FACT-source-path-rewrite-action
         binding: derived
         scope: code

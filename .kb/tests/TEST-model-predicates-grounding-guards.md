@@ -22,18 +22,18 @@ origin:
 id: TEST-model-predicates-grounding-guards
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-187d6371bc09b4ce4048cc49
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-691f9e12e7e594ff17024759
     test_id: TEST-model-predicates-grounding-guards
     scope: end_to_end
     outcome: passed
-    code_snapshot: 40cff72e51ee5de378fa19b9d2f70cfd31ec2d07500ff730d68dc96f142b281f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-12T19:34:56.564Z'
-    finished_at: '2026-10-12T19:35:17.638Z'
-    artifact_digest: 5a33d65fb648aae77244c7cd7bc11107449ded8b83c7ba17fe6bc169eae92d14
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 1724d97ee24667a3103da9ec1518845ccdbf5ec0d234a0336d8a1c7e1c27b106
-    binding_hash: cccb4dbdb53703bf6e0b6bfb70fe790985bd0a96833aac597d6e41887fb2a911
+    binding_hash: c75f9af36b3325aa8f745978879164da435d1da7cb2f38206d4f037cc82e91de
     fingerprint: c97ba7e3efa1c7f5f685699f3821c9b5356bd4b61dbe29d7306fdc16e38f8baa
     fingerprint_components:
       contract: 1724d97ee24667a3103da9ec1518845ccdbf5ec0d234a0336d8a1c7e1c27b106
@@ -55,5 +55,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Consumer suite that runs the scenario end to end through the CLI against a real engine: canonical_key recognition with and without the decision bound, extend_requirement and decisionConflicts under the owning and another requirement, the multi-clause plan applied through kb_apply_plan, and claimKey on a committed fact write.

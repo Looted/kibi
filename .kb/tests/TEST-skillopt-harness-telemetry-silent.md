@@ -28,17 +28,17 @@ id: TEST-skillopt-harness-telemetry-silent
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e5ecd871c7c25638483810aa
+    receipt_id: PR-d865bed89d4ed165da9e00cc
     test_id: TEST-skillopt-harness-telemetry-silent
     scope: end_to_end
     outcome: passed
-    code_snapshot: 964a581acb197040e905a60f9b18a2e6a9b04fc024876131f1e3675cfa5f26ff
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-13T09:34:14.742Z'
-    finished_at: '2026-11-13T09:34:15.600Z'
-    artifact_digest: 615bbb76cbd28718f8e166c111d2b3e4f3be0bfe97550a172e379db19c314d07
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: 7e58388ba7f082849d164d2ec0cf919d4d767d6ac09a229e5e5fc9913ba56dd2
-    binding_hash: e2d8f663ce50080db1b5363f4ef19722a27d6cbb730cdfebf9cce6aa1e1d79fd
+    binding_hash: d219db88598b0aaa734b3585f5c3bcfae1401dead6a08e85f597b4073300aa85
     fingerprint: 5bb79fb68d65b47895ace245a09eebaf4cf3ef27cce63cd0e725e0d81d6ee4db
     fingerprint_components:
       contract: 7e58388ba7f082849d164d2ec0cf919d4d767d6ac09a229e5e5fc9913ba56dd2

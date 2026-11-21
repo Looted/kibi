@@ -18,17 +18,17 @@ id: TEST-cli-kb-merge-driver
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-3f7d4a1202fbd3556e271668
+    receipt_id: PR-fcf67da1a30f73ce61cc5231
     test_id: TEST-cli-kb-merge-driver
     scope: end_to_end
     outcome: passed
-    code_snapshot: fd533bf19c861ad8ac8efb75758e48e7ddd616896e097e02d5eeb8945729f8b3
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-24T23:26:46.216Z'
-    finished_at: '2026-10-24T23:26:54.318Z'
-    artifact_digest: 7cc22765a9804ba2f6f8cdcbf72bb2e0b4ef879a50be8088f003f7968bab12d2
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: b72a52386298f6c288cd3858a212fafb9f94fb19a241a4b643d3f3c830108bc5
-    binding_hash: fd4294fc634858343ff85b4abf42f9286ad6d0aaedbb454d4422904bb5d883a3
+    binding_hash: 63d4dfd5ba07f1694993ccd4a9926721f2c8a46f5b103da47701e998405669da
     fingerprint: 594784d28b2685754b581fdc3bc4c326b2d36e01655866c42d53a334d4a19daf
     fingerprint_components:
       contract: b72a52386298f6c288cd3858a212fafb9f94fb19a241a4b643d3f3c830108bc5

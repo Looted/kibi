@@ -25,18 +25,18 @@ origin:
 id: TEST-e2e-skillopt-description-candidates
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-c489ff9f0fdb74c336e15847
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-2852c4135573bf7e9054b013
     test_id: TEST-e2e-skillopt-description-candidates
     scope: end_to_end
     outcome: passed
-    code_snapshot: b1ff3d03e4e4e49f12fd4f5dd047275d2d553ce0d9ff0826195cc2f4c366daaf
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-06T00:27:59.068Z'
-    finished_at: '2026-10-06T00:28:07.584Z'
-    artifact_digest: 0901d0060ba77d62ab883d828515ff278cdeb26e1601e268e7cace93e434b8c0
+    code_snapshot: 98d97c8bd4627c2974c44d4832f5db6e6bfc7ad145d38b08d3cc4880d60fd5e0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-20T19:26:36.497Z'
+    finished_at: '2026-11-20T20:25:50.166Z'
+    artifact_digest: 380d9339357826178df6ba566f4b4b862eca8d3c650c57f098bfe1ba906d055d
     contract_hash: b41d69f045955d0d65f08c3ae8244ad1d63b1d5de5678bfa602248b760e6466d
-    binding_hash: c6d72a18ce154fed80563ec8d2b591b7b50bdd29447515fb99e82e5d9755431a
+    binding_hash: c50e5001f279e6a4ae299fd04526403aaaf0e7a038dd64032989e4d7fd75d1b5
     fingerprint: 8236ca468c3c8cb41de2114de6528fcb1605b416eaa97c3ae6e9e2783592050a
     fingerprint_components:
       contract: b41d69f045955d0d65f08c3ae8244ad1d63b1d5de5678bfa602248b760e6466d
@@ -58,6 +58,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 
 ## Context
