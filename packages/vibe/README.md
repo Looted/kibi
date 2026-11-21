@@ -48,22 +48,26 @@ workspace into a `kibi-workspace.txt` file next to the launcher (see
 
 ## Runtime detection (Windows/WSL)
 
-Kibi needs Node.js 22+ and SWI-Prolog 9+; the bundled SWI-Prolog covers
-Linux/macOS, so on Windows the supported setup runs Kibi inside WSL. The
-launchers in `bin/` detect this automatically — nothing is hardcoded:
+Kibi needs Node.js 22+ and SWI-Prolog 9+. On Windows the launchers in `bin/`
+detect the workspace kind automatically — nothing is hardcoded:
 
-- `bin/kibi-runtime.mjs` probes once per distro whether WSL has Node.js 22+
-  (a single `wsl.exe [-d <distro>] --exec bash -lc '<constant probe>'` call;
-  the probe result is cached per user for 120 s so hooks stay cheap).
-- If so, `bin/launch-kibi-mcp.mjs` and `bin/kibi.mjs` spawn
-  `wsl.exe [-d <distro>] --cd <wsl-path> --exec <wsl-node> <kibi-bin> [args...]`.
+- A drive-letter workspace (`C:\...`) runs **natively on Windows**: the
+  project-local `kibi-mcp` / `kibi-cli` bin is spawned directly with the
+  current Node, and SWI-Prolog comes from the bundled `kibi-swipl-win32-x64`
+  runtime (or `KIBI_SWIPL` / a system `swipl`). No WSL probe runs at all.
+- A `\\wsl.localhost\<distro>\...` (or `\\wsl$\...`) UNC workspace runs inside
+  that distro: `bin/kibi-runtime.mjs` probes once per distro whether WSL has
+  Node.js 22+ (a single `wsl.exe [-d <distro>] --exec ...` call with a
+  constant probe; the result is cached per user for 120 s so hooks stay
+  cheap), then `bin/launch-kibi-mcp.mjs` and `bin/kibi.mjs` spawn
+  `wsl.exe -d <distro> --cd <wsl-path> --exec <wsl-node> <kibi-bin> [args...]`.
   Paths and arguments are passed as **literal argv entries, never as a shell
-  string**, so no path can be shell-injected. The distro is taken from
-  `\\wsl.localhost\<distro>\...` UNC workspace paths; drive-letter paths go
-  through `wsl.exe wslpath` against the default distro, and a failed
-  conversion is a hard error, never a silent `cd .`.
-- Otherwise they spawn the project-local `kibi-mcp` / `kibi-cli` bin directly
-  with the current Node. Set `KIBI_FORCE_DIRECT=1` to skip the WSL probe.
+  string**, so no path can be shell-injected, and a failed path conversion is
+  a hard error, never a silent `cd .`.
+- Escape hatches: `KIBI_FORCE_WSL=1` forces the WSL wrap even for drive-letter
+  workspaces (drive-letter paths then go through `wsl.exe wslpath` against the
+  default distro), and `KIBI_FORCE_DIRECT=1` forces a native spawn even for
+  UNC workspaces (Windows reads `\\wsl.localhost` paths natively).
 
 `--no-install`-style resolution matters: the launcher starts the `kibi-mcp`
 already installed in the project's `node_modules` and never downloads a
