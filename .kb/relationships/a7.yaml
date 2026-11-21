@@ -269,6 +269,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af548d79d027
+  - type: assumes
+    from: SCEN-NEG-vibe-skills-mirror-drift
+    to: FACT-NEG-VIBE-SKILLS-MIRROR-DRIFT
+    created_at: 2026-11-19T22:37:25.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccca8c685ba2
+  - type: verified_by
+    from: SCEN-NEG-vibe-skills-mirror-drift
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:25.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4af44e9e0c2e
   - type: verified_by
     from: SCEN-cli-prove-narrowed-run-evidence
     to: TEST-cli-prove-narrowed-run-evidence

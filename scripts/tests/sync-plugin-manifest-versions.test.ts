@@ -393,6 +393,36 @@ describe("syncPluginManifestVersions", () => {
     );
   });
 
+  test("also syncs a native Agent Plugins 1.0 plugin.json at the package root", async () => {
+    await withTempWorkspace(
+      "kibi-plugin-manifest-root-",
+      async (workspaceRoot) => {
+        const packageDir = join(workspaceRoot, "packages", "vibe");
+        const packageManifestPath = join(packageDir, "package.json");
+        const rootPluginPath = join(packageDir, "plugin.json");
+        await writeJson(packageManifestPath, {
+          name: "kibi-vibe",
+          version: nextVersion,
+        });
+        await writeJson(rootPluginPath, {
+          name: "kibi",
+          version: priorVersion,
+        });
+
+        const synced = await syncPluginManifestVersions(workspaceRoot);
+        expect(synced).toEqual([
+          {
+            packageName: "kibi-vibe",
+            packageVersion: nextVersion,
+            manifestPath: rootPluginPath,
+            previousVersion: priorVersion,
+          },
+        ]);
+        expect(readJson(rootPluginPath).version).toBe(nextVersion);
+      },
+    );
+  });
+
   test("syncs analyzer metadata without changing the plugin-manifest result API", async () => {
     await withTempWorkspace(
       "kibi-analyzer-metadata-only-",

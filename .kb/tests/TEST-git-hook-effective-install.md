@@ -23,17 +23,17 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a355997dd3ed0efdf8385f39
+    receipt_id: PR-2181ce415702405e8181afad
     test_id: TEST-git-hook-effective-install
     scope: end_to_end
     outcome: passed
-    code_snapshot: 61057c7cf1c0e4f7b41f6a10eb8401783d829d6dd77415626b66eeeb9f257940
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:40:58.948Z'
-    finished_at: '2026-10-28T22:41:10.493Z'
-    artifact_digest: 0fcafd8316d1ab4dd4a2b528e4d5b3c9300dbe2d91bfde6edccc07525ceb021e
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 7fa8c407b2c397d430c179104ff0866128b5fa5185492535ba56badc54d4ec51
-    binding_hash: f5aefba58d7698229fa6d4411c45d590bebefbfffae14927c4269d7d6c5cef84
+    binding_hash: 7647291181d25e88eca7e8ef9d99a7b6c15d43de46cfe6f4370226816ff6725c
     fingerprint: 489f196e14b2ca691b14b656d9212c65ec900389d049e0a73d2793f631ca90a8
     fingerprint_components:
       contract: 7fa8c407b2c397d430c179104ff0866128b5fa5185492535ba56badc54d4ec51

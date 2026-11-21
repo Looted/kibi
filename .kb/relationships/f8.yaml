@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f625cf9c42d9
+  - type: assumes
+    from: SCEN-NEG-kibi-operation-catalog-names-UNKNOWN-OPERATION
+    to: FACT-NEG-kibi-operation-catalog-names-unknown-operation-accepted
+    created_at: 2026-11-20T08:42:07.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94c9fbdae4df
+  - type: verified_by
+    from: SCEN-NEG-kibi-operation-catalog-names-UNKNOWN-OPERATION
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-20T08:42:07.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d22b215353d5

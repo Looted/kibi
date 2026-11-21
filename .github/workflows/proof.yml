@@ -237,7 +237,7 @@ jobs:
         if: ${{ env.KIBI_PROOF_EXECUTE == 'true' && matrix.shard == 1 }}
         run: >-
           bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
+          documentation/evaluations/change-to-proof/repo-search-hints-gold.v2.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
 
       # Every current requirement's floor, before re-proving: receipts that

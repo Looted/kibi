@@ -202,3 +202,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89e44cc9065f
+  - type: constrains
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-SUBJ-VIBE-WIN32-ROUTING
+    created_at: 2026-11-21T18:29:19.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e92d92abe65
+  - type: requires_property
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N01
+    created_at: 2026-11-21T18:29:19.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5f28e312c7c
+  - type: requires_property
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N02
+    created_at: 2026-11-21T18:29:19.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c035ec434827
+  - type: requires_property
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N03
+    created_at: 2026-11-21T18:29:19.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d6c8e1f9feb
+  - type: requires_property
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N04
+    created_at: 2026-11-21T18:29:19.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc89957433f4
+  - type: requires_property
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N05
+    created_at: 2026-11-21T18:29:19.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42ae22ec40fc
+  - type: specified_by
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: SCEN-vibe-win32-routing-drive-letter-native
+    created_at: 2026-11-21T18:29:19.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1215d5cdc870
+  - type: specified_by
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: SCEN-vibe-win32-routing-unc-named-distro
+    created_at: 2026-11-21T18:29:19.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c09219204db5
+  - type: specified_by
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: SCEN-vibe-win32-routing-force-wsl
+    created_at: 2026-11-21T18:29:19.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2b3e5db7588
+  - type: specified_by
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: SCEN-vibe-win32-routing-force-direct
+    created_at: 2026-11-21T18:29:19.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d41c528702d5
+  - type: specified_by
+    from: REQ-vibe-launcher-win32-workspace-routing
+    to: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    created_at: 2026-11-21T18:29:19.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7ab0f75c7d7

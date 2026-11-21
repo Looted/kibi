@@ -95,6 +95,18 @@ const ZCODE_UNIT_TESTS = readdirSync("./packages/zcode/tests")
   )
   .map((entry) => `./packages/zcode/tests/${entry}`);
 
+// The Vibe MCP handshake contract runs as a proof step
+// (proof/steps/TEST-vibe-plugin-contract-v1.json) because it spawns the real
+// kibi-mcp server; only the fast runtime unit tests join coverage shards.
+const VIBE_PROOF_TESTS = new Set(["launcher-contract.test.mjs"]);
+const VIBE_UNIT_TESTS = readdirSync("./packages/vibe/tests")
+  .filter(
+    (entry) =>
+      /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry) &&
+      !VIBE_PROOF_TESTS.has(entry),
+  )
+  .map((entry) => `./packages/vibe/tests/${entry}`);
+
 const SCRIPT_TESTS = readdirSync("./scripts/tests", {
   recursive: true,
   encoding: "utf8",
@@ -448,6 +460,7 @@ export const COVERAGE_SHARDS: readonly {
     paths: ZCODE_UNIT_TESTS,
     setup: ["run", "build:zcode"],
   },
+  { label: "vibe", paths: VIBE_UNIT_TESTS },
   { label: "agent-core", paths: ["./packages/agent-core"] },
   { label: "claude", paths: ["./packages/claude"] },
   {
