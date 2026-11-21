@@ -288,9 +288,14 @@ export function debugLaunch(event, env = process.env) {
  */
 
 /**
- * Decide how to run Kibi for a workspace: through WSL on Windows hosts that
- * have a qualifying distribution, otherwise directly. Throws when a Windows
- * workspace cannot be converted to a WSL path (never silently cd's elsewhere).
+ * Decide how to run Kibi for a workspace. On Windows, a drive-letter
+ * workspace (C:\...) runs natively (direct spawn of the project-local
+ * kibi-mcp/kibi; SWI-Prolog comes from the bundled kibi-swipl-win32-x64
+ * runtime), while a \\wsl.localhost\<distro> UNC workspace is served
+ * through that distro via WSL. KIBI_FORCE_WSL=1 forces the WSL wrap for
+ * drive-letter workspaces; KIBI_FORCE_DIRECT=1 forces a native spawn even
+ * for UNC workspaces. Throws when a forced WSL wrap cannot convert the
+ * Windows path (never silently cd's elsewhere).
  *
  * @param {string} workspace
  * @param {NodeJS.ProcessEnv} [env]
@@ -304,14 +309,17 @@ export function planRuntime(workspace, env = process.env, deps = {}) {
   const unc = parseWslUnc(raw);
   // On Windows keep the raw path (UNC/drive-letter forms are meaningful
   // there); elsewhere normalize through resolve.
-  const root = platform === "win32" && unc ? raw : resolve(raw);
-  if (platform === "win32" && String(env.KIBI_FORCE_DIRECT ?? "") !== "1") {
+  const winPath = unc || /^[A-Za-z]:[\\/]/.test(raw);
+  const root = platform === "win32" && winPath ? raw : resolve(raw);
+  const forceDirect = String(env.KIBI_FORCE_DIRECT ?? "") === "1";
+  const forceWsl = String(env.KIBI_FORCE_WSL ?? "") === "1";
+  if (platform === "win32" && (unc || forceWsl) && !forceDirect) {
     const probed = probe(unc ? unc.distro : null);
     if (probed) {
       const wslCwd = unc ? unc.wslPath : convert(root);
       if (!wslCwd) {
         throw new Error(
-          `cannot convert Windows path "${root}" to a WSL path; fix the workspace path or set KIBI_FORCE_DIRECT=1 to run Kibi directly on Windows`,
+          `cannot convert Windows path "${root}" to a WSL path; fix the workspace path, unset KIBI_FORCE_WSL to run Kibi directly on Windows, or set KIBI_FORCE_DIRECT=1`,
         );
       }
       return {

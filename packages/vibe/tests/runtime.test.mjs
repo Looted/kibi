@@ -212,7 +212,7 @@ test("planRuntime wraps in WSL on Windows with the UNC distro and never builds a
   assert.ok(!args.some((a) => a.includes("bash") || a.includes("-lc")));
   const evil = planRuntime(
     "C:\\work\\$(calc)",
-    { KIBI_FORCE_DIRECT: "0" },
+    { KIBI_FORCE_WSL: "1" },
     {
       platform: "win32",
       probe: () => ({ nodeWslPath: "/usr/bin/node", major: 24 }),
@@ -224,12 +224,12 @@ test("planRuntime wraps in WSL on Windows with the UNC distro and never builds a
   assert.ok(!evilArgs.some((a) => a.includes("calc)") && a.includes(" ")));
 });
 
-test("planRuntime hard-fails when the Windows path cannot become a WSL path (S3)", () => {
+test("planRuntime hard-fails when a forced WSL wrap cannot convert the Windows path (S3)", () => {
   assert.throws(
     () =>
       planRuntime(
         "C:\\work\\x",
-        {},
+        { KIBI_FORCE_WSL: "1" },
         {
           platform: "win32",
           probe: () => ({ nodeWslPath: "/usr/bin/node", major: 24 }),
@@ -240,20 +240,69 @@ test("planRuntime hard-fails when the Windows path cannot become a WSL path (S3)
   );
 });
 
-test("planRuntime falls back to a direct spawn off Windows or without qualifying WSL", () => {
+test("planRuntime runs drive-letter Windows workspaces natively without probing WSL", () => {
+  // Native Windows routing: the bundled kibi-swipl-win32-x64 runtime supplies
+  // SWI-Prolog, so a C:\... workspace spawns directly and WSL is not probed.
+  const native = planRuntime(
+    "C:\\Projekty\\kibi",
+    {},
+    {
+      platform: "win32",
+      probe: () => {
+        throw new Error("probe must not run for a drive-letter workspace");
+      },
+    },
+  );
+  assert.deepEqual(native, { mode: "direct", workspace: "C:\\Projekty\\kibi" });
+});
+
+test("planRuntime honors KIBI_FORCE_WSL for drive-letter workspaces and KIBI_FORCE_DIRECT for UNC", () => {
+  const forcedWsl = planRuntime(
+    "C:\\work\\x",
+    { KIBI_FORCE_WSL: "1" },
+    {
+      platform: "win32",
+      probe: () => ({ nodeWslPath: "/usr/bin/node", major: 24 }),
+      toWslPath: () => "/mnt/c/work/x",
+    },
+  );
+  assert.equal(forcedWsl.mode, "wsl");
+  assert.equal(forcedWsl.wslCwd, "/mnt/c/work/x");
+  assert.equal(forcedWsl.distro, null);
+  const forcedDirect = planRuntime(
+    "\\\\wsl.localhost\\Ubuntu-22.04\\home\\looted\\kibi",
+    { KIBI_FORCE_DIRECT: "1" },
+    {
+      platform: "win32",
+      probe: () => {
+        throw new Error("probe must not run when KIBI_FORCE_DIRECT=1");
+      },
+    },
+  );
+  assert.deepEqual(forcedDirect, {
+    mode: "direct",
+    workspace: "\\\\wsl.localhost\\Ubuntu-22.04\\home\\looted\\kibi",
+  });
+});
+
+test("planRuntime falls back to a direct spawn off Windows, for UNC without qualifying WSL, or when forced", () => {
   assert.deepEqual(planRuntime("/home/looted/projects/kibi", {}), {
     mode: "direct",
     workspace: "/home/looted/projects/kibi",
   });
-  const noWsl = planRuntime(
-    "C:\\work\\x",
+  const uncNoWsl = planRuntime(
+    "\\\\wsl.localhost\\Ubuntu-22.04\\home\\looted\\kibi",
     {},
     {
       platform: "win32",
       probe: () => null,
     },
   );
-  assert.equal(noWsl.mode, "direct");
+  // Windows reads \\wsl.localhost UNC paths natively, so direct spawn works.
+  assert.deepEqual(uncNoWsl, {
+    mode: "direct",
+    workspace: "\\\\wsl.localhost\\Ubuntu-22.04\\home\\looted\\kibi",
+  });
   const forced = planRuntime(
     "C:\\work\\x",
     { KIBI_FORCE_DIRECT: "1" },
