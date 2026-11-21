@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e0fcb5e4dea
+  - type: executable_for
+    from: SYM-test-prolog-win32-repack-contract
+    to: TEST-prolog-win32-repack-contract
+    created_at: 2026-11-20T11:45:04.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72b122f70d9d

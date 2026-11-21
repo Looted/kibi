@@ -9,9 +9,9 @@ Kibi is meant to be run by your agent, not by hand, so the recommended setup is 
 
 ## 1. Check the prerequisites
 
-Kibi runs on **Node.js 22+**, and its deterministic checks run on SWI-Prolog. SWI-Prolog ships with Kibi as a per-platform npm package, so on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install; the setup brings it along.
+Kibi runs on **Node.js 22+**, and its deterministic checks run on SWI-Prolog. SWI-Prolog ships with Kibi as a per-platform npm package, so on Linux (x64 or arm64, glibc 2.28+), macOS (Apple silicon or Intel) and Windows x64 there is nothing else to install; the setup brings it along.
 
-On other platforms, such as Alpine (musl) or native Windows, install **SWI-Prolog 9.0+** yourself and make sure `swipl` is on your `PATH` (on Windows, running Kibi inside WSL uses the bundled build). Platform instructions, the `KIBI_SWIPL` override, and what to do if an install skipped the bundled runtime are in the [installation guide](install.md).
+On other platforms, such as Alpine (musl) or native Windows arm64, install **SWI-Prolog 9.0+** yourself and make sure `swipl` is on your `PATH` (on Windows, running Kibi inside WSL uses the bundled build). Platform instructions, the `KIBI_SWIPL` override, and what to do if an install skipped the bundled runtime are in the [installation guide](install.md).
 
 ## 2. Paste the setup prompt into your agent (recommended)
 

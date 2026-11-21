@@ -342,6 +342,7 @@
         "kibi-swipl-darwin-x64": "1.0.2",
         "kibi-swipl-linux-arm64-gnu": "1.0.2",
         "kibi-swipl-linux-x64-gnu": "1.0.2",
+        "kibi-swipl-win32-x64": "1.0.2",
       },
     },
     "packages/swipl-darwin-arm64": {
@@ -358,6 +359,10 @@
     },
     "packages/swipl-linux-x64-gnu": {
       "name": "kibi-swipl-linux-x64-gnu",
+      "version": "1.0.2",
+    },
+    "packages/swipl-win32-x64": {
+      "name": "kibi-swipl-win32-x64",
       "version": "1.0.2",
     },
     "packages/vscode": {
@@ -1277,6 +1282,8 @@
     "kibi-swipl-linux-arm64-gnu": ["kibi-swipl-linux-arm64-gnu@workspace:packages/swipl-linux-arm64-gnu"],
 
     "kibi-swipl-linux-x64-gnu": ["kibi-swipl-linux-x64-gnu@workspace:packages/swipl-linux-x64-gnu"],
+
+    "kibi-swipl-win32-x64": ["kibi-swipl-win32-x64@workspace:packages/swipl-win32-x64"],
 
     "kibi-vscode": ["kibi-vscode@workspace:packages/vscode"],
 
