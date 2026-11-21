@@ -3640,6 +3640,9 @@ function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
 
 `);
 }
+function noEditPaths() {
+  return [];
+}
 function shellFirmNotice(workspaceRoot, stateDir, input, env) {
   const base = input.cwd ?? workspaceRoot;
   const targets = shellToolEditPaths(input.toolName, input.toolInput, base).map((rawPath) => canonicalizeWorkspacePath2(workspaceRoot, {
@@ -3802,7 +3805,7 @@ async function runHook(rawInput, environment = {}) {
         const shellEdits = shellToolEditPaths(input.toolName, input.toolInput, input.cwd ?? workspace.root);
         if (isMutatingTool(input.toolName) || shellEdits.length > 0) {
           const dirtyPaths = [
-            ...isMutatingTool(input.toolName) ? extractMutatedWorkspacePaths(workspace.root, input.cwd, input.toolInput) : [],
+            ...isMutatingTool(input.toolName) ? extractMutatedWorkspacePaths(workspace.root, input.cwd, input.toolInput) : noEditPaths(),
             ...shellEdits.map((absolute) => canonicalizeWorkspacePath2(workspace.root, {
               eventCwd: input.cwd,
               rawPath: absolute

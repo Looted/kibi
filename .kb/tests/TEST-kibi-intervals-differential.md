@@ -21,17 +21,17 @@ id: TEST-kibi-intervals-differential
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-da99a121a2f816986f3fc209
+    receipt_id: PR-1c119d5ecaf8fe3924502c19
     test_id: TEST-kibi-intervals-differential
     scope: end_to_end
     outcome: passed
-    code_snapshot: fd533bf19c861ad8ac8efb75758e48e7ddd616896e097e02d5eeb8945729f8b3
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-24T23:26:16.751Z'
-    finished_at: '2026-10-24T23:26:41.371Z'
-    artifact_digest: fe2ad340923a9ce7315a474ff0ffa4286f6e0579931f305ea9269cfb712f92b6
+    code_snapshot: 561c68c3ec052473f270f67b3064af614c07e4cab16017ad8c252515bdd92d33
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-21T18:53:22.151Z'
+    finished_at: '2026-11-21T18:53:42.971Z'
+    artifact_digest: f7ec7a5d8c223e3dfb4d7cea8935bef83830b7c5638c7f5edcc7a83bf0602697
     contract_hash: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
-    binding_hash: ecd94a297f1be0ca354d1a74cb0126178ca7a274846eb5d429623acc62e2e3f6
+    binding_hash: c86f1cfac45457824ad3b21d0a99ad2e043c2a9f86c996a45dda745d11816303
     fingerprint: a44bf9394d3fc74dca24bcf644a0d2c407f60e59b386cf830ba57304deba315b
     fingerprint_components:
       contract: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
@@ -53,45 +53,6 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
-    kind: e2e
-    evidence_level: tested
-  - version: kibi.proof-receipt.v2
-    receipt_id: PR-faf8d750063708b1ba4e7107
-    test_id: TEST-kibi-intervals-differential
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 7419ad5232bdbe1da8fca26f74b4b9ead24f00ba6d0d7de0f96f555646c2e065
-    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-20T21:09:11.644Z'
-    finished_at: '2026-11-20T21:19:43.232Z'
-    artifact_digest: 0a97cdf02778422e06bf9c7a319cca99d81a7e78c8ccff6fb147484c3137f818
-    contract_hash: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
-    binding_hash: c86f1cfac45457824ad3b21d0a99ad2e043c2a9f86c996a45dda745d11816303
-    fingerprint: a44bf9394d3fc74dca24bcf644a0d2c407f60e59b386cf830ba57304deba315b
-    fingerprint_components:
-      contract: 573178247a42769c217ab8a931f579adf5d5a3c357ef90ec485f68aa04dbc7a1
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-test-intervals-differential
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-test-intervals-differential
-        target: default
-        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-mcp-cli-operation-parity (failed), SYM-e2e-packed-prolog-source-readers (failed), SYM-e2e-test-mcp-kb-freshness (failed)'
     kind: e2e
     evidence_level: tested
 ---

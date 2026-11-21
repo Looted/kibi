@@ -46,6 +46,38 @@ function buildPackage(): void {
   buildZcodePackageOnce(packageRoot);
 }
 
+function trackedPackageFiles(root: string): string[] {
+  try {
+    const files = execSync(
+      "git ls-files --cached --others --exclude-standard -z",
+      { cwd: root },
+    )
+      .toString("utf8")
+      .split("\0")
+      .filter((relative) => relative.length > 0);
+    if (files.length > 0) return files;
+  } catch {
+    // Not a git repository.
+  }
+  // Stryker's mutation sandbox copies the tree without .git (and links
+  // node_modules as a socket); walk the package, skip the build output
+  // (gitignored dist/, node_modules/) and copy regular files only, so the
+  // copy still models what a marketplace install receives.
+  const files: string[] = [];
+  const walk = (rel: string) => {
+    for (const entry of fs.readdirSync(path.join(root, rel), {
+      withFileTypes: true,
+    })) {
+      const child = rel ? `${rel}/${entry.name}` : entry.name;
+      if (child === "dist" || child === "node_modules") continue;
+      if (entry.isDirectory()) walk(child);
+      else if (entry.isFile()) files.push(child);
+    }
+  };
+  walk("");
+  return files;
+}
+
 function copyInstalledPlugin(): string {
   // A ZCode marketplace install from a Git source copies the repository's
   // tracked files and never runs a build, so the copy model is the tracked
@@ -56,12 +88,7 @@ function copyInstalledPlugin(): string {
   tempRoots.push(installRoot);
   const installedRoot = path.join(installRoot, "kibi-zcode");
   fs.mkdirSync(installedRoot, { recursive: true });
-  const tracked = execSync("git ls-files --cached --others --exclude-standard -z", {
-    cwd: packageRoot,
-  })
-    .toString("utf8")
-    .split("\0")
-    .filter((relative) => relative.length > 0);
+  const tracked = trackedPackageFiles(packageRoot);
   expect(tracked.length).toBeGreaterThan(0);
   for (const relative of tracked) {
     const target = path.join(installedRoot, relative);
