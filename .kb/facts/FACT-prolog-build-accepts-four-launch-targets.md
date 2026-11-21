@@ -1,6 +1,6 @@
 ---
 title: Accepts Four Launch Targets = true
-status: active
+status: closed
 text_ref: scripts/swipl-spike.py
 tags:
   - strict-modeling
@@ -27,3 +27,4 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+Superseded by FACT-prolog-build-accepts-five-launch-targets: win32-x64 was added as a fifth launch target (repackaged from the pinned upstream installer), so the accepted set is no longer four.

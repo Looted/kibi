@@ -141,6 +141,15 @@ export const PACKAGE_CATALOG = [
     packAll: false,
   },
   {
+    dir: "swipl-win32-x64",
+    npmName: "kibi-swipl-win32-x64",
+    publishable: true,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: false,
+  },
+  {
     dir: "swipl",
     npmName: "kibi-swipl",
     publishable: true,

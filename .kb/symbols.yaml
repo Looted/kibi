@@ -20870,10 +20870,12 @@ symbols:
     sourceFile: scripts/swipl-spike.py
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-prolog-build-workflow-targets
       - type: covered_by
         target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-workflow-targets
+      - type: implements
+        target: REQ-prolog-build-workflow-targets-v2
   - id: SYM-prolog-build-check-native-architecture
     title: check_native_architecture
     status: active
@@ -21000,10 +21002,12 @@ symbols:
     sourceFile: scripts/swipl-spike.py
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-prolog-build-workflow-targets
       - type: covered_by
         target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-workflow-targets
+      - type: implements
+        target: REQ-prolog-build-workflow-targets-v2
   - id: SYM-test-prolog-bundled-runtime
     title: Resolver lookup-order and error-text suite
     status: active
@@ -47514,6 +47518,32 @@ symbols:
         target: TEST-skillopt-reference-answers-score-100
       - type: implements
         target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-prolog-win32-repack-build-archive
+    title: swipl-windows-repack.py
+    status: active
+    sourceFile: scripts/swipl-windows-repack.py
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T11:44:59.809Z
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-win32-repack-contract
+      - type: implements
+        target: REQ-prolog-win32-prebuilt-provenance
+  - id: SYM-test-prolog-win32-repack-contract
+    title: swipl-windows-repack contract tests
+    status: active
+    sourceFile: scripts/tests/swipl-windows-repack.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T11:45:03.253Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-win32-repack-contract
   - id: SYM-test-cli-prove-narrowed-run-evidence
     title: proof ingest operation suite
     status: active

@@ -1,6 +1,6 @@
 ---
 title: SWI-Prolog build workflow covers the four launch targets and builds natively only on clean GitHub Actions runners
-status: open
+status: closed
 semantic_text: The SWI-Prolog build pipeline configuration must accept linux-x64-gnu, linux-arm64-gnu, darwin-arm64, and darwin-x64. The SWI-Prolog build workflow must declare separate build and clean-consumer smoke jobs for each of the four launch targets. The SWI-Prolog build workflow must trigger on pin, build-script, patch, or workflow changes and manual dispatch. The SWI-Prolog build command must refuse native compilation outside GitHub Actions.
 semantic_clauses:
   - The SWI-Prolog build pipeline configuration must accept linux-x64-gnu, linux-arm64-gnu, darwin-arm64, and darwin-x64
@@ -65,18 +65,5 @@ tags:
 id: REQ-prolog-build-workflow-targets
 type: req
 ---
-The SWI-Prolog build pipeline configuration must accept linux-x64-gnu, linux-arm64-gnu, darwin-arm64, and darwin-x64. The SWI-Prolog build workflow must declare separate build and clean-consumer smoke jobs for each of the four launch targets. The SWI-Prolog build workflow must trigger on pin, build-script, patch, or workflow changes and manual dispatch. The SWI-Prolog build command must refuse native compilation outside GitHub Actions.
-
 ## Context
-
-Each launch target gets its own build and smoke job, and native compilation is refused on a developer machine so a published runtime always comes from the pinned, reproducible workflow.
-
-Kibi ships prebuilt SWI-Prolog runtimes, so every published artifact must come from a pinned build on a clean runner, carry provenance that is checked, and pass a smoke run as a consumer would install it.
-
-## Why this changed
-
-Split from REQ-prolog-build-pipeline-validation, which held three behaviors: which targets the build workflow covers and where native builds may run, how a built artifact's provenance and contents are verified, and how the clean consumer smoke runs the artifact. Each child is one of them, and only the functions that decide each behavior keep their implements links.
-
-## Source
-
-> Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"
+Superseded by REQ-prolog-build-workflow-targets-v2: win32-x64 was added as a fifth launch target (repackaged from the pinned upstream installer). Reason: operator-approved plan for kibi-swipl-win32-x64 (2026-11-20).

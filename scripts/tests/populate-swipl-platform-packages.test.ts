@@ -577,12 +577,13 @@ archive.with_name(archive.name + '.sha256').write_text(hashlib.sha256(archive.re
 });
 
 describe("platformTargets", () => {
-  test("derives the four launch targets from the packages directory", () => {
+  test("derives the five launch targets from the packages directory", () => {
     expect(platformTargets(path.join(ROOT, "packages"))).toEqual([
       "darwin-arm64",
       "darwin-x64",
       "linux-arm64-gnu",
       "linux-x64-gnu",
+      "win32-x64",
     ]);
   });
 });

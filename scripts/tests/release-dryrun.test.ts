@@ -264,6 +264,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
 
       for (const pkg of decision.packages) {
@@ -319,6 +320,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
 
@@ -565,6 +567,7 @@ Expected action: NOOP
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
@@ -603,6 +606,7 @@ Expected action: NOOP
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
 
       // --- None of the returned packages are already published ---
@@ -648,6 +652,7 @@ Summary:
         "swipl-linux-arm64-gnu",
         "swipl-darwin-arm64",
         "swipl-darwin-x64",
+        "swipl-win32-x64",
         "swipl",
         "lang-go",
         "lang-rust",
@@ -701,6 +706,7 @@ Summary:
         "swipl-darwin-x64",
         "swipl-linux-arm64-gnu",
         "swipl-linux-x64-gnu",
+        "swipl-win32-x64",
       ]);
     });
   });

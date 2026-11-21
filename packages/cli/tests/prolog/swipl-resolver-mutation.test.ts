@@ -503,13 +503,13 @@ describe("not found guidance", () => {
     const error = caught(() =>
       resolveSwiplWith(
         { KIBI_SWIPL: "system" },
-        deps({ platform: "win32", glibc: undefined }),
+        deps({ platform: "win32", arch: "arm64", glibc: undefined }),
       ),
     );
     expect([error.message, error.packageName]).toStrictEqual([
       [
         "Kibi could not find a usable SWI-Prolog (9.0 or newer is required).",
-        "Detected platform: win32-x64.",
+        "Detected platform: win32-arm64.",
         "Bundled SWI-Prolog: skipped because KIBI_SWIPL=system.",
         "System SWI-Prolog: swipl was not found on PATH.",
         "  Install it with: download the installer from https://www.swi-prolog.org/download/stable and add swipl to PATH",
@@ -525,7 +525,7 @@ describe("not found guidance", () => {
       [
         "Kibi could not find a usable SWI-Prolog (9.0 or newer is required).",
         "Detected platform: linux-x64 (musl).",
-        "Bundled SWI-Prolog: no bundled build exists for linux-x64 (musl) (supported: linux-x64-gnu, linux-arm64-gnu, darwin-arm64, darwin-x64).",
+        "Bundled SWI-Prolog: no bundled build exists for linux-x64 (musl) (supported: linux-x64-gnu, linux-arm64-gnu, darwin-arm64, darwin-x64, win32-x64).",
         "System SWI-Prolog: swipl was not found on PATH.",
         `  Install it with: ${LINUX_INSTALL}`,
         SET_ENV,
