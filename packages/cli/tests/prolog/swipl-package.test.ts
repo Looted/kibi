@@ -42,6 +42,7 @@ describe("kibi-swipl platform table", () => {
       "darwin-arm64",
     );
     expect(platformKey({ platform: "darwin", arch: "x64" })).toBe("darwin-x64");
+    expect(platformKey({ platform: "win32", arch: "x64" })).toBe("win32-x64");
     expect(
       Object.values(PLATFORM_PACKAGES).map((entry) => entry.package),
     ).toEqual([
@@ -49,10 +50,11 @@ describe("kibi-swipl platform table", () => {
       "kibi-swipl-linux-arm64-gnu",
       "kibi-swipl-darwin-arm64",
       "kibi-swipl-darwin-x64",
+      "kibi-swipl-win32-x64",
     ]);
   });
 
-  test("has no bundle for musl, unknown libc, Windows, or other architectures", () => {
+  test("has no bundle for musl, unknown libc, Windows arm64, or other architectures", () => {
     expect(
       platformKey({ platform: "linux", arch: "x64", glibc: false }),
     ).toBeUndefined();
@@ -60,7 +62,7 @@ describe("kibi-swipl platform table", () => {
     expect(
       platformKey({ platform: "linux", arch: "ia32", glibc: true }),
     ).toBeUndefined();
-    expect(platformKey({ platform: "win32", arch: "x64" })).toBeUndefined();
+    expect(platformKey({ platform: "win32", arch: "arm64" })).toBeUndefined();
     expect(platformKey({ platform: "darwin", arch: "ppc" })).toBeUndefined();
   });
 });

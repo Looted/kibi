@@ -30,6 +30,7 @@ describe("canonical package catalog", () => {
       "swipl-linux-arm64-gnu",
       "swipl-darwin-arm64",
       "swipl-darwin-x64",
+      "swipl-win32-x64",
       "swipl",
       "lang-go",
       "lang-rust",
@@ -64,6 +65,7 @@ describe("canonical package catalog", () => {
       "kibi-swipl-linux-arm64-gnu",
       "kibi-swipl-darwin-arm64",
       "kibi-swipl-darwin-x64",
+      "kibi-swipl-win32-x64",
     ]);
     for (const { dir } of platform) {
       // Release packing (publishable) and cleanup include them; every slice

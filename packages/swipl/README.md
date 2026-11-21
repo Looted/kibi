@@ -14,9 +14,12 @@ machine:
 | Linux arm64 (glibc) | `kibi-swipl-linux-arm64-gnu` |
 | macOS arm64 | `kibi-swipl-darwin-arm64` |
 | macOS x64 | `kibi-swipl-darwin-x64` |
+| Windows x64 | `kibi-swipl-win32-x64` |
 
-Alpine (musl) and native Windows have no bundle; install SWI-Prolog 9.0+ and put
-`swipl` on `PATH`, or point `KIBI_SWIPL` at it.
+Alpine (musl) and Windows arm64 have no bundle; install SWI-Prolog 9.0+ and put
+`swipl` on `PATH`, or point `KIBI_SWIPL` at it. The win32 package repackages the
+upstream installer with its tree nested under `lib/swipl`, so the bundled
+executable is `lib/swipl/bin/swipl.exe` and the SWI home is `lib/swipl`.
 
 Kibi resolves SWI-Prolog in this order: `KIBI_SWIPL=<absolute path>`, the bundled
 platform package (after checking its manifest and binary checksum), then `swipl`
