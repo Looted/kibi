@@ -10,6 +10,10 @@ const TARGETS = [
   "darwin-arm64",
   "darwin-x64",
 ] as const;
+// The win32 target is repackaged from the pinned upstream installer by
+// scripts/swipl-windows-repack.py, not source-built, but it has the same
+// build + clean-consumer job shape in the workflow.
+const ALL_TARGETS = [...TARGETS, "win32-x64"] as const;
 
 // These controls exercise real archives and validation boundaries. The small
 // binary headers and tool responses deliberately do not claim native execution.
@@ -523,12 +527,12 @@ function pipelineJobs(workflow: PipelineWorkflow, command: string) {
 }
 
 describe("SWI build pipeline workflow contract", () => {
-  test("builds and independently consumes exactly the four launch targets", () => {
+  test("builds and independently consumes exactly the five launch targets", () => {
     const workflow = pipelineWorkflow();
     for (const command of ["build-archive", "smoke-archive"]) {
       const jobs = pipelineJobs(workflow, command);
       const rows = jobs.flatMap(([, job]) => job.strategy.matrix.include);
-      expect(rows.map((row) => row.target).sort()).toEqual([...TARGETS].sort());
+      expect(rows.map((row) => row.target).sort()).toEqual([...ALL_TARGETS].sort());
       for (const [, job] of jobs) {
         for (const row of job.strategy.matrix.include) {
           const runner = matrixValue(job["runs-on"], row);
@@ -546,6 +550,10 @@ describe("SWI build pipeline workflow contract", () => {
           if (row.target === "darwin-x64")
             expect(runner).toBe("macos-15-intel");
           if (row.target === "darwin-arm64") expect(runner).toBe("macos-15");
+          if (row.target === "win32-x64") {
+            expect(runner).toBe("windows-2025");
+            expect(job.container).toBeUndefined();
+          }
         }
       }
     }

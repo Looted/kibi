@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21910c613bc7
+  - type: implements
+    from: SYM-prolog-win32-repack-build-archive
+    to: REQ-prolog-win32-prebuilt-provenance
+    created_at: 2026-11-20T11:45:00.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87cadfa86a43
+  - type: covered_by
+    from: SYM-prolog-win32-repack-build-archive
+    to: TEST-prolog-win32-repack-contract
+    created_at: 2026-11-20T11:54:04.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44e24903c0a

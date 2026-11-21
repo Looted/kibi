@@ -41,6 +41,8 @@ jobs:
             runner: ubuntu-24.04-arm
           - target: darwin-x64
             runner: macos-15-intel
+          - target: win32-x64
+            runner: windows-2025
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
@@ -51,16 +53,25 @@ jobs:
       - name: Require no SWI-Prolog before the run
         shell: bash
         run: |
-          if command -v swipl; then
+          if command -v swipl swipl.exe; then
             echo "swipl is on PATH; this job proves nothing with a system SWI-Prolog"
             exit 1
           fi
-          for candidate in /usr/bin/swipl /usr/local/bin/swipl /opt/homebrew/bin/swipl /usr/lib/swi-prolog /usr/lib/swipl; do
-            if [ -e "$candidate" ]; then
-              echo "found SWI-Prolog at $candidate"
-              exit 1
-            fi
-          done
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            for candidate in "/c/Program Files/swipl" "/c/Program Files/SWI-Prolog"; do
+              if [ -e "$candidate" ]; then
+                echo "found SWI-Prolog at $candidate"
+                exit 1
+              fi
+            done
+          else
+            for candidate in /usr/bin/swipl /usr/local/bin/swipl /opt/homebrew/bin/swipl /usr/lib/swi-prolog /usr/lib/swipl; do
+              if [ -e "$candidate" ]; then
+                echo "found SWI-Prolog at $candidate"
+                exit 1
+              fi
+            done
+          fi
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -84,6 +95,7 @@ jobs:
         run: |
           ls -l packages/swipl-${{ matrix.target }}/kibi-swipl-${{ matrix.target }}-*.tgz
       - name: Run the bundled runtime e2e
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
@@ -94,11 +106,21 @@ jobs:
           KIBI_PACKED_REQUIRE_BUNDLED_SWIPL: "1"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 20
+      # The packed-e2e harness spawns npm without a shell, which fails on
+      # Windows runners; system-swipl-smoke drives npm through the shell and
+      # asserts the bundled runtime is the one Kibi resolves.
+      - name: Run the bundled runtime smoke on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: node scripts/system-swipl-smoke.mjs --tarballs packages --require-bundled
+        env:
+          KIBI_TELEMETRY: "0"
+        timeout-minutes: 20
       - name: Require no SWI-Prolog after the run
         if: always()
         shell: bash
         run: |
-          if command -v swipl; then
+          if command -v swipl swipl.exe; then
             echo "swipl appeared on PATH during the run"
             exit 1
           fi
@@ -121,6 +143,8 @@ jobs:
             runner: macos-15
           - target: darwin-x64
             runner: macos-15-intel
+          - target: win32-x64
+            runner: windows-2025
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
@@ -131,16 +155,25 @@ jobs:
       - name: Require no SWI-Prolog before the run
         shell: bash
         run: |
-          if command -v swipl; then
+          if command -v swipl swipl.exe; then
             echo "swipl is on PATH; this job proves nothing with a system SWI-Prolog"
             exit 1
           fi
-          for candidate in /usr/bin/swipl /usr/local/bin/swipl /opt/homebrew/bin/swipl /usr/lib/swi-prolog /usr/lib/swipl; do
-            if [ -e "$candidate" ]; then
-              echo "found SWI-Prolog at $candidate"
-              exit 1
-            fi
-          done
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            for candidate in "/c/Program Files/swipl" "/c/Program Files/SWI-Prolog"; do
+              if [ -e "$candidate" ]; then
+                echo "found SWI-Prolog at $candidate"
+                exit 1
+              fi
+            done
+          else
+            for candidate in /usr/bin/swipl /usr/local/bin/swipl /opt/homebrew/bin/swipl /usr/lib/swi-prolog /usr/lib/swipl; do
+              if [ -e "$candidate" ]; then
+                echo "found SWI-Prolog at $candidate"
+                exit 1
+              fi
+            done
+          fi
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -151,14 +184,23 @@ jobs:
           name: ${{ inputs.tarballs-artifact }}
           path: packages
       - name: Follow the README quick start with the packed tarballs
+        if: runner.os != 'Windows'
         shell: bash
         run: node scripts/simulate-readme-quickstart.mjs --tarballs packages
+        timeout-minutes: 20
+      # Same reason as the smoke job: no shell-less npm spawn on Windows.
+      - name: Smoke the packed tarballs on Windows (quick-start equivalent)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: node scripts/system-swipl-smoke.mjs --tarballs packages --require-bundled
+        env:
+          KIBI_TELEMETRY: "0"
         timeout-minutes: 20
       - name: Require no SWI-Prolog after the run
         if: always()
         shell: bash
         run: |
-          if command -v swipl; then
+          if command -v swipl swipl.exe; then
             echo "swipl appeared on PATH during the run"
             exit 1
           fi

@@ -92,3 +92,4 @@ artifacts/skillopt/
 proof/lean/.lake/
 proof/lean/axioms.txt
 .kb/symbol-coordinates.yaml
+scripts/__pycache__/
