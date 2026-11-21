@@ -46876,7 +46876,7 @@ symbols:
       - type: implements
         target: REQ-vibe-skills-mirror
   - id: SYM-vibe-kibi-runtime
-    title: Vibe launcher runtime planner (kibi-runtime.mjs)
+    title: kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)
     status: active
     sourceFile: packages/vibe/bin/kibi-runtime.mjs
     symbol_role: config
@@ -47107,6 +47107,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-launcher-win32-workspace-routing
       - type: implements
         target: REQ-vibe-mcp-launcher-contract
   - id: SYM-vibe-runKibi

@@ -398,3 +398,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de796899f99
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-launcher-win32-workspace-routing
+    created_at: 2026-11-21T18:29:21.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbaa9b51ef67
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-drive-letter-native
+    created_at: 2026-11-21T18:29:21.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57014dccb66
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-unc-named-distro
+    created_at: 2026-11-21T18:29:21.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ac1a9b843a
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-wsl
+    created_at: 2026-11-21T18:29:21.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-538e260000e3
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-direct
+    created_at: 2026-11-21T18:29:21.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bc0cee9372b
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    created_at: 2026-11-21T18:29:21.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a5fd1a7d56
