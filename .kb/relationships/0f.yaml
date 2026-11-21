@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-487d1eff1a50
+  - type: implements
+    from: SYM-vibe-planRuntime
+    to: REQ-vibe-launcher-win32-workspace-routing
+    created_at: 2026-11-21T18:59:20.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6895197880

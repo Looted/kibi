@@ -45,8 +45,9 @@ const MCP_TOOLS_FIXTURE = join(
   "contracts",
   "tools-list.base.json",
 );
-const EXPECTED_KB_TOOLS = JSON.parse(readFileSync(MCP_TOOLS_FIXTURE, "utf8"))
-  .tools.map((tool) => tool.name);
+const EXPECTED_KB_TOOLS = JSON.parse(
+  readFileSync(MCP_TOOLS_FIXTURE, "utf8"),
+).tools.map((tool) => tool.name);
 
 function rpcSpawn(args, cwd) {
   return spawn(process.execPath, args, {
@@ -198,7 +199,8 @@ test(
   async () => {
     const result = await handshake(LAUNCHER, REPO_ROOT);
     assert.ok(
-      Array.isArray(result.tools) && result.tools.length === EXPECTED_KB_TOOLS.length,
+      Array.isArray(result.tools) &&
+        result.tools.length === EXPECTED_KB_TOOLS.length,
     );
   },
 );
