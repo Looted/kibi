@@ -186,13 +186,20 @@ function startMcp(command, args, { cwd, env, timeoutMs }) {
 }
 
 /** Runs the whole smoke; returns the steps it completed. */
-async function smoke({ packagesDir }) {
+async function smoke({ packagesDir, requireBundled = false }) {
   const env = { ...process.env };
   env.KIBI_SWIPL = undefined;
-  assert(
-    swiplOnPath(env) !== undefined,
-    "no swipl on PATH; install SWI-Prolog first",
-  );
+  if (requireBundled) {
+    assert(
+      swiplOnPath(env) === undefined,
+      "a system swipl is on PATH; the bundled runtime must be used instead",
+    );
+  } else {
+    assert(
+      swiplOnPath(env) !== undefined,
+      "no swipl on PATH; install SWI-Prolog first",
+    );
+  }
   const tarballs = packedTarballs(packagesDir);
   for (const name of DIRECT) {
     assert(name in tarballs, `no ${name} tarball under ${packagesDir}`);
@@ -249,9 +256,10 @@ async function smoke({ packagesDir }) {
       `doctor SWI-Prolog check: ${check?.message}`,
     );
     if (process.platform === "win32") {
+      const expected = requireBundled ? "bundled" : "path";
       assert(
-        check.details?.source === "path",
-        `doctor reported ${check.details?.source}, expected the swipl on PATH`,
+        check.details?.source === expected,
+        `doctor reported ${check.details?.source}, expected ${expected}`,
       );
     }
     completed.push(
@@ -335,23 +343,25 @@ async function smoke({ packagesDir }) {
 
 function parseArgs(argv) {
   let packagesDir;
+  let requireBundled = false;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--tarballs") packagesDir = argv[++index];
+    else if (argv[index] === "--require-bundled") requireBundled = true;
     else throw new Error(`unknown argument: ${argv[index]}`);
   }
   if (!packagesDir) {
     throw new Error("usage: system-swipl-smoke.mjs --tarballs <packages dir>");
   }
-  return { packagesDir };
+  return { packagesDir, requireBundled };
 }
 
 /** Command-line entry: resolves to the process exit code. */
 async function main(argv) {
   try {
-    const { packagesDir } = parseArgs(argv);
-    const completed = await smoke({ packagesDir: path.resolve(packagesDir) });
+    const { packagesDir, requireBundled } = parseArgs(argv);
+    const completed = await smoke({ packagesDir: path.resolve(packagesDir), requireBundled });
     const summary = [
-      `Kibi ran on the system SWI-Prolog on ${process.platform}-${process.arch} (packed tarballs):`,
+      `Kibi ran on the ${requireBundled ? "bundled" : "system"} SWI-Prolog on ${process.platform}-${process.arch} (packed tarballs):`,
       ...completed.map((step) => `- ${step}`),
     ].join("\n");
     console.log(`\n${summary}`);

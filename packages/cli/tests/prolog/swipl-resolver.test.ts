@@ -500,12 +500,20 @@ describe("resolveSwipl failure text", () => {
     expect(error.packageName).toBe("kibi-swipl-linux-arm64-gnu");
   });
 
+  test("uses the Windows x64 package", () => {
+    const error = failureFor(
+      makeDeps({ platform: "win32", arch: "x64", glibc: undefined }),
+      { PATH: "" },
+    );
+    expect(error.packageName).toBe("kibi-swipl-win32-x64");
+  });
+
   test.each<[string, Partial<SwiplResolverDeps>, string, string]>([
     ["musl Linux", { glibc: false }, "linux-x64 (musl)", LINUX_INSTALL],
     [
-      "native Windows",
-      { platform: "win32", glibc: undefined },
-      "win32-x64",
+      "Windows arm64",
+      { platform: "win32", arch: "arm64", glibc: undefined },
+      "win32-arm64",
       "download the installer from https://www.swi-prolog.org/download/stable and add swipl to PATH",
     ],
     [
@@ -519,7 +527,7 @@ describe("resolveSwipl failure text", () => {
     expect(error.platform).toBe(platformText);
     expect(error.packageName).toBeUndefined();
     expect(error.message).toContain(
-      `Bundled SWI-Prolog: no bundled build exists for ${platformText} (supported: linux-x64-gnu, linux-arm64-gnu, darwin-arm64, darwin-x64).`,
+      `Bundled SWI-Prolog: no bundled build exists for ${platformText} (supported: linux-x64-gnu, linux-arm64-gnu, darwin-arm64, darwin-x64, win32-x64).`,
     );
     expect(error.message).not.toContain("npm install --save-dev kibi-swipl-");
     expect(error.message).toContain(`  Install it with: ${command}`);

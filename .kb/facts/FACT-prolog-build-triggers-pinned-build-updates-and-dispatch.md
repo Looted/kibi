@@ -1,5 +1,5 @@
 ---
-title: Triggers Pinned Build Updates And Dispatch = true
+title: The build workflow triggers on pin, build-script, patch, or workflow changes and manual dispatch
 status: active
 text_ref: scripts/swipl-spike.py
 tags:
@@ -11,7 +11,7 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.prolog.build_pipeline_validation
-property_key: triggers_pinned_build_updates_and_dispatch
+property_key: triggers_on_pins_scripts_patches_workflow_and_dispatch
 canonical_key: scripts-swipl-spike-py:kibi.prolog.build_pipeline_validation:triggers_pinned_build_updates_and_dispatch:eq:true
 operator: eq
 value_type: bool
@@ -27,3 +27,4 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+The workflow triggers on changes to the pins, build scripts, patches, the workflow file, the repack script and its test, plus manual dispatch.

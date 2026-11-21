@@ -375,7 +375,7 @@ describe("kibi-swipl family release invariants", () => {
     const extra = problemsOf(
       familyRoot((manifests) => {
         (manifests.swipl.optionalDependencies as Record<string, string>)[
-          "kibi-swipl-win32-x64"
+          "kibi-swipl-freebsd-x64"
         ] = "1.0.0";
       }),
     );
@@ -448,7 +448,7 @@ describe("kibi-swipl family release invariants", () => {
   test("requiring the payload refuses unpopulated platform packages and accepts none of them", () => {
     // Fixture roots carry package.json only, so no payload exists anywhere.
     const problems = problemsOf(familyRoot(), true);
-    expect(problems).toHaveLength(4);
+    expect(problems).toHaveLength(5);
     for (const problem of problems) {
       expect(problem).toContain("bundled runtime payload");
       expect(problem).toContain("build-manifest.json is missing");

@@ -629,3 +629,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-091ab42574fc
+  - type: assumes
+    from: SCEN-NEG-prolog-build-pipeline-validation-SIX-LAUNCH-TARGETS
+    to: FACT-CASE-prolog-build-pipeline-validation-SIX-LAUNCH-TARGETS
+    created_at: 2026-11-20T12:22:46.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e53251c707a
+  - type: verified_by
+    from: SCEN-NEG-prolog-build-pipeline-validation-SIX-LAUNCH-TARGETS
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-20T12:22:46.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a247a17ee025
