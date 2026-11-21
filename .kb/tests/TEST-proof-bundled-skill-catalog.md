@@ -28,17 +28,17 @@ id: TEST-proof-bundled-skill-catalog
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f3a382607c1ade2ab67097f9
+    receipt_id: PR-b44de32f3673a67ab5f709d5
     test_id: TEST-proof-bundled-skill-catalog
     scope: unit
     outcome: passed
-    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-03T10:50:40.337Z'
-    finished_at: '2026-11-03T10:50:40.533Z'
-    artifact_digest: 5f09296e93a8fcdb724e288fd9849ce4dc2619b461939cdeccb9785032bdd799
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: cf2a6810c9bc560df214ad492a2e00f0285bc94f66fdf18389140e72efd05930
-    binding_hash: 27dd12009914dc7410ef50c0ccd36848b8af8c922023a8cebabf3ee9064f11fb
+    binding_hash: cad7e266ca8540377c04ffd7268f1c3c00c6975f84465464b3e6422e7268214e
     fingerprint: 5c44b09789e7bafbe8b44c6981170230675318d446fe4137897ad59d456bf730
     fingerprint_components:
       contract: cf2a6810c9bc560df214ad492a2e00f0285bc94f66fdf18389140e72efd05930

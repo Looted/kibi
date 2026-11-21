@@ -16,18 +16,18 @@ proof_contract:
 id: TEST-prolog-daemon-runtime-identity
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-fb4310e6f7c599593b711940
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d95d495e4f157779595efee7
     test_id: TEST-prolog-daemon-runtime-identity
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6aa95fb8504e5af798c201ea3d60bd0e42e54d6f1278a633b2698cd6ae0d427d
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T22:01:24.019Z'
-    finished_at: '2026-10-08T22:01:32.684Z'
-    artifact_digest: 8668feb9cf76f06f9c80438200a2bc635d864f05abff8a60b291ea1d3d448874
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: d72c4705059135438b1fc71972d0ba452be3c3c568faaf38e8d7bfbf56fff310
-    binding_hash: 9da88217d905a553b4f5115e953d30835832c7d43adad782d2a59dee96853f5a
+    binding_hash: f41c2568f7a37bb3024481532d6cc97ef226630a595ab50f0afc64ab91a4dc4e
     fingerprint: f7dee56c5f569ced9f4100db75e1bc6585a89a9e8063804985d8fcb39a5639ba
     fingerprint_components:
       contract: d72c4705059135438b1fc71972d0ba452be3c3c568faaf38e8d7bfbf56fff310
@@ -49,6 +49,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'

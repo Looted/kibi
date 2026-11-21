@@ -18,16 +18,16 @@ proof_contract:
 id: TEST-prolog-spike-config-validation
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-bc52613cc4fc37b481661396
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-97567b73d377fc0f358b7058
     test_id: TEST-prolog-spike-config-validation
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 84e9dae49daa35e44fce96b8d4ebe6ed1da1430fd21244d4f268186f4895f6bb
     binding_hash: 90d2dc5aeace2c9d027688538bf823c6de26a4a7865259d042abd8e99d568ac6
     fingerprint: 7342914246bc550addf138e13746707387ea8f0287ce5bd13df5856b11499a5d
@@ -51,6 +51,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

@@ -32,6 +32,24 @@ describe("coverage manifest", () => {
     }
   });
 
+  test("includes the importable vibe bin module when it exists", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
+    try {
+      mkdirSync(join(root, "packages", "vibe", "bin"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "kibi-runtime.mjs"),
+        "",
+      );
+      // Script entrypoints that run on import stay out of the manifest.
+      writeFileSync(join(root, "packages", "vibe", "bin", "kibi.mjs"), "");
+      expect(collectProductionSourceFiles(root)).toEqual([
+        "packages/vibe/bin/kibi-runtime.mjs",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test("writes an auditable list of source files missing from LCOV", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
     const coverageDir = join(root, "coverage");

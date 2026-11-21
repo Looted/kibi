@@ -21,18 +21,18 @@ origin:
 id: TEST-engine-daemon-package-versions
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-896b05237dc4bc7799510003
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-ce35cc8890eb794a17ed038e
     test_id: TEST-engine-daemon-package-versions
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6aa95fb8504e5af798c201ea3d60bd0e42e54d6f1278a633b2698cd6ae0d427d
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T22:01:06.313Z'
-    finished_at: '2026-10-08T22:01:15.048Z'
-    artifact_digest: 5b547d58059cc3e4fde0e5cb96da65f44aed04bd28fbd04389be22982aed2d5c
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 8939d97d7b3458a225bded668ac4ae4ff554722593a2ac0b80289892c48d4e55
-    binding_hash: ca736cbf28bc828280cf182f06592f5ee1646b85d2f0911fd27e5e328247be1a
+    binding_hash: 2591daa5ecf1d49dd08037a35590fbe72a43b613d3aacd3cb9378cead4fd13be
     fingerprint: 5c11d16c14640a3971703ae10611c1b886858a56762bcc81a840e3fc7baf3b03
     fingerprint_components:
       contract: 8939d97d7b3458a225bded668ac4ae4ff554722593a2ac0b80289892c48d4e55
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the engine daemon identity suite against a real daemon: a request with other package versions is refused for every method but handshake and stop, the handshake reports the daemon's versions, and a daemon started with other versions is replaced by a client with the built versions.
