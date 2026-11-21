@@ -169,7 +169,9 @@ describe("publish.yml ships the platform packages", () => {
     const body = steps[verify]?.run ?? "";
     expect(body).toContain("sha256sum -c SHA256SUMS");
     expect(body).toContain("package/build-manifest.json");
-    expect(body).toContain("package/bin/swipl");
+    // The binary path is per target: bin/swipl on POSIX, lib/swipl/bin/swipl.exe on win32.
+    expect(body).toContain("m.binary?.path");
+    expect(body).toContain("package/$binary_path");
   });
 });
 
@@ -245,7 +247,7 @@ describe("the bundled-runtime smoke proves the run with no SWI-Prolog", () => {
   const smoke = workflow("release-smoke.yml");
   const job = smoke.jobs.smoke;
 
-  test("covers Linux x64 and macOS arm64, plus the other two launch targets", () => {
+  test("covers Linux x64 and macOS arm64, plus the other three launch targets", () => {
     const rows = job.strategy?.matrix.include ?? [];
     const runners = Object.fromEntries(
       rows.map((row) => [row.target, row.runner]),
@@ -255,6 +257,7 @@ describe("the bundled-runtime smoke proves the run with no SWI-Prolog", () => {
       "darwin-arm64": "macos-15",
       "linux-arm64-gnu": "ubuntu-24.04-arm",
       "darwin-x64": "macos-15-intel",
+      "win32-x64": "windows-2025",
     });
   });
 
@@ -301,7 +304,7 @@ describe("the README quick start is followed literally on every launch platform"
   const smoke = workflow("release-smoke.yml");
   const job = smoke.jobs["readme-quickstart"];
 
-  test("runs on the same four runners as the bundled-runtime smoke", () => {
+  test("runs on the same five runners as the bundled-runtime smoke", () => {
     const rows = (job?.strategy?.matrix.include ?? []).map((row) => [
       row.target,
       row.runner,
@@ -309,7 +312,7 @@ describe("the README quick start is followed literally on every launch platform"
     const smokeRows = (smoke.jobs.smoke.strategy?.matrix.include ?? []).map(
       (row) => [row.target, row.runner],
     );
-    expect(rows.length).toBe(4);
+    expect(rows.length).toBe(5);
     expect(rows.sort()).toEqual(smokeRows.sort());
   });
 

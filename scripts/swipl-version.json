@@ -37,5 +37,76 @@
         }
       }
     }
-  ]
+  ],
+  "prebuilt": {
+    "win32-x64": {
+      "installer": {
+        "url": "https://www.swi-prolog.org/download/stable/bin/swipl-10.0.2-1.x64.exe",
+        "sha256": "2ec1f25be0eafb92e559004782b130774c12573fb4b7e8a917e534754a641ad6"
+      },
+      "licenseSources": {
+        "gmp": {
+          "url": "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz",
+          "sha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898",
+          "member": "gmp-6.3.0/COPYING.LESSERv3",
+          "name": "gmp-LICENSE.txt"
+        }
+      },
+      "trim": {
+        "dirs": [
+          "$PLUGINSDIR",
+          "app",
+          "cmake",
+          "customize",
+          "demo",
+          "desktop",
+          "doc",
+          "include",
+          "xpce"
+        ],
+        "files": [
+          "README.md",
+          "Uninstall.exe",
+          "swipl-win.rc",
+          "swipl.ico",
+          "swipl.rc",
+          "bin/SDL3.dll",
+          "bin/SDL3_image.dll",
+          "bin/icudata76.dll",
+          "bin/icuuc76.dll",
+          "bin/janus.dll",
+          "bin/jpl.dll",
+          "bin/libcairo-2.dll",
+          "bin/libcairo-gobject-2.dll",
+          "bin/libcairo-script-interpreter-2.dll",
+          "bin/libfontconfig-1.dll",
+          "bin/libfreetype-6.dll",
+          "bin/libfribidi-0.dll",
+          "bin/libgio-2.0-0.dll",
+          "bin/libglib-2.0-0.dll",
+          "bin/libgmodule-2.0-0.dll",
+          "bin/libgobject-2.0-0.dll",
+          "bin/libharfbuzz-0.dll",
+          "bin/libharfbuzz-cairo-0.dll",
+          "bin/libharfbuzz-gobject-0.dll",
+          "bin/libharfbuzz-icu-0.dll",
+          "bin/libharfbuzz-subset-0.dll",
+          "bin/libpango-1.0-0.dll",
+          "bin/libpangocairo-1.0-0.dll",
+          "bin/libpangoft2-1.0-0.dll",
+          "bin/libpangowin32-1.0-0.dll",
+          "bin/libpng16-16.dll",
+          "bin/libswipl.dll.a",
+          "bin/libswipl.lib",
+          "bin/odbc4pl.dll",
+          "bin/pdt_console.dll",
+          "bin/pl2xpce.dll",
+          "bin/swipl-ld.exe",
+          "bin/swipl-win.exe",
+          "bin/tex.dll",
+          "bin/websocket.dll"
+        ]
+      }
+    }
+  }
 }
