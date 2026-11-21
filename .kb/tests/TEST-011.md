@@ -23,20 +23,20 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2412bb3bafb595cf4c866463
+    receipt_id: PR-79772bcaa9a7a7abb359d3d6
     test_id: TEST-011
     scope: end_to_end
     outcome: passed
-    code_snapshot: 287d8b7e21fc5ebfe33742e839feb2dd6ab1c5b91349284c293a90ceeeb17a0c
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T10:17:03.316Z'
-    finished_at: '2026-10-27T10:17:24.257Z'
-    artifact_digest: 7cfe1849278bcd019309a0f6244e25eb89d6f582e9bb50e3414f2efc06272ece
-    contract_hash: 87317508d1ef51f0b901a9c4da2ef0dabb8fa691cd8dd46d8bb233e98823fce8
-    binding_hash: 91c0d5634c6fdf60d592064c4cda7d2d2cd63b3732a21c78830b874af97c60aa
-    fingerprint: 9a90a921700efdcf5b56a1c243f8172112ce6bfd7ea42e13f785dde3273bd9cb
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    contract_hash: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
+    binding_hash: 17f782effd0df2a908477e3037829bf9ccc747402cdfe4bb35a56925785de611
+    fingerprint: 5802a43cc4640a02573b20e676f828c1d5e5aff77b3354c3d78855fbba53e8ae
     fingerprint_components:
-      contract: 87317508d1ef51f0b901a9c4da2ef0dabb8fa691cd8dd46d8bb233e98823fce8
+      contract: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -49,7 +49,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-011
+      - symbol_id: SYM-e2e-cli-workflows
         target: default
         outcome: passed
         binding: aggregate_run

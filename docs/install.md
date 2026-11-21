@@ -766,6 +766,60 @@ Manual MCP fallback (no plugin install required):
 See `packages/zcode/README.md` for the ZCode declaration contract the plugin
 targets (hook events, output schema, skill frontmatter rules).
 
+### Optional: Vibe plugin
+
+`kibi-vibe` is an optional Mistral Vibe plugin in Agent Plugins 1.0 format. It
+bundles the `kibi` MCP server, the canonical Kibi skills (mirrored under
+`skills/`), and fail-open Vibe hooks. It builds on `kibi-core`, `kibi-cli`,
+and `kibi-mcp` installed project-locally and does not replace them.
+
+Install from a **local checkout** into the user plugins root, then restart Vibe
+or run `/reload`:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+The plugin contributes `plugin.json`, `mcp.json` (the `kibi` stdio server via
+`bin/launch-kibi-mcp.mjs`), `ai.mistral.vibe/hooks.toml` (session-start KB
+status, per-prompt KB hits, per-file linked entities), and `skills/*`.
+
+**Windows/WSL:** Kibi needs Node.js 22+ and SWI-Prolog 9+; the bundled
+SWI-Prolog covers Linux/macOS, so on Windows the supported setup runs Kibi
+inside WSL. The launcher detects this per workspace: on Windows with a WSL
+distribution whose Node.js is 22+ it spawns
+`wsl.exe [-d <distro>] --cd <wsl-path> --exec <node> <kibi-bin> [args...]`
+— paths and arguments are literal argv entries, never a shell string, and the
+distro comes from `\\wsl.localhost\<distro>\...` paths. Elsewhere (or with
+`KIBI_FORCE_DIRECT=1`) it spawns the project-local bin directly. The same
+launcher works for other agent harnesses on Windows; they set
+`KIBI_MCP_HOST` to their own name for correct attribution (Vibe's `mcp.json`
+sets `vibe`).
+
+Because Vibe spawns stdio servers with the plugin directory as cwd, not the
+session folder, the launcher resolves the workspace from
+`KIBI_WORKSPACE`/`KIBI_PROJECT_ROOT`/`KIBI_ROOT`, a `.git`-bounded upward walk
+for `.kb/manifest.json`, or a `kibi-workspace.txt` pointer next to the
+launcher. When registering the server manually instead of via the plugin:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-checkout>/packages/vibe/bin/launch-kibi-mcp.mjs"]
+# a cold WSL boot can exceed the 10s default:
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
+
+In workspaces without `.kb/manifest.json` the launcher serves a silent
+zero-tool MCP server (exit 0) instead of failing the handshake, and the hooks
+exit quietly — Kibi stays out of non-Kibi projects. Set
+`KIBI_VIBE_LAUNCHER_DEBUG=1` for a per-user launcher log in the OS temp dir.
+See `packages/vibe/README.md` for the full contract and the executable tests
+(`packages/vibe/tests/`).
+
 ### Optional: Claude Code plugin
 
 `kibi-claude` is an optional Claude Code adapter. It builds on `kibi-core`,

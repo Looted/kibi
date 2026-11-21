@@ -26,21 +26,21 @@ proof_contract:
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-c3655bc19873edf7e88c65f5
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-6f017af889352b7600fadbfd
     test_id: TEST-skillopt-external-adoption-verdict
     scope: integration
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
-    binding_hash: 7e54209512f17e0acad9ba27e693878715dba7dde7e81e97cb6ee5c365ce24f8
-    fingerprint: 41580ab3960834bc6cc6ea6af29abd2e734c1473434db3aecabe2fce26340ad7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
+    contract_hash: 9dc80cd46b88b3e9ed22847789728d45e26785679f583f7506342eeaba32e1c5
+    binding_hash: 0c598d0943fe6f35875966313e9afbbf35772f46c194059b9ea9356e3d981947
+    fingerprint: 2c66693d839c50557df5751a7b39163dd45b64ff6aef181995fe671502ba6a1b
     fingerprint_components:
-      contract: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+      contract: 9dc80cd46b88b3e9ed22847789728d45e26785679f583f7506342eeaba32e1c5
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -53,12 +53,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+      - symbol_id: SYM-e2e-ontology-convergence-witnesses
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

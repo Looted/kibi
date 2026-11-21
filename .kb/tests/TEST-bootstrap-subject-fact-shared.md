@@ -21,18 +21,18 @@ origin:
 id: TEST-bootstrap-subject-fact-shared
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-66983aabde3fa691bc4f0616
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-fd61f916213073769b1370eb
     test_id: TEST-bootstrap-subject-fact-shared
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6cca97613441c1fbaabc1ae371ee3f303736b4d4b1a0c6d7c908439c9eabb06d
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-08T16:06:28.400Z'
-    finished_at: '2026-10-08T16:07:11.594Z'
-    artifact_digest: 7ad746bb3df1aed777db8d28a2428c620ec70f56784d7fa625a4e1ca0096b2aa
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: aa669fb1a2b3d3afaa79531bfef2aed4320d069f363420d9beed33e837208495
-    binding_hash: 4a9b10f43eba1cc4a28a13efb6cd4731627cd99351b1aaeea789392e812f98f5
+    binding_hash: 5287dfa66671ecc119d84ffd0a49958cc60616ad4dc770641b38b75b750986cc
     fingerprint: 4b7526fdf72c64b1696cb20084c3968a3c74007f5986006049decf582a813b6b
     fingerprint_components:
       contract: aa669fb1a2b3d3afaa79531bfef2aed4320d069f363420d9beed33e837208495
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/consumer/bootstrap-write-failures.test.ts` through the real CLI and Prolog engine: two declared sources with claims about the same subject plan one subject fact with two `constrains` links and a `subject-key-shared:` diagnostic, replan to the same hash, apply, and pass `kb_check` without `subject-key-identity`; the other bootstrap write cases in the file keep passing with the shared fact.

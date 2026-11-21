@@ -566,6 +566,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c80cfbded76
+  - type: constrains
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-SUBJ-VIBE-WSL-SAFE-SPAWN
+    created_at: 2026-11-19T20:09:44.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2789f081689
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-SAFE-SPAWN-N01
+    created_at: 2026-11-19T20:09:44.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b1b91e58fa7
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-SAFE-SPAWN-N02
+    created_at: 2026-11-19T20:09:44.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-419a28fed43f
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-SAFE-SPAWN-N03
+    created_at: 2026-11-19T20:09:44.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cabf075e8c4c
+  - type: specified_by
+    from: REQ-vibe-wsl-safe-spawn
+    to: SCEN-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:16:09.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cfdf8a61f71
+  - type: specified_by
+    from: REQ-vibe-wsl-safe-spawn
+    to: SCEN-NEG-vibe-wsl-spawn-shell-string
+    created_at: 2026-11-19T22:37:26.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d9f956a410f
   - type: assumes
     from: SCEN-impact-review-named-evidence
     to: FACT-impact-review-named-evidence

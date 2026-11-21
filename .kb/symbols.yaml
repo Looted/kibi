@@ -46866,6 +46866,307 @@ symbols:
         target: TEST-bootstrap-apply-long-running
       - type: implements
         target: REQ-bootstrap-apply-long-running
+  - id: SYM-vibe-transformVibeSkillFrontmatter
+    title: transformVibeSkillFrontmatter
+    status: active
+    sourceFile: scripts/sync-agent-skills.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:10:33.649Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-skills-mirror
+  - id: SYM-vibe-kibi-runtime
+    title: kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:19.153Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+      - type: implements
+        target: REQ-vibe-workspace-resolution
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-launch-kibi-mcp
+    title: Vibe MCP stdio launcher entrypoint
+    status: active
+    sourceFile: packages/vibe/bin/launch-kibi-mcp.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:21.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-vibe-kibi-cli-wrapper
+    title: Vibe kibi CLI wrapper (kibi.mjs)
+    status: active
+    sourceFile: packages/vibe/bin/kibi.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:24.561Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+      - type: implements
+        target: REQ-vibe-workspace-resolution
+  - id: SYM-vibe-hooks-common
+    title: Vibe hook shared plumbing
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:27.170Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-hook-file-context
+    title: Vibe post_tool file-context hook
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-file-context.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:29.743Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-hook-prompt-context
+    title: Vibe pre_agent prompt-context hook
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-prompt-context.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:32.282Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-hook-session-context
+    title: Vibe session_start hook
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-session-context.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:34.795Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-runtime-test
+    title: Vibe launcher runtime unit tests
+    status: active
+    sourceFile: packages/vibe/tests/runtime.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:37.379Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-plugin-contract-v1
+  - id: SYM-vibe-launcher-contract-test
+    title: Vibe launcher MCP contract tests
+    status: active
+    sourceFile: packages/vibe/tests/launcher-contract.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T20:16:40.066Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-plugin-contract-v1
+  - id: SYM-vibe-resolveWorkspace
+    title: resolveWorkspace
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:36:48.622Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-workspace-resolution
+  - id: SYM-vibe-isKibiWorkspace
+    title: isKibiWorkspace
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:36:52.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-workspace-resolution
+  - id: SYM-vibe-parseWslUnc
+    title: parseWslUnc
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:36:55.482Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-toWslPath
+    title: toWslPath
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:36:58.742Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-buildWslArgs
+    title: buildWslArgs
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:02.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-spawnKibiMcp
+    title: spawnKibiMcp
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:05.569Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-serveEmptyMcpServer
+    title: serveEmptyMcpServer
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:09.008Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-vibe-planRuntime
+    title: planRuntime
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:12.451Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-launcher-win32-workspace-routing
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-vibe-runKibi
+    title: runKibi
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:15.724Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-emitAdditionalContext
+    title: emitAdditionalContext
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:18.933Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-readStdinJson
+    title: readStdinJson
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:22.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-resolveHookWorkspace
+    title: resolveHookWorkspace
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-19T21:37:25.763Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
   - id: SYM-test-impact-review-authoring
     title: Impact-review authoring suite
     status: active

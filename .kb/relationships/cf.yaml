@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ab03fea9c2d
+  - type: implements
+    from: SYM-vibe-serveEmptyMcpServer
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T21:37:09.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77384245eee3
+  - type: covered_by
+    from: SYM-vibe-serveEmptyMcpServer
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:10.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-736c4cad61cb
