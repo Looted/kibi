@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-919a45f22d96
+  - type: assumes
+    from: SCEN-vibe-win32-routing-drive-letter-native
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N01
+    created_at: 2026-11-21T18:28:13.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1760376e4a00
+  - type: verified_by
+    from: SCEN-vibe-win32-routing-drive-letter-native
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-21T18:28:14.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37c6986209da

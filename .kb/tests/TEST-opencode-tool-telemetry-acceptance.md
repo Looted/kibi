@@ -29,18 +29,18 @@ origin:
 id: TEST-opencode-tool-telemetry-acceptance
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-1fa68d571512764c97920680
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-35028a6e444bd6c9cc734853
     test_id: TEST-opencode-tool-telemetry-acceptance
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 59fce5c9796763dadc19e9e795753fc151cff55a3bf24e1ed1f32cf1068ef9b6
-    binding_hash: 1944af8f7239bf757a2784094e61baf7efc9c88990ae581390c12232abc5f1ae
+    binding_hash: 63f0efcdaf82842e6e654d5197316b08e576d2b9442f12916fc4e2fb7b5734a0
     fingerprint: 38e83308a7db7aa9378c2ef8e83255b012a11b240b3f38ab5cd2421ece902503
     fingerprint_components:
       contract: 59fce5c9796763dadc19e9e795753fc151cff55a3bf24e1ed1f32cf1068ef9b6
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # OpenCode tool hook rows feed the lookup-before-first-edit acceptance metric end to end
 

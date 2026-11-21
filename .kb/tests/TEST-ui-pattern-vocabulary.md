@@ -22,18 +22,18 @@ proof_contract:
 id: TEST-ui-pattern-vocabulary
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-cbf1d8320ab9399ecdc2e6e2
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-826eee26dd203ca4bb4471ca
     test_id: TEST-ui-pattern-vocabulary
     scope: end_to_end
     outcome: passed
-    code_snapshot: 06bcb9d0b41a820d7ba77a759d45cbb22b0404df99c99db8f9b25cdbc68306f0
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-09T12:33:57.844Z'
-    finished_at: '2026-10-09T12:33:57.978Z'
-    artifact_digest: f172398da026155281204c009e670710c102acce23379cc980b067be5fd2e583
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: c5927293dbd79034f3b3985dedc97f0567343fd9744fce6e2592b0b3462fa02f
-    binding_hash: cb656e607445c6e29e62d2fcab782cf03d6e93179860c5a97fba861de6efb28e
+    binding_hash: 00c72ba441a8ac23222d0cd355453852ed2b32a01e62812c1198161c15e365c5
     fingerprint: a93aa994c55f89255b135bf453b591ad2a8ba505b7a5ac9c4b07b8985a7f7f67
     fingerprint_components:
       contract: c5927293dbd79034f3b3985dedc97f0567343fd9744fce6e2592b0b3462fa02f
@@ -55,5 +55,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the UI pattern vocabulary suite, which checks the four built-in UI predicate schemas and their argument names and asks the predicate suggester to rank UI pattern, shared variant, marker and container sentences, plus a developer coding standard sentence that must stay with coding_standard_rule.

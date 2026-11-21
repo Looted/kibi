@@ -29,18 +29,18 @@ origin:
 id: TEST-kibi-telemetry-lookup-before-first-edit-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-dc18730f0e582bfc7f5c51c5
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-c03ce66aabfebc301726ecb9
     test_id: TEST-kibi-telemetry-lookup-before-first-edit-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 1015878a3963eeb4a54649d5eb9c8ebcaf18dab19630171a049776b1f922bd1f
-    binding_hash: ec9116032ae45f8ae25da20e12d66d8f5f34a3346aab45ea9aee64ab42a0b3f2
+    binding_hash: 4093a0433363212494276971df3960e2b7e64a5d4ddcdc14bca198ccbce82cc6
     fingerprint: 7185c09a0acfbf151625e334e33781fa842d96054da67ee808715c66d26a1e2e
     fingerprint_components:
       contract: 1015878a3963eeb4a54649d5eb9c8ebcaf18dab19630171a049776b1f922bd1f
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI reports the sessions that edited requirement-linked code before looking it up
 

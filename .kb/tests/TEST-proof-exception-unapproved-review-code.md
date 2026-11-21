@@ -26,17 +26,17 @@ id: TEST-proof-exception-unapproved-review-code
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-13d5e34399a5b42b4ef44420
+    receipt_id: PR-f7203503654cbbee1186b0f1
     test_id: TEST-proof-exception-unapproved-review-code
     scope: unit
     outcome: passed
-    code_snapshot: 4b699c9b07afd709892fdd2513cb5f73a7167d1881b1a2daf6c70078e8f98147
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T17:30:32.574Z'
-    finished_at: '2026-10-28T17:30:32.781Z'
-    artifact_digest: 39c94eab4852bc3b8f4ba59b1bc862051d0db096d0305a11e27db57c667db053
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: be13ab2c92c782d4729bc0b04e7acc006bec0f1e4a65ca9066dc3df8434da9e5
-    binding_hash: 5c2cfdddb649a5534c459e668cf3aef755a97cffbd11d04ce79bdfed86fa5351
+    binding_hash: 702da0b0441a9aa97247b6e9fd01757a7eb2d6bb8fdc585f6705ec43fd774d2d
     fingerprint: f4e7f1ab68c0f4291500d2a2f64f75291d1d52d87e58642ba7b83dd9e7b5b611
     fingerprint_components:
       contract: be13ab2c92c782d4729bc0b04e7acc006bec0f1e4a65ca9066dc3df8434da9e5
@@ -71,7 +71,7 @@ proof_receipts:
     certificate_digest: b485986ef734bdde1c98206184e4da7e53e1c71dd86d6e26574a9b0a1410f181
     claim_bindings:
       - claim_key: CLAIM-21E64A855F1EB4A6
-        requirement_id: REQ-kibi-lifecycle-check-codes
+        requirement_id: REQ-kibi-lifecycle-review-codes
         fact_id: FACT-exception-unapproved-review-code
         binding: derived
         scope: code

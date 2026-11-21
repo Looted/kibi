@@ -26,15 +26,15 @@ id: TEST-proof-quantity-trivial-numbers
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f82c792d974998077ca7806c
+    receipt_id: PR-9457071922e7f6a6d2bc54fb
     test_id: TEST-proof-quantity-trivial-numbers
     scope: unit
     outcome: passed
-    code_snapshot: 85b2624165d7e44fc735b108a25d4917ae5c54792c3260a53e21c812ec79a72a
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T06:05:04.601Z'
-    finished_at: '2026-11-17T06:05:23.072Z'
-    artifact_digest: 30a9ef74c4d8f99d3cbcf7212d200154a20a5377764de71fb25335bed5f462b9
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 15b6f7225044238dadae703ef40b69bf4c1f3448d4a9217c76a5a38dc01251f3
     binding_hash: ead3c6c6c79cc23f2c74b62ad60a917bb02b14b361610571b41ccf87006b471f
     fingerprint: dcad30b74d0a77e53a0b98bad0d92af1fad5798d4db8b6455123f26f795d513b

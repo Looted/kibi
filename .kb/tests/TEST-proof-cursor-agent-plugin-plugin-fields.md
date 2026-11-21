@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-C7B0F78EAB07CB58
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-47f388357955da62fd31ec69
+    receipt_id: PR-15573bd287a0fdad2f060d8f
     test_id: TEST-proof-cursor-agent-plugin-plugin-fields
     scope: unit
     outcome: passed
-    code_snapshot: e54c836d045ddc66e5300f74cfaff528e05df36605bd9587408dc179d35908ca
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:58:30.635Z'
-    finished_at: '2026-10-27T07:58:30.813Z'
-    artifact_digest: 95cdade427e5cf2aa72b1f686e67bc2fb9cb1336a246d1991642a04a32b38801
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 2c1584204043b99489006a00d5d93bc4a613c8dfb6611ef959eddb146075b645
-    binding_hash: 3564b62c8c469d2d14c7218399747340c1e55f2c9c4662c576c872f4377b2329
+    binding_hash: 7dc449f28336779e0f460f809e27ccc5f90f61d381476243fce179835322682b
     fingerprint: 02c9dac7bb05cee21acb265a46ba785f6092018bbfe373a057dd7706b44a8310
     fingerprint_components:
       contract: 2c1584204043b99489006a00d5d93bc4a613c8dfb6611ef959eddb146075b645
@@ -89,7 +89,7 @@ proof_receipts:
         requirement_id: REQ-cursor-agent-plugin-package
         fact_id: FACT-agent-plugin-manifest-fields
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

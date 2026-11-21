@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4672486fc117
+  - type: assumes
+    from: SCEN-NEG-vibe-mcp-launcher-connect-outside
+    to: FACT-NEG-VIBE-MCP-LAUNCHER-CONNECT-OUTSIDE
+    created_at: 2026-11-19T22:37:21.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01b977d02401
+  - type: verified_by
+    from: SCEN-NEG-vibe-mcp-launcher-connect-outside
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:21.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f91338e0668
