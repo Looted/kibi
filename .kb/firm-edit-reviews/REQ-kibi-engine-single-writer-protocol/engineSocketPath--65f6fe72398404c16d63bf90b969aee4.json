@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-engine-single-writer-protocol",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "engineSocketPath",
+  "verdict": "keeps",
+  "note": "engineSocketPath now derives its key from the shared engineSocketKey; the path per workspace and branch is unchanged.",
+  "statementHash": "sha256:48d405325ca5f561ae5a94b499059dbf6ec52185b7aac5f46476523a3875aab0",
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-22T18:15:00.678Z"
+}

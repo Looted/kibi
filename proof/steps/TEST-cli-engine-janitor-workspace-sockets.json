@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-cli-engine-janitor-workspace-sockets",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/prolog/janitor.test.ts",
+      "./packages/cli/tests/prolog/janitor-mutation.test.ts",
+      "./packages/cli/tests/utils/engine-socket-key.test.ts"
+    ]
+  ]
+}
