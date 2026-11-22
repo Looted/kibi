@@ -92,6 +92,7 @@ import {
 import { hasKibiPrepareScript } from "./hooks-install.js";
 import {
   KIBI_HOOK_BEGIN,
+  MANAGED_HOOK_NAMES,
   type ManagedHookName,
   hasManagedHooks,
   outdatedManagedHooks,
@@ -1333,18 +1334,55 @@ function checkHookManagerDelegation(
   };
 }
 
+function installedManagedHooks(hooksDir: string): ManagedHookName[] {
+  return MANAGED_HOOK_NAMES.filter((hook) => {
+    const hookPath = path.join(hooksDir, hook);
+    return (
+      existsSync(hookPath) &&
+      readFileSync(hookPath, "utf-8").includes(KIBI_HOOK_BEGIN)
+    );
+  });
+}
+
 /**
  * Kibi-managed hook sections must match what this CLI installs. A section
  * written by an older CLI keeps running while silently lacking newer gates
  * (the pre-commit `check-generated` step, for example), and the other hook
- * checks only confirm that kibi is invoked at all.
+ * checks only confirm that kibi is invoked at all. When a third-party hook
+ * manager owns Git hooks, `kibi init` leaves hook files alone, so leftover
+ * kibi-managed sections are reported as a warning to remove rather than a
+ * failure asking the user to run `kibi init`.
  */
-function checkManagedHookSections(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkManagedHookSections(): DoctorCheckResult {
+  const detected = doctorHookManager();
   const hooksDir = effectiveHooksDir();
+  if (detected) {
+    const { manager } = detected;
+    const owner = `Managed by ${manager.name} (${manager.configPath})`;
+    let leftover: ManagedHookName[];
+    let outdated: string[];
+    try {
+      leftover = installedManagedHooks(hooksDir);
+      if (leftover.length === 0) {
+        return { passed: true, message: owner };
+      }
+      outdated = outdatedManagedHooks(hooksDir);
+    } catch {
+      return {
+        passed: false,
+        message: `${owner}; unable to read hook content`,
+        remediation: `Check permissions in ${hooksDir}, remove any leftover '# BEGIN kibi-managed' ... '# END kibi-managed' sections, and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+      };
+    }
+    const outdatedNote =
+      outdated.length > 0 ? ` (outdated: ${outdated.join(", ")})` : "";
+    return {
+      passed: true,
+      warning: true,
+      message: `${owner}; leftover kibi-managed hook sections remain in ${leftover.join(", ")}${outdatedNote}${hooksPathSuffix()}`,
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from ${leftover.join(", ")} in ${hooksDir} and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+    };
+  }
   let outdated: string[];
   try {
     if (!hasManagedHooks(hooksDir)) {

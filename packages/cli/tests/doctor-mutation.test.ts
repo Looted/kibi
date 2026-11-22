@@ -2186,6 +2186,60 @@ describe("managed hook sections check", () => {
       remediation: "Run: kibi init",
     });
   });
+
+  test("reconcile managed hook sections when a hook manager owns Git hooks", async () => {
+    s.manager.mockReturnValue({
+      name: "pre-commit",
+      configPath: ".pre-commit-config.yaml",
+    } as never);
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      message: "Managed by pre-commit (.pre-commit-config.yaml)",
+    });
+
+    hook("post-merge", MANAGED_REWRITE);
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      warning: true,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); leftover kibi-managed hook sections remain in post-merge",
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-merge in ${hooksDir} and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+    });
+
+    hook("pre-commit", MANAGED_PRE);
+    s.outdated.mockReturnValue(["pre-commit"]);
+    s.git.mockImplementation(
+      () =>
+        ({
+          status: "ok",
+          context: context({
+            hooksPathConfig: ".githooks",
+            hooksPathOrigin: "file:.git/config",
+          }),
+        }) as never,
+    );
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      warning: true,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); leftover kibi-managed hook sections remain in post-merge, pre-commit (outdated: pre-commit) (core.hooksPath=.githooks from file:.git/config)",
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-merge, pre-commit in ${hooksDir} and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+    });
+
+    s.outdated.mockImplementation(() => {
+      throw new Error("EACCES");
+    });
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: false,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); unable to read hook content",
+      remediation: `Check permissions in ${hooksDir}, remove any leftover '# BEGIN kibi-managed' ... '# END kibi-managed' sections, and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+    });
+  });
 });
 
 describe("capability plugins check", () => {
