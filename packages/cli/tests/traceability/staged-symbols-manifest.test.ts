@@ -10,7 +10,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { buildStagedKibiImpactEvidence } from "../../src/commands/check.js";
 import type { StagedFile } from "../../src/traceability/git-staged.js";
+import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -1194,5 +1196,125 @@ describe("staged symbols manifest record normalization fallbacks", () => {
     );
     expect(manifestRecordSourcePath({ source: "src/b.ts" })).toBe("src/b.ts");
     expect(manifestRecordSourcePath({ sourceFile: 12, source: 9 })).toBeNull();
+  });
+});
+
+describe("staged symbol_role edits as Kibi impact evidence", () => {
+  function manifestYaml(symbolRole?: string, comment?: string): string {
+    return [
+      "symbols:",
+      "  - id: SYM-APP-MODULE",
+      "    title: app",
+      "    sourceFile: src/app.ts",
+      "    status: active",
+      "    granularity_reason: module-level-behavior",
+      ...(symbolRole === undefined ? [] : [`    symbol_role: ${symbolRole}`]),
+      ...(comment === undefined ? [] : [`    # ${comment}`]),
+      "",
+    ].join("\n");
+  }
+
+  function evaluateGate(headManifest: string, stagedManifest: string) {
+    const sourceFile: StagedFile = {
+      path: "src/app.ts",
+      status: "M",
+      hunkRanges: [{ start: 1, end: 3 }],
+      content: 'export function run() {\n  return "updated";\n}\n',
+      diffText:
+        '@@ -1,3 +1,3 @@\n export function run() {\n-  return "initial";\n+  return "updated";\n }\n',
+    };
+    const manifestFile: StagedFile = {
+      path: ".kb/symbols.yaml",
+      status: "M",
+      hunkRanges: [],
+      content: stagedManifest,
+    };
+    const evidence = buildStagedKibiImpactEvidence({
+      stagedFiles: [sourceFile, manifestFile],
+      sourceFiles: [sourceFile],
+      markdownFiles: [],
+      markdownResultsByPath: new Map(),
+      symbolsByFile: new Map([
+        [
+          "src/app.ts",
+          [
+            {
+              id: "SYM-APP-MODULE",
+              name: "run",
+              kind: "function",
+              role: "behavioral",
+              location: {
+                file: "src/app.ts",
+                startLine: 1,
+                endLine: 3,
+              },
+              hunkRanges: [{ start: 1, end: 3 }],
+              reqLinks: [],
+            },
+          ],
+        ],
+      ]),
+      symbolsManifestPath: ".kb/symbols.yaml",
+      readBaseFile: (filePath) =>
+        filePath === ".kb/symbols.yaml" ? headManifest : null,
+    });
+    return {
+      evidence,
+      diagnostics: collectStagedKibiDiagnostics(evidence),
+    };
+  }
+
+  it("treats staging a symbol_role addition as authored impact evidence that satisfies the staged gate", () => {
+    const { evidence, diagnostics } = evaluateGate(
+      manifestYaml(),
+      manifestYaml("behavioral"),
+    );
+
+    expect(evidence.mode).toEqual({
+      kind: "kb_changes",
+      kbArtifacts: [
+        {
+          kind: "symbols_manifest",
+          path: ".kb/symbols.yaml",
+          entityTypes: ["symbol"],
+          entityIds: ["SYM-APP-MODULE"],
+          sourcePaths: ["src/app.ts"],
+        },
+      ],
+    });
+    expect(diagnostics).toEqual([]);
+  });
+
+  it("treats staging a symbol_role edit as authored impact evidence that satisfies the staged gate", () => {
+    const { evidence, diagnostics } = evaluateGate(
+      manifestYaml("module"),
+      manifestYaml("behavioral"),
+    );
+
+    expect(evidence.mode).toEqual({
+      kind: "kb_changes",
+      kbArtifacts: [
+        {
+          kind: "symbols_manifest",
+          path: ".kb/symbols.yaml",
+          entityTypes: ["symbol"],
+          entityIds: ["SYM-APP-MODULE"],
+          sourcePaths: ["src/app.ts"],
+        },
+      ],
+    });
+    expect(diagnostics).toEqual([]);
+  });
+
+  it("produces no false change when symbol_role is unchanged", () => {
+    const { evidence, diagnostics } = evaluateGate(
+      manifestYaml("behavioral"),
+      manifestYaml("behavioral", "comment-only edit"),
+    );
+
+    expect(evidence.mode).toEqual({ kind: "missing" });
+    expect(diagnostics.map((diagnostic) => diagnostic.id)).toEqual([
+      "kibi_impact_evidence_missing",
+    ]);
   });
 });
