@@ -495,6 +495,7 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
     severity: "s",
     text_ref: "r",
     granularity_reason: null,
+    symbol_role: null,
   };
 
   function collect(
@@ -596,6 +597,7 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
       "severity",
       "text_ref",
       "granularity_reason",
+      "symbol_role",
     ])
       expect([field, changed({ [field]: 2 }, { [field]: 1 })]).toStrictEqual([
         field,
@@ -645,8 +647,21 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
       { text_ref: "x" },
       { text_ref: 1 },
       { granularity_reason: "legacy-link" },
+      { symbol_role: "behavioral" },
     ])
       expect([edit, changed(edit)]).toStrictEqual([edit, ["SYM-a"]]);
+    expect(
+      changed({ symbol_role: "config" }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: null }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: 1 }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: "behavioral" }, { symbol_role: "behavioral" }),
+    ).toStrictEqual([]);
   });
 
   test("ignores order and malformed entries in lists", () => {
@@ -754,6 +769,12 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
     expect(
       run({ ...context, owner: "x" }, { tags: ["t1", "t2"] }, true),
     ).toStrictEqual(changedA);
+    expect(
+      run({ ...legacy, symbol_role: "behavioral" }, {}, true),
+    ).toStrictEqual(changedA);
+    expect(run(legacy, { symbol_role: "behavioral" }, true)).toStrictEqual(
+      migration,
+    );
     expect(
       run(
         { tags: ["review:context-missing", "t1"] },

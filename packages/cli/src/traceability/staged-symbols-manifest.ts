@@ -42,6 +42,7 @@ interface NormalizedAuthoredManifestSymbol {
   severity: string | null;
   textRef: string | null;
   granularityReason: string | null;
+  symbolRole: string | null;
 }
 
 /**
@@ -244,6 +245,8 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
         typeof record.granularity_reason === "string"
           ? record.granularity_reason
           : null,
+      symbolRole:
+        typeof record.symbol_role === "string" ? record.symbol_role : null,
     }));
 }
 
