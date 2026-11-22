@@ -1,5 +1,14 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { execSync, spawnSync } from "../helpers/isolated-env.js";
@@ -56,7 +65,22 @@ beforeAll(() => {
   write("src/greet.ts", 'export function greet() {\n  return "hi";\n}\n');
 });
 
+function setWritableRecursive(target: string, writable: boolean): void {
+  if (!existsSync(target)) return;
+  const stat = statSync(target);
+  if (stat.isDirectory()) {
+    if (writable) chmodSync(target, stat.mode | 0o200);
+    for (const entry of readdirSync(target)) {
+      setWritableRecursive(path.join(target, entry), writable);
+    }
+    if (!writable) chmodSync(target, stat.mode & ~0o222);
+  } else {
+    chmodSync(target, writable ? stat.mode | 0o200 : stat.mode & ~0o222);
+  }
+}
+
 afterAll(() => {
+  setWritableRecursive(path.join(root, ".git"), true);
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -165,5 +189,41 @@ describe("kibi check --changed", () => {
       rmSync(input, { force: true });
       rmSync(path.join(root, "src/notes.txt"), { force: true });
     }
+  }, 180_000);
+
+  test("works when .git is read-only for both kibi check --changed and kb_check changed:true", () => {
+    const gitDir = path.join(root, ".git");
+    const input = path.join(root, "..", `${path.basename(root)}-ro.json`);
+    writeFileSync(
+      input,
+      JSON.stringify({ changed: true, sourceFiles: ["src/greet.ts"] }),
+    );
+    setWritableRecursive(gitDir, false);
+    try {
+      const changed = kibi(["check", "--changed", "--format", "json"]);
+      expect(changed.status).toBe(1);
+      const cliResult = JSON.parse(changed.stdout) as GateJson;
+      expect(cliResult.structuredContent.violations.length).toBeGreaterThan(0);
+
+      const viaInput = kibi(["check", "--input", input]);
+      const inputResult = JSON.parse(viaInput.stdout) as {
+        status: string;
+        data: {
+          changed: boolean;
+          commitAllowed: boolean;
+          violations: Finding[];
+          operationalError?: string;
+        };
+      };
+      expect(inputResult.status).toBe("success");
+      expect(inputResult.data.changed).toBe(true);
+      expect(inputResult.data.commitAllowed).toBe(false);
+      expect(inputResult.data.violations.length).toBeGreaterThan(0);
+      expect(inputResult.data.operationalError).toBeUndefined();
+    } finally {
+      setWritableRecursive(gitDir, true);
+      rmSync(input, { force: true });
+    }
+    expect(git("diff --cached --name-only").trim()).toBe("");
   }, 180_000);
 });
