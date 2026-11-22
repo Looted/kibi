@@ -47301,3 +47301,41 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T16:11:19.609Z
+  - id: SYM-cli-json-alias-resolve-json-format
+    title: resolveJsonFormat
+    sourceFile: packages/cli/src/cli-json-alias.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:43:11.846Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-json-format-alias
+      - type: implements
+        target: REQ-cli-json-format-alias
+  - id: SYM-cli-json-alias-register-json-alias-guard
+    title: registerJsonAliasGuard
+    sourceFile: packages/cli/src/cli-json-alias.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:43:13.448Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-json-format-alias
+      - type: implements
+        target: REQ-cli-json-format-alias
+  - id: SYM-test-cli-json-format-alias
+    title: kibi CLI --json alias suite
+    status: active
+    sourceFile: packages/cli/tests/cli-json-alias.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:45:42.534Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-json-format-alias

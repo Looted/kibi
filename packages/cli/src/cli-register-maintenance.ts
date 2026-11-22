@@ -1,16 +1,8 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
+import { resolveJsonFormat } from "./cli-json-alias.js";
 import type { usageMetricsCommand } from "./commands/usage-metrics.js";
 import type { usageRemediationCommand } from "./commands/usage-remediation.js";
-
-function resolveJsonFormat<T extends { format?: string; json?: boolean }>(
-  options: T,
-): Omit<T, "json"> {
-  const { json, ...rest } = options;
-  return json === true
-    ? ({ ...rest, format: "json" } as Omit<T, "json">)
-    : rest;
-}
 
 export function registerMaintenanceCommands(program: Command): void {
   const deps = program

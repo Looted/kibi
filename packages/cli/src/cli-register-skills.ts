@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
+import { resolveJsonFormat } from "./cli-json-alias.js";
 import type { JsonInvocation } from "./cli-json-command.js";
 import type {
   skillsListCommand,
@@ -7,15 +8,6 @@ import type {
   skillsReadCommand,
   skillsValidateCommand,
 } from "./commands/skills.js";
-
-function resolveJsonFormat<T extends { format?: string; json?: boolean }>(
-  options: T,
-): Omit<T, "json"> {
-  const { json, ...rest } = options;
-  return json === true
-    ? ({ ...rest, format: "json" } as Omit<T, "json">)
-    : rest;
-}
 
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
