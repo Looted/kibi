@@ -47640,16 +47640,3 @@ symbols:
         target: TEST-cli-engine-janitor-workspace-sockets
       - type: implements
         target: REQ-cli-engine-janitor-workspace-sockets
-  - id: SYM-engine-engine-socket-path
-    title: engineSocketPath
-    sourceFile: packages/cli/src/engine.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-22T17:52:27.124Z
-    relationships:
-      - type: covered_by
-        target: TEST-core-journaled-engine-lifecycle
-      - type: implements
-        target: REQ-kibi-engine-single-writer-protocol
