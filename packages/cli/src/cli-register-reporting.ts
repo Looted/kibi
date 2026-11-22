@@ -5,11 +5,21 @@ import {
   commandSummary,
   getCliOperationMetadata,
 } from "./cli-operation-metadata.js";
+import { printOperationInputSchema } from "./cli-register-json.js";
 import type { checkCommand } from "./commands/check.js";
 import {
   KB_OPTION_DESCRIPTION,
   applyKbOption,
 } from "./dependencies/kb-dependency-cli.js";
+
+function resolveJsonFormat<T extends { format?: string; json?: boolean }>(
+  options: T,
+): Omit<T, "json"> {
+  const { json, ...rest } = options;
+  return json === true
+    ? ({ ...rest, format: "json" } as Omit<T, "json">)
+    : rest;
+}
 
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
@@ -71,6 +81,7 @@ export function registerReportingCommands(program: Command): void {
       commandSummary(getCliOperationMetadata("kb_find_gaps").description),
     )
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option(
       "--missing-rel <rels>",
       "Comma-separated missing relationship filters",
@@ -84,8 +95,13 @@ export function registerReportingCommands(program: Command): void {
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (type, options, command: Command) => {
+      if (options.schema === true) {
+        await printOperationInputSchema("kb_find_gaps");
+        return;
+      }
       if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -96,7 +112,10 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await (await import("./commands/gaps.js")).gapsCommand(type, options);
+      await (await import("./commands/gaps.js")).gapsCommand(
+        type,
+        resolveJsonFormat(options),
+      );
     });
 
   program
@@ -142,6 +161,7 @@ export function registerReportingCommands(program: Command): void {
       "--format <format>",
       "Output format: chat (plain Markdown for a reply) | md (fenced block for host renderers) | html | json; default chat, or KIBI_SIGNOFF_FORMAT",
     )
+    .option("--json", "Alias for --format json")
     .option(
       "--output <path>",
       "HTML file to write (default .kb/briefs/signoff/latest.html)",
@@ -149,7 +169,9 @@ export function registerReportingCommands(program: Command): void {
     .option("--open", "Open the HTML page in the default browser", false)
     .option("--no-proof", "Skip the proof-state lookup (faster; no Prolog)")
     .action(async (options) => {
-      await (await import("./commands/signoff.js")).signoffCommand(options);
+      await (await import("./commands/signoff.js")).signoffCommand(
+        resolveJsonFormat(options),
+      );
     });
 
   program
@@ -157,6 +179,7 @@ export function registerReportingCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_coverage").description)
     .summary(commandSummary(getCliOperationMetadata("kb_coverage").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option("--by <group>", "Coverage mode: req|symbol|type", "req")
     .option("--tag <tags>", "Comma-separated tag filter")
     .option("--include-passing", "Include passing rows", false)
@@ -198,8 +221,13 @@ export function registerReportingCommands(program: Command): void {
       false,
     )
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (options.schema === true) {
+        await printOperationInputSchema("kb_coverage");
+        return;
+      }
       if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -209,7 +237,9 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await (await import("./commands/coverage.js")).coverageCommand(options);
+      await (await import("./commands/coverage.js")).coverageCommand(
+        resolveJsonFormat(options),
+      );
     });
 
   program
@@ -217,6 +247,7 @@ export function registerReportingCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_graph").description)
     .summary(commandSummary(getCliOperationMetadata("kb_graph").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option("--from <ids>", "Comma-separated seed IDs")
     .option("--relationships <rels>", "Comma-separated relationship filter")
     .option(
@@ -229,8 +260,13 @@ export function registerReportingCommands(program: Command): void {
     .option("--max-nodes <n>", "Maximum node count", "200")
     .option("--max-edges <n>", "Maximum edge count", "500")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (options.schema === true) {
+        await printOperationInputSchema("kb_graph");
+        return;
+      }
       if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -240,7 +276,9 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await (await import("./commands/graph.js")).graphCommand(options);
+      await (await import("./commands/graph.js")).graphCommand(
+        resolveJsonFormat(options),
+      );
     });
 
   program
@@ -248,6 +286,7 @@ export function registerReportingCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_check").description)
     .summary(commandSummary(getCliOperationMetadata("kb_check").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option(
       "--fix",
       "Show each violation's whole fix suggestion (text output shows its first sentence)",
@@ -269,6 +308,7 @@ export function registerReportingCommands(program: Command): void {
     )
     .option("--dry-run", "Do not modify files; only print what would happen")
     .option("--format <format>", "Output format: text|json", "text")
+    .option("--json", "Alias for --format json")
     .option(
       "--fresh-evidence",
       "evidence-floor judges receipts as they are (stale receipts fail) and needs a clean proof snapshot; run it after kibi prove",
@@ -290,12 +330,18 @@ export function registerReportingCommands(program: Command): void {
         async (
           options: Parameters<typeof checkCommand>[0] & {
             input?: string;
+            schema?: boolean;
+            json?: boolean;
             changed?: boolean | string[];
             writeCertificates?: string;
             certificates?: string;
           },
           command: Command,
         ) => {
+          if (options.schema === true) {
+            await printOperationInputSchema("kb_check");
+            return undefined;
+          }
           if (options.input !== undefined) {
             await runJsonInvocation({
               operationName: "kb_check",
@@ -304,12 +350,13 @@ export function registerReportingCommands(program: Command): void {
             });
             return undefined;
           }
-          if (options.certificates !== undefined) {
+          const resolved = resolveJsonFormat(options);
+          if (resolved.certificates !== undefined) {
             if (
-              options.writeCertificates !== undefined ||
-              options.staged ||
-              options.changed !== undefined ||
-              options.rules !== undefined
+              resolved.writeCertificates !== undefined ||
+              resolved.staged ||
+              resolved.changed !== undefined ||
+              resolved.rules !== undefined
             )
               throw new Error(
                 "check: --certificates only re-checks a saved bundle; it cannot be combined with --write-certificates, --staged or --rules",
@@ -317,18 +364,18 @@ export function registerReportingCommands(program: Command): void {
             return (
               await import("./commands/check-certificates.js")
             ).checkCertificatesCommand({
-              certificates: options.certificates,
-              json: options.format === "json",
+              certificates: resolved.certificates,
+              json: resolved.format === "json",
             });
           }
           if (
-            options.writeCertificates !== undefined &&
-            (options.staged || options.changed !== undefined)
+            resolved.writeCertificates !== undefined &&
+            (resolved.staged || resolved.changed !== undefined)
           )
             throw new Error(
               "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged or --changed",
             );
-          const { writeCertificates, changed, ...checkOptions } = options;
+          const { writeCertificates, changed, ...checkOptions } = resolved;
           if (changed !== undefined)
             return runChangedCheck(changed, checkOptions);
           const result = await (
