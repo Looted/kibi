@@ -16,6 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   readFileSync,
@@ -23,7 +25,13 @@ import {
   rmSync,
   statSync,
 } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import {
+  DETACHED_SNAPSHOT_KB_BRANCH,
+  resolveActiveBranch,
+} from "../utils/branch-resolver.js";
+import { readBranchStoreManifest } from "../utils/branch-store-locator.js";
+import { canonicalFilesystemPath } from "../utils/canonical-path.js";
 import {
   STORE_LOCK_TAKEOVER_FILE,
   STORE_LOCK_TAKEOVER_VISIBLE_MS,
@@ -211,16 +219,85 @@ export function sweepStoreLockTakeoverRecords(
   return findings;
 }
 
+function workspaceSocketFilename(
+  canonicalRoot: string,
+  branch: string,
+): string {
+  const key = createHash("sha256")
+    .update(`${canonicalRoot}\0${branch}`)
+    .digest("hex")
+    .slice(0, 32);
+  return `kibi-${key}.sock`;
+}
+
+function workspaceBranches(workspaceRoot: string): ReadonlySet<string> {
+  const branches = new Set<string>([DETACHED_SNAPSHOT_KB_BRANCH]);
+  const branchesDir = join(workspaceRoot, ".kb", "branches");
+  if (existsSync(branchesDir)) {
+    for (const entry of readdirSync(branchesDir)) {
+      const manifest = readBranchStoreManifest(join(branchesDir, entry));
+      branches.add(manifest !== null ? manifest.branch : entry);
+    }
+  }
+  const active = resolveActiveBranch(workspaceRoot);
+  if ("branch" in active) {
+    branches.add(active.branch);
+  }
+  if (existsSync(workspaceRoot)) {
+    try {
+      const output = execFileSync(
+        "git",
+        ["for-each-ref", "--format=%(refname:short)", "refs/heads"],
+        {
+          cwd: workspaceRoot,
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["ignore", "pipe", "ignore"],
+        },
+      );
+      for (const line of output.split("\n")) {
+        const name = line.trim();
+        if (name.length > 0) branches.add(name);
+      }
+    } catch {
+      // Non-git workspace or git unavailable: branch stores, KIBI_BRANCH and
+      // the detached snapshot still cover known sockets.
+    }
+  }
+  return branches;
+}
+
+function workspaceSocketNames(workspaceRoot: string): ReadonlySet<string> {
+  let canonicalRoot: string;
+  try {
+    canonicalRoot = canonicalFilesystemPath(workspaceRoot);
+  } catch {
+    canonicalRoot = resolve(workspaceRoot);
+  }
+  const names = new Set<string>();
+  for (const branch of workspaceBranches(workspaceRoot)) {
+    names.add(workspaceSocketFilename(canonicalRoot, branch));
+  }
+  return names;
+}
+
 /**
- * Sweep runtime-directory daemon sockets. A socket is stale when its pid
- * file records a dead process or a connect attempt is refused.
+ * Sweep runtime-directory daemon sockets. By default only sockets belonging to
+ * `options.workspaceRoot` are inspected; pass `all: true` to also sweep sockets
+ * from other workspaces. A socket is stale when its pid file records a dead
+ * process.
  */
 export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
-  if (!options.all) return [];
   if (!existsSync(options.runtimeDirectory)) return [];
+  const socketEntries = readdirSync(options.runtimeDirectory).filter((entry) =>
+    entry.endsWith(".sock"),
+  );
+  if (socketEntries.length === 0) return [];
+  const allowed =
+    options.all === true ? null : workspaceSocketNames(options.workspaceRoot);
   const findings: SocketFinding[] = [];
-  for (const entry of readdirSync(options.runtimeDirectory)) {
-    if (!entry.endsWith(".sock")) continue;
+  for (const entry of socketEntries) {
+    if (allowed !== null && !allowed.has(entry)) continue;
     const socketPath = join(options.runtimeDirectory, entry);
     const pidPath = `${socketPath}.pid`;
     let pid: number | undefined;
@@ -235,10 +312,9 @@ export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
     const holderState =
       pid === undefined ? "unknown" : isProcessAlive(pid) ? "alive" : "dead";
     const stale = holderState === "dead";
-    // A dead holder was read from its pid file, so both files exist.
     if (stale && options.apply === true) {
-      rmSync(socketPath);
-      rmSync(pidPath);
+      rmSync(socketPath, { force: true });
+      rmSync(pidPath, { force: true });
     }
     findings.push({
       kind: "socket",
@@ -253,7 +329,7 @@ export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
 
 /**
  * Full janitor sweep across branch stores, expired takeover records and
- * (optionally) runtime sockets.
+ * runtime sockets (scoped to `options.workspaceRoot` unless `all: true`).
  */
 export function runJanitor(options: JanitorOptions): JanitorFinding[] {
   return [
