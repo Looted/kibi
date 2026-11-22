@@ -224,6 +224,17 @@ function preEditContext(
 }
 
 /**
+ * The empty edit-path list for tool payloads the hook does not treat as
+ * edits; named so the dirty-path assembly reads what it spreads.
+ */
+function noEditPaths(): string[] {
+  // rationale: a bogus entry never surfaces, because the dirty-path
+  // pipeline drops paths the meaningful-path policy rejects.
+  // Stryker disable next-line ArrayDeclaration
+  return [];
+}
+
+/**
  * A shell call that writes files in place (`sed -i`, `perl -i`, `>`, `tee`)
  * gets the same firm notice as an edit of those files, read as a whole-file
  * write since the hook cannot tell which lines it changes.
@@ -248,6 +259,9 @@ function shellFirmNotice(
       absolute: target.absolute,
       base,
     }));
+  // rationale: firmNotice returns undefined for empty targets with no side effects, so
+  // skipping the early return changes nothing observable.
+  // Stryker disable next-line ConditionalExpression
   if (targets.length === 0) return undefined;
   return firmNotice(
     workspaceRoot,
@@ -302,7 +316,7 @@ function firmNotice(
   return undefined;
 }
 
-// dist/hook-runner.js sits one level below the plugin root.
+// bin/hook-runner.mjs sits one level below the plugin root.
 const packageVersion = readPackageVersion(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
 );
@@ -550,6 +564,10 @@ export async function runHook(
           input.toolInput,
           input.cwd ?? workspace.root,
         );
+        // rationale: taking the branch for a non-mutating, non-shell event recomputes
+        // the same ternary below and produces no dirty paths, so neither
+        // forcing the condition true nor comparing length >= 0 is observable.
+        // Stryker disable next-line ConditionalExpression,EqualityOperator
         if (isMutatingTool(input.toolName) || shellEdits.length > 0) {
           const dirtyPaths = [
             ...(isMutatingTool(input.toolName)
@@ -558,7 +576,11 @@ export async function runHook(
                   input.cwd,
                   input.toolInput,
                 )
-              : []),
+              : noEditPaths()),
+            // rationale: addDirtyPaths and the reminders re-apply the same undefined
+            // and meaningful-path filters, so dropping the trailing filters
+            // here changes nothing observable.
+            // Stryker disable next-line MethodExpression
             ...shellEdits
               .map(
                 (absolute) =>

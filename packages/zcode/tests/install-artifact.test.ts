@@ -17,7 +17,7 @@ const packageRoot = path.resolve(
 
 const requiredPluginFiles = [
   path.join(".zcode-plugin", "plugin.json"),
-  path.join("dist", "hook-runner.js"),
+  path.join("bin", "hook-runner.mjs"),
   path.join("bin", "mcp-launcher.cjs"),
   path.join("hooks", "hooks.json"),
   path.join("commands", "kibi-bootstrap.md"),
@@ -46,32 +46,60 @@ function buildPackage(): void {
   buildZcodePackageOnce(packageRoot);
 }
 
+function trackedPackageFiles(root: string): string[] {
+  try {
+    const files = execSync(
+      "git ls-files --cached --others --exclude-standard -z",
+      { cwd: root },
+    )
+      .toString("utf8")
+      .split("\0")
+      .filter((relative) => relative.length > 0);
+    if (files.length > 0) return files;
+  } catch {
+    // Not a git repository.
+  }
+  // Stryker's mutation sandbox copies the tree without .git (and links
+  // node_modules as a socket); walk the package, skip the build output
+  // (gitignored dist/, node_modules/) and copy regular files only, so the
+  // copy still models what a marketplace install receives.
+  const files: string[] = [];
+  const walk = (rel: string) => {
+    for (const entry of fs.readdirSync(path.join(root, rel), {
+      withFileTypes: true,
+    })) {
+      const child = rel ? `${rel}/${entry.name}` : entry.name;
+      if (child === "dist" || child === "node_modules") continue;
+      if (entry.isDirectory()) walk(child);
+      else if (entry.isFile()) files.push(child);
+    }
+  };
+  walk("");
+  return files;
+}
+
 function copyInstalledPlugin(): string {
+  // A ZCode marketplace install from a Git source copies the repository's
+  // tracked files and never runs a build, so the copy model is the tracked
+  // tree (plus not-yet-committed candidates), not the built package layout.
   const installRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), "kibi-zcode-installed-"),
   );
   tempRoots.push(installRoot);
   const installedRoot = path.join(installRoot, "kibi-zcode");
   fs.mkdirSync(installedRoot, { recursive: true });
-  for (const dir of [
-    ".zcode-plugin",
-    "dist",
-    "bin",
-    "hooks",
-    "skills",
-    "commands",
-  ]) {
-    const source = path.join(packageRoot, dir);
-    if (fs.existsSync(source)) {
-      fs.cpSync(source, path.join(installedRoot, dir), { recursive: true });
-    }
+  const tracked = trackedPackageFiles(packageRoot);
+  expect(tracked.length).toBeGreaterThan(0);
+  for (const relative of tracked) {
+    const target = path.join(installedRoot, relative);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(path.join(packageRoot, relative), target);
   }
   return installedRoot;
 }
 
 describe("kibi-zcode distribution artifacts", () => {
   test("a copied marketplace install contains every declared runtime file and runs under node", () => {
-    buildPackage();
     const installedRoot = copyInstalledPlugin();
 
     for (const relative of requiredPluginFiles) {
@@ -81,9 +109,33 @@ describe("kibi-zcode distribution artifacts", () => {
       ).toBe(true);
     }
 
+    // Every hooks.json command target resolves inside the copied install:
+    // a Git-sourced copy has no build output, so the hook runner itself
+    // must be a tracked file for the lifecycle hooks to start at all.
+    const config = JSON.parse(
+      fs.readFileSync(path.join(installedRoot, "hooks", "hooks.json"), "utf8"),
+    ) as { hooks?: Record<string, { hooks?: { command?: string }[] }[]> };
+    const commands = new Set<string>();
+    for (const entries of Object.values(config.hooks ?? {})) {
+      for (const entry of entries) {
+        for (const hook of entry.hooks ?? []) {
+          commands.add(hook.command ?? "");
+        }
+      }
+    }
+    expect(commands.size).toBeGreaterThan(0);
+    for (const command of commands) {
+      const match = /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(command);
+      expect(match, `unexpected hook command: ${command}`).toBeTruthy();
+      expect(
+        fs.existsSync(path.join(installedRoot, match?.[1] ?? "")),
+        `tracked-source install missing hook target from: ${command}`,
+      ).toBe(true);
+    }
+
     // The installed hook runner executes under node from the copied layout:
     // an unconfigured workspace must produce the silent pass-through.
-    const hookRunner = path.join(installedRoot, "dist", "hook-runner.js");
+    const hookRunner = path.join(installedRoot, "bin", "hook-runner.mjs");
     const child = Bun.spawn(["node", hookRunner], {
       cwd: installedRoot,
       env: { ...process.env },
@@ -108,6 +160,7 @@ describe("kibi-zcode distribution artifacts", () => {
   }, 60000);
 
   test("an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command", () => {
+    buildPackage();
     const packDestination = fs.mkdtempSync(
       path.join(os.tmpdir(), "kibi-zcode-pack-"),
     );
