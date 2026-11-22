@@ -589,7 +589,16 @@ describe("kibi init", () => {
         `#!/bin/sh\necho lint\n${printHook("pre-commit")}echo after-kibi\n`,
         { mode: 0o755 },
       );
-      const env = { ...process.env, PATH: "/usr/bin:/bin" };
+      const nodeBin = path.join(tmpDir, "fake-node-bin");
+      mkdirSync(nodeBin, { recursive: true });
+      writeFileSync(path.join(nodeBin, "node"), "#!/bin/sh\nexit 0\n", {
+        mode: 0o755,
+      });
+      const env = {
+        ...process.env,
+        PATH: `${nodeBin}:/usr/bin:/bin`,
+        HOME: tmpDir,
+      };
 
       const ok = execSync(`sh ${hookPath}`, {
         cwd: tmpDir,
