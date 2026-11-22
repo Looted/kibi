@@ -228,9 +228,8 @@ function preEditContext(
  * edits; named so the dirty-path assembly reads what it spreads.
  */
 function noEditPaths(): string[] {
-  // The dirty-path pipeline drops anything the meaningful-path policy
-  // rejects before paths are stored or rendered, so a bogus entry never
-  // surfaces.
+  // rationale: a bogus entry never surfaces, because the dirty-path
+  // pipeline drops paths the meaningful-path policy rejects.
   // Stryker disable next-line ArrayDeclaration
   return [];
 }
@@ -260,7 +259,7 @@ function shellFirmNotice(
       absolute: target.absolute,
       base,
     }));
-  // firmNotice returns undefined for empty targets with no side effects, so
+  // rationale: firmNotice returns undefined for empty targets with no side effects, so
   // skipping the early return changes nothing observable.
   // Stryker disable next-line ConditionalExpression
   if (targets.length === 0) return undefined;
@@ -565,7 +564,7 @@ export async function runHook(
           input.toolInput,
           input.cwd ?? workspace.root,
         );
-        // Taking the branch for a non-mutating, non-shell event recomputes
+        // rationale: taking the branch for a non-mutating, non-shell event recomputes
         // the same ternary below and produces no dirty paths, so neither
         // forcing the condition true nor comparing length >= 0 is observable.
         // Stryker disable next-line ConditionalExpression,EqualityOperator
@@ -578,7 +577,7 @@ export async function runHook(
                   input.toolInput,
                 )
               : noEditPaths()),
-            // addDirtyPaths and the reminders re-apply the same undefined
+            // rationale: addDirtyPaths and the reminders re-apply the same undefined
             // and meaningful-path filters, so dropping the trailing filters
             // here changes nothing observable.
             // Stryker disable next-line MethodExpression
