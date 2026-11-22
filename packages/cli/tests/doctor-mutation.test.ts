@@ -1604,6 +1604,45 @@ describe("fresh-clone setup check", () => {
     );
   });
 
+  test("distinguish AGENTS.md that mentions Kibi without markers", async () => {
+    initialize();
+    s.choices.mockReturnValue(choices({ agentInstructions: true }) as never);
+    s.section.mockReturnValue("missing" as never);
+
+    writeFileSync(path.join(cwd, "AGENTS.md"), "# Agents\nRun tests.\n");
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+
+    writeFileSync(
+      path.join(cwd, "AGENTS.md"),
+      "# Agents\nConsult kibi before editing.\n",
+    );
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+      remediation:
+        "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text",
+    });
+
+    // Unreadable AGENTS.md path falls back to the standard missing-section message.
+    rmSync(path.join(cwd, "AGENTS.md"));
+    mkdirSync(path.join(cwd, "AGENTS.md"));
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+  });
+
   test("ask for no prepare step without package.json or with a hook manager", async () => {
     initialize();
     s.choices.mockReturnValue(choices({ prepareHooks: true }) as never);
