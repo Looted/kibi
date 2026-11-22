@@ -27,20 +27,20 @@ id: TEST-proof-operation-catalog-names
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-cef7ee4db482900d81fa368a
+    receipt_id: PR-9370a8b9e26965814052b184
     test_id: TEST-proof-operation-catalog-names
     scope: unit
     outcome: passed
-    code_snapshot: 3cbdf32b0ca578c0e6fb1cb36066284a666736978a016aff5518fbb451bb6544
-    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-20T04:36:15.592Z'
-    finished_at: '2026-11-20T04:36:16.838Z'
-    artifact_digest: 029ae74c9fc1d1036e9ff50944c2cab86becd1188736342b53061655bca358f6
-    contract_hash: 798dceba719eb2e27df7a9779d2686765151e9c2ad711287ccc118b79bb3ed4f
-    binding_hash: 5470fed7fa0b089b739b9fa43335299c76922609a0a25f203a4a9e2a694b3f96
-    fingerprint: a3d560499a01c2ea46dd98d2ce9f3e7f49a48c69ddbc2de86cd85f6a8a9a5c43
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    contract_hash: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
+    binding_hash: de37f364df44b46787c6df581f71faf61e9d160007264ea459dddcf39287aec1
+    fingerprint: 30775271e4d703616fc247a89429b5dab1bc5ed552919c8ff45bfa24c2aacbc0
     fingerprint_components:
-      contract: 798dceba719eb2e27df7a9779d2686765151e9c2ad711287ccc118b79bb3ed4f
+      contract: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -60,7 +60,7 @@ proof_receipts:
         attempts:
           status: unavailable
     kind: exhaustive
-    evidence_level: proved
+    evidence_level: tested
     certificate:
       version: kibi.code-certificate.v1
       kind: exhaustive
@@ -152,16 +152,14 @@ proof_receipts:
           outcome: passed
     certificate_digest: deffcda611b5f97312d3bea084b7273546cc7b3cd331d7804d30d172c109a0f8
     claim_bindings:
-      - claim_key: CLAIM-62E78938175836BF
+      - claim_key: CLAIM-E336EB29BBCA15CD
         requirement_id: REQ-kibi-operation-catalog-names
         fact_id: FACT-operation-catalog-names
-        binding: derived
-        scope: code
+        binding: rejected
         obligation:
           kind: set_equals
           members:
             - kb_apply_plan
-            - kb_author_impact_review
             - kb_check
             - kb_compile_intent
             - kb_coverage
@@ -187,5 +185,6 @@ proof_receipts:
             - kb_suggest_predicates
             - kb_upsert
             - kb_validate_upsert
+        reason: the domain members Kibi read are not FACT-operation-catalog-names's set (not in the set kb_author_impact_review)
 ---
 Proves that a Kibi catalog operation shall be one of the 24 operations the catalog names, against the code Kibi reads at ingest.

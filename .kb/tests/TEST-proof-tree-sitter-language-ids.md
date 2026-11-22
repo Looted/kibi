@@ -26,20 +26,20 @@ id: TEST-proof-tree-sitter-language-ids
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-faedcbaa3f2416ab3386182c
+    receipt_id: PR-3498a3909d4648f6f59ee87c
     test_id: TEST-proof-tree-sitter-language-ids
     scope: unit
     outcome: passed
-    code_snapshot: afb3cdbea213e763f387c3323e2e66996394012a39dd7d3623545ab9b3cd5977
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:42:49.742Z'
-    finished_at: '2026-10-28T22:42:49.835Z'
-    artifact_digest: ae62c2500583a7a763c814d406370c889597a323e7bc86848fa6d888adae420a
-    contract_hash: 03ce6d8d6e6b4933e4210407d037dff30201a73beaecc2231f4fce972db558b7
-    binding_hash: fe33f4cf4560de11962de8db24f5f1a2704ccdf785544930af822e4f2ca55c49
-    fingerprint: 4188b34c844b0e1bab3f0384c4c1bda6cba9e82f55a5c742343a80a43f9db5db
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    contract_hash: 781772c3b0062f14b364bfb7df0d8f4f233de9797700393de9f41ed4c349e777
+    binding_hash: bcd6ed4ec3636f1b596b4b8e3e1cb0f7c2c69bb5a7d4f7228557ded6cd261a25
+    fingerprint: c7e4555534904457fdf713a99dabff8efff86dadaf4017c3dba51b25715f57fd
     fingerprint_components:
-      contract: 03ce6d8d6e6b4933e4210407d037dff30201a73beaecc2231f4fce972db558b7
+      contract: 781772c3b0062f14b364bfb7df0d8f4f233de9797700393de9f41ed4c349e777
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -79,6 +79,7 @@ proof_receipts:
           - ruby
           - terraform
           - hcl
+          - prolog
       results:
         - member: python
           outcome: passed
@@ -104,9 +105,11 @@ proof_receipts:
           outcome: passed
         - member: hcl
           outcome: passed
-    certificate_digest: 30e54596ef24d5cf9c76c2935fe54233dc359c2f658d77175f36fcee3d0e4798
+        - member: prolog
+          outcome: passed
+    certificate_digest: c26d397b2ca05a60e50ced2af5df73fc35efd12cbcba5f8d75797f814e0aa44c
     claim_bindings:
-      - claim_key: CLAIM-792D57510F335E69
+      - claim_key: CLAIM-65D3E23B3522B092
         requirement_id: REQ-tree-sitter-language-set
         fact_id: FACT-tree-sitter-language-ids
         binding: derived
@@ -122,6 +125,7 @@ proof_receipts:
             - hcl
             - java
             - php
+            - prolog
             - python
             - ruby
             - rust

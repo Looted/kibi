@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs"],
+      "env": {
+        "KIBI_MCP_HOST": "vibe"
+      }
+    }
+  }
+}

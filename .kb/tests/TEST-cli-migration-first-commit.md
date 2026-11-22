@@ -28,17 +28,17 @@ proof_bindings:
     source_file: packages/cli/tests/commands/migrate-first-commit.test.ts
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-5e47f829a88f9105703e24b4
+    receipt_id: PR-87a7d140368e49568302986d
     test_id: TEST-cli-migration-first-commit
     scope: end_to_end
     outcome: passed
-    code_snapshot: faf065f2781c1044c030ed22ef2de1f9fa5ba7e2c43b903b7407837a816cfb65
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:43:49.109Z'
-    finished_at: '2026-10-29T10:44:09.809Z'
-    artifact_digest: dd8cd9701fd678bf2c076fe3250d0ca23702e7534d5a29740b14becda106cc1f
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 5eda75c2f8fc058098b9e899240055e60d6ddf847784ca2498e5aac154a6cdf0
-    binding_hash: f5480b5d4fe50ef9ec3edf9e2cf7d641a4d9c25175400bec4d900b179d0f6095
+    binding_hash: 80c1369448cf6aa5acdef11835666587410e041e133e476bb2f96adbf15305e4
     fingerprint: d3c95c66be5fee6ba5a7edce1702e53a91d4f2400f10adfc2ae811439aae130b
     fingerprint_components:
       contract: 5eda75c2f8fc058098b9e899240055e60d6ddf847784ca2498e5aac154a6cdf0

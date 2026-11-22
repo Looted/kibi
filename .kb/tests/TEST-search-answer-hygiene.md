@@ -23,17 +23,17 @@ id: TEST-search-answer-hygiene
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-413a0150a9ba279a8b1bdc45
+    receipt_id: PR-fe990bd15c242f8fa4728c6b
     test_id: TEST-search-answer-hygiene
     scope: end_to_end
     outcome: passed
-    code_snapshot: d18374d1a42ea80b9a358ea1dd1eb60af52b68b189371978efaa73878f693a32
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T10:37:34.774Z'
-    finished_at: '2026-11-16T10:37:40.392Z'
-    artifact_digest: eecf9f37d829cb52a207262195895671699823cb1eaa16c408d3656e1b2baa50
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: f913941aabb08a027a8c8fd7a7273703cba182c449aad71efacd7d5a2f554b14
-    binding_hash: 28becefcf28e1a961f90593d02e03ea4758c60ab15e02d094e47b52c9bc1399d
+    binding_hash: 258de7b21e8d665a8bbd8a0d53fed82379b4f754eca031b6c18683d5879c85e8
     fingerprint: 7953753de099c33718227964b553f2c363f50b61455e44758a118a811ad08fbd
     fingerprint_components:
       contract: f913941aabb08a027a8c8fd7a7273703cba182c449aad71efacd7d5a2f554b14

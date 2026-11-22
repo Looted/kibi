@@ -22,21 +22,21 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-88c0090ed97dd38116a94daf
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-2d8ba38a40ff083ffa8463a0
     test_id: TEST-cli-status-pre-first-sync
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
-    binding_hash: e884ffa392f4e16c6b255687b111886b7778d5d0fea8b3c7fe10b0f75ca8140f
-    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    contract_hash: acce66b08ddf3396f5b639f0c3310ddcc6d679823780cd04efd25464973d2e6f
+    binding_hash: 706545bcf4fb9da68731313728108a6d9b5826e2aed3d45e3b25c8cf89ce9310
+    fingerprint: 262225ee99f5d44836326b8bc25e3bb83d45731818e13c914c659f4ae9f49e75
     fingerprint_components:
-      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      contract: acce66b08ddf3396f5b639f0c3310ddcc6d679823780cd04efd25464973d2e6f
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -49,12 +49,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+      - symbol_id: SYM-e2e-cli-status-pre-first-sync
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

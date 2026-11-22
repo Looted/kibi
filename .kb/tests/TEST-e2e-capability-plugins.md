@@ -20,17 +20,17 @@ proof_bindings:
     native_id: documentation/tests/e2e/capability-plugins.e2e.ts::capability plugin e2e
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b08f89261e1e5a73d02df315
+    receipt_id: PR-d88f1821970af07bb275b5f2
     test_id: TEST-e2e-capability-plugins
     scope: end_to_end
     outcome: passed
-    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-30T19:49:30.879Z'
-    finished_at: '2026-10-30T19:49:32.876Z'
-    artifact_digest: fe02ac86a17ee1fd2fb5fba37087f4bc6a6d6a09a2165bfdfcb05fb75efa4c36
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: f6d6ffef7afb404c969f85b63a2da379197e4d59593d58329a581ff267c11047
-    binding_hash: 47f91e469bc27060fa577d24de8c014ec04802cb8fcdf40835c23868f06fbcca
+    binding_hash: a44e4ed22cc45009950164c39d10572f4c341df0bc010e3bd753e8bf87597825
     fingerprint: ce2fe4dc187f6e941f0ef40030042e4ba378ba652b20424de848aee001dd81c9
     fingerprint_components:
       contract: f6d6ffef7afb404c969f85b63a2da379197e4d59593d58329a581ff267c11047

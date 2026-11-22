@@ -26,15 +26,15 @@ id: TEST-proof-quantity-word-share
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1cd3d51359ef560f8368dbe3
+    receipt_id: PR-05c90e915a55dbe23cb04c87
     test_id: TEST-proof-quantity-word-share
     scope: unit
     outcome: passed
-    code_snapshot: 85b2624165d7e44fc735b108a25d4917ae5c54792c3260a53e21c812ec79a72a
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T06:03:48.781Z'
-    finished_at: '2026-11-17T06:04:07.082Z'
-    artifact_digest: 2548c0b6ce6a3d2df4c3a18e84a67d50f3b6aae32f2a888c83c74cb7dbd13d2c
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: fc881b28ae09d1f1424630c68a1deee7f1760a7c4f0863772c3ceaea583cb036
     binding_hash: 07803514ba6411ec363fd8df6468176a13082c35d12787695f2c50427facf707
     fingerprint: 548d795c44ecda506794967258c20165078d6ff539d42216be3df7d45863c373
