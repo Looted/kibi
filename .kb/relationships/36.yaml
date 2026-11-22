@@ -594,3 +594,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69f9dac45cfc
+  - type: verified_by
+    from: REQ-kibi-zcode-hooks-invoke-hook-runner
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-20T15:17:22.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ea510b8604c
+  - type: specified_by
+    from: REQ-kibi-zcode-hooks-invoke-hook-runner
+    to: SCEN-zcode-marketplace-install-hooks
+    created_at: 2026-11-20T15:23:44.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5df6ff4ac9f
+  - type: constrains
+    from: REQ-kibi-zcode-hooks-invoke-hook-runner
+    to: FACT-SUBJECT-6F1948BE213B3014
+    created_at: 2026-11-20T15:30:57.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4012d11b0481
+  - type: requires_property
+    from: REQ-kibi-zcode-hooks-invoke-hook-runner
+    to: FACT-PROP-4CEDDC7AC6310198
+    created_at: 2026-11-20T15:30:57.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebdb50f8989f
+  - type: specified_by
+    from: REQ-kibi-zcode-hooks-invoke-hook-runner
+    to: SCEN-NEG-zcode-marketplace-install-hooks-BUILD-ONLY-RUNNER
+    created_at: 2026-11-20T15:32:48.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-581c2af30b32

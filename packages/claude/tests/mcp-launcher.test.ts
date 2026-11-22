@@ -943,6 +943,20 @@ describe("claude MCP launcher server helpers", () => {
     const previousStdout = process.stdout;
     const previousExitCode = process.exitCode;
     const previousCwd = process.cwd;
+    // The launcher resolves its workspace from CLAUDE_PROJECT_DIR before
+    // falling back to cwd, and KIBI_WORKSPACE-family variables override both;
+    // a host session exporting either must not turn this unconfigured-cwd
+    // case into a configured workspace.
+    const envKeys = [
+      "CLAUDE_PROJECT_DIR",
+      "KIBI_WORKSPACE",
+      "KIBI_PROJECT_ROOT",
+      "KIBI_ROOT",
+    ] as const;
+    const previousEnvValues = envKeys.map((key) => process.env[key]);
+    for (const key of envKeys) {
+      delete process.env[key];
+    }
     const unconfigured = tempRoot("kibi-claude-main-");
     const stdin = new PassThrough();
     const out = makeWriteSink();
@@ -977,6 +991,14 @@ describe("claude MCP launcher server helpers", () => {
       Object.defineProperty(process, "cwd", {
         configurable: true,
         value: previousCwd,
+      });
+      envKeys.forEach((key, index) => {
+        const value = previousEnvValues[index];
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
       });
     }
     out.stream.end();
