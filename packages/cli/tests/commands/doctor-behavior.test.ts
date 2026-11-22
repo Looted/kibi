@@ -31,6 +31,7 @@ import {
 interface DoctorCheckResult {
   name: string;
   passed: boolean;
+  warning?: boolean;
   message: string;
   remediation?: string;
   details?: Record<string, unknown>;
@@ -1301,6 +1302,37 @@ describe("doctorCommand kibi-managed hook sections", () => {
     expect(outdated.message).toContain("pre-commit");
     expect(outdated.remediation).toBe(
       "Run: kibi init to refresh the kibi-managed hook sections",
+    );
+  });
+
+  test("warns without failing when a hook manager owns hooks and outdated kibi-managed sections remain", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeFileSync(
+      path.join(cwd, ".pre-commit-config.yaml"),
+      "repos: []\n",
+      "utf8",
+    );
+    installGitHooks(path.join(cwd, ".git", "hooks"));
+    const preCommit = path.join(cwd, ".git", "hooks", "pre-commit");
+    writeFileSync(
+      preCommit,
+      fs
+        .readFileSync(preCommit, "utf8")
+        .replace('"$KIBI_BIN" check-generated --staged --changed-only\n', ""),
+    );
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(0);
+    const managed = namedCheck(payload, "Kibi-managed hook sections");
+    expect(managed.passed).toBe(true);
+    expect(managed.warning).toBe(true);
+    expect(managed.message).toContain(
+      "Managed by pre-commit (.pre-commit-config.yaml)",
+    );
+    expect(managed.message).toContain("pre-commit");
+    expect(managed.remediation).not.toContain("Run: kibi init");
+    expect(managed.remediation).toContain(
+      "kibi init --print-hook all --format pre-commit",
     );
   });
 });
