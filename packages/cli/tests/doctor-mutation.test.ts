@@ -1604,6 +1604,48 @@ describe("fresh-clone setup check", () => {
     );
   });
 
+  test("name hand-written Kibi instructions and how to keep them", async () => {
+    initialize();
+    s.choices.mockReturnValue(choices({ agentInstructions: true }) as never);
+    s.section.mockReturnValue("missing" as never);
+    const agents = path.join(cwd, agentInstructions.AGENTS_FILE);
+    writeFileSync(
+      agents,
+      "# Agents\n\nThis repo uses KIBI: run kb_search first.\n",
+    );
+    expect(await check("Fresh-clone setup")).toStrictEqual({
+      name: "Fresh-clone setup",
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md mentions Kibi but has no kibi-managed section, so kibi init does not keep those instructions current",
+      remediation:
+        "Run: kibi init (applies the recorded choices and adds the managed AGENTS.md section), or kibi init --no-agent-instructions to keep your own AGENTS.md instructions",
+      details: {
+        choices: {
+          autoSync: true,
+          prepareHooks: false,
+          agentInstructions: true,
+          ciGate: false,
+        },
+        source: "defaults",
+      },
+    });
+    // A word that only starts with "kibi" is no mention of Kibi.
+    writeFileSync(agents, "Sizes are in kibibytes.\n");
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+    // An outdated managed section is reported as outdated.
+    writeFileSync(agents, "Kibi\n");
+    s.section.mockReturnValue("outdated" as never);
+    expect((await check("Fresh-clone setup"))?.message).toBe(
+      "the Kibi section of AGENTS.md is outdated",
+    );
+  });
+
   test("ask for no prepare step without package.json or with a hook manager", async () => {
     initialize();
     s.choices.mockReturnValue(choices({ prepareHooks: true }) as never);

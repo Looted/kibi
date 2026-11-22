@@ -346,4 +346,25 @@ describe("kibi init", () => {
     expect(doctor.stdout).toContain("Fresh-clone setup");
     expect(doctor.stdout).toContain("AGENTS.md has no Kibi section");
   }, 120_000);
+
+  test("doctor names hand-written Kibi instructions and how to keep them", () => {
+    gitRepo();
+    write("package.json", '{"name":"demo"}\n');
+    expect(kibi(["init"]).status).toBe(0);
+    const handWritten =
+      "# Agents\n\nThis repo uses Kibi: run kb_search before changing behavior.\n";
+    write("AGENTS.md", handWritten);
+    const doctor = kibi(["doctor"]);
+    expect(doctor.stdout).toContain(
+      "AGENTS.md mentions Kibi but has no kibi-managed section",
+    );
+    expect(doctor.stdout).not.toContain("AGENTS.md has no Kibi section");
+    expect(doctor.stdout).toContain("kibi init --no-agent-instructions");
+
+    expect(kibi(["init", "--no-agent-instructions"]).status).toBe(0);
+    expect(read("AGENTS.md")).toBe(handWritten);
+    const after = kibi(["doctor"]);
+    expect(after.stdout).not.toContain("AGENTS.md mentions Kibi");
+    expect(after.stdout).not.toContain("kibi init --no-agent-instructions");
+  }, 120_000);
 });
