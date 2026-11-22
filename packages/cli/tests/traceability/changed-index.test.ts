@@ -48,6 +48,27 @@ function setWritableRecursive(target: string, writable: boolean): void {
     chmodSync(target, writable ? stat.mode | 0o200 : stat.mode & ~0o222);
   }
 }
+/**
+ * Whether removing write bits really stops this process from writing. It
+ * does not for root (or any process with CAP_DAC_OVERRIDE), so the tests
+ * that need a genuinely read-only `.git` skip there; the simulated
+ * EROFS/EACCES/EPERM test still covers the fallback.
+ */
+const readOnlyEnforced = (() => {
+  const probe = mkdtempSync(path.join(tmpdir(), "kibi-ro-probe-"));
+  try {
+    chmodSync(probe, 0o500);
+    try {
+      writeFileSync(path.join(probe, "write-test"), "");
+      return false;
+    } catch {
+      return true;
+    }
+  } finally {
+    chmodSync(probe, 0o700);
+    rmSync(probe, { recursive: true, force: true });
+  }
+})();
 /** The paths a commit from `index` would change against HEAD. */
 const changedIn = (
   index?: string,
@@ -290,130 +311,141 @@ describe("prepareChangedIndex", () => {
     expect(files()).toStrictEqual(before);
   });
 
-  test("falls back to a temp directory when .git is read-only", () => {
-    const gitDir = path.join(root, ".git");
-    const before = readdirSync(gitDir);
-    setWritableRecursive(gitDir, false);
-    const changed = prepareChangedIndex(root);
-    const tempDir = path.dirname(changed.indexFile);
-    try {
-      expect(tempDir).not.toBe(gitDir);
-      expect(changed.env).toBeDefined();
-      expect(changed.env?.GIT_OBJECT_DIRECTORY).toBe(
-        path.join(tempDir, "objects"),
-      );
-      expect(changed.env?.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
-        path.join(gitDir, "objects"),
-      );
-      expect(changedIn(changed.indexFile, changed.env)).toStrictEqual(
-        [
-          "D\tgone.ts",
-          "M\t.kb/requirements/REQ-a.md",
-          "M\ta.ts",
-          "M\tb.ts",
-          "A\tnew.ts",
-        ].sort(),
-      );
-      const env = {
-        ...gitEnv(),
-        ...changed.env,
-        GIT_INDEX_FILE: changed.indexFile,
-      };
-      expect(git(["show", ":b.ts"], env)).toBe("export const b = 2;\n");
-      expect(git(["show", ":new.ts"], env)).toBe("export const n = 1;\n");
-      expect(git(["write-tree"], env).trim()).toMatch(/^[a-f0-9]{40,64}$/);
-    } finally {
-      changed.dispose();
-    }
-    expect(existsSync(tempDir)).toBe(false);
-    expect(() => changed.dispose()).not.toThrow();
-    setWritableRecursive(gitDir, true);
-    expect(readdirSync(gitDir)).toStrictEqual(before);
-    expect(changedIn()).toStrictEqual(["M\ta.ts"]);
-  });
-
-  test("falls back to a temp directory with split-index when .git is read-only", () => {
-    const gitDir = path.join(root, ".git");
-    git(["update-index", "--split-index"]);
-    write("a.ts", "export const a = 3;\n");
-    git(["add", "a.ts"]);
-    expect(
-      readdirSync(gitDir).some((entry) => entry.startsWith("sharedindex.")),
-    ).toBe(true);
-    setWritableRecursive(gitDir, false);
-
-    const changed = prepareChangedIndex(root);
-    const tempDir = path.dirname(changed.indexFile);
-    try {
-      const env = {
-        ...gitEnv(),
-        ...changed.env,
-        GIT_INDEX_FILE: changed.indexFile,
-      };
-      expect(changedIn(changed.indexFile, changed.env)).toStrictEqual(
-        [
-          "D\tgone.ts",
-          "M\t.kb/requirements/REQ-a.md",
-          "M\ta.ts",
-          "M\tb.ts",
-          "A\tnew.ts",
-        ].sort(),
-      );
-      expect(git(["show", ":a.ts"], env)).toBe("export const a = 3;\n");
-      expect(git(["show", ":new.ts"], env)).toBe("export const n = 1;\n");
-      expect(git(["write-tree"], env).trim()).toMatch(/^[a-f0-9]{40,64}$/);
-    } finally {
-      changed.dispose();
-    }
-    expect(existsSync(tempDir)).toBe(false);
-  });
-
-  test("falls back when unborn .git or .git/objects is read-only", () => {
-    // Writable .git/ with read-only .git/objects: copy succeeds, git add fails.
-    const gitDir = path.join(root, ".git");
-    const before = readdirSync(gitDir);
-    setWritableRecursive(path.join(gitDir, "objects"), false);
-    const objectsReadOnly = prepareChangedIndex(root);
-    const objectsTempDir = path.dirname(objectsReadOnly.indexFile);
-    try {
-      expect(readdirSync(gitDir)).toStrictEqual(before);
-      expect(
-        changedIn(objectsReadOnly.indexFile, objectsReadOnly.env),
-      ).toContain("A\tnew.ts");
-      expect(
-        git(["show", ":new.ts"], {
+  test.skipIf(!readOnlyEnforced)(
+    "falls back to a temp directory when .git is read-only",
+    () => {
+      const gitDir = path.join(root, ".git");
+      const before = readdirSync(gitDir);
+      setWritableRecursive(gitDir, false);
+      const changed = prepareChangedIndex(root);
+      const tempDir = path.dirname(changed.indexFile);
+      try {
+        expect(tempDir).not.toBe(gitDir);
+        expect(changed.env).toBeDefined();
+        expect(changed.env?.GIT_OBJECT_DIRECTORY).toBe(
+          path.join(tempDir, "objects"),
+        );
+        expect(changed.env?.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
+          path.join(gitDir, "objects"),
+        );
+        expect(changedIn(changed.indexFile, changed.env)).toStrictEqual(
+          [
+            "D\tgone.ts",
+            "M\t.kb/requirements/REQ-a.md",
+            "M\ta.ts",
+            "M\tb.ts",
+            "A\tnew.ts",
+          ].sort(),
+        );
+        const env = {
           ...gitEnv(),
-          ...objectsReadOnly.env,
-          GIT_INDEX_FILE: objectsReadOnly.indexFile,
-        }),
-      ).toBe("export const n = 1;\n");
-    } finally {
-      objectsReadOnly.dispose();
-    }
-    expect(existsSync(objectsTempDir)).toBe(false);
+          ...changed.env,
+          GIT_INDEX_FILE: changed.indexFile,
+        };
+        expect(git(["show", ":b.ts"], env)).toBe("export const b = 2;\n");
+        expect(git(["show", ":new.ts"], env)).toBe("export const n = 1;\n");
+        expect(git(["write-tree"], env).trim()).toMatch(/^[a-f0-9]{40,64}$/);
+      } finally {
+        changed.dispose();
+      }
+      expect(existsSync(tempDir)).toBe(false);
+      expect(() => changed.dispose()).not.toThrow();
+      setWritableRecursive(gitDir, true);
+      expect(readdirSync(gitDir)).toStrictEqual(before);
+      expect(changedIn()).toStrictEqual(["M\ta.ts"]);
+    },
+  );
 
-    // Unborn repository with read-only .git (no .git/index to copy).
-    setWritableRecursive(gitDir, true);
-    rmSync(root, { recursive: true, force: true });
-    root = mkdtempSync(path.join(tmpdir(), "kibi-changed-index-"));
-    git(["init", "-q", "-b", "main"]);
-    write("first.ts", "export const first = 1;\n");
-    setWritableRecursive(path.join(root, ".git"), false);
-    const unborn = prepareChangedIndex(root);
-    const unbornTempDir = path.dirname(unborn.indexFile);
-    try {
-      const env = {
-        ...gitEnv(),
-        ...unborn.env,
-        GIT_INDEX_FILE: unborn.indexFile,
-      };
-      expect(git(["ls-files"], env)).toBe("first.ts\n");
-      expect(git(["show", ":first.ts"], env)).toBe("export const first = 1;\n");
-    } finally {
-      unborn.dispose();
-    }
-    expect(existsSync(unbornTempDir)).toBe(false);
-  });
+  test.skipIf(!readOnlyEnforced)(
+    "falls back to a temp directory with split-index when .git is read-only",
+    () => {
+      const gitDir = path.join(root, ".git");
+      git(["update-index", "--split-index"]);
+      write("a.ts", "export const a = 3;\n");
+      git(["add", "a.ts"]);
+      expect(
+        readdirSync(gitDir).some((entry) => entry.startsWith("sharedindex.")),
+      ).toBe(true);
+      setWritableRecursive(gitDir, false);
+
+      const changed = prepareChangedIndex(root);
+      const tempDir = path.dirname(changed.indexFile);
+      try {
+        const env = {
+          ...gitEnv(),
+          ...changed.env,
+          GIT_INDEX_FILE: changed.indexFile,
+        };
+        expect(changedIn(changed.indexFile, changed.env)).toStrictEqual(
+          [
+            "D\tgone.ts",
+            "M\t.kb/requirements/REQ-a.md",
+            "M\ta.ts",
+            "M\tb.ts",
+            "A\tnew.ts",
+          ].sort(),
+        );
+        expect(git(["show", ":a.ts"], env)).toBe("export const a = 3;\n");
+        expect(git(["show", ":new.ts"], env)).toBe("export const n = 1;\n");
+        expect(git(["write-tree"], env).trim()).toMatch(/^[a-f0-9]{40,64}$/);
+      } finally {
+        changed.dispose();
+      }
+      expect(existsSync(tempDir)).toBe(false);
+    },
+  );
+
+  test.skipIf(!readOnlyEnforced)(
+    "falls back when unborn .git or .git/objects is read-only",
+    () => {
+      // Writable .git/ with read-only .git/objects: copy succeeds, git add fails.
+      const gitDir = path.join(root, ".git");
+      const before = readdirSync(gitDir);
+      setWritableRecursive(path.join(gitDir, "objects"), false);
+      const objectsReadOnly = prepareChangedIndex(root);
+      const objectsTempDir = path.dirname(objectsReadOnly.indexFile);
+      try {
+        expect(readdirSync(gitDir)).toStrictEqual(before);
+        expect(
+          changedIn(objectsReadOnly.indexFile, objectsReadOnly.env),
+        ).toContain("A\tnew.ts");
+        expect(
+          git(["show", ":new.ts"], {
+            ...gitEnv(),
+            ...objectsReadOnly.env,
+            GIT_INDEX_FILE: objectsReadOnly.indexFile,
+          }),
+        ).toBe("export const n = 1;\n");
+      } finally {
+        objectsReadOnly.dispose();
+      }
+      expect(existsSync(objectsTempDir)).toBe(false);
+
+      // Unborn repository with read-only .git (no .git/index to copy).
+      setWritableRecursive(gitDir, true);
+      rmSync(root, { recursive: true, force: true });
+      root = mkdtempSync(path.join(tmpdir(), "kibi-changed-index-"));
+      git(["init", "-q", "-b", "main"]);
+      write("first.ts", "export const first = 1;\n");
+      setWritableRecursive(path.join(root, ".git"), false);
+      const unborn = prepareChangedIndex(root);
+      const unbornTempDir = path.dirname(unborn.indexFile);
+      try {
+        const env = {
+          ...gitEnv(),
+          ...unborn.env,
+          GIT_INDEX_FILE: unborn.indexFile,
+        };
+        expect(git(["ls-files"], env)).toBe("first.ts\n");
+        expect(git(["show", ":first.ts"], env)).toBe(
+          "export const first = 1;\n",
+        );
+      } finally {
+        unborn.dispose();
+      }
+      expect(existsSync(unbornTempDir)).toBe(false);
+    },
+  );
 
   test("falls back on simulated EROFS, EACCES and EPERM, preserves alternates, and cleans up on failure", () => {
     const gitDir = path.join(root, ".git");
@@ -549,82 +581,85 @@ describe("withChangedIndex", () => {
     }
   });
 
-  test("applies and restores fallback env vars when .git is read-only", async () => {
-    const saved = {
-      GIT_INDEX_FILE: process.env.GIT_INDEX_FILE,
-      GIT_OBJECT_DIRECTORY: process.env.GIT_OBJECT_DIRECTORY,
-      GIT_ALTERNATE_OBJECT_DIRECTORIES:
-        process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES,
-    };
-    Reflect.deleteProperty(process.env, "GIT_INDEX_FILE");
-    Reflect.deleteProperty(process.env, "GIT_OBJECT_DIRECTORY");
-    Reflect.deleteProperty(process.env, "GIT_ALTERNATE_OBJECT_DIRECTORIES");
-    setWritableRecursive(path.join(root, ".git"), false);
-    try {
-      let seenTempDir: string | undefined;
-      const result = await withChangedIndex(root, ["new.ts"], async () => {
-        seenTempDir = path.dirname(process.env.GIT_INDEX_FILE as string);
-        expect(process.env.GIT_OBJECT_DIRECTORY).toBe(
-          path.join(seenTempDir, "objects"),
+  test.skipIf(!readOnlyEnforced)(
+    "applies and restores fallback env vars when .git is read-only",
+    async () => {
+      const saved = {
+        GIT_INDEX_FILE: process.env.GIT_INDEX_FILE,
+        GIT_OBJECT_DIRECTORY: process.env.GIT_OBJECT_DIRECTORY,
+        GIT_ALTERNATE_OBJECT_DIRECTORIES:
+          process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES,
+      };
+      Reflect.deleteProperty(process.env, "GIT_INDEX_FILE");
+      Reflect.deleteProperty(process.env, "GIT_OBJECT_DIRECTORY");
+      Reflect.deleteProperty(process.env, "GIT_ALTERNATE_OBJECT_DIRECTORIES");
+      setWritableRecursive(path.join(root, ".git"), false);
+      try {
+        let seenTempDir: string | undefined;
+        const result = await withChangedIndex(root, ["new.ts"], async () => {
+          seenTempDir = path.dirname(process.env.GIT_INDEX_FILE as string);
+          expect(process.env.GIT_OBJECT_DIRECTORY).toBe(
+            path.join(seenTempDir, "objects"),
+          );
+          expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
+            path.join(root, ".git", "objects"),
+          );
+          return {
+            diff: execFileSync("git", ["diff", "--cached", "--name-only"], {
+              cwd: root,
+              encoding: "utf8",
+            }),
+            blob: execFileSync("git", ["show", ":new.ts"], {
+              cwd: root,
+              encoding: "utf8",
+            }),
+          };
+        });
+        expect(result.diff.trim().split("\n").sort()).toStrictEqual(
+          [".kb/requirements/REQ-a.md", "a.ts", "new.ts"].sort(),
         );
-        expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
-          path.join(root, ".git", "objects"),
-        );
-        return {
-          diff: execFileSync("git", ["diff", "--cached", "--name-only"], {
-            cwd: root,
-            encoding: "utf8",
-          }),
-          blob: execFileSync("git", ["show", ":new.ts"], {
-            cwd: root,
-            encoding: "utf8",
-          }),
-        };
-      });
-      expect(result.diff.trim().split("\n").sort()).toStrictEqual(
-        [".kb/requirements/REQ-a.md", "a.ts", "new.ts"].sort(),
-      );
-      expect(result.blob).toBe("export const n = 1;\n");
-      expect(seenTempDir).toBeDefined();
-      expect(existsSync(seenTempDir as string)).toBe(false);
-      expect(process.env.GIT_INDEX_FILE).toBeUndefined();
-      expect(process.env.GIT_OBJECT_DIRECTORY).toBeUndefined();
-      expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBeUndefined();
+        expect(result.blob).toBe("export const n = 1;\n");
+        expect(seenTempDir).toBeDefined();
+        expect(existsSync(seenTempDir as string)).toBe(false);
+        expect(process.env.GIT_INDEX_FILE).toBeUndefined();
+        expect(process.env.GIT_OBJECT_DIRECTORY).toBeUndefined();
+        expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBeUndefined();
 
-      process.env.GIT_INDEX_FILE = "/kept-index";
-      process.env.GIT_OBJECT_DIRECTORY = "/kept-objects";
-      process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES = "/kept-alternates";
-      await expect(
-        withChangedIndex(
-          root,
-          undefined,
-          async () => {
-            expect(process.env.GIT_OBJECT_DIRECTORY).toBe("/tmp-objects");
-            expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
-              "/tmp-alt",
-            );
-            throw new Error("boom");
-          },
-          () => ({
-            indexFile: "/scratch",
-            env: {
-              GIT_OBJECT_DIRECTORY: "/tmp-objects",
-              GIT_ALTERNATE_OBJECT_DIRECTORIES: "/tmp-alt",
+        process.env.GIT_INDEX_FILE = "/kept-index";
+        process.env.GIT_OBJECT_DIRECTORY = "/kept-objects";
+        process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES = "/kept-alternates";
+        await expect(
+          withChangedIndex(
+            root,
+            undefined,
+            async () => {
+              expect(process.env.GIT_OBJECT_DIRECTORY).toBe("/tmp-objects");
+              expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
+                "/tmp-alt",
+              );
+              throw new Error("boom");
             },
-            dispose: () => {},
-          }),
-        ),
-      ).rejects.toThrow("boom");
-      expect(process.env.GIT_INDEX_FILE).toBe("/kept-index");
-      expect(process.env.GIT_OBJECT_DIRECTORY).toBe("/kept-objects");
-      expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
-        "/kept-alternates",
-      );
-    } finally {
-      for (const [key, value] of Object.entries(saved)) {
-        if (value === undefined) Reflect.deleteProperty(process.env, key);
-        else process.env[key] = value;
+            () => ({
+              indexFile: "/scratch",
+              env: {
+                GIT_OBJECT_DIRECTORY: "/tmp-objects",
+                GIT_ALTERNATE_OBJECT_DIRECTORIES: "/tmp-alt",
+              },
+              dispose: () => {},
+            }),
+          ),
+        ).rejects.toThrow("boom");
+        expect(process.env.GIT_INDEX_FILE).toBe("/kept-index");
+        expect(process.env.GIT_OBJECT_DIRECTORY).toBe("/kept-objects");
+        expect(process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES).toBe(
+          "/kept-alternates",
+        );
+      } finally {
+        for (const [key, value] of Object.entries(saved)) {
+          if (value === undefined) Reflect.deleteProperty(process.env, key);
+          else process.env[key] = value;
+        }
       }
-    }
-  });
+    },
+  );
 });
