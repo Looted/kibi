@@ -29,3 +29,9 @@ Steps:
    manager or `core.hooksPath` owns them, there is no note.
 6. Run `kibi doctor` where a recorded choice is not in place: the
    "Fresh-clone setup" check warns and points at `kibi init`.
+7. Replace the managed AGENTS.md section with hand-written instructions that
+   mention Kibi and run `kibi doctor`: the check says AGENTS.md mentions Kibi
+   but has no kibi-managed section, instead of saying agents are not told the
+   KB exists, and points at `kibi init --no-agent-instructions` to keep the
+   hand-written text. After that opt-out, the text is unchanged and doctor no
+   longer warns about it.

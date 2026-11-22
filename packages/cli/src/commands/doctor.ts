@@ -1171,12 +1171,16 @@ function checkFreshCloneSetup(): DoctorCheckResult {
   }
   const choices = readSetupChoices(root);
   const gaps: string[] = [];
+  let handWrittenInstructions = false;
   if (choices.agentInstructions) {
-    const state = managedSectionState(
-      path.join(root, AGENTS_FILE),
-      KIBI_AGENT_INSTRUCTIONS,
-    );
-    if (state !== "current")
+    const agentsPath = path.join(root, AGENTS_FILE);
+    const state = managedSectionState(agentsPath, KIBI_AGENT_INSTRUCTIONS);
+    handWrittenInstructions = state === "missing" && mentionsKibi(agentsPath);
+    if (handWrittenInstructions)
+      gaps.push(
+        "AGENTS.md mentions Kibi but has no kibi-managed section, so kibi init does not keep those instructions current",
+      );
+    else if (state !== "current")
       gaps.push(
         state === "missing"
           ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
@@ -1219,9 +1223,21 @@ function checkFreshCloneSetup(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `${gaps.join("; ")}`,
-    remediation: "Run: kibi init (applies the recorded choices)",
+    remediation: handWrittenInstructions
+      ? "Run: kibi init (applies the recorded choices and adds the managed AGENTS.md section), or kibi init --no-agent-instructions to keep your own AGENTS.md instructions"
+      : "Run: kibi init (applies the recorded choices)",
     details,
   };
+}
+
+/**
+ * Hand-written agent instructions name Kibi without the managed markers.
+ * Doctor names them so the user can keep them (opt out of managed
+ * instructions) instead of being told the KB goes unmentioned.
+ */
+function mentionsKibi(file: string): boolean {
+  if (!existsSync(file)) return false;
+  return /\bkibi\b/i.test(readFileSync(file, "utf8"));
 }
 
 // Hook health must be diagnosed against the hooks directory Git actually
