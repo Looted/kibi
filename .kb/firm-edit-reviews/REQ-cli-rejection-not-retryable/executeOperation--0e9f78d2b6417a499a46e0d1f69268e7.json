@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/cli-protocol.ts",
   "symbol": "executeOperation",
   "verdict": "keeps",
-  "note": "The result budget is applied before the envelope; RESULT_TOO_LARGE is a non-retryable refusal, since the same call repeated unchanged gets the same result.",
+  "note": "Only appends the --schema hint to the VALIDATION_FAILED InputError message for integrated operations; InputError and all KB rejection paths still report retryable: false.",
   "statementHash": "sha256:def748cf8c661c50b8a9c3ba47e300f3f3cc93aa42811db0859aaa0d1d41fcc3",
-  "codeHash": "sha256:0db8599431cfcc12ef712512ed82477545fb41d4e2dcdd3b68bb011c0932c18a",
-  "startLine": 147,
-  "endLine": 262,
-  "recordedAt": "2026-11-19T15:36:32.623Z"
+  "codeHash": "sha256:db017dac03b4e8ce81394f656c05742d468ecb4dd17d22a8de07a5933cbdbbeb",
+  "startLine": 146,
+  "endLine": 259,
+  "recordedAt": "2026-11-22T15:50:43.672Z"
 }

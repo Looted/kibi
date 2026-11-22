@@ -8,6 +8,15 @@ import type {
   skillsValidateCommand,
 } from "./commands/skills.js";
 
+function resolveJsonFormat<T extends { format?: string; json?: boolean }>(
+  options: T,
+): Omit<T, "json"> {
+  const { json, ...rest } = options;
+  return json === true
+    ? ({ ...rest, format: "json" } as Omit<T, "json">)
+    : rest;
+}
+
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
   await executor.runJsonInvocation(invocation);
@@ -23,6 +32,7 @@ export function registerSkillsCommands(program: Command): void {
     .description("List bundled markdown skills")
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .action(async (options, command: Command) => {
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -32,7 +42,9 @@ export function registerSkillsCommands(program: Command): void {
         });
         return;
       }
-      await (await import("./commands/skills.js")).skillsListCommand(options);
+      await (await import("./commands/skills.js")).skillsListCommand(
+        resolveJsonFormat(options),
+      );
     });
 
   skillsProgram
@@ -41,6 +53,7 @@ export function registerSkillsCommands(program: Command): void {
     .argument("[id]", "Bundled skill ID")
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--format <format>", "Output format: json|markdown", "markdown")
+    .option("--json", "Alias for --format json")
     .action(async (id: string | undefined, options, command: Command) => {
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -53,7 +66,7 @@ export function registerSkillsCommands(program: Command): void {
       }
       await (await import("./commands/skills.js")).skillsLoadCommand(
         id ?? "",
-        options,
+        resolveJsonFormat(options),
       );
     });
 
@@ -64,6 +77,7 @@ export function registerSkillsCommands(program: Command): void {
     .argument("[resource]", "Declared resource path")
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--format <format>", "Output format: text|json", "text")
+    .option("--json", "Alias for --format json")
     .action(
       async (
         id: string | undefined,
@@ -86,7 +100,7 @@ export function registerSkillsCommands(program: Command): void {
         await (await import("./commands/skills.js")).skillsReadCommand(
           id ?? "",
           resource ?? "",
-          options,
+          resolveJsonFormat(options),
         );
       },
     );
@@ -96,15 +110,18 @@ export function registerSkillsCommands(program: Command): void {
     .description("Validate a bundled markdown skill path")
     .argument("<path>", "Skill bundle directory or SKILL.md path")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .action(
       withExitCode(
         async (
           pathLike: Parameters<typeof skillsValidateCommand>[0],
-          options: Parameters<typeof skillsValidateCommand>[1],
+          options: Parameters<typeof skillsValidateCommand>[1] & {
+            json?: boolean;
+          },
         ) =>
           (await import("./commands/skills.js")).skillsValidateCommand(
             pathLike,
-            options,
+            resolveJsonFormat(options),
           ),
       ),
     );
