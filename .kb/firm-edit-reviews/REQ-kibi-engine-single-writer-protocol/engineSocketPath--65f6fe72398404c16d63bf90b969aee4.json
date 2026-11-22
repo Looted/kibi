@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/engine.ts",
   "symbol": "engineSocketPath",
   "verdict": "keeps",
-  "note": "Pure extraction: the socket key is still sha256(canonical root NUL branch) truncated to 128 bits, now computed by engineSocketKey so the janitor shares it; one socket per canonical workspace and branch is unchanged.",
+  "note": "engineSocketPath now derives its key from the shared engineSocketKey; the path per workspace and branch is unchanged.",
   "statementHash": "sha256:48d405325ca5f561ae5a94b499059dbf6ec52185b7aac5f46476523a3875aab0",
-  "codeHash": "sha256:cca42558a43034919ddb02eb4fe52c32c00615d02d7ef352d7c1d1b052d29c5a",
-  "startLine": 559,
-  "endLine": 568,
-  "recordedAt": "2026-11-22T17:53:17.148Z"
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-22T18:15:00.678Z"
 }
