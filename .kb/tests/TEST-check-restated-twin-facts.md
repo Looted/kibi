@@ -20,15 +20,15 @@ id: TEST-check-restated-twin-facts
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-4b3fa38b992b7151c719e34e
+    receipt_id: PR-3fd9b2a3d25750a9bb5c3e64
     test_id: TEST-check-restated-twin-facts
     scope: end_to_end
     outcome: passed
-    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:26:25.496Z'
-    finished_at: '2026-11-16T12:26:28.372Z'
-    artifact_digest: f2cb61079c82035094d618027bb75220b334da4f60ecd08d384bc4a366fd06ab
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 55081024705703e1860c1c08ce9f86ad925a4e83b67d5362de3a258f68fbcc37
     binding_hash: 44125354821033b05767a2dd5f0ed24845e086d1516c6c42bd5ed75414b9f43e
     fingerprint: c54456daa71515fba626adc3a38218ddfa6d6c69145ca170e16ea4c5b568ef2b

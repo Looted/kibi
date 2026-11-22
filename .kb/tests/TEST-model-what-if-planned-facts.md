@@ -23,18 +23,18 @@ origin:
 id: TEST-model-what-if-planned-facts
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-6e0c9c8b12716a45aeb2b26f
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-3332fb7d40799a39f46993d9
     test_id: TEST-model-what-if-planned-facts
     scope: end_to_end
     outcome: passed
-    code_snapshot: 9f1686ef33b66e09e3bbf14b93c701d96fc812c10c403a32f3e9e704df269e55
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T19:13:49.644Z'
-    finished_at: '2026-10-11T19:14:00.591Z'
-    artifact_digest: 42806d21225c33d5a7a93ea0c873965ab08735e70404d18017017eb67f474fbd
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 041ea1f4a7991159c8a8e92196cb1525d446fd3a5b08b9f7b589a60056304ffd
-    binding_hash: 13d1e2ec595792efa257b0567f0b234e7aa1a2b31fc667066193fd6802bdfbec
+    binding_hash: d1c99a0280aac3dbfee3789ace49334ef6ee98db68f4a3c9198924277acf72b4
     fingerprint: 0320ea4495dc7f0870122b0920d4504dd162be55bb0ba98f5d3097a3fd75fad3
     fingerprint_components:
       contract: 041ea1f4a7991159c8a8e92196cb1525d446fd3a5b08b9f7b589a60056304ffd
@@ -56,6 +56,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Planned facts preview and hash-bound grounding plan on the decision-conflict fixture
 

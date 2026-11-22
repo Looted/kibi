@@ -21,17 +21,17 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-ab6753d83fdf785faa6b4136
+    receipt_id: PR-3a8a6b30b483d363276adcd2
     test_id: TEST-skillopt-scoring-gates-unit
     scope: unit
     outcome: passed
-    code_snapshot: cffe41b11590abbf5935d229d1c33d882718eab1b065285a913e2254bd9e5828
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:36:33.577Z'
-    finished_at: '2026-10-25T12:36:33.698Z'
-    artifact_digest: 6b337fdf1de16179f468f5908b7ec77d0da41d7aa722fa1745da37b694745c07
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: d2b7b50e29b7b7c885efb534b4e522f5e296617cda497de79d9cf7b232652857
-    binding_hash: e70354b5078d1e9f9466f739f9660f2c3fa933b134ba9750361969d07df0d7a6
+    binding_hash: 38b2d6bf5a4d5537d5a4c4d3a4c98b3dabab54d1a01433a96adb3a12b195e187
     fingerprint: 68a026e727dd6be85f1045f9b35a0071c2eb2258f5cee4764453f0f0e0a18a06
     fingerprint_components:
       contract: d2b7b50e29b7b7c885efb534b4e522f5e296617cda497de79d9cf7b232652857

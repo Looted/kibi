@@ -20,18 +20,18 @@ origin:
 id: TEST-kibi-kb-certificates
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-dd2d011baac05dcfe7fc6d54
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d9d2c67e11e6cad21a09ef71
     test_id: TEST-kibi-kb-certificates
     scope: end_to_end
     outcome: passed
-    code_snapshot: ca27b171be78bdc4740bf3da321fb761e85781a7fcb8be401d2a2fd7f5761efe
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-23T15:39:29.888Z'
-    finished_at: '2026-10-23T15:41:13.102Z'
-    artifact_digest: a9564c8ae31d4f2cc5c3a31360a9a5189af9334f6700409b0f7f31d0026255d9
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: da3c96aa44a2ccc63b8bb84944b1502a2af8be2d441d831e81ea57293d943669
-    binding_hash: a5118154ac599b1b1ee2e398ebfe46953cd40c96e378b611b810ca9af5575c0b
+    binding_hash: a089fd1191acb385aaeecd7b91e1b39c8c55949568d2e36e68fd29550fd862a3
     fingerprint: b5a63a1704a60a41d39a24a0818abcf235854e5f4a05de74b64bef489d2d4a7d
     fingerprint_components:
       contract: da3c96aa44a2ccc63b8bb84944b1502a2af8be2d441d831e81ea57293d943669
@@ -53,5 +53,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the installed packed CLI on a sandbox repository with property facts and checks the kb-consistency rule end to end: consistent bounds pass kibi check, a saved bundle with a broken model is rejected by kibi check --certificates with the fact it breaks and exit 1, and four bounds that only contradict together are a blocking kb-consistency violation with a core of all four facts that kibi check --staged also blocks.

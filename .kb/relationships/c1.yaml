@@ -293,6 +293,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52ce44c041df
+  - type: implements
+    from: SYM-vibe-hook-prompt-context
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:16:33.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef91e7bdea1a
+  - type: covered_by
+    from: SYM-vibe-hook-prompt-context
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:16:33.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6b0adb8327c
   - type: assumes
     from: SCEN-impact-review-public-preparation
     to: FACT-impact-review-preparation-file-rows
@@ -300,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1afa6b5d3f35
+  - type: executable_for
+    from: SYM-zcode-case-copied-install-runtime-files
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-20T15:18:25.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89031b765bc0

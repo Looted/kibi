@@ -26,17 +26,17 @@ id: TEST-proof-builtin-alignment-reuse-threshold
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6463779a26c4e784aa33266d
+    receipt_id: PR-bb9d2cd86d6df28627cd1996
     test_id: TEST-proof-builtin-alignment-reuse-threshold
     scope: unit
     outcome: passed
-    code_snapshot: 4015792e45e163c9ef221115c30a79374921664a5f8d7ef4db0f94d2f35e6043
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T16:58:20.733Z'
-    finished_at: '2026-10-29T16:58:20.924Z'
-    artifact_digest: 417a62d99b64f4a2b40c90d86e0bf2f41ec20c026e5b1460f1c376cb2c55c5dc
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: fa74556934cdadcad26874f97d00cd642c5cde2ba1d737187f81f0341a9709bb
-    binding_hash: 63a8102e9014846e44f58b2824255b45df7bf9aa56ba528c2a066ad7ec88120c
+    binding_hash: e5fca44d3b737f69ac754933536fe5da92b2c2f17da91b6f9c42216b956ba09d
     fingerprint: cb214c91d29c106afeb10e45ed19cec54ed3079328a739735feda79e0ff27ce4
     fingerprint_components:
       contract: fa74556934cdadcad26874f97d00cd642c5cde2ba1d737187f81f0341a9709bb

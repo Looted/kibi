@@ -594,6 +594,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7965e07a93f4
+  - type: constrains
+    from: REQ-vibe-skills-mirror
+    to: FACT-SUBJ-VIBE-SKILLS-MIRROR
+    created_at: 2026-11-19T20:09:51.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a89991421074
+  - type: requires_property
+    from: REQ-vibe-skills-mirror
+    to: FACT-PROP-VIBE-SKILLS-MIRROR-N01
+    created_at: 2026-11-19T20:09:51.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42ce1aee5ed4
+  - type: requires_property
+    from: REQ-vibe-skills-mirror
+    to: FACT-PROP-VIBE-SKILLS-MIRROR-N02
+    created_at: 2026-11-19T20:09:51.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54215d33e955
+  - type: specified_by
+    from: REQ-vibe-skills-mirror
+    to: SCEN-vibe-skills-mirror
+    created_at: 2026-11-19T20:16:16.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7120f6c871d
+  - type: specified_by
+    from: REQ-vibe-skills-mirror
+    to: SCEN-NEG-vibe-skills-mirror-drift
+    created_at: 2026-11-19T22:37:36.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-091ab42574fc
   - type: assumes
     from: SCEN-NEG-prolog-build-pipeline-validation-SIX-LAUNCH-TARGETS
     to: FACT-CASE-prolog-build-pipeline-validation-SIX-LAUNCH-TARGETS

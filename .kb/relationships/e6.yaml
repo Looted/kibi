@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b637f8da2039
+  - type: verified_by
+    from: SCEN-vibe-mcp-launcher-contract
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:15:59.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f023f9aa8db

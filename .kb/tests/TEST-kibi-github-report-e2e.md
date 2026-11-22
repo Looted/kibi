@@ -22,17 +22,17 @@ id: TEST-kibi-github-report-e2e
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a66296dca6dd62d652eb5f7a
+    receipt_id: PR-d59ef2aa1f4b57aaf1bec098
     test_id: TEST-kibi-github-report-e2e
     scope: end_to_end
     outcome: passed
-    code_snapshot: 7f5f3cbf07bcd668a6ba1d822ce431959e51a6f2bdc18ca3aef8600b71016261
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:21:24.228Z'
-    finished_at: '2026-10-29T10:23:30.942Z'
-    artifact_digest: 39e325d9fb6b3b5632e973fe9d2c2af418ac06942653adc7f10054d6307f70c4
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 5f1b42a89bcb45b30c59c92c47b8019ae77f53f9c5128053445da268175f8b04
-    binding_hash: cd248e985910f53e4177720fca2f3bfe57de0c5a9addae5b670a0232fad8e8ff
+    binding_hash: c6230669b385c8db43da9c20ee5b267f1168ea52bc7a6006d5d3579b0e60fa20
     fingerprint: 0532b868224ad936788ecc0879a256c324132a85970ae587b842d9f5ea258716
     fingerprint_components:
       contract: 5f1b42a89bcb45b30c59c92c47b8019ae77f53f9c5128053445da268175f8b04

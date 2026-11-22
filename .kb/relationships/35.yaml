@@ -482,6 +482,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6f3c3d90b98
+  - type: implements
+    from: SYM-vibe-transformVibeSkillFrontmatter
+    to: REQ-vibe-skills-mirror
+    created_at: 2026-11-19T20:10:34.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a138779a0e64
+  - type: covered_by
+    from: SYM-vibe-transformVibeSkillFrontmatter
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:36.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f69145d4ca8
   - type: specified_by
     from: REQ-impact-review-requirements-once
     to: SCEN-impact-review-requirements-once

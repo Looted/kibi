@@ -112,7 +112,7 @@ Local development, package builds, and tests currently use Linux/WSL. The
 launcher retains shell-free runtime handling for Windows npm shims.
 
 ```bash
-bun run build:zcode      # tsc + copy plugin assets + sync skills mirror
+bun run build:zcode      # tsc + hook bundle + copy plugin assets + sync skills mirror
 bun test packages/zcode  # unit tests
 bun run typecheck:zcode  # tsc --noEmit
 ```
@@ -121,24 +121,22 @@ bun run typecheck:zcode  # tsc --noEmit
 `.zcode-plugin/plugin.json`'s `version` in sync with `package.json` during
 `changeset version`.
 
-## Install (dogfood / local marketplace)
+## Install (marketplace / dogfood)
 
-1. `bun run build:zcode` in this repository — a marketplace install from a
-   local directory copies the plugin directory as-is, so a tree without a
-   build is missing `dist/hook-runner.js` and every hook fails to start.
-2. ZCode → **Settings → Plugin Management → Discover** → **`+`** → choose
-   **local directory** and select the repository root (the directory that
-   contains `.claude-plugin/marketplace.json`).
-3. Install `kibi-zcode` from the **Kibi** marketplace.
+1. ZCode → **Settings → Plugin Management → Discover** → **`+`** → add the
+   **Kibi** marketplace: the `Looted/kibi` GitHub repository, or a local
+   checkout through **local directory** (the repository root — the directory
+   that contains `.claude-plugin/marketplace.json`).
+2. Install `kibi-zcode` from the **Kibi** marketplace.
 
-Restart the ZCode session after rebuilding the plugin so hooks and MCP pick up
-the new `dist/` output.
-
-**GitHub-source installs are unsupported**: the source tree does not contain
-the generated `dist/hook-runner.js`, so adding `Looted/kibi` as a GitHub
-marketplace cannot produce a working plugin. `prepack` builds only run for
-npm packaging flows (`npm pack`, `npm install kibi-zcode`); ZCode's
-marketplace copy never builds anything.
+The hook runner ships as the tracked `bin/hook-runner.mjs` bundle, so an
+install that copies the repository without building — a GitHub marketplace
+source or an unbuilt checkout — still starts every hook. After changing the
+plugin source, run `bun run build:zcode` and update or reinstall the plugin,
+then restart the ZCode session so hooks and MCP pick up the regenerated
+bundle. `prepack` builds only run for npm packaging flows (`npm pack`,
+`npm install kibi-zcode`); ZCode's marketplace copy never builds anything,
+which is why the bundle is committed and drift-checked in CI.
 
 Manual MCP fallback (no plugin install required). Use this only when the
 marketplace plugin install path is unused; it invokes the `kibi-mcp` executable

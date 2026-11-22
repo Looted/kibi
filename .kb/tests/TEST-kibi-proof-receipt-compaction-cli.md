@@ -29,18 +29,18 @@ origin:
 id: TEST-kibi-proof-receipt-compaction-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-3d85b5f6ca48bd8f709b3947
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-31e8ff475d4a45e936fe7913
     test_id: TEST-kibi-proof-receipt-compaction-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 5e7b235b6806e8520a2b113b947fef56dc1bc93c8fcfb32859fdf6089a19e33a
-    binding_hash: f8d749a83da1b5489c60ae821689945735a1e44bd7b9d7c5af6ad42bf518cc79
+    binding_hash: 4726e6158cef8101b0ac361dd355ada4df63949b4170442021d652b62bf9f93d
     fingerprint: 8a3140b9aacd3e49932dfdf3ef35ab4f5ef88640d5ffddc43c18223a80398d39
     fingerprint_components:
       contract: 5e7b235b6806e8520a2b113b947fef56dc1bc93c8fcfb32859fdf6089a19e33a
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI keeps only the newest and deciding proof receipts and fails only the test that owns a failing step
 

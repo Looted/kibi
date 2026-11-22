@@ -1,18 +1,28 @@
 import { execFileSync } from "node:child_process";
 import {
+  chmodSync,
   copyFileSync,
   existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
   rmSync,
   statSync,
   utimesSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 /** A scratch git index holding the working tree's changes over the index. */
 export type ChangedIndex = Readonly<{
   /** Absolute path of the scratch index, for GIT_INDEX_FILE. */
   indexFile: string;
-  /** Removes the scratch index; the real index is never touched. */
+  /**
+   * Extra Git environment variables needed alongside `GIT_INDEX_FILE` when
+   * `.git` is not writable and the scratch index lives in a temp directory.
+   */
+  env?: Readonly<Record<string, string>>;
+  /** Removes the scratch index (and any temp fallback dir); the real index is never touched. */
   dispose: () => void;
 }>;
 
@@ -21,16 +31,133 @@ type GitRunner = (
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ) => string;
 
+const READ_ONLY_ERROR_CODES = new Set(["EROFS", "EACCES", "EPERM"]);
+const READ_ONLY_ERROR_PATTERN =
+  /\b(EROFS|EACCES|EPERM)\b|read-only file system|permission denied|operation not permitted|insufficient permission/i;
+
 const defaultGit: GitRunner = (args, options) =>
   execFileSync("git", [...args], {
     cwd: options.cwd,
     env: options.env,
     encoding: "utf8",
-    // rationale: only keeps git's stdin closed and its stderr off the
-    // terminal; the captured stdout is the same either way.
+    // rationale: keeps git's stdin closed and its stderr off the terminal
+    // while still capturing stderr on error so read-only .git failures can
+    // trigger the temp-directory fallback.
     // Stryker disable next-line ArrayDeclaration
-    stdio: ["ignore", "pipe", "ignore"],
+    stdio: ["ignore", "pipe", "pipe"],
   });
+
+function toText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Buffer.isBuffer(value)) return value.toString("utf8");
+  return "";
+}
+
+function isReadOnlyError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const { code, message, stderr } = error as {
+    code?: unknown;
+    message?: unknown;
+    stderr?: unknown;
+  };
+  if (typeof code === "string" && READ_ONLY_ERROR_CODES.has(code)) return true;
+  return READ_ONLY_ERROR_PATTERN.test(`${toText(stderr)}\n${toText(message)}`);
+}
+
+function copyIndexWithTimes(
+  source: string,
+  destination: string,
+  makeWritable = false,
+): void {
+  copyFileSync(source, destination);
+  if (makeWritable) chmodSync(destination, 0o600);
+  // Git trusts an entry's stat data only when the file is older than the
+  // index; a same-size edit made in the second the index was written is
+  // "racily clean" and re-read. A fresh mtime on the copy would hide
+  // such edits, so the copy keeps the real index's times.
+  const { atime, mtime } = statSync(source);
+  utimesSync(destination, atime, mtime);
+}
+
+function buildInGitDir(
+  workspaceRoot: string,
+  realIndex: string,
+  indexFile: string,
+  scope: readonly string[],
+  git: GitRunner,
+  env: NodeJS.ProcessEnv,
+): ChangedIndex {
+  const dispose = () => {
+    rmSync(indexFile, { force: true });
+    rmSync(`${indexFile}.lock`, { force: true });
+  };
+  try {
+    if (existsSync(realIndex)) copyIndexWithTimes(realIndex, indexFile);
+    // Nothing to add when only .kb was named and it neither exists nor was
+    // ever tracked.
+    if (scope.length !== 1)
+      git(["add", "-A", ...scope], {
+        cwd: workspaceRoot,
+        env: { ...env, GIT_INDEX_FILE: indexFile },
+      });
+  } catch (error) {
+    try {
+      dispose();
+    } catch {
+      // Best-effort cleanup; `.git` itself may be read-only.
+    }
+    throw error;
+  }
+  return { indexFile, dispose };
+}
+
+function buildInTempDir(
+  workspaceRoot: string,
+  realIndex: string,
+  scope: readonly string[],
+  git: GitRunner,
+  gitPath: (name: string) => string,
+  env: NodeJS.ProcessEnv,
+): ChangedIndex {
+  const tempDir = mkdtempSync(path.join(tmpdir(), "kibi-changed-index-"));
+  const tempIndex = path.join(tempDir, "index");
+  const tempObjects = path.join(tempDir, "objects");
+  const dispose = () => {
+    rmSync(tempDir, { recursive: true, force: true });
+  };
+  try {
+    mkdirSync(tempObjects);
+    if (existsSync(realIndex)) {
+      copyIndexWithTimes(realIndex, tempIndex, true);
+      const realIndexDir = path.dirname(realIndex);
+      for (const entry of readdirSync(realIndexDir)) {
+        if (!entry.startsWith("sharedindex.")) continue;
+        const target = path.join(tempDir, entry);
+        copyFileSync(path.join(realIndexDir, entry), target);
+        chmodSync(target, 0o600);
+      }
+    }
+    const realObjects = env.GIT_OBJECT_DIRECTORY
+      ? path.resolve(workspaceRoot, env.GIT_OBJECT_DIRECTORY)
+      : gitPath("objects");
+    const alternates = env.GIT_ALTERNATE_OBJECT_DIRECTORIES
+      ? `${realObjects}${path.delimiter}${env.GIT_ALTERNATE_OBJECT_DIRECTORIES}`
+      : realObjects;
+    const fallbackEnv: Readonly<Record<string, string>> = {
+      GIT_OBJECT_DIRECTORY: tempObjects,
+      GIT_ALTERNATE_OBJECT_DIRECTORIES: alternates,
+    };
+    if (scope.length !== 1)
+      git(["-c", "core.splitIndex=false", "add", "-A", ...scope], {
+        cwd: workspaceRoot,
+        env: { ...env, ...fallbackEnv, GIT_INDEX_FILE: tempIndex },
+      });
+    return { indexFile: tempIndex, env: fallbackEnv, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
+}
 
 /**
  * Builds the index a commit of every current change would have: a copy of
@@ -38,7 +165,10 @@ const defaultGit: GitRunner = (args, options) =>
  * ignored files stay out and deletions count). With `paths`, only those
  * paths and the knowledge base (`.kb`) are added, which keeps a check of a
  * few edited files from judging unrelated work in progress. The copy lives
- * in the git directory so a split index still finds its shared part.
+ * in the git directory when writable so a split index still finds its
+ * shared part, and falls back to a temp directory (with a scratch object
+ * directory and alternates pointing at the real objects) when `.git` is
+ * read-only.
  */
 export function prepareChangedIndex(
   workspaceRoot: string,
@@ -57,38 +187,29 @@ export function prepareChangedIndex(
     );
   const realIndex = gitPath("index");
   const indexFile = gitPath(`kibi-changed-index-${process.pid}-${Date.now()}`);
-  const dispose = () => {
-    rmSync(indexFile, { force: true });
-    rmSync(`${indexFile}.lock`, { force: true });
-  };
   try {
-    if (existsSync(realIndex)) {
-      copyFileSync(realIndex, indexFile);
-      // Git trusts an entry's stat data only when the file is older than the
-      // index; a same-size edit made in the second the index was written is
-      // "racily clean" and re-read. A fresh mtime on the copy would hide
-      // such edits, so the copy keeps the real index's times.
-      const { atime, mtime } = statSync(realIndex);
-      utimesSync(indexFile, atime, mtime);
-    }
     const scope =
       paths === undefined || paths.length === 0
         ? []
         : ["--", ...addablePaths(workspaceRoot, [...paths, ".kb"], git, env)];
-    // Nothing to add when only .kb was named and it neither exists nor was
-    // ever tracked.
-    if (scope.length !== 1)
-      git(["add", "-A", ...scope], {
-        cwd: workspaceRoot,
-        env: { ...env, GIT_INDEX_FILE: indexFile },
-      });
+    try {
+      return buildInGitDir(
+        workspaceRoot,
+        realIndex,
+        indexFile,
+        scope,
+        git,
+        env,
+      );
+    } catch (error) {
+      if (!isReadOnlyError(error)) throw error;
+      return buildInTempDir(workspaceRoot, realIndex, scope, git, gitPath, env);
+    }
   } catch (error) {
-    dispose();
     throw new Error(
       `Could not build the index of the working tree's changes: ${(error as Error).message}`,
     );
   }
-  return { indexFile, dispose };
 }
 
 /**
@@ -163,9 +284,10 @@ function inHead(
 
 /**
  * Runs `fn` with git reading the changed index instead of the real one
- * (GIT_INDEX_FILE in this process's environment), then restores the
- * environment and removes the scratch index. Only a one-shot CLI process
- * uses it: a long-lived server must not change its own environment.
+ * (`GIT_INDEX_FILE` and any read-only fallback env vars in this process's
+ * environment), then restores the environment and removes the scratch index.
+ * Only a one-shot CLI process uses it: a long-lived server must not change
+ * its own environment.
  */
 export async function withChangedIndex<T>(
   workspaceRoot: string,
@@ -174,14 +296,22 @@ export async function withChangedIndex<T>(
   prepare: typeof prepareChangedIndex = prepareChangedIndex,
 ): Promise<T> {
   const changed = prepare(workspaceRoot, paths);
-  const previous = process.env.GIT_INDEX_FILE;
-  process.env.GIT_INDEX_FILE = changed.indexFile;
+  const overrides: Record<string, string> = {
+    ...changed.env,
+    GIT_INDEX_FILE: changed.indexFile,
+  };
+  const previous = new Map<string, string | undefined>();
+  for (const [key, value] of Object.entries(overrides)) {
+    previous.set(key, process.env[key]);
+    process.env[key] = value;
+  }
   try {
     return await fn();
   } finally {
-    if (previous === undefined)
-      Reflect.deleteProperty(process.env, "GIT_INDEX_FILE");
-    else process.env.GIT_INDEX_FILE = previous;
+    for (const [key, value] of previous) {
+      if (value === undefined) Reflect.deleteProperty(process.env, key);
+      else process.env[key] = value;
+    }
     changed.dispose();
   }
 }

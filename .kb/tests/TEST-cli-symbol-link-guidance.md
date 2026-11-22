@@ -27,18 +27,18 @@ origin:
 id: TEST-cli-symbol-link-guidance
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-8d393a1375fa5a71f8b4f5e4
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-e1a71060c37e3b62e483ce0f
     test_id: TEST-cli-symbol-link-guidance
     scope: end_to_end
     outcome: passed
-    code_snapshot: 41881deebf8ec3697db8320dcaa508fecd148666d50247e408a64449f1e9a1ea
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-16T09:03:48.578Z'
-    finished_at: '2026-10-16T09:03:56.602Z'
-    artifact_digest: 89a190c91f994ef81429a1ac55dc1a50927d754c6a796aeee9de84b293f784e0
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 6275b3ccb28b642baa89fcb063f0d71098589b043560cbbf7b9db871979b42da
-    binding_hash: 2e76f6c8211dc638c25b005a9d7f1fc3cbc27eab286c8690b4bf70a9378a6007
+    binding_hash: e6d680f4ef96ae32143de3656aca2ee81557c4e7178b79d980b529ca5222a736
     fingerprint: 5502a0aa11157ec3f912a723b84f319f9d16b14a233ce4a2c120283d194903be
     fingerprint_components:
       contract: 6275b3ccb28b642baa89fcb063f0d71098589b043560cbbf7b9db871979b42da
@@ -60,5 +60,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the CLI on a fresh KB with a class whose public methods are behavioral symbols. It asserts that adding links to the stored class symbol is refused with the granular candidates, also when the payload is only validated, that `kibi check` `symbol-coverage` on a method symbol whose test does not verify the scenario names `verified_by(SCEN-…, TEST-…)`, and that an invalid test status lists only the test values.
