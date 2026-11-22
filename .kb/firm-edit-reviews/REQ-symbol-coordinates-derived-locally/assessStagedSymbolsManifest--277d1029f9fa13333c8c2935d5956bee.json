@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-symbol-coordinates-derived-locally",
+  "sourceFile": "packages/cli/src/traceability/staged-symbols-manifest.ts",
+  "symbol": "assessStagedSymbolsManifest",
+  "verdict": "keeps",
+  "note": "Adding coarse-covered source files to coveredPaths still judges staged evidence purely from .kb/symbols.yaml records and declaration titles, never from symbol coordinates.",
+  "statementHash": "sha256:201c86e5ee4e66d300d6ecf7402f47dd6a2cf6eda6a2e9b0c36ce755586f792c",
+  "codeHash": "sha256:64eb0eeb9d660e012f8054ee08a790a90fadf3a95b482d3b52229c334014445d",
+  "startLine": 498,
+  "endLine": 636,
+  "recordedAt": "2026-11-22T05:19:29.074Z"
+}
