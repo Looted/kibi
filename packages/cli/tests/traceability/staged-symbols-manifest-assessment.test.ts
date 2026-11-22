@@ -208,7 +208,7 @@ describe("assessStagedSymbolsManifest", () => {
     ]);
   });
 
-  it("treats a file documented only with coarse records as not required", () => {
+  it("treats a file documented only with coarse records as fresh", () => {
     const source = staged("src/alpha.ts", ALPHA_SOURCE);
 
     expect(
@@ -225,10 +225,43 @@ describe("assessStagedSymbolsManifest", () => {
         ],
       }),
     ).toEqual({
-      state: "not_required",
-      sourcePaths: [],
+      state: "fresh",
+      sourcePaths: ["src/alpha.ts"],
       path: SYMBOLS_PATH,
     });
+  });
+
+  it("still checks declarations when a file's only record uses legacy-link or an unknown reason", () => {
+    const source = staged("src/two-fns.ts", TWO_FN_SOURCE);
+    for (const reason of ["legacy-link", "made-up-reason"]) {
+      expect(
+        assess({
+          sourceFiles: [source],
+          stagedFiles: [
+            source,
+            staged(
+              SYMBOLS_PATH,
+              manifestOf([
+                coarseRecord("SYM-alpha", "alpha", "src/two-fns.ts", reason),
+              ]),
+            ),
+          ],
+        }),
+      ).toEqual({
+        state: "stale",
+        sourcePaths: ["src/two-fns.ts"],
+        path: SYMBOLS_PATH,
+        fileDetails: [
+          {
+            path: "src/two-fns.ts",
+            expectedCount: 2,
+            coveredCount: 1,
+            missing: [{ title: "beta", line: 5 }],
+            extra: [],
+          },
+        ],
+      });
+    }
   });
 
   it("exempts coarse-anchored titles while checking granular records in the same file", () => {

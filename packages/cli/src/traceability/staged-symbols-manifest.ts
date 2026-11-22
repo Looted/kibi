@@ -538,6 +538,7 @@ export function assessStagedSymbolsManifest(options: {
       manifestRecordsForFile.length > 0 &&
       manifestRecordsForFile.every(isDocumentedCoarseRecord);
     if (coarseCovered) {
+      coveredPaths.push(sourceFile.path);
       continue;
     }
 
