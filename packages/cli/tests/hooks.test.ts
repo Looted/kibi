@@ -51,6 +51,11 @@ describe("Git hooks", () => {
   it("should resolve a locally installed kibi when node_modules/.bin is off PATH", () => {
     // Git does not put node_modules/.bin on the hook's PATH, so a project-local
     // dependency must still resolve via the hook's walk-up from the repo root.
+    const nodeBin = path.join(tmpDir, "fake-node-bin");
+    fs.mkdirSync(nodeBin, { recursive: true });
+    fs.writeFileSync(path.join(nodeBin, "node"), "#!/bin/sh\nexit 0\n", {
+      mode: 0o755,
+    });
     const binDir = path.join(tmpDir, "node_modules/.bin");
     fs.mkdirSync(binDir, { recursive: true });
     fs.writeFileSync(
@@ -62,7 +67,7 @@ describe("Git hooks", () => {
     const hookPath = path.join(tmpDir, ".git/hooks/pre-commit");
     execSync(hookPath, {
       cwd: tmpDir,
-      env: { PATH: "/usr/bin:/bin" },
+      env: { PATH: `${nodeBin}:/usr/bin:/bin`, HOME: tmpDir },
       stdio: "pipe",
     });
 
@@ -79,6 +84,11 @@ describe("Git hooks", () => {
     const kibiBin = path.resolve(__dirname, "../bin/kibi");
     execSync(`bun ${kibiBin} init`, { cwd: appDir, stdio: "pipe" });
 
+    const nodeBin = path.join(tmpDir, "fake-node-bin");
+    fs.mkdirSync(nodeBin, { recursive: true });
+    fs.writeFileSync(path.join(nodeBin, "node"), "#!/bin/sh\nexit 0\n", {
+      mode: 0o755,
+    });
     // kibi is installed in the workspace root, not in the git repository.
     const binDir = path.join(tmpDir, "node_modules/.bin");
     fs.mkdirSync(binDir, { recursive: true });
@@ -91,7 +101,7 @@ describe("Git hooks", () => {
     const hookPath = path.join(appDir, ".git/hooks/pre-commit");
     execSync(hookPath, {
       cwd: appDir,
-      env: { PATH: "/usr/bin:/bin" },
+      env: { PATH: `${nodeBin}:/usr/bin:/bin`, HOME: tmpDir },
       stdio: "pipe",
     });
 
@@ -99,11 +109,16 @@ describe("Git hooks", () => {
   });
 
   it("should fail with remediation guidance when kibi cannot be resolved", () => {
+    const nodeBin = path.join(tmpDir, "fake-node-bin");
+    fs.mkdirSync(nodeBin, { recursive: true });
+    fs.writeFileSync(path.join(nodeBin, "node"), "#!/bin/sh\nexit 0\n", {
+      mode: 0o755,
+    });
     const hookPath = path.join(tmpDir, ".git/hooks/pre-commit");
     expect(() =>
       execSync(hookPath, {
         cwd: tmpDir,
-        env: { PATH: "/usr/bin:/bin" },
+        env: { PATH: `${nodeBin}:/usr/bin:/bin`, HOME: tmpDir },
         stdio: "pipe",
       }),
     ).toThrow(/cannot locate the kibi CLI/);
