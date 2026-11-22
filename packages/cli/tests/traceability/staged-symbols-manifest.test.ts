@@ -292,7 +292,7 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
-  it("treats a source file documented only with coarse records as not_required", () => {
+  it("treats a source file documented only with coarse records as fresh", () => {
     writeFile(
       tmpDir,
       "src/app.ts",
@@ -328,8 +328,8 @@ describe("assessStagedSymbolsManifest", () => {
           stagedFiles: [createSourceStagedFile(tmpDir)],
         }),
       ).toEqual({
-        state: "not_required",
-        sourcePaths: [],
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
         path: ".kb/symbols.yaml",
       });
     } finally {
