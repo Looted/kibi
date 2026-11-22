@@ -89,7 +89,10 @@ describe("the references reader on SWI-Prolog", () => {
         ],
       },
     });
-  });
+    // Resolving autoloaded libraries rebuilds SWI-Prolog's autoload index in
+    // the reader's hermetic environment, which takes well over Bun's 5s
+    // default on a cold or slow disk.
+  }, 60000);
 
   test("lists every predicate a body calls, through control constructs, meta-predicates, lambdas and grammar rules", async () => {
     const root = workspace({ "prolog/ops.pl": LIBRARY });
@@ -811,7 +814,9 @@ d(L) :- phrase(lines:digits(_), L).
           extract: "imports",
         }),
       ).toEqual({ ok: true, model: { members: [...members] } });
-  });
+    // Same autoload-index cost as the library-loads test above, paid once per
+    // file in the loop.
+  }, 60000);
 
   test("reads apply/2 as the goal it calls", async () => {
     const root = workspace({

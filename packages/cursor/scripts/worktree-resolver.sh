@@ -30,12 +30,16 @@ rejectionReason=
 
 # Kibi resolves SWI-Prolog as KIBI_SWIPL, then a bundled platform package, then
 # swipl on PATH. This launcher only needs to know that one of them can exist;
-# the runtime verifies the bundle's manifest and checksum itself.
+# the runtime verifies the bundle's manifest and checksum itself. POSIX
+# packages ship bin/swipl; the Windows x64 package ships lib/swipl/bin/swipl.exe.
 has_bundled_swipl() {
   for bundled in \
     "$1"/node_modules/kibi-swipl-*/bin/swipl \
     "$1"/node_modules/.pnpm/kibi-swipl-*/node_modules/kibi-swipl-*/bin/swipl \
-    "$1"/packages/swipl-*/bin/swipl; do
+    "$1"/packages/swipl-*/bin/swipl \
+    "$1"/node_modules/kibi-swipl-*/lib/swipl/bin/swipl.exe \
+    "$1"/node_modules/.pnpm/kibi-swipl-*/node_modules/kibi-swipl-*/lib/swipl/bin/swipl.exe \
+    "$1"/packages/swipl-*/lib/swipl/bin/swipl.exe; do
     if [ -x "$bundled" ] && [ ! -d "$bundled" ]; then
       return 0
     fi
