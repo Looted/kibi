@@ -1307,14 +1307,35 @@ describe("staged symbol_role edits as Kibi impact evidence", () => {
   });
 
   it("produces no false change when symbol_role is unchanged", () => {
-    const { evidence, diagnostics } = evaluateGate(
-      manifestYaml("behavioral"),
-      manifestYaml("behavioral", "comment-only edit"),
-    );
+    const headManifest = manifestYaml("behavioral");
+    const stagedManifest = manifestYaml("behavioral", "comment-only edit");
+    const { evidence } = evaluateGate(headManifest, stagedManifest);
 
+    // An unchanged symbol_role adds no authored manifest change, so the
+    // manifest contributes no kb_changes evidence. Whether the gate then
+    // blocks depends on symbol coverage, which other tests decide.
     expect(evidence.mode).toEqual({ kind: "missing" });
-    expect(diagnostics.map((diagnostic) => diagnostic.id)).toEqual([
-      "kibi_impact_evidence_missing",
-    ]);
+    expect(
+      collectStagedAuthoredSymbolsManifestEvidence({
+        sourceFiles: [
+          {
+            path: "src/app.ts",
+            status: "M",
+            hunkRanges: [{ start: 1, end: 3 }],
+            content: 'export function run() {\n  return "updated";\n}\n',
+          },
+        ],
+        stagedFiles: [
+          {
+            path: ".kb/symbols.yaml",
+            status: "M",
+            hunkRanges: [],
+            content: stagedManifest,
+          },
+        ],
+        readBaseFile: (filePath) =>
+          filePath === ".kb/symbols.yaml" ? headManifest : null,
+      }).changedEntityIds,
+    ).toEqual([]);
   });
 });
