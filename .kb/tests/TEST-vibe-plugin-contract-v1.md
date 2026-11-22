@@ -34,15 +34,15 @@ id: TEST-vibe-plugin-contract-v1
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-c92d718c01c9561e37a1c752
+    receipt_id: PR-e85c747d74829875fae6a1a1
     test_id: TEST-vibe-plugin-contract-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 777fc62d89214fa27210bda3385c5651e054fe5bc2212993bff1ba1eb4e690b0
+    code_snapshot: 79873135883ee7d25a5daa216900181efabbf9a965423ebfb7bc94193ace1938
     environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-22T18:42:54.286Z'
-    finished_at: '2026-11-22T18:43:00.933Z'
-    artifact_digest: f4f4d2522ab2a1d24780bf504476d04e6ad795e200294eba9fc718e02b3167e1
+    started_at: '2026-11-22T18:44:09.037Z'
+    finished_at: '2026-11-22T18:44:16.081Z'
+    artifact_digest: 6a3ce912438becae08d6a8f94666cb22d185d97bc75c5df7580a578801ccf860
     contract_hash: d66ebf1e83c402ba89ac3a88ac6045a2a8c452821ba7cf85b865cda31151dcdd
     binding_hash: 815f2e09895b5b4efb2190af965b32c061c1a6888bf0f3f34ddc691490af653b
     fingerprint: e9ad321199c3400c2220dcacebb4377c0e1158b0503e00222aefaddbb9c35a76
