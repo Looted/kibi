@@ -17,15 +17,18 @@
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
+import { engineSocketPath } from "../../src/engine.js";
 import {
   runJanitor,
   sweepRuntimeSockets,
@@ -36,6 +39,8 @@ import {
   STORE_LOCK_TAKEOVER_FILE,
   recordStoreLockTakeover,
 } from "../../src/prolog/store-lock.js";
+import { DETACHED_SNAPSHOT_KB_BRANCH } from "../../src/utils/branch-resolver.js";
+import { ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
 
 function makeStore(options: {
   holderPid?: number;
@@ -229,8 +234,46 @@ describe("sweepStoreLockTakeoverRecords", () => {
 });
 
 describe("sweepRuntimeSockets", () => {
+  const temps: string[] = [];
+
+  afterEach(() => {
+    for (const dir of temps.splice(0)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  function tempDir(prefix: string): string {
+    const dir = mkdtempSync(join(tmpdir(), prefix));
+    temps.push(dir);
+    return dir;
+  }
+
+  function workspaceSocketIn(
+    runtime: string,
+    workspaceRoot: string,
+    branch: string,
+    pid: number,
+  ): string {
+    const previous = process.env.KIBI_RUNTIME_DIR;
+    process.env.KIBI_RUNTIME_DIR = runtime;
+    let filename: string;
+    try {
+      filename = basename(engineSocketPath(workspaceRoot, branch));
+    } finally {
+      if (previous === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_RUNTIME_DIR");
+      } else {
+        process.env.KIBI_RUNTIME_DIR = previous;
+      }
+    }
+    const socket = join(runtime, filename);
+    writeFileSync(socket, "");
+    writeFileSync(`${socket}.pid`, `${pid}\n`);
+    return socket;
+  }
+
   test("cleans sockets whose recorded pid is dead", () => {
-    const runtime = mkdtempSync(join(tmpdir(), "kibi-janitor-runtime-"));
+    const runtime = tempDir("kibi-janitor-runtime-");
     const socket = join(runtime, "kibi-dead.sock");
     writeFileSync(socket, "");
     writeFileSync(`${socket}.pid`, "2147000000\n");
@@ -247,7 +290,7 @@ describe("sweepRuntimeSockets", () => {
   });
 
   test("keeps scanning when a pid file vanishes mid-scan", () => {
-    const runtime = mkdtempSync(join(tmpdir(), "kibi-janitor-runtime-"));
+    const runtime = tempDir("kibi-janitor-runtime-");
     const socket = join(runtime, "kibi-raced.sock");
     writeFileSync(socket, "");
     // A directory where the pid file belongs makes the read fail the way a
@@ -267,10 +310,186 @@ describe("sweepRuntimeSockets", () => {
     expect(existsSync(socket)).toBe(true);
   });
 
-  test("is inert without --all", () => {
-    const runtime = mkdtempSync(join(tmpdir(), "kibi-janitor-runtime-"));
+  test("sweeps current workspace dead sockets by default while leaving other workspaces untouched", () => {
+    const runtime = tempDir("kibi-janitor-runtime-");
+    const currentWs = tempDir("kibi-janitor-ws-a-");
+    const otherWs = tempDir("kibi-janitor-ws-b-");
+    ensureBranchStoreManifest(currentWs, "develop");
+    ensureBranchStoreManifest(currentWs, "feature/auth");
+    ensureBranchStoreManifest(otherWs, "develop");
+
+    const deadDevelop = workspaceSocketIn(
+      runtime,
+      currentWs,
+      "develop",
+      2_147_000_000,
+    );
+    const deadFeature = workspaceSocketIn(
+      runtime,
+      currentWs,
+      "feature/auth",
+      2_147_000_001,
+    );
+    const otherDead = workspaceSocketIn(
+      runtime,
+      otherWs,
+      "develop",
+      2_147_000_002,
+    );
+
+    // Dry run reports both current workspace dead sockets without deleting.
+    const dryRun = sweepRuntimeSockets({
+      workspaceRoot: currentWs,
+      runtimeDirectory: runtime,
+      apply: false,
+    });
+    expect(dryRun.map((finding) => finding.socketPath).sort()).toStrictEqual(
+      [deadDevelop, deadFeature].sort(),
+    );
+    expect(dryRun.every((finding) => finding.action === "clean")).toBe(true);
+    expect(existsSync(deadDevelop)).toBe(true);
+    expect(existsSync(deadFeature)).toBe(true);
+    expect(existsSync(otherDead)).toBe(true);
+
+    // Applying without --all removes only current workspace dead sockets.
+    const applied = sweepRuntimeSockets({
+      workspaceRoot: currentWs,
+      runtimeDirectory: runtime,
+      all: false,
+      apply: true,
+    });
+    expect(applied.map((finding) => finding.socketPath).sort()).toStrictEqual(
+      [deadDevelop, deadFeature].sort(),
+    );
+    expect(existsSync(deadDevelop)).toBe(false);
+    expect(existsSync(`${deadDevelop}.pid`)).toBe(false);
+    expect(existsSync(deadFeature)).toBe(false);
+    expect(existsSync(`${deadFeature}.pid`)).toBe(false);
+    expect(existsSync(otherDead)).toBe(true);
+    expect(existsSync(`${otherDead}.pid`)).toBe(true);
+  });
+
+  test("sweeps both current and other workspaces dead sockets with --all", () => {
+    const runtime = tempDir("kibi-janitor-runtime-");
+    const currentWs = tempDir("kibi-janitor-ws-a-");
+    const otherWs = tempDir("kibi-janitor-ws-b-");
+    ensureBranchStoreManifest(currentWs, "develop");
+    ensureBranchStoreManifest(otherWs, "develop");
+
+    const currentDead = workspaceSocketIn(
+      runtime,
+      currentWs,
+      "develop",
+      2_147_000_000,
+    );
+    const otherDead = workspaceSocketIn(
+      runtime,
+      otherWs,
+      "develop",
+      2_147_000_001,
+    );
+
+    const findings = sweepRuntimeSockets({
+      workspaceRoot: currentWs,
+      runtimeDirectory: runtime,
+      all: true,
+      apply: true,
+    });
+    expect(findings.map((finding) => finding.socketPath).sort()).toStrictEqual(
+      [currentDead, otherDead].sort(),
+    );
+    expect(existsSync(currentDead)).toBe(false);
+    expect(existsSync(`${currentDead}.pid`)).toBe(false);
+    expect(existsSync(otherDead)).toBe(false);
+    expect(existsSync(`${otherDead}.pid`)).toBe(false);
+  });
+
+  test("keeps a live socket for the current workspace", () => {
+    const runtime = tempDir("kibi-janitor-runtime-");
+    const currentWs = tempDir("kibi-janitor-ws-live-");
+    ensureBranchStoreManifest(currentWs, "develop");
+
+    const liveSocket = workspaceSocketIn(
+      runtime,
+      currentWs,
+      "develop",
+      process.pid,
+    );
+    const findings = sweepRuntimeSockets({
+      workspaceRoot: currentWs,
+      runtimeDirectory: runtime,
+      apply: true,
+    });
+    expect(findings).toStrictEqual([
+      {
+        kind: "socket",
+        socketPath: liveSocket,
+        pid: process.pid,
+        holderState: "alive",
+        action: "keep",
+      },
+    ]);
+    expect(existsSync(liveSocket)).toBe(true);
+    expect(existsSync(`${liveSocket}.pid`)).toBe(true);
+  });
+
+  test("sweeps dead sockets for git branches and detached snapshots without branch manifests", () => {
+    const runtime = tempDir("kibi-janitor-runtime-");
+    const repo = tempDir("kibi-janitor-git-");
+    execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["config", "user.email", "test@example.com"], {
+      cwd: repo,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["config", "user.name", "Test"], {
+      cwd: repo,
+      stdio: "ignore",
+    });
+    writeFileSync(join(repo, "README.md"), "hi\n");
+    execFileSync("git", ["add", "README.md"], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "init"], {
+      cwd: repo,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["branch", "feat/old"], {
+      cwd: repo,
+      stdio: "ignore",
+    });
+
+    const symlinkParent = tempDir("kibi-janitor-link-");
+    const linkedRepo = join(symlinkParent, "repo-link");
+    symlinkSync(repo, linkedRepo);
+
+    const mainDead = workspaceSocketIn(runtime, repo, "main", 2_147_000_000);
+    const oldDead = workspaceSocketIn(runtime, repo, "feat/old", 2_147_000_001);
+    const detachedDead = workspaceSocketIn(
+      runtime,
+      repo,
+      DETACHED_SNAPSHOT_KB_BRANCH,
+      2_147_000_002,
+    );
+
+    const findings = runJanitor({
+      workspaceRoot: linkedRepo,
+      runtimeDirectory: runtime,
+      apply: true,
+    });
+    expect(
+      findings
+        .filter((finding) => finding.kind === "socket")
+        .map((finding) => finding.socketPath)
+        .sort(),
+    ).toStrictEqual([mainDead, oldDead, detachedDead].sort());
+    expect(existsSync(mainDead)).toBe(false);
+    expect(existsSync(oldDead)).toBe(false);
+    expect(existsSync(detachedDead)).toBe(false);
+  });
+
+  test("leaves unrelated sockets untouched without --all", () => {
+    const runtime = tempDir("kibi-janitor-runtime-");
     const socket = join(runtime, "kibi-dead.sock");
     writeFileSync(socket, "");
+    writeFileSync(`${socket}.pid`, "2147000000\n");
     const findings = sweepRuntimeSockets({
       workspaceRoot: runtime,
       runtimeDirectory: runtime,
