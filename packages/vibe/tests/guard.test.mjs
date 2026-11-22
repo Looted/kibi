@@ -153,8 +153,8 @@ test("promptNote gives the rule note with the stated reason, and nothing otherwi
       { ...payload, prompt: RULE_PROMPT },
       ws.env,
     );
-    assert.match(note, /reads as a rule or decision/);
-    assert.match(note, /why field/);
+    assert.match(String(note), /reads as a rule or decision/);
+    assert.match(String(note), /why field/);
   } finally {
     ws.cleanup();
   }
@@ -175,9 +175,15 @@ test("postEditNote warns once about a firm requirement, then gives the capture t
       }),
       ws.env,
     );
-    assert.match(first, /this edit changed deleteInvoice in src\/invoices\.ts/);
-    assert.match(first, /REQ-keep-invoices: Invoices are never deleted/);
-    assert.match(first, /kb_record/);
+    assert.match(
+      String(first),
+      /this edit changed deleteInvoice in src\/invoices\.ts/,
+    );
+    assert.match(
+      String(first),
+      /REQ-keep-invoices: Invoices are never deleted/,
+    );
+    assert.match(String(first), /kb_record/);
     // The requirement is settled and the template claimed for this session.
     assert.equal(
       postEditNote(
@@ -243,7 +249,7 @@ test("sessionStartNote names missing git hooks only in a Git checkout without th
     const payload = { session_id: "s1", cwd: ws.root };
     assert.equal(sessionStartNote(ws.root, payload, ws.env), undefined);
     execFileSync("git", ["init", "-q"], { cwd: ws.root });
-    assert.match(sessionStartNote(ws.root, payload, ws.env), /hook/i);
+    assert.match(String(sessionStartNote(ws.root, payload, ws.env)), /hook/i);
   } finally {
     ws.cleanup();
   }
