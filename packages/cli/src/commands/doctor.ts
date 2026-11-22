@@ -1159,6 +1159,16 @@ function checkBranchStore(): DoctorCheckResult {
   };
 }
 
+function fileMentionsKibi(filePath: string): boolean {
+  try {
+    return (
+      existsSync(filePath) && /\bkibi\b/i.test(readFileSync(filePath, "utf-8"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * What a fresh clone of this repository gets without anyone running
  * `kibi init`, against the setup choices the project recorded: the agent
@@ -1172,17 +1182,24 @@ function checkFreshCloneSetup(): DoctorCheckResult {
   }
   const choices = readSetupChoices(root);
   const gaps: string[] = [];
+  let customAgentsMentionsKibi = false;
   if (choices.agentInstructions) {
-    const state = managedSectionState(
-      path.join(root, AGENTS_FILE),
-      KIBI_AGENT_INSTRUCTIONS,
-    );
-    if (state !== "current")
-      gaps.push(
-        state === "missing"
-          ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
-          : "the Kibi section of AGENTS.md is outdated",
-      );
+    const agentsPath = path.join(root, AGENTS_FILE);
+    const state = managedSectionState(agentsPath, KIBI_AGENT_INSTRUCTIONS);
+    if (state !== "current") {
+      if (state === "missing" && fileMentionsKibi(agentsPath)) {
+        customAgentsMentionsKibi = true;
+        gaps.push(
+          "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+        );
+      } else {
+        gaps.push(
+          state === "missing"
+            ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
+            : "the Kibi section of AGENTS.md is outdated",
+        );
+      }
+    }
   }
   if (
     choices.prepareHooks &&
@@ -1220,7 +1237,9 @@ function checkFreshCloneSetup(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `${gaps.join("; ")}`,
-    remediation: "Run: kibi init (applies the recorded choices)",
+    remediation: customAgentsMentionsKibi
+      ? "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text"
+      : "Run: kibi init (applies the recorded choices)",
     details,
   };
 }
