@@ -47602,3 +47602,41 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T16:11:19.609Z
+  - id: SYM-test-cli-engine-janitor-workspace-sockets
+    title: kibi engine janitor suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/janitor.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:11.736Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-engine-janitor-workspace-sockets
+  - id: SYM-cli-janitor-sweep-runtime-sockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:47.194Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
+  - id: SYM-engine-socket-key-engine-socket-key
+    title: engineSocketKey
+    sourceFile: packages/cli/src/utils/engine-socket-key.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:51:24.071Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
