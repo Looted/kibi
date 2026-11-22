@@ -365,6 +365,18 @@
       "name": "kibi-swipl-win32-x64",
       "version": "1.0.2",
     },
+    "packages/vibe": {
+      "name": "kibi-vibe",
+      "version": "0.1.0",
+      "peerDependencies": {
+        "kibi-cli": ">=1.0.0",
+        "kibi-mcp": ">=1.0.0",
+      },
+      "optionalPeers": [
+        "kibi-cli",
+        "kibi-mcp",
+      ],
+    },
     "packages/vscode": {
       "name": "kibi-vscode",
       "version": "1.1.1",
@@ -1284,6 +1296,8 @@
     "kibi-swipl-linux-x64-gnu": ["kibi-swipl-linux-x64-gnu@workspace:packages/swipl-linux-x64-gnu"],
 
     "kibi-swipl-win32-x64": ["kibi-swipl-win32-x64@workspace:packages/swipl-win32-x64"],
+
+    "kibi-vibe": ["kibi-vibe@workspace:packages/vibe"],
 
     "kibi-vscode": ["kibi-vscode@workspace:packages/vscode"],
 

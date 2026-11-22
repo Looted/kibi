@@ -23,51 +23,18 @@ origin:
 id: TEST-model-predicates-permission-grants
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-bbe96154ac954793e03e8174
-    test_id: TEST-model-predicates-permission-grants
-    scope: unit
-    outcome: passed
-    code_snapshot: a6dbaee2758bba0c474b0135f8b37dcd954e4aefb568df57bbe8e43d067a3cfb
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T18:48:03.046Z'
-    finished_at: '2026-10-11T18:48:03.182Z'
-    artifact_digest: d2028aca1830f1b58e939405737931d5cfcf6ce0208f0209060a8ea58cda1bde
-    contract_hash: 07f5b2c78940547144ca3a0d89262794a7b2026c9a3b6755db9caaeb13725530
-    binding_hash: a5bc3bd09ff28f04a1c8e561e5d7710d40b988fd3e481082859e0c9ecfb05712
-    fingerprint: b0c46c97e6116bf74c6068e6156757bd16f50f74beebbf01cdc8b1f787e083ce
-    fingerprint_components:
-      contract: 07f5b2c78940547144ca3a0d89262794a7b2026c9a3b6755db9caaeb13725530
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-test-model-predicates-permission-grants
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-e72533fbfbdc348404a05453
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-34f0154b6adff495b5301471
     test_id: TEST-model-predicates-permission-grants
     scope: end_to_end
     outcome: passed
-    code_snapshot: a6dbaee2758bba0c474b0135f8b37dcd954e4aefb568df57bbe8e43d067a3cfb
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T18:49:13.473Z'
-    finished_at: '2026-10-11T18:49:13.598Z'
-    artifact_digest: 874b3245ed3f5ab3370d4a1b54411fc13a03cc20409ee2121da6450cfe631838
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 07f5b2c78940547144ca3a0d89262794a7b2026c9a3b6755db9caaeb13725530
-    binding_hash: a5bc3bd09ff28f04a1c8e561e5d7710d40b988fd3e481082859e0c9ecfb05712
+    binding_hash: a6fc323b121e4f1652a76bfb3daed6eb3fd37e215523e3074aec3793d5473482
     fingerprint: b0c46c97e6116bf74c6068e6156757bd16f50f74beebbf01cdc8b1f787e083ce
     fingerprint_components:
       contract: 07f5b2c78940547144ca3a0d89262794a7b2026c9a3b6755db9caaeb13725530
@@ -89,6 +56,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Capability grants select permission_rule with singular bindings and reviewed polarity
 

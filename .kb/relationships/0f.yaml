@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a2f9c56546f
+  - type: implements
+    from: SYM-vibe-planRuntime
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T21:37:13.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aee3f8f16dbf
+  - type: covered_by
+    from: SYM-vibe-planRuntime
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:13.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-487d1eff1a50
+  - type: implements
+    from: SYM-vibe-planRuntime
+    to: REQ-vibe-launcher-win32-workspace-routing
+    created_at: 2026-11-21T18:59:20.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6895197880

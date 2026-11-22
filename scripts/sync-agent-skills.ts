@@ -5,8 +5,8 @@
  *
  * Reads the canonical skill source from `packages/runtime/src/skills/`,
  * generates committed mirrors under `packages/cursor/skills/`,
- * `packages/codex/skills/`, `packages/zcode/skills/`, and
- * `packages/claude/skills/`, and emits a SHA-256
+ * `packages/codex/skills/`, `packages/zcode/skills/`,
+ * `packages/claude/skills/`, and `packages/vibe/skills/`, and emits a SHA-256
  * hash manifest at `<target>/.canon-hash.json` so drift can be detected
  * deterministically.
  *
@@ -18,14 +18,17 @@
  * `tags`, `resources`) are preserved verbatim, nested under `metadata:`.
  * The claude mirror uses the same layout but sets `name` to the skill id,
  * because Claude Code turns a plugin skill's `name` into its slash command.
- * Skill bodies and resource files stay byte-identical.
+ * The vibe mirror likewise sets `name` to the skill id, because Vibe requires
+ * the frontmatter `name` to match the skill directory name. Skill bodies and
+ * resource files stay byte-identical.
  *
  * Modes:
  *   --write (default)  Rewrite mirror directories and hash manifest.
  *   --check            Non-mutating: exit 0 if mirrors match canonical
  *                      source; exit 1 with a diff summary on drift.
  *   --target <name>    Limit to a single mirror ("cursor", "codex", "zcode",
- *                      or "claude"). When omitted, all mirrors are processed.
+ *                      "claude", or "vibe"). When omitted, all mirrors are
+ *                      processed.
  *
  * The generator must fail loudly when any expected canonical skill ID is
  * missing.
@@ -59,9 +62,15 @@ const EXPECTED_SKILL_IDS = [
 
 const HASH_MANIFEST_NAME = ".canon-hash.json";
 
-type Target = "cursor" | "codex" | "zcode" | "claude";
+type Target = "cursor" | "codex" | "zcode" | "claude" | "vibe";
 
-const ALL_TARGETS: readonly Target[] = ["cursor", "codex", "zcode", "claude"];
+const ALL_TARGETS: readonly Target[] = [
+  "cursor",
+  "codex",
+  "zcode",
+  "claude",
+  "vibe",
+];
 
 const ZCODE_SKILL_LICENSE = "AGPL-3.0-or-later";
 
@@ -161,6 +170,20 @@ export function transformClaudeSkillFrontmatter(content: Buffer): Buffer {
   return rewriteSkillFrontmatter(content, "claude");
 }
 
+/**
+ * Rewrite the canonical skill frontmatter for Mistral Vibe. Vibe requires the
+ * frontmatter `name` to match the skill directory name, so `name` becomes the
+ * canonical `id` ("Kibi Usage" would not match the `kibi-usage` directory).
+ * All other keys and the body stay byte-identical.
+ */
+export function transformVibeSkillFrontmatter(content: Buffer): Buffer {
+  const text = content.toString("utf8");
+  const idMatch = /^id:\s*(\S+)\s*$/m.exec(text);
+  const nameMatch = /^name:\s*.*$/m.exec(text);
+  if (!idMatch || !nameMatch) return content;
+  return Buffer.from(text.replace(nameMatch[0], `name: ${idMatch[1]}`), "utf8");
+}
+
 function rewriteSkillFrontmatter(
   content: Buffer,
   target: "zcode" | "claude",
@@ -218,6 +241,7 @@ function transformMirrorFile(
   }
   if (target === "zcode") return transformZcodeSkillFrontmatter(content);
   if (target === "claude") return transformClaudeSkillFrontmatter(content);
+  if (target === "vibe") return transformVibeSkillFrontmatter(content);
   return content;
 }
 
@@ -250,10 +274,11 @@ function parseArgs(argv: string[]): ParsedArgs {
         next !== "cursor" &&
         next !== "codex" &&
         next !== "zcode" &&
-        next !== "claude"
+        next !== "claude" &&
+        next !== "vibe"
       ) {
         throw new UsageError(
-          `--target requires one of: cursor, codex, zcode, claude (got: ${String(next)})`,
+          `--target requires one of: cursor, codex, zcode, claude, vibe (got: ${String(next)})`,
         );
       }
       limitTargets ??= [];
@@ -584,7 +609,7 @@ export async function main(argv: string[]): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.stderr.write(
-      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode|claude]\n",
+      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode|claude|vibe]\n",
     );
     process.exit(2);
   }
