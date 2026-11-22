@@ -4,10 +4,10 @@
   "sourceFile": "packages/zcode/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "Mutation-test hardening only: five new shell-path tests, four equivalent-mutant suppression comments and an extracted noEditPaths helper; the hooks still invoke the repository-tracked runner with unchanged behavior.",
+  "note": "Only Stryker rationale comments changed; no code changed.",
   "statementHash": "sha256:31f1666c85438febbff1b19c790d778d29c56bac8b5c71b81ae80714a9b93913",
-  "codeHash": "sha256:e36ffce4330c51f1e4691746419cf4bf5ab7c2516fb85728ac3518a2fb650e4b",
+  "codeHash": "sha256:7deef4287ec6004401b0692b6a2f72f44299306712087411d848de37162ee14f",
   "startLine": 1,
-  "endLine": 758,
-  "recordedAt": "2026-11-21T18:55:41.991Z"
+  "endLine": 757,
+  "recordedAt": "2026-11-22T18:12:28.097Z"
 }
