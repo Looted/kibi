@@ -14,5 +14,6 @@
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["bin/**/*.mjs", "tests/**/*.mjs"]
+  "include": ["bin/**/*.mjs", "src/**/*.ts", "tests/**/*.mjs"],
+  "exclude": ["bin/hooks/kibi-guard.mjs"]
 }

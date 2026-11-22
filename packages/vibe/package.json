@@ -25,9 +25,10 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "node --check bin/kibi-runtime.mjs && node --check bin/kibi.mjs && node --check bin/launch-kibi-mcp.mjs && node --check bin/hooks/kibi-common.mjs && node --check bin/hooks/kibi-file-context.mjs && node --check bin/hooks/kibi-prompt-context.mjs && node --check bin/hooks/kibi-session-context.mjs && bun run ../../scripts/sync-agent-skills.ts --write --target vibe",
+    "build": "bun run scripts/build-guard.ts && node --check bin/hooks/kibi-guard.mjs && node --check bin/kibi-runtime.mjs && node --check bin/kibi.mjs && node --check bin/launch-kibi-mcp.mjs && node --check bin/hooks/kibi-common.mjs && node --check bin/hooks/kibi-file-context.mjs && node --check bin/hooks/kibi-prompt-context.mjs && node --check bin/hooks/kibi-session-context.mjs && bun run ../../scripts/sync-agent-skills.ts --write --target vibe",
     "test": "node --test tests/",
-    "check:skills": "bun run ../../scripts/sync-agent-skills.ts --check --target vibe"
+    "check:skills": "bun run ../../scripts/sync-agent-skills.ts --check --target vibe",
+    "check:hook-bundle": "bun run --cwd ../agent-core build && bun run scripts/build-guard.ts && git diff --exit-code -- bin/hooks/kibi-guard.mjs"
   },
   "peerDependencies": {
     "kibi-cli": ">=1.0.0",
@@ -40,5 +41,8 @@
     "kibi-mcp": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "kibi-agent-core": "^0.15.0"
   }
 }

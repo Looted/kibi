@@ -84,6 +84,9 @@ jobs:
       - name: Check Vibe skill mirror drift
         run: bun run --filter kibi-vibe check:skills
 
+      - name: Check Vibe hook bundle drift
+        run: bun run --filter kibi-vibe check:hook-bundle
+
       - name: Verify generated symbol classification parity
         run: bun run symbols:check
 
