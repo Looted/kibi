@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e215ece043c1
+  - type: assumes
+    from: SCEN-NEG-cli-json-format-alias-OTHER-CODE
+    to: FACT-NEG-cli-json-format-alias-OTHER-CODE
+    created_at: 2026-11-22T17:47:37.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ba7a0e4ead6
+  - type: verified_by
+    from: SCEN-NEG-cli-json-format-alias-OTHER-CODE
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:47:37.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3da3bb23b0fc
