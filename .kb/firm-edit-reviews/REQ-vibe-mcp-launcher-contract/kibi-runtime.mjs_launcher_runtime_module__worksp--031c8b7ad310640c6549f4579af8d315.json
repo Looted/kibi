@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
+  "verdict": "keeps",
+  "note": "Only the module header comment changed, to describe native Windows routing; no behavior changed.",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:b965649b1ee796e6076824a952ed976234b55534b9ba73f78cb14c6cbd74a654",
+  "startLine": 1,
+  "endLine": 543,
+  "recordedAt": "2026-11-22T18:08:57.394Z"
+}
