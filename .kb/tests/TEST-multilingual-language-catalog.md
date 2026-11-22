@@ -25,15 +25,15 @@ id: TEST-multilingual-language-catalog
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-ccb4a8ca1070a3574ddd024c
+    receipt_id: PR-2a61f3bf3ff7737c9ccf4877
     test_id: TEST-multilingual-language-catalog
     scope: end_to_end
     outcome: passed
-    code_snapshot: 97a1f8ae8b5497330ab28e93a9d81f8e7d9ff5ea036c1beb3794253bf0b278cb
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T08:17:00.084Z'
-    finished_at: '2026-11-16T08:18:39.878Z'
-    artifact_digest: 491c3dea434d4dfb6c2e11403960dad0bd9815d05320a6929714b5ec558fbb47
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: a69787cbf535c57bd0c0e77661b09e2d2799d7b6f45dc98d1a7821caa0095cc0
     binding_hash: 543b8ab01964b899eeb8cdc13531fa18ee303ffa8a8b52ab306f191cb0188b0d
     fingerprint: 7d0c7665f816207139ec0499619ab287ca7a3b1baf3a599ca2e4b34bc52527a9

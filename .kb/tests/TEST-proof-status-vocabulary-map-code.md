@@ -26,17 +26,17 @@ id: TEST-proof-status-vocabulary-map-code
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e7267e6ddb6f34d8bc793018
+    receipt_id: PR-9947b4d0a5da03504b0aa77e
     test_id: TEST-proof-status-vocabulary-map-code
     scope: unit
     outcome: passed
-    code_snapshot: dc0be4d5803f22ca38ce1004b6769d2368029ae49edea82620e6c6618cbf4d3a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T18:52:54.841Z'
-    finished_at: '2026-10-28T18:52:55.030Z'
-    artifact_digest: 6ecb1efbabf0ac407bcfbc7076c623562a168c97e2329829a9678aa182966601
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 76018c6059079f5bbad1d6bd83a7a708daa0b7efe430d3606578bafbe4d95a4c
-    binding_hash: e1c96fc51845f1a89fa9916e55b2435cc7207dc97203dccb9c25861e1fea3985
+    binding_hash: f7ac11e198f21d84824b180de2a8ba167a011c476eb10774238911cbdff91d0e
     fingerprint: 3b09cf65f91d5e1d3eb29cbfa6c26152613ca568d31e3cb476abb655c8efad46
     fingerprint_components:
       contract: 76018c6059079f5bbad1d6bd83a7a708daa0b7efe430d3606578bafbe4d95a4c

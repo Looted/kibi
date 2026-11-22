@@ -388,3 +388,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-451a8cddaa80
+  - type: constrains
+    from: REQ-vibe-mcp-launcher-contract
+    to: FACT-SUBJ-VIBE-MCP-LAUNCHER-CONTRACT
+    created_at: 2026-11-19T20:09:42.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2106dbc0ed69
+  - type: requires_property
+    from: REQ-vibe-mcp-launcher-contract
+    to: FACT-PROP-VIBE-MCP-LAUNCHER-CONTRACT-N01
+    created_at: 2026-11-19T20:09:42.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f7711174166
+  - type: requires_property
+    from: REQ-vibe-mcp-launcher-contract
+    to: FACT-PROP-VIBE-MCP-LAUNCHER-CONTRACT-N02
+    created_at: 2026-11-19T20:09:42.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02e737b502b8
+  - type: requires_property
+    from: REQ-vibe-mcp-launcher-contract
+    to: FACT-PROP-VIBE-MCP-LAUNCHER-CONTRACT-N03
+    created_at: 2026-11-19T20:09:42.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9c279860094
+  - type: specified_by
+    from: REQ-vibe-mcp-launcher-contract
+    to: SCEN-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:16:06.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10c0fb3ff3c1
+  - type: specified_by
+    from: REQ-vibe-mcp-launcher-contract
+    to: SCEN-NEG-vibe-mcp-launcher-connect-outside
+    created_at: 2026-11-19T22:37:29.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ec212b32c9b

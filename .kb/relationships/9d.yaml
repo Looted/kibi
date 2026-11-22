@@ -395,3 +395,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fa1a0b57683
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-block-session
+    to: FACT-NEG-VIBE-HOOKS-BLOCK-SESSION
+    created_at: 2026-11-19T22:37:24.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-836161b8c82d
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-block-session
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:24.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6bd8249954

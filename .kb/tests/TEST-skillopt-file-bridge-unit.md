@@ -21,17 +21,17 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-845d52c419440703de82e464
+    receipt_id: PR-08391ab8999eba0e7219010a
     test_id: TEST-skillopt-file-bridge-unit
     scope: unit
     outcome: passed
-    code_snapshot: cffe41b11590abbf5935d229d1c33d882718eab1b065285a913e2254bd9e5828
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:36:28.354Z'
-    finished_at: '2026-10-25T12:36:28.472Z'
-    artifact_digest: 3d7b141e4c4836e5e35754329ba420e54883c0af8b95e23a38133ece4f3c4b30
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: a3ab6955a4ac9144aff904ffadda95378d380b4ad86e7e0014f7775612189286
-    binding_hash: 6fe3f9355a413a2abc6a6b4cf39dbe628c25e0251b152bad28da4721c3685737
+    binding_hash: 94d8cfad1522b63d5a230bf7b5c626832d3c0ed034e6b92a403eff2a36fccd5f
     fingerprint: 7ba2f1fe06d0be850cc72e50da39add7d92a43552d629ce9d22c6a7f84cd3130
     fingerprint_components:
       contract: a3ab6955a4ac9144aff904ffadda95378d380b4ad86e7e0014f7775612189286

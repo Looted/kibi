@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a12a0b8ab051
+  - type: assumes
+    from: SCEN-vibe-win32-routing-force-wsl
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N03
+    created_at: 2026-11-21T18:28:16.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32e2ca5774a6
+  - type: verified_by
+    from: SCEN-vibe-win32-routing-force-wsl
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-21T18:28:16.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da77632772f0

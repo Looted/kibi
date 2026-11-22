@@ -349,6 +349,15 @@ export const PACKAGE_CATALOG = [
     optional: false,
     packAll: true,
   },
+  {
+    dir: "vibe",
+    npmName: "kibi-vibe",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: false,
+    packAll: true,
+  },
 ] as const satisfies readonly PackageCatalogEntry[];
 
 export type CatalogPackageDir = (typeof PACKAGE_CATALOG)[number]["dir"];
