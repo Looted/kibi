@@ -22,15 +22,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-be613c01bd28af17025912c8
+    receipt_id: PR-8910f231574e63d3508d1fb9
     test_id: TEST-cli-engine-janitor-workspace-sockets
     scope: end_to_end
     outcome: passed
-    code_snapshot: 9531c6a2966f60fb6303c78479e6703044c63b4c62adda90745aefc7d3289a50
+    code_snapshot: 1b798847c1bcf609badad7079c8d5b1326d7dd144bd132a330ae0cfc04853e63
     environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-22T17:51:35.247Z'
-    finished_at: '2026-11-22T17:51:35.581Z'
-    artifact_digest: 75906fa0917e714ec10ba736971fe6de138cebf087a139e79b32f57b932b8e97
+    started_at: '2026-11-22T17:53:59.162Z'
+    finished_at: '2026-11-22T17:53:59.495Z'
+    artifact_digest: 325a153cb92762b77c6dffc746514c42c8cc686f02b791cd9419f11bb2c5afea
     contract_hash: 2e55b04670cc0a8e4614434a55aa41c361c61be8e024645d0cc4a12b4a4a875a
     binding_hash: 75f5c42d81ce28d75e3e4617415b873c06d9d65441764ceb5bd3f19112a818b6
     fingerprint: a8b525c85769c860ae087776b1e649769e4810c6b2cfeea6b0fd3188132d1aca
