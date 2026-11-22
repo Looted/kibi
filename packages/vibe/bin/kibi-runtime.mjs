@@ -3,10 +3,11 @@
 // kibi.mjs CLI wrapper; other agent hosts can reuse it by setting
 // KIBI_MCP_HOST to their own name).
 //
-// Kibi needs Node.js 22+ and SWI-Prolog 9+; the bundled SWI-Prolog covers
-// Linux/macOS, so on Windows the supported setup runs Kibi inside WSL. This
-// module decides per workspace whether to spawn Kibi directly with the
-// current Node or through `wsl.exe --cd <path> --exec ...`.
+// Kibi needs Node.js 22+ and SWI-Prolog 9+. The bundled SWI-Prolog covers
+// Linux, macOS and Windows x64, so Kibi runs natively by default; a
+// \\wsl.localhost\<distro> UNC workspace (or KIBI_FORCE_WSL=1) runs inside
+// WSL instead. This module decides per workspace whether to spawn Kibi
+// directly with the current Node or through `wsl.exe --cd <path> --exec ...`.
 //
 // Security rule: WSL commands are NEVER built as shell strings. The workspace
 // path, the node binary and every CLI argument are passed as literal argv

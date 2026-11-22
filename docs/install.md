@@ -784,17 +784,16 @@ The plugin contributes `plugin.json`, `mcp.json` (the `kibi` stdio server via
 `bin/launch-kibi-mcp.mjs`), `ai.mistral.vibe/hooks.toml` (session-start KB
 status, per-prompt KB hits, per-file linked entities), and `skills/*`.
 
-**Windows/WSL:** Kibi needs Node.js 22+ and SWI-Prolog 9+; the bundled
-SWI-Prolog covers Linux/macOS, so on Windows the supported setup runs Kibi
-inside WSL. The launcher detects this per workspace: on Windows with a WSL
-distribution whose Node.js is 22+ it spawns
-`wsl.exe [-d <distro>] --cd <wsl-path> --exec <node> <kibi-bin> [args...]`
-— paths and arguments are literal argv entries, never a shell string, and the
-distro comes from `\\wsl.localhost\<distro>\...` paths. Elsewhere (or with
-`KIBI_FORCE_DIRECT=1`) it spawns the project-local bin directly. The same
-launcher works for other agent harnesses on Windows; they set
-`KIBI_MCP_HOST` to their own name for correct attribution (Vibe's `mcp.json`
-sets `vibe`).
+**Windows:** Kibi needs Node.js 22+ and SWI-Prolog 9+. The bundled
+SWI-Prolog covers Linux, macOS and Windows x64, so the launcher runs Kibi
+natively on Windows by default. A workspace opened as a
+`\\wsl.localhost\<distro>\...` UNC path (or any workspace with
+`KIBI_FORCE_WSL=1`) runs inside that WSL distribution instead:
+`wsl.exe [-d <distro>] --cd <wsl-path> --exec <node> <kibi-bin> [args...]`,
+with paths and arguments passed as literal argv entries, never a shell string.
+`KIBI_FORCE_DIRECT=1` forces a native spawn. The same launcher works for other
+agent harnesses; they set `KIBI_MCP_HOST` to their own name for correct
+attribution (Vibe's `mcp.json` sets `vibe`).
 
 Because Vibe spawns stdio servers with the plugin directory as cwd, not the
 session folder, the launcher resolves the workspace from

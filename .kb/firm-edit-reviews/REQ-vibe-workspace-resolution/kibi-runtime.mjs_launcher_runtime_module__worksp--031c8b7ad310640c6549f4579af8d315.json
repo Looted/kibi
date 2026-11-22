@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-workspace-resolution",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
+  "verdict": "keeps",
+  "note": "Only the module header comment changed, to describe native Windows routing; no behavior changed.",
+  "statementHash": "sha256:850c0819692d9a29254faf1056823f86324bd987ea92aba6d77a3f8821ec4b24",
+  "codeHash": "sha256:b965649b1ee796e6076824a952ed976234b55534b9ba73f78cb14c6cbd74a654",
+  "startLine": 1,
+  "endLine": 543,
+  "recordedAt": "2026-11-22T18:08:57.394Z"
+}
