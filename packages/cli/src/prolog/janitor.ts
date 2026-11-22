@@ -17,7 +17,6 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   existsSync,
   readFileSync,
@@ -32,6 +31,7 @@ import {
 } from "../utils/branch-resolver.js";
 import { readBranchStoreManifest } from "../utils/branch-store-locator.js";
 import { canonicalFilesystemPath } from "../utils/canonical-path.js";
+import { engineSocketKey } from "../utils/engine-socket-key.js";
 import {
   STORE_LOCK_TAKEOVER_FILE,
   STORE_LOCK_TAKEOVER_VISIBLE_MS,
@@ -223,11 +223,7 @@ function workspaceSocketFilename(
   canonicalRoot: string,
   branch: string,
 ): string {
-  const key = createHash("sha256")
-    .update(`${canonicalRoot}\0${branch}`)
-    .digest("hex")
-    .slice(0, 32);
-  return `kibi-${key}.sock`;
+  return `kibi-${engineSocketKey(canonicalRoot, branch)}.sock`;
 }
 
 function workspaceBranches(workspaceRoot: string): ReadonlySet<string> {
