@@ -807,6 +807,24 @@ for `Looted/kibi` and `"enabledPlugins": {"kibi-claude@kibi": true}` to the
 repository's `.claude/settings.json` (the exact snippet is in
 `packages/claude/README.md`).
 
+### Optional: Antigravity plugin
+
+`kibi-antigravity` is an optional Google Antigravity plugin (`packages/antigravity`). It builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
+
+- the workspace-gated Kibi MCP server (which resolves project-local `kibi-mcp` immediately in workspace-scoped installs and via MCP `roots/list` in globally installed Marketplace setups, staying silent with zero tools in non-Kibi repositories);
+- the seven bundled Kibi skills (`kibi-usage`, `kibi-bootstrap`, `kibi-decisions`, `kibi-traceability`, `kibi-commit-review`, `kibi-freshness`, `kibi-provable-code`);
+- always-on workflow rules (`rules/AGENTS.md`);
+- lifecycle hooks (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) that inject progressive-disclosure requirement snippets, stamp `workspaceRoot` onto Kibi MCP calls, ask before edits that change code implementing a `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables), and remind once at stop about unchecked edits, unrecorded decisions, or pending signoff.
+
+Validate or install directly with the Antigravity CLI (`agy`):
+
+```bash
+agy plugin validate --strict ./packages/antigravity
+agy plugin install ./packages/antigravity
+```
+
+To share the plugin across a repository via VCS, register it in `.agents/plugins.json`. See `packages/antigravity/README.md` for details.
+
 ### Optional: languages beyond TypeScript and JavaScript
 
 TypeScript and JavaScript symbols are built in. For Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog and Terraform/HCL, add the optional `kibi-plugin-treesitter` package and the grammar pack of each language the repository uses. Each pack is a small data-only `kibi-lang-*` package: `kibi-lang-python`, `kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`, `kibi-lang-ruby`, `kibi-lang-hcl` and `kibi-lang-prolog`. `kibi init` and `kibi doctor` name the packs the tracked sources need, at the version the plugin pins. Generated files (`linguist-generated` in `.gitattributes`, or a generator header) count only when the KB references them, and a pack the project does not want can go in `package.json` `kibi.declinedLanguagePacks`; see the [plugin guide](plugin-development.md).

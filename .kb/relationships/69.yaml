@@ -398,3 +398,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b61f196912fe
+  - type: constrains
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-SUBJECT-antigravity-plugin
+    created_at: 2026-11-22T05:05:10.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de064a7f4077
+  - type: specified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: SCEN-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:05:10.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50944b961589
+  - type: verified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:10.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f931e0a1fe0
+  - type: requires_property
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-antigravity-mcp-proxies-local
+    created_at: 2026-11-22T05:14:16.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-775b10c3621d
+  - type: requires_property
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-antigravity-mcp-roots-discovery
+    created_at: 2026-11-22T05:14:16.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85e7a283d23

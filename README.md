@@ -87,6 +87,19 @@ pnpm, Yarn, and Bun work the same way through their local runners. The [installa
 The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
 
 <details>
+<summary>Antigravity</summary>
+
+Install the optional `kibi-antigravity` plugin (bundled skills, always-on workflow rules, workspace-gated MCP server with automatic `roots/list` workspace discovery for global installs, and lifecycle hooks that inject requirement context, prompt before edits to firm requirements, and remind once at stop):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+For workspace-scoped dogfooding or team sharing inside a repository, point `.agents/plugins.json` at the plugin directory (see the [Antigravity plugin guide](https://looted.github.io/kibi/guide/install.html#optional-antigravity-plugin)). Without the plugin, add `npx --no-install kibi-mcp` to `~/.gemini/config/mcp_config.json`.
+
+</details>
+
+<details>
 <summary>Claude Code</summary>
 
 Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and hooks that show the agent the linked requirements, what they must keep true, and the decision behind them before it reads or edits code, including through shell commands. The [agent connection guide](https://looted.github.io/kibi/guide/connect-an-agent.html) has the details:
@@ -344,6 +357,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-core` | Prolog-backed knowledge graph, inference, and validation |
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
 | `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
+| `kibi-antigravity` | Antigravity rules, skills, MCP (`roots/list` + worktree routing), requirement context, firm-edit confirmation, and stop reminders |
 | `kibi-claude` | Claude Code skills, MCP, requirement context before reads/edits, and advisory hooks (plugin marketplace) |
 | `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
 | `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |

@@ -391,3 +391,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2abcc28a7503
+  - type: verified_by
+    from: SCEN-antigravity-hook-lifecycle-and-scoping
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:03:53.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-145e2d3cdc7b
+  - type: assumes
+    from: SCEN-antigravity-hook-lifecycle-and-scoping
+    to: FACT-antigravity-hook-lifecycle
+    created_at: 2026-11-22T05:16:22.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd013947ff18
+  - type: assumes
+    from: SCEN-antigravity-hook-lifecycle-and-scoping
+    to: FACT-antigravity-non-kibi-no-auto-approve
+    created_at: 2026-11-22T05:16:22.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34339edc4a53

@@ -650,3 +650,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af86221efdec
+  - type: implements
+    from: SYM-usage-log-append-hook-usage
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:22.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac5317ea7755
+  - type: covered_by
+    from: SYM-usage-log-append-hook-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:22.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f52694aed839
