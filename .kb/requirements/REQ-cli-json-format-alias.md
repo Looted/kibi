@@ -24,6 +24,8 @@ logic_claims:
   - CLAIM-24DAE4E956A9F09C
 origin:
   kind: agent
+  ref: 'Maintainer approval, 2026-11-23: Approved.'
+  approved_by: maintainer
   recorded_at: '2026-11-22T17:43:10.411Z'
 id: REQ-cli-json-format-alias
 type: req
