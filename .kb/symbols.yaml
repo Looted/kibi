@@ -21729,7 +21729,15 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-kb-call-workspace-stamp
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
         target: TEST-mcp-workspace-routing
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-kb-call-workspace-stamp
       - type: implements
         target: REQ-mcp-workspace-routing
   - id: SYM-mcp-WorkspaceRouter-route
@@ -47841,3 +47849,39 @@ symbols:
         target: TEST-vibe-hooks-decision-guard
       - type: implements
         target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-zcode-case-kb-call-without-workspace
+    title: ZCode names the session workspace on a Kibi MCP call that carries none
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:48:54.226Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-kb-call-names-workspace
+    title: ZCode leaves a Kibi MCP call that names a workspace alone
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:48:57.324Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-test-agent-hosts-kb-call-workspace-stamp
+    title: Host Kibi MCP call workspace stamp suite
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    sourceFile: packages/agent-core/tests/kb-mcp-tools.test.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:56:33.129Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-kb-call-workspace-stamp

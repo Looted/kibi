@@ -1548,7 +1548,7 @@ function loadHookStateFromPluginData(pluginData: string) {
 }
 
 describe("ZCode hook runner workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp");
     fs.mkdirSync(path.join(cwd, "src"));
     const result = expectStrictZcodeOutput(
@@ -1571,6 +1571,26 @@ describe("ZCode hook runner workspace stamp", () => {
         updatedInput: { id: "REQ-1", workspaceRoot: cwd },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp-kept");
+    const worktree = createTempRoot("kibi-zcode-worktree-");
+    tempRoots.push(worktree);
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd,
+          tool_name: "mcp__kibi__kb_query",
+          tool_input: { id: "REQ-1", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
   });
 
   test("other tools are left alone", async () => {

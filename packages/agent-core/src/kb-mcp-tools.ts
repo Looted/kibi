@@ -81,9 +81,10 @@ export function canonicalKbToolName(
 
 /**
  * The public tool argument naming the workspace a Kibi MCP call is about.
- * Host pre-tool hooks fill it from the agent's current directory on every
- * Kibi MCP call; kibi-mcp answers from that workspace, so a session working
- * in a git worktree is never answered from another checkout's branch.
+ * Host pre-tool hooks fill it from the agent's current directory on a Kibi
+ * MCP call that carries none; kibi-mcp answers from that workspace, so a
+ * session working in a git worktree is never answered from another
+ * checkout's branch. A workspace the agent names itself is kept.
  */
 export const KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 
@@ -104,7 +105,10 @@ export function isKibiMcpToolName(toolName: string | undefined): boolean {
 
 /**
  * The Kibi MCP tool input with the workspace stamp added, or undefined when
- * the tool is not a Kibi MCP tool or no workspace is known.
+ * the tool is not a Kibi MCP tool, no workspace is known, or the call
+ * already names a workspace. An argument the agent chose names the
+ * workspace the answer must come from; replacing it would answer a call
+ * meant for a worktree from the session's checkout.
  */
 export function stampKibiWorkspace(
   toolName: string | undefined,
@@ -113,6 +117,8 @@ export function stampKibiWorkspace(
 ): Record<string, unknown> | undefined {
   if (!workspaceRoot || !isKibiMcpToolName(toolName)) return undefined;
   const base = isRecord(toolInput) ? toolInput : {};
+  const named = base[KIBI_WORKSPACE_ARGUMENT];
+  if (typeof named === "string" && named.trim().length > 0) return undefined;
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 
