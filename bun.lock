@@ -368,6 +368,9 @@
     "packages/vibe": {
       "name": "kibi-vibe",
       "version": "0.1.0",
+      "devDependencies": {
+        "kibi-agent-core": "^0.15.0",
+      },
       "peerDependencies": {
         "kibi-cli": ">=1.0.0",
         "kibi-mcp": ">=1.0.0",
