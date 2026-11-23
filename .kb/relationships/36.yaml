@@ -629,3 +629,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-581c2af30b32
+  - type: implements
+    from: SYM-kibi-common-guard-note
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:31:50.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-591fd22f8d68
+  - type: covered_by
+    from: SYM-kibi-common-guard-note
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:33:19.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6ceadd6f5e

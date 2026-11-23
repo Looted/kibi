@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-hooks-fail-open",
+  "sourceFile": "packages/vibe/bin/hooks/kibi-common.mjs",
+  "symbol": "Vibe hook shared plumbing",
+  "verdict": "keeps",
+  "note": "The hooks still resolve the workspace from the payload cwd and exit 0 with no output on any error or outside a KB; guardNote returns nothing on error or outside a KB.",
+  "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
+  "codeHash": "sha256:b32d920fcc41676324ce5d817e0edd43cfd7bd92edf6a1826407573ebafaa897",
+  "startLine": 1,
+  "endLine": 138,
+  "recordedAt": "2026-11-22T18:31:53.875Z"
+}
