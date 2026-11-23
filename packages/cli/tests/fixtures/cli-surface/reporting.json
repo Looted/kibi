@@ -23,9 +23,7 @@
   },
   {
     "name": "find-gaps",
-    "aliases": [
-      "gaps"
-    ],
+    "aliases": ["gaps"],
     "description": "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
     "summary": "List KB entities by the relationships they lack or have.",
     "arguments": [
@@ -41,6 +39,12 @@
       {
         "flags": "--input <path>",
         "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
         "default": null,
         "mandatory": false
       },
@@ -84,6 +88,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {
@@ -161,6 +171,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--output <path>",
         "description": "HTML file to write (default .kb/briefs/signoff/latest.html)",
         "default": null,
@@ -191,6 +207,12 @@
       {
         "flags": "--input <path>",
         "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
         "default": null,
         "mandatory": false
       },
@@ -279,6 +301,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--kb <name>",
         "description": "Read this KB dependency (a name from .kb/dependencies.json) instead of the project's own KB",
         "default": null,
@@ -297,6 +325,12 @@
       {
         "flags": "--input <path>",
         "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
         "default": null,
         "mandatory": false
       },
@@ -349,6 +383,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--kb <name>",
         "description": "Read this KB dependency (a name from .kb/dependencies.json) instead of the project's own KB",
         "default": null,
@@ -367,6 +407,12 @@
       {
         "flags": "--input <path>",
         "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
         "default": null,
         "mandatory": false
       },
@@ -416,6 +462,12 @@
         "flags": "--format <format>",
         "description": "Output format: text|json",
         "default": "text",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {

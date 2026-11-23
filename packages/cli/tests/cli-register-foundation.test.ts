@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as jsonCommand from "../src/cli-json-command.js";
 import { registerFoundationCommands } from "../src/cli-register-foundation.js";
+import * as registerJson from "../src/cli-register-json.js";
 import * as hooksInstall from "../src/commands/hooks-install.js";
 import * as init from "../src/commands/init.js";
 import * as migrate from "../src/commands/migrate.js";
@@ -151,5 +152,53 @@ describe("registerFoundationCommands", () => {
         },
       ],
     ]);
+  });
+
+  test("query, search and status print their input schema on --schema without running commands", async () => {
+    const schemaSpy = stub(registerJson, "printOperationInputSchema");
+    const scope = spyOn(kbDependency, "applyKbOption").mockImplementation(
+      () => false,
+    );
+    restores.push(() => scope.mockRestore());
+    const querySpy = stub(query, "queryCommand");
+    const searchSpy = stub(search, "searchCommand");
+    const statusSpy = stub(status, "statusCommand");
+    const json = stub(jsonCommand, "runJsonInvocation");
+
+    await run("query", "--schema");
+    await run("search", "--schema");
+    await run("status", "--schema");
+
+    expect(plainCalls(schemaSpy)).toStrictEqual([
+      ["kb_query"],
+      ["kb_search"],
+      ["kb_status"],
+    ]);
+    expect(scope.mock.calls.length).toBe(0);
+    expect(querySpy.mock.calls.length).toBe(0);
+    expect(searchSpy.mock.calls.length).toBe(0);
+    expect(statusSpy.mock.calls.length).toBe(0);
+    expect(json.mock.calls.length).toBe(0);
+  });
+
+  test("--json resolves to format: json on migrate, query, search and status", async () => {
+    const migrateSpy = stub(migrate, "migrateCommand");
+    const querySpy = stub(query, "queryCommand");
+    const searchSpy = stub(search, "searchCommand");
+    const statusSpy = stub(status, "statusCommand");
+
+    await run("migrate", "--json");
+    await run("query", "req", "--format", "table", "--json");
+    await run("search", "auth", "--json");
+    await run("status", "--json");
+
+    expect(plainCalls(migrateSpy)).toStrictEqual([[{ format: "json" }]]);
+    expect(plainCalls(querySpy)).toStrictEqual([
+      ["req", { format: "json", limit: "100", offset: "0" }],
+    ]);
+    expect(plainCalls(searchSpy)).toStrictEqual([
+      ["auth", { format: "json", limit: "20", offset: "0" }],
+    ]);
+    expect(plainCalls(statusSpy)).toStrictEqual([[{ format: "json" }]]);
   });
 });
