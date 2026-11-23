@@ -513,7 +513,7 @@ async function discoverPluginManifestPaths(
 ): Promise<string[]> {
   const entries = await readdir(packageDir, { withFileTypes: true });
 
-  return entries
+  const manifests = entries
     .filter(
       (entry) =>
         entry.isDirectory() &&
@@ -521,8 +521,14 @@ async function discoverPluginManifestPaths(
         entry.name.endsWith("-plugin"),
     )
     .map((entry) => join(packageDir, entry.name, "plugin.json"))
-    .filter((manifestPath) => existsSync(manifestPath))
-    .sort();
+    .filter((manifestPath) => existsSync(manifestPath));
+
+  const rootPluginManifest = join(packageDir, "plugin.json");
+  if (existsSync(rootPluginManifest)) {
+    manifests.push(rootPluginManifest);
+  }
+
+  return manifests.sort();
 }
 
 async function preparePackageSync(

@@ -374,3 +374,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-378e207ec593
+  - type: implements
+    from: SYM-snippets-stop-reminder
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:55.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca84ce75fc81
+  - type: covered_by
+    from: SYM-snippets-stop-reminder
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:55.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dde4332f886

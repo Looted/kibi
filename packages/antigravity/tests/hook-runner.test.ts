@@ -1,0 +1,639 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import {
+  CONFIRM_FIRM_EDITS_ENV,
+  editFocus,
+  normalizeEditArgs,
+  readFocus,
+  runHook,
+} from "../src/hook-runner.js";
+import {
+  canonicalKbOperation,
+  extractCliKbUsage,
+  extractMcpKbUsage,
+  isVerifiedGitCommit,
+  workspaceOverwrite,
+} from "../src/kb-tools.js";
+
+const tempDirs: string[] = [];
+
+function makeTempDir(prefix: string): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+}
+
+afterEach(() => {
+  while (tempDirs.length > 0) {
+    const dir = tempDirs.pop();
+    if (dir) fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+function createKibiWorkspace(options?: {
+  firmRequirement?: boolean;
+  includeGitHooks?: boolean;
+}): { root: string; pluginData: string } {
+  const root = makeTempDir("kibi-agy-ws-");
+  const pluginData = makeTempDir("kibi-agy-data-");
+
+  fs.mkdirSync(path.join(root, ".git", "hooks"), { recursive: true });
+  fs.mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+  fs.mkdirSync(path.join(root, ".kb", "facts"), { recursive: true });
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+
+  fs.writeFileSync(
+    path.join(root, ".kb", "manifest.json"),
+    JSON.stringify({ schemaVersion: 19 }),
+  );
+
+  const firmness = options?.firmRequirement ? "firm" : "default";
+  fs.writeFileSync(
+    path.join(root, ".kb", "requirements", "REQ-checkout-rounding.md"),
+    [
+      "---",
+      "id: REQ-checkout-rounding",
+      "type: req",
+      "title: Checkout totals must round half-up to two decimals",
+      "status: open",
+      `firmness: ${firmness}`,
+      "origin:",
+      "  kind: user",
+      "  ref: User stated rounding rule",
+      "requires_property:",
+      "  - FACT-checkout-scale",
+      "---",
+      "",
+      "Checkout totals must round half-up to two decimal places.",
+      "",
+      "## Why",
+      "Accounting requires consistent cent rounding across invoices.",
+    ].join("\n"),
+  );
+
+  fs.writeFileSync(
+    path.join(root, ".kb", "facts", "FACT-checkout-scale.md"),
+    [
+      "---",
+      "id: FACT-checkout-scale",
+      "type: fact",
+      "fact_kind: property_value",
+      "title: Checkout currency precision is 2 decimal places",
+      "status: active",
+      "subject_key: checkout.rounding",
+      "property_key: decimal_places",
+      "operator: eq",
+      "value: 2",
+      "---",
+    ].join("\n"),
+  );
+
+  fs.writeFileSync(
+    path.join(root, "src", "checkout.ts"),
+    [
+      "export function roundTotal(amount: number): number {",
+      "  return Math.round(amount * 100) / 100;",
+      "}",
+      "",
+      "export function helperNote(): string {",
+      '  return "ok";',
+      "}",
+      "",
+    ].join("\n"),
+  );
+
+  fs.writeFileSync(
+    path.join(root, "src", "unowned.ts"),
+    "export const version = 1;\n",
+  );
+
+  fs.writeFileSync(
+    path.join(root, ".kb", "symbols.yaml"),
+    [
+      "symbols:",
+      "  - id: SYM-checkout-roundTotal",
+      "    title: roundTotal",
+      "    sourceFile: src/checkout.ts",
+      "    status: active",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-checkout-rounding",
+      "      - type: covered_by",
+      "        target: TEST-checkout-rounding",
+    ].join("\n"),
+  );
+
+  fs.writeFileSync(
+    path.join(root, ".kb", "symbol-coordinates.yaml"),
+    [
+      "version: 1",
+      "coordinates:",
+      "  SYM-checkout-roundTotal:",
+      "    sourceFile: src/checkout.ts",
+      "    sourceLine: 1",
+      "    sourceEndLine: 3",
+    ].join("\n"),
+  );
+
+  if (options?.includeGitHooks) {
+    fs.writeFileSync(
+      path.join(root, ".git", "hooks", "pre-commit"),
+      "#!/bin/sh\n# kibi-managed\nnpx --no-install kibi check --staged\n",
+    );
+  }
+
+  return { root, pluginData };
+}
+
+describe("kibi-antigravity kb-tools helpers", () => {
+  test("recognizes Antigravity MCP tool names and stamps workspaceRoot", () => {
+    expect(canonicalKbOperation("kb_search")).toBe("kb_search");
+    expect(canonicalKbOperation("kibi_kb_query")).toBe("kb_query");
+    expect(canonicalKbOperation("mcp_antigravity_kibi_kb_check")).toBe(
+      "kb_check",
+    );
+    expect(canonicalKbOperation("mcp__kibi__kb_upsert")).toBe("kb_upsert");
+    expect(canonicalKbOperation("antigravity_kibi:kb_status")).toBe(
+      "kb_status",
+    );
+    expect(canonicalKbOperation("read_file")).toBeUndefined();
+
+    expect(
+      workspaceOverwrite(
+        "mcp_antigravity_kibi_kb_search",
+        { query: "x" },
+        "/repo",
+      ),
+    ).toEqual({ workspaceRoot: "/repo" });
+    expect(
+      workspaceOverwrite(
+        "call_mcp_tool",
+        {
+          ServerName: "antigravity_kibi",
+          ToolName: "kb_query",
+          Arguments: JSON.stringify({ id: "REQ-1" }),
+        },
+        "/repo",
+      ),
+    ).toEqual({
+      Arguments: JSON.stringify({ id: "REQ-1", workspaceRoot: "/repo" }),
+    });
+    expect(
+      workspaceOverwrite(
+        "call_mcp_tool",
+        {
+          ServerName: "other_server",
+          ToolName: "kb_query",
+          Arguments: { id: "REQ-1" },
+        },
+        "/repo",
+      ),
+    ).toBeUndefined();
+    expect(
+      workspaceOverwrite(
+        "mcp_antigravity_kibi_kb_search",
+        { query: "x", workspaceRoot: "/other" },
+        "/repo",
+      ),
+    ).toBeUndefined();
+    expect(
+      workspaceOverwrite("read_file", { Path: "/repo/a.ts" }, "/repo"),
+    ).toBeUndefined();
+
+    const wrappedUsage = extractMcpKbUsage("call_mcp_tool", {
+      ServerName: "antigravity_kibi",
+      ToolName: "kb_check",
+      Arguments: JSON.stringify({
+        sourceFiles: ["src/checkout.ts"],
+        changed: true,
+      }),
+    });
+    expect(wrappedUsage).toEqual({
+      operation: "kb_check",
+      paths: ["src/checkout.ts"],
+      ids: [],
+      check: true,
+      checkAll: false,
+    });
+  });
+
+  test("extracts CLI and MCP usage and detects verified git commits", () => {
+    const cli = extractCliKbUsage(
+      `printf '%s\\n' '{"sourceFiles":["src/a.ts"],"changed":true}' | npx --no-install kibi check --input -`,
+    );
+    expect(cli?.operation).toBe("kb_check");
+    expect(cli?.check).toBe(true);
+    expect(cli?.paths).toEqual(["src/a.ts"]);
+
+    const mcp = extractMcpKbUsage("antigravity_kibi:kb_record", {
+      dryRun: true,
+    });
+    expect(mcp?.operation).toBe("kb_validate_upsert");
+
+    expect(isVerifiedGitCommit('git commit -m "feat: ok"')).toBe(true);
+    expect(isVerifiedGitCommit('git commit --no-verify -m "skip"')).toBe(false);
+  });
+
+  test("normalizes Antigravity edit and read arguments", () => {
+    expect(readFocus({ StartLine: 10, EndLine: 25 })).toEqual([
+      { start: 10, end: 25 },
+    ]);
+    expect(readFocus({})).toBeUndefined();
+
+    expect(
+      normalizeEditArgs("edit_file", {
+        Path: "/repo/a.ts",
+        Target: "old",
+        Replacement: "new",
+      }),
+    ).toEqual({ old_string: "old", new_string: "new", replace_all: true });
+
+    const { root } = createKibiWorkspace();
+    expect(
+      editFocus(path.join(root, "src", "checkout.ts"), "edit_file", {
+        Path: path.join(root, "src", "checkout.ts"),
+        Target: "Math.round(amount * 100) / 100;",
+        Replacement: "Math.floor(amount * 100) / 100;",
+      }),
+    ).toEqual([{ start: 2, end: 2 }]);
+  });
+});
+
+describe("kibi-antigravity hook-runner lifecycle", () => {
+  test("stays silent outside Kibi workspaces", async () => {
+    const nonKibi = makeTempDir("kibi-agy-nonkibi-");
+    fs.mkdirSync(path.join(nonKibi, ".git"), { recursive: true });
+
+    const out = await runHook(
+      {
+        hookEventName: "SessionStart",
+        conversationId: "conv-nonkibi",
+        cwd: nonKibi,
+        workspacePaths: [nonKibi],
+      },
+      { env: { KIBI_TELEMETRY: "0" } },
+    );
+    expect(out).toEqual({});
+
+    // PreToolUse must still emit a valid decision outside Kibi workspaces so
+    // Antigravity never interprets an empty object as a deny.
+    const preOut = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-nonkibi",
+        cwd: nonKibi,
+        workspacePaths: [nonKibi],
+        toolCall: {
+          id: "c1",
+          name: "read_file",
+          args: { Path: path.join(nonKibi, "README.md") },
+        },
+      },
+      { env: { KIBI_TELEMETRY: "0" } },
+    );
+    expect(preOut).toEqual({ decision: "allow" });
+
+    // Unsandboxed run_command and mutating tools in non-Kibi repos are never
+    // auto-allowed by the hook ("ask" respects the user's Always Allow cache).
+    const bypassOut = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-nonkibi",
+        cwd: nonKibi,
+        workspacePaths: [nonKibi],
+        toolCall: {
+          id: "c2",
+          name: "run_command",
+          args: { CommandLine: "git status" },
+        },
+      },
+      { env: { KIBI_TELEMETRY: "0" } },
+    );
+    expect(bypassOut).toEqual({ decision: "ask" });
+
+    const editNonKibi = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-nonkibi",
+        cwd: nonKibi,
+        workspacePaths: [nonKibi],
+        toolCall: {
+          id: "c3",
+          name: "edit_file",
+          args: {
+            Path: path.join(nonKibi, "a.ts"),
+            Target: "a",
+            Replacement: "b",
+          },
+        },
+      },
+      { env: { KIBI_TELEMETRY: "0" } },
+    );
+    expect(editNonKibi).toEqual({ decision: "ask" });
+  });
+
+  test("injects SessionStart brief, queues read snippet on PreToolUse, and drains on PreInvocation", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const env = { KIBI_TELEMETRY: "0" };
+
+    const start = await runHook(
+      {
+        hookEventName: "SessionStart",
+        conversationId: "conv-1",
+        cwd: root,
+        workspacePaths: [root],
+      },
+      { pluginData, env },
+    );
+    const startText = start.injectSteps?.[0]?.systemMessage.systemMessage ?? "";
+    expect(startText).toContain("Kibi records this repository's requirements");
+    expect(startText).toContain("1 linked source files");
+
+    const preRead = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-1",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: {
+          id: "call-1",
+          name: "read_file",
+          args: { Path: path.join(root, "src", "checkout.ts") },
+        },
+      },
+      { pluginData, env },
+    );
+    expect(preRead).toEqual({ decision: "allow" });
+
+    const preInv = await runHook(
+      {
+        hookEventName: "PreInvocation",
+        conversationId: "conv-1",
+        cwd: root,
+        workspacePaths: [root],
+        invocationNum: 2,
+        lastUserInput: "Review checkout rounding",
+      },
+      { pluginData, env },
+    );
+    const injected = preInv.injectSteps?.[0]?.systemMessage.systemMessage ?? "";
+    expect(injected).toContain("REQ-checkout-rounding");
+    expect(injected).toContain("roundTotal");
+    expect(injected).toContain("TEST-checkout-rounding");
+
+    // Second PreInvocation with the same prompt does not repeat the drained snippet.
+    const preInv2 = await runHook(
+      {
+        hookEventName: "PreInvocation",
+        conversationId: "conv-1",
+        cwd: root,
+        workspacePaths: [root],
+        invocationNum: 3,
+        lastUserInput: "Review checkout rounding",
+      },
+      { pluginData, env },
+    );
+    expect(preInv2).toEqual({});
+  });
+
+  test("asks before editing code that implements a firm requirement, and stops asking after approval", async () => {
+    const { root, pluginData } = createKibiWorkspace({ firmRequirement: true });
+    const env = { KIBI_TELEMETRY: "0" };
+    const editArgs = {
+      Path: path.join(root, "src", "checkout.ts"),
+      Target: "return Math.round(amount * 100) / 100;",
+      Replacement: "return Math.floor(amount * 100) / 100;",
+    };
+
+    const preEdit = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-firm",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: { id: "e1", name: "edit_file", args: editArgs },
+      },
+      { pluginData, env },
+    );
+    expect(preEdit.decision).toBe("force_ask");
+    expect(preEdit.reason).toContain("REQ-checkout-rounding");
+    expect(preEdit.reason).toContain("roundTotal");
+
+    // Declined tool call (PostToolUse with error) must NOT confirm the firm requirement.
+    await runHook(
+      {
+        hookEventName: "PostToolUse",
+        conversationId: "conv-firm",
+        cwd: root,
+        workspacePaths: [root],
+        error: "user denied permission",
+        toolCall: { id: "e1", name: "edit_file", args: editArgs },
+      },
+      { pluginData, env },
+    );
+
+    const retryBeforeApproval = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-firm",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: { id: "e2", name: "edit_file", args: editArgs },
+      },
+      { pluginData, env },
+    );
+    expect(retryBeforeApproval.decision).toBe("force_ask");
+
+    // Approved edit reaches PostToolUse without error -> confirms REQ-checkout-rounding.
+    await runHook(
+      {
+        hookEventName: "PostToolUse",
+        conversationId: "conv-firm",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: { id: "e2", name: "edit_file", args: editArgs },
+      },
+      { pluginData, env },
+    );
+
+    const nextEdit = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-firm",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: {
+          id: "e3",
+          name: "edit_file",
+          args: {
+            ...editArgs,
+            Replacement: "return Math.ceil(amount * 100) / 100;",
+          },
+        },
+      },
+      { pluginData, env },
+    );
+    expect(nextEdit).toEqual({ decision: "allow" });
+
+    // Opt-out disables firm edit confirmation.
+    const optedOut = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-firm-off",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: { id: "e4", name: "edit_file", args: editArgs },
+      },
+      { pluginData, env: { ...env, [CONFIRM_FIRM_EDITS_ENV]: "0" } },
+    );
+    expect(optedOut).toEqual({ decision: "allow" });
+  });
+
+  test("stamps workspaceRoot via overwrite on Kibi MCP calls and reminds once on Stop", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const env = { KIBI_TELEMETRY: "0" };
+
+    const stamped = await runHook(
+      {
+        hookEventName: "PreToolUse",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: {
+          id: "m1",
+          name: "call_mcp_tool",
+          args: {
+            ServerName: "antigravity_kibi",
+            ToolName: "kb_search",
+            Arguments: JSON.stringify({ query: "checkout" }),
+          },
+        },
+      },
+      { pluginData, env },
+    );
+    expect(stamped).toEqual({
+      decision: "ask",
+      overwrite: {
+        Arguments: JSON.stringify({ query: "checkout", workspaceRoot: root }),
+      },
+    });
+
+    // User states a rule in PreInvocation -> prompt rule note injected once.
+    const promptOut = await runHook(
+      {
+        hookEventName: "PreInvocation",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        invocationNum: 1,
+        lastUserInput:
+          "From now on, checkout must never allow negative totals.",
+      },
+      { pluginData, env },
+    );
+    expect(
+      promptOut.injectSteps?.[0]?.systemMessage.systemMessage ?? "",
+    ).toContain("kb_upsert");
+
+    // Edit an unowned source file without running kb_check or kb_upsert.
+    await runHook(
+      {
+        hookEventName: "PostToolUse",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        toolCall: {
+          id: "e1",
+          name: "edit_file",
+          args: {
+            Path: path.join(root, "src", "unowned.ts"),
+            Target: "version = 1",
+            Replacement: "version = 2",
+          },
+        },
+      },
+      { pluginData, env },
+    );
+
+    // Stop asks to continue once with impact-check & decision-capture reminders.
+    const stop1 = await runHook(
+      {
+        hookEventName: "Stop",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        terminationReason: "NO_TOOL_CALL",
+        continuationActive: false,
+      },
+      { pluginData, env },
+    );
+    expect(stop1.decision).toBe("continue");
+    expect(stop1.reason).toContain("src/unowned.ts");
+    expect(stop1.reason).toContain("kb_check");
+
+    // When continuationActive is true, Stop stays silent to prevent loops.
+    const stop2 = await runHook(
+      {
+        hookEventName: "Stop",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        terminationReason: "NO_TOOL_CALL",
+        continuationActive: true,
+      },
+      { pluginData, env },
+    );
+    expect(stop2).toEqual({});
+
+    // User cancellation never forces continuation.
+    const stopCancel = await runHook(
+      {
+        hookEventName: "Stop",
+        conversationId: "conv-stop",
+        cwd: root,
+        workspacePaths: [root],
+        terminationReason: "USER_CANCELED",
+        continuationActive: false,
+      },
+      { pluginData, env },
+    );
+    expect(stopCancel).toEqual({});
+  });
+
+  test("appends diagnostic hook usage rows to .kb/usage.log only when KIBI_DIAGNOSTIC_MODE=1", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const logPath = path.join(root, ".kb", "usage.log");
+
+    await runHook(
+      {
+        hookEventName: "SessionStart",
+        conversationId: "conv-diag-off",
+        cwd: root,
+        workspacePaths: [root],
+      },
+      { pluginData, env: { KIBI_TELEMETRY: "0" } },
+    );
+    expect(fs.existsSync(logPath)).toBe(false);
+
+    await runHook(
+      {
+        hookEventName: "SessionStart",
+        conversationId: "conv-diag-on",
+        cwd: root,
+        workspacePaths: [root],
+      },
+      { pluginData, env: { KIBI_TELEMETRY: "0", KIBI_DIAGNOSTIC_MODE: "1" } },
+    );
+    expect(fs.existsSync(logPath)).toBe(true);
+    const row = JSON.parse(fs.readFileSync(logPath, "utf8").trim()) as Record<
+      string,
+      unknown
+    >;
+    expect(row.interface).toBe("hook");
+    expect(row.host).toBe("antigravity");
+    expect(row.session_id).toBe("conv-diag-on");
+  });
+});

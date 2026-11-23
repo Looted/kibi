@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68649289c3e1
+  - type: implements
+    from: SYM-hook-input-antigravity-hook-input
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:49.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-764e138a288a
+  - type: covered_by
+    from: SYM-hook-input-antigravity-hook-input
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:49.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64ba5f4f2ab6

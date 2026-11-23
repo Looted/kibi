@@ -209,6 +209,10 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/claude"],
   },
   {
+    label: "antigravity",
+    args: ["test", "--timeout", "15000", "./packages/antigravity"],
+  },
+  {
     label: "vscode activation",
     args: [
       "test",

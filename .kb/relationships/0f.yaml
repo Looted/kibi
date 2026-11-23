@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a2f9c56546f
+  - type: verified_by
+    from: SCEN-antigravity-hook-usage-telemetry
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:04:03.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f6f1d75f474
+  - type: assumes
+    from: SCEN-antigravity-hook-usage-telemetry
+    to: FACT-antigravity-diagnostic-telemetry-optin
+    created_at: 2026-11-22T05:16:38.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8867cd3d1db1
+  - type: assumes
+    from: SCEN-antigravity-hook-usage-telemetry
+    to: FACT-antigravity-default-no-telemetry
+    created_at: 2026-11-22T05:16:38.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11be8380684d
