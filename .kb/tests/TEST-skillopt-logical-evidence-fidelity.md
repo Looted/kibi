@@ -26,20 +26,20 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-39380661aec02caa7ac81e70
+    receipt_id: PR-b55d61ee890669991ec8368b
     test_id: TEST-skillopt-logical-evidence-fidelity
     scope: end_to_end
     outcome: passed
-    code_snapshot: c78d87453534f34be23060678a90114386641b97f24f1f909f008a3c1ad06ae5
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:32:02.188Z'
-    finished_at: '2026-10-25T12:32:05.629Z'
-    artifact_digest: 0cdabc4f2caeb9ea34a4a5bc127bd64449358eebc8eb3f32ac1039c821a27911
-    contract_hash: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
-    binding_hash: 87dc98daf29d42d1b924a93743d3459a616fff1236a615d5fa6d0945a0409584
-    fingerprint: ab9033ffc207ca6fd8ec0c33c637a3da41214ad3aeeb439b72690ebe1a2a016d
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
+    contract_hash: 9dc80cd46b88b3e9ed22847789728d45e26785679f583f7506342eeaba32e1c5
+    binding_hash: 1164456a03c23aaede87aa0e06511aaaaf5a037733d3217bec232c8b5d1accf7
+    fingerprint: 2c66693d839c50557df5751a7b39163dd45b64ff6aef181995fe671502ba6a1b
     fingerprint_components:
-      contract: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
+      contract: 9dc80cd46b88b3e9ed22847789728d45e26785679f583f7506342eeaba32e1c5
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -52,7 +52,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-skillopt-logical-evidence-fidelity
+      - symbol_id: SYM-e2e-ontology-convergence-witnesses
         target: default
         outcome: passed
         binding: aggregate_run

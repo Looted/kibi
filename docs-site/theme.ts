@@ -84,6 +84,7 @@ const HARNESSES: ReadonlyArray<{ id: string; name: string }> = [
   { id: "codex", name: "Codex" },
   { id: "cursor", name: "Cursor" },
   { id: "opencode", name: "OpenCode" },
+  { id: "vibe", name: "Mistral Vibe" },
   { id: "zcode", name: "ZCode" },
 ];
 

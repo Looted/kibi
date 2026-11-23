@@ -28,15 +28,15 @@ id: TEST-kibi-code-proof-kinds-typecheck
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2ac970cd576799204c8251cc
+    receipt_id: PR-7dbe6c59b0da033fb08833c0
     test_id: TEST-kibi-code-proof-kinds-typecheck
     scope: unit
     outcome: passed
-    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:23:37.996Z'
-    finished_at: '2026-11-16T12:23:56.702Z'
-    artifact_digest: 57a0a32e0d7704e27c251804647b7fbd6b59618c39cc94f5c0297939a79cad2b
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 5c5e6c891cebfed5cdaf90f417f85bc2be49c0b2b98c573d3a68e394e3fe5df2
     binding_hash: 9f4c521f1fc188ef5b26023b88bcb4b90713ff2147b9eaabde0be85f79b60d29
     fingerprint: 7b0d3807f8988e88403ec7d1583505fa629f273b63a58bc586447875e8b6832c

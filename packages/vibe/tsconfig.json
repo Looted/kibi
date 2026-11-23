@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["bin/**/*.mjs", "src/**/*.ts", "tests/**/*.mjs"],
+  "exclude": ["bin/hooks/kibi-guard.mjs"]
+}

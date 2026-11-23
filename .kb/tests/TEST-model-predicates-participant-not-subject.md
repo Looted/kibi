@@ -22,18 +22,18 @@ proof_contract:
 id: TEST-model-predicates-participant-not-subject
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-6586cd3f3ae4a8ed8820dfca
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-764543f2ac9f332dd6e3fa38
     test_id: TEST-model-predicates-participant-not-subject
     scope: end_to_end
     outcome: passed
-    code_snapshot: ef462154276e18a22fc27d7e05cb5710d76da971a9db3fecf51033784cb2c51b
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-09T07:26:03.149Z'
-    finished_at: '2026-10-09T07:26:03.272Z'
-    artifact_digest: 2403449403faa26eb31043517dd094703336966f8be7f239c805bb39e3a9b393
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 8555c75858d0e3f8c3c6663cd0722bd2ee20da7cf566b65c1d2a65f62e0f9218
-    binding_hash: 32f43b74d096cf8e5f39b58982e7cfd659ae6fe1c84418b022c3e8a2899cd551
+    binding_hash: 366e03160ebbcfc8586ef4ff09e3e2f7bef10c15555a95dd3a9219a9a7eba9ec
     fingerprint: 246b9eeeff79f0d7a77da960c533e9896cb784ecd4dbfd69808a3aae2f6e339e
     fingerprint_components:
       contract: 8555c75858d0e3f8c3c6663cd0722bd2ee20da7cf566b65c1d2a65f62e0f9218
@@ -55,5 +55,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the predicate participant binding suite, which models a claim without an actor against a requirement that constrains a component identifier and checks that the actor stays unbound with a hint naming the missing participant and record_ontology_gap, that an explicit actor binding equal to that identifier is rejected with that reason, that a claim naming the actor in a short noun still binds, and that the constrained identifiers are offered as examples only for the argument that names what the claim is about and for entity arguments.

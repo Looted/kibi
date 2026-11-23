@@ -99,6 +99,18 @@ test("ZCode producer accepts only its exact proof test selection and disables re
       classname: "kibi-zcode distribution artifacts",
       name: "an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command",
     },
+    {
+      symbol_id: "SYM-zcode-case-tracked-hook-targets",
+      file: "packages/zcode/tests/hooks.test.ts",
+      classname: "kibi-zcode hooks.json",
+      name: "hook commands point at files a source checkout already contains",
+    },
+    {
+      symbol_id: "SYM-zcode-case-copied-install-runtime-files",
+      file: "packages/zcode/tests/install-artifact.test.ts",
+      classname: "kibi-zcode distribution artifacts",
+      name: "a copied marketplace install contains every declared runtime file and runs under node",
+    },
   ]);
 });
 
@@ -208,7 +220,7 @@ test("ZCode producer emits a strict native proof artifact for every required beh
     name: "kibi-zcode-proof-producer",
     version: "1.0.0",
   });
-  assert.equal(artifact.proof_results.length, 12);
+  assert.equal(artifact.proof_results.length, 14);
   for (const result of artifact.proof_results) {
     assert.equal(result.binding, "native_case");
     assert.equal(result.attempts.status, "complete");

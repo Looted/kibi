@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-C3823F88987EFA0A
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-21050712ea1626248990c9d9
+    receipt_id: PR-be2577ef3756a2c6f0207042
     test_id: TEST-proof-claude-published-parts
     scope: unit
     outcome: passed
-    code_snapshot: d2d6cab6dbd3f50aadeb2fd0d2dda459b10875fcef0d6b8408b3f76d0b95066d
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:44:17.605Z'
-    finished_at: '2026-10-27T07:44:17.778Z'
-    artifact_digest: ee7a9d5ef684079d64c716d5e1fe71badeddf6a0d8345ce5175d5b70c416f1f9
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 477809eead8721206575139bbf6e79c88190e6c4164ad0769dae276740919545
-    binding_hash: 0e0034938951f307194fe33015d19e389588d56cfb582303ee4831617a79d335
+    binding_hash: d2c0bf5baac7d62211e70e9c88c350d48cdd122a9d464f59ae2a669e0bf1d766
     fingerprint: 22f89ba9717627f5869f842e2e3d0f70489ac6032459565f4ded2e942c8cf11d
     fingerprint_components:
       contract: 477809eead8721206575139bbf6e79c88190e6c4164ad0769dae276740919545
@@ -84,13 +84,24 @@ proof_receipts:
           - dist
           - hooks
           - skills
-    certificate_digest: 78c1d8acd38c51af4801449855daa48d1006533b1cf7d7241bab9ab80dfcaa59
+        sequence:
+          - .claude-plugin
+          - .mcp.json
+          - bin
+          - hooks
+          - skills
+          - dist
+          - README.md
+          - CHANGELOG.md
+          - LICENSE
+          - SECURITY.md
+    certificate_digest: b11fa2a06d92a44cf4c0baa324135b3185499dd6210b7a9710d67c9cb47c0662
     claim_bindings:
       - claim_key: CLAIM-C3823F88987EFA0A
         requirement_id: REQ-claude-plugin-package
         fact_id: FACT-claude-package-published-parts
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

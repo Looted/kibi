@@ -26,15 +26,15 @@ id: TEST-proof-claude-workspace-env-keys
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b48c597d0a3ff2f8c88e61f5
+    receipt_id: PR-52865022e98e8e5dede347b8
     test_id: TEST-proof-claude-workspace-env-keys
     scope: unit
     outcome: passed
-    code_snapshot: df75bbeab5e07760b87357fb20f8f0e6d017a23fe2fd0ce5c62d21b2f3f3b61c
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-17T08:42:04.195Z'
-    finished_at: '2026-11-17T08:42:04.311Z'
-    artifact_digest: 055cd1ba64298337c06ba93df0c39d83cff78cbc08a13aee3510b8690f66de61
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 2d65e0d4d63704878f96505e715279c9dbc43b91d8d437a02cc113c18937a8bc
     binding_hash: ba9960ec1b611d008a0d1d0c5a4022d835eceb7fce637d5360d4e5eef96ffe53
     fingerprint: fc3ace0df79607480f12ce3198964c3d970e7e6f4cd5a7acdbd23bb9c7abab89

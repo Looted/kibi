@@ -139,6 +139,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--apply-safe [sha256]",
         "description": "Apply only explicitly approved deterministic migration actions of the plan with this hash",
         "default": null,
@@ -215,6 +221,12 @@
         "mandatory": false
       },
       {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--id <id>",
         "description": "Query specific entity by ID",
         "default": null,
@@ -242,6 +254,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "json",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {
@@ -287,6 +305,12 @@
         "mandatory": false
       },
       {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--type <type>",
         "description": "Filter by entity type",
         "default": null,
@@ -296,6 +320,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {
@@ -333,9 +363,21 @@
         "mandatory": false
       },
       {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {

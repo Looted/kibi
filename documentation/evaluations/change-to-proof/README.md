@@ -108,7 +108,7 @@ second, and the latency ceilings are the 3 s budget for p95 and 2.5 s for p50. T
 baseline. Misses, superseded results and false abstentions are listed in the
 output so a failure says which question regressed.
 
-`repo-search-hints-gold.v1.jsonl` holds 20 reworded questions: each names a
+`repo-search-hints-gold.v2.jsonl` holds the 20 reworded questions of `v1` plus five about the kibi-vibe plugin (launcher contract, WSL spawn, workspace resolution, hooks, skill mirror), each naming the `REQ-vibe-*` requirement that governs it. `v1` held 20 reworded questions: each names a
 current requirement in words it does not use (for example "the cleanup
 command" for `kibi gc`). Kibi's repository activates `kibi-plugin-search-hints`,
 so the same runner measures what an agent sees in one call. Lexical ranking

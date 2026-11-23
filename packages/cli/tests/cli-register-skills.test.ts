@@ -67,6 +67,7 @@ describe("registerSkillsCommands", () => {
         options: [
           ["--input <path>", "JSON input file (use - for stdin)", undefined],
           ["--format <format>", "Output format: json|table", "table"],
+          ["--json", "Alias for --format json", undefined],
         ],
       },
       {
@@ -76,6 +77,7 @@ describe("registerSkillsCommands", () => {
         options: [
           ["--input <path>", "JSON input file (use - for stdin)", undefined],
           ["--format <format>", "Output format: json|markdown", "markdown"],
+          ["--json", "Alias for --format json", undefined],
         ],
       },
       {
@@ -88,13 +90,17 @@ describe("registerSkillsCommands", () => {
         options: [
           ["--input <path>", "JSON input file (use - for stdin)", undefined],
           ["--format <format>", "Output format: text|json", "text"],
+          ["--json", "Alias for --format json", undefined],
         ],
       },
       {
         name: "validate",
         description: "Validate a bundled markdown skill path",
         arguments: [["path", "Skill bundle directory or SKILL.md path", true]],
-        options: [["--format <format>", "Output format: json|table", "table"]],
+        options: [
+          ["--format <format>", "Output format: json|table", "table"],
+          ["--json", "Alias for --format json", undefined],
+        ],
       },
     ]);
   });
@@ -161,5 +167,23 @@ describe("registerSkillsCommands", () => {
       ["some/dir", { format: "json" }],
     ]);
     expect(process.exitCode).toBe(3);
+  });
+
+  test("--json resolves to format: json on all skills subcommands", async () => {
+    const spy = spies();
+    await parse("skills", "list", "--json");
+    await parse("skills", "load", "kibi-usage", "--json");
+    await parse("skills", "read", "kibi-usage", "res.md", "--json");
+    await parse("skills", "validate", "some/dir", "--json");
+    expect(spy.list.mock.calls).toStrictEqual([[{ format: "json" }]]);
+    expect(spy.load.mock.calls).toStrictEqual([
+      ["kibi-usage", { format: "json" }],
+    ]);
+    expect(spy.read.mock.calls).toStrictEqual([
+      ["kibi-usage", "res.md", { format: "json" }],
+    ]);
+    expect(spy.validate.mock.calls).toStrictEqual([
+      ["some/dir", { format: "json" }],
+    ]);
   });
 });

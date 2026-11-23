@@ -1,10 +1,12 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
+import { resolveJsonFormat } from "./cli-json-alias.js";
 import type { JsonInvocation } from "./cli-json-command.js";
 import {
   commandSummary,
   getCliOperationMetadata,
 } from "./cli-operation-metadata.js";
+import { printOperationInputSchema } from "./cli-register-json.js";
 import type { initCommand } from "./commands/init.js";
 import type { migrateCommand } from "./commands/migrate.js";
 import type { queryCommand } from "./commands/query.js";
@@ -101,6 +103,7 @@ export function registerFoundationCommands(program: Command): void {
     .option("--dry-run", "Preview migration changes without writing files")
     .option("--yes", "Apply migration changes without prompting")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option(
       "--apply-safe [sha256]",
       "Apply only explicitly approved deterministic migration actions of the plan with this hash",
@@ -125,8 +128,13 @@ export function registerFoundationCommands(program: Command): void {
       ],
     )
     .action(
-      withExitCode(async (options: Parameters<typeof migrateCommand>[0]) =>
-        (await import("./commands/migrate.js")).migrateCommand(options),
+      withExitCode(
+        async (
+          options: Parameters<typeof migrateCommand>[0] & { json?: boolean },
+        ) =>
+          (await import("./commands/migrate.js")).migrateCommand(
+            resolveJsonFormat(options),
+          ),
       ),
     );
 
@@ -154,11 +162,13 @@ export function registerFoundationCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_query").description)
     .summary(commandSummary(getCliOperationMetadata("kb_query").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option("--id <id>", "Query specific entity by ID")
     .option("--tag <tag>", "Filter by tag")
     .option("--source <path>", "Filter by source file path (substring match)")
     .option("--relationships <id>", "Get relationships from entity")
     .option("--format <format>", "Output format: json|table", "json")
+    .option("--json", "Alias for --format json")
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
@@ -168,10 +178,16 @@ export function registerFoundationCommands(program: Command): void {
           type: Parameters<typeof queryCommand>[0],
           options: Parameters<typeof queryCommand>[1] & {
             input?: string;
+            schema?: boolean;
+            json?: boolean;
             kb?: string;
           },
           command: Command,
         ) => {
+          if (options.schema === true) {
+            await printOperationInputSchema("kb_query");
+            return undefined;
+          }
           if (!applyKbOption(options)) return undefined;
           if (options.input !== undefined) {
             await runJsonInvocation({
@@ -184,7 +200,7 @@ export function registerFoundationCommands(program: Command): void {
           }
           return (await import("./commands/query.js")).queryCommand(
             type,
-            options,
+            resolveJsonFormat(options),
           );
         },
       ),
@@ -195,12 +211,18 @@ export function registerFoundationCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_search").description)
     .summary(commandSummary(getCliOperationMetadata("kb_search").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option("--type <type>", "Filter by entity type")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--limit <n>", "Limit results", "20")
     .option("--offset <n>", "Skip results", "0")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (query, options, command: Command) => {
+      if (options.schema === true) {
+        await printOperationInputSchema("kb_search");
+        return;
+      }
       if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -213,7 +235,7 @@ export function registerFoundationCommands(program: Command): void {
       }
       await (await import("./commands/search.js")).searchCommand(
         query,
-        options,
+        resolveJsonFormat(options),
       );
     });
 
@@ -222,9 +244,15 @@ export function registerFoundationCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_status").description)
     .summary(commandSummary(getCliOperationMetadata("kb_status").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--schema", "Print the JSON input schema and exit")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (options.schema === true) {
+        await printOperationInputSchema("kb_status");
+        return;
+      }
       if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
@@ -234,6 +262,8 @@ export function registerFoundationCommands(program: Command): void {
         });
         return;
       }
-      await (await import("./commands/status.js")).statusCommand(options);
+      await (await import("./commands/status.js")).statusCommand(
+        resolveJsonFormat(options),
+      );
     });
 }

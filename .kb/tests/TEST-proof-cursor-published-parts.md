@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-59F0EF488D027724
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-22ff4a8502da4c125ba30036
+    receipt_id: PR-355fec775d2cb36cc954dc6f
     test_id: TEST-proof-cursor-published-parts
     scope: unit
     outcome: passed
-    code_snapshot: 408bad0aae430e34672d3be58afde18487a6a55e7255f14f4c355346f29a8bf1
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:53:54.753Z'
-    finished_at: '2026-10-27T07:53:54.931Z'
-    artifact_digest: 1f6f7e609cd771142f9c07ac2edd104a2653ebcaface00a4527db22ae21aca22
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: e436a9b24884727d534b9779a307d35d9541ea97405419d811f0d12f5d5c1314
-    binding_hash: fc9bb3794bb7e74151954e572c2aa5883e7dbc09d30a500662e0c3e1ba100def
+    binding_hash: 518b0b8c87abac3bcfb360d3c390ff010a00d1d9f7f75aeb5cd8ccb62e6232e7
     fingerprint: 52ca0b3f9efe16dc1a89853eaba1b40a8c15978fc1c6280ebb692cde83a30e76
     fingerprint_components:
       contract: e436a9b24884727d534b9779a307d35d9541ea97405419d811f0d12f5d5c1314
@@ -84,13 +84,24 @@ proof_receipts:
           - mcp.json
           - rules
           - skills
-    certificate_digest: de29be866ec3f5b1aef5a048a50042f29ad6f1e67d6293160ef0ead50e4cc50d
+        sequence:
+          - .cursor-plugin
+          - mcp.json
+          - bin
+          - hooks
+          - skills
+          - rules
+          - commands
+          - agent-plugin
+          - dist
+          - CHANGELOG.md
+    certificate_digest: 39045dff482162b3d43513211079ce480123826f40c7a215d61720c1c896fce5
     claim_bindings:
       - claim_key: CLAIM-59F0EF488D027724
         requirement_id: REQ-cursor-plugin-package
         fact_id: FACT-cursor-package-published-parts
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

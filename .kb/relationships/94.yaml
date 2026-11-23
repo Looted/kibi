@@ -433,6 +433,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf50cedbb352
+  - type: assumes
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: FACT-NEG-VIBE-WORKSPACE-CWD-ONLY
+    created_at: 2026-11-19T22:37:23.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df5145331e0
+  - type: verified_by
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:23.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6e2f51d7b1
   - type: implements
     from: SYM-impact-review-preparation-requirement-bindings
     to: REQ-impact-review-requirements-once
@@ -447,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52d1fb38eb5e
+  - type: implements
+    from: SYM-engine-socket-key-engine-socket-key
+    to: REQ-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T17:51:25.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5b239d8545d
+  - type: covered_by
+    from: SYM-engine-socket-key-engine-socket-key
+    to: TEST-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T17:51:25.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a00901196f6b

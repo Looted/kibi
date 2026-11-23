@@ -25,6 +25,7 @@ import {
   repoRootFromScript,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
+  transformVibeSkillFrontmatter,
   transformZcodeSkillFrontmatter,
 } from "../sync-agent-skills";
 
@@ -70,15 +71,19 @@ describe("sync-agent-skills argument parsing", () => {
   test("defaults to write mode for all targets", () => {
     expect(parseArgs([])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode", "claude", "antigravity"],
+      targets: ["cursor", "codex", "zcode", "claude", "vibe", "antigravity"],
     });
     expect(parseArgs(["--write"])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode", "claude", "antigravity"],
+      targets: ["cursor", "codex", "zcode", "claude", "vibe", "antigravity"],
     });
     expect(parseArgs(["--check", "--target", "cursor"])).toEqual({
       mode: "check",
       targets: ["cursor"],
+    });
+    expect(parseArgs(["--check", "--target", "vibe"])).toEqual({
+      mode: "check",
+      targets: ["vibe"],
     });
     expect(
       parseArgs(["--target", "codex", "--target", "cursor"]).targets,
@@ -116,7 +121,27 @@ describe("sync-agent-skills planning and drift", () => {
     expect(mirrorSkillsDir("/repo", "cursor")).toBe(
       resolve("/repo", "packages", "cursor", "skills"),
     );
+    expect(mirrorSkillsDir("/repo", "vibe")).toBe(
+      resolve("/repo", "packages", "vibe", "skills"),
+    );
     expect(repoRootFromScript()).toBeTruthy();
+  });
+
+  test("vibe frontmatter sets name to the skill id and keeps the rest", () => {
+    const body = "# body\n";
+    const transformed = transformVibeSkillFrontmatter(
+      Buffer.from(
+        `---\nid: kibi-usage\nname: Kibi Usage\ndescription: Guidance\nversion: 2.21.0\n---\n${body}`,
+        "utf8",
+      ),
+    ).toString("utf8");
+
+    expect(transformed).toContain("name: kibi-usage\n");
+    expect(transformed).not.toContain("name: Kibi Usage");
+    expect(transformed).toMatch(/^id: kibi-usage$/m);
+    expect(transformed).toMatch(/^description: Guidance$/m);
+    expect(transformed).toMatch(/^version: 2\.21\.0$/m);
+    expect(transformed.endsWith(body)).toBe(true);
   });
 
   test("assertCanonicalSourceComplete fails for missing source, ids, and SKILL.md", () => {

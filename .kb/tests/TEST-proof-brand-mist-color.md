@@ -27,17 +27,17 @@ id: TEST-proof-brand-mist-color
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1733b54357ce12e098133be1
+    receipt_id: PR-6c33b1dd47f90d2fa470910e
     test_id: TEST-proof-brand-mist-color
     scope: unit
     outcome: passed
-    code_snapshot: 0a46a168f79f32c7067fd54b62e7bfea277eb1d3f88ddceab97c98613f8e5f74
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:32:54.693Z'
-    finished_at: '2026-10-28T22:32:54.785Z'
-    artifact_digest: 9335783a8bdfc2447f62df56bdaa132d9974d4e89e1528b0e3d0c3663d3e7c59
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: e9b962d85804cb5b3159b24a6af06978d018c32b3fbd7f331d210c6f51495065
-    binding_hash: 19ccbca7d44a31b9d664deddbe9c00b3ea2b3db4287d75368bda4052cd70e51f
+    binding_hash: 1bd20988f3c34d8ac6e82401c9e205e07508cb3c0ae4fd794f7eeace70f89b74
     fingerprint: 219764454a3b2d97cf0c92cf0a91c73231c928f5fbe81f67c30767fd6684d96b
     fingerprint_components:
       contract: e9b962d85804cb5b3159b24a6af06978d018c32b3fbd7f331d210c6f51495065
