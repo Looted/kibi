@@ -796,7 +796,7 @@ Because Vibe spawns stdio servers with the plugin directory as cwd, not the
 session folder, the launcher resolves the workspace from
 `KIBI_WORKSPACE`/`KIBI_PROJECT_ROOT`/`KIBI_ROOT`, a `.git`-bounded upward walk
 for `.kb/manifest.json`, or a `kibi-workspace.txt` pointer next to the
-launcher. When registering the server manually instead of via the plugin:
+launcher (ignored when the cwd is inside another Git repository). When registering the server manually instead of via the plugin:
 
 ```toml
 [[mcp_servers]]

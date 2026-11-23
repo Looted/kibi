@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
   "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
   "verdict": "keeps",
-  "note": "Only the module header comment changed, to describe native Windows routing; no behavior changed.",
+  "note": "Only the pointer step of resolveWorkspace changed; the MCP launcher still serves full tools in a Kibi workspace and the silent server outside one.",
   "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
-  "codeHash": "sha256:b965649b1ee796e6076824a952ed976234b55534b9ba73f78cb14c6cbd74a654",
+  "codeHash": "sha256:8542059be3f2e46af3526731fe22698edc6752bbe879d959bb7f0660b20ca1f8",
   "startLine": 1,
-  "endLine": 543,
-  "recordedAt": "2026-11-22T18:08:57.394Z"
+  "endLine": 561,
+  "recordedAt": "2026-11-23T04:01:16.095Z"
 }
