@@ -242,7 +242,11 @@ describe("assessStagedSymbolsManifest", () => {
           rec("x", "src/a.ts", coarse),
         ),
       ),
-    ).toStrictEqual({ state: "not_required", sourcePaths: [], path: SYMBOLS });
+    ).toStrictEqual({
+      state: "fresh",
+      sourcePaths: ["src/a.ts"],
+      path: SYMBOLS,
+    });
     expect(
       assess(
         [staged("src/a.ts", "a")],
@@ -324,8 +328,12 @@ describe("assessStagedSymbolsManifest", () => {
         [staged("src/a.ts", "a")],
         { "src/a.ts": [sym("other", 1)] },
         manifest(rec("whole", "src/a.ts", coarse)),
-      ).state,
-    ).toBe("not_required");
+      ),
+    ).toStrictEqual({
+      state: "fresh",
+      sourcePaths: ["src/a.ts"],
+      path: SYMBOLS,
+    });
   });
 
   test("lists orphaned titles once each in code point order", () => {
@@ -487,6 +495,7 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
     severity: "s",
     text_ref: "r",
     granularity_reason: null,
+    symbol_role: null,
   };
 
   function collect(
@@ -588,6 +597,7 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
       "severity",
       "text_ref",
       "granularity_reason",
+      "symbol_role",
     ])
       expect([field, changed({ [field]: 2 }, { [field]: 1 })]).toStrictEqual([
         field,
@@ -637,8 +647,21 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
       { text_ref: "x" },
       { text_ref: 1 },
       { granularity_reason: "legacy-link" },
+      { symbol_role: "behavioral" },
     ])
       expect([edit, changed(edit)]).toStrictEqual([edit, ["SYM-a"]]);
+    expect(
+      changed({ symbol_role: "config" }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: null }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: 1 }, { symbol_role: "behavioral" }),
+    ).toStrictEqual(["SYM-a"]);
+    expect(
+      changed({ symbol_role: "behavioral" }, { symbol_role: "behavioral" }),
+    ).toStrictEqual([]);
   });
 
   test("ignores order and malformed entries in lists", () => {
@@ -746,6 +769,12 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
     expect(
       run({ ...context, owner: "x" }, { tags: ["t1", "t2"] }, true),
     ).toStrictEqual(changedA);
+    expect(
+      run({ ...legacy, symbol_role: "behavioral" }, {}, true),
+    ).toStrictEqual(changedA);
+    expect(run(legacy, { symbol_role: "behavioral" }, true)).toStrictEqual(
+      migration,
+    );
     expect(
       run(
         { tags: ["review:context-missing", "t1"] },
@@ -1124,6 +1153,132 @@ describe("assessStagedSymbolsManifest with a base", () => {
     expect(result.state).toBe("stale");
     expect(result.fileDetails?.[0]?.extra).toEqual([]);
     expect(result.fileDetails?.[0]?.inherited?.extra).toEqual(["goneBefore"]);
+  });
+
+  test("a file whose every record is documented coarse is covered with a base", () => {
+    const coarse = { granularity_reason: "config-artifact" };
+    const editedContent = [
+      "const tagIdSchema = 2;",
+      "function createTag() {",
+      "  return 2;",
+      "}",
+    ].join("\n");
+    expect(
+      judge({
+        content: editedContent,
+        symbols: baseSymbols,
+        baseManifest: manifest(
+          rec("tagIdSchema", FILE, coarse),
+          rec("createTag", FILE, coarse),
+        ),
+      }),
+    ).toStrictEqual({
+      state: "fresh",
+      sourcePaths: [FILE],
+      path: SYMBOLS,
+      coveredSourcePaths: [FILE],
+    });
+  });
+
+  test("mixed coarse-covered and non-coarse files report coarse paths in coveredSourcePaths", () => {
+    const coarse = { granularity_reason: "config-artifact" };
+    const coarseFile = staged("src/coarse.ts", "export const a = 2;");
+    const staleFile = staged(
+      "src/stale.ts",
+      "export function keep() {}\nexport function added() {}",
+    );
+    const freshFile = staged("src/fresh.ts", "export function ok() {}");
+    const baseManifest = manifest(
+      rec("a", "src/coarse.ts", coarse),
+      rec("keep", "src/stale.ts"),
+      rec("ok", "src/fresh.ts"),
+    );
+    const { analyze } = analyzer({
+      "src/coarse.ts": [sym("a", 1)],
+      "src/stale.ts": [sym("keep", 1), sym("added", 2)],
+      "src/fresh.ts": [sym("ok", 1)],
+    });
+    const baseByPath: Record<
+      string,
+      { content: string; symbols: ReturnType<typeof sym>[] }
+    > = {
+      "src/coarse.ts": {
+        content: "export const a = 1;",
+        symbols: [sym("a", 1)],
+      },
+      "src/stale.ts": {
+        content: "export function keep() {}",
+        symbols: [sym("keep", 1)],
+      },
+      "src/fresh.ts": {
+        content: "export function ok() {}",
+        symbols: [sym("ok", 1)],
+      },
+    };
+    const baseSource = (file: StagedFile) => {
+      const entry = baseByPath[file.path];
+      return entry
+        ? {
+            analysis: {
+              symbols: entry.symbols,
+            } as unknown as SourceAnalysisResult,
+            content: entry.content,
+          }
+        : null;
+    };
+
+    const withStale = assessStagedSymbolsManifest({
+      symbolsManifestPath: SYMBOLS,
+      sourceFiles: [staleFile, coarseFile],
+      stagedFiles: [staleFile, coarseFile],
+      analyzeSource: analyze,
+      readBaseFile: (filePath) => (filePath === SYMBOLS ? baseManifest : null),
+      baseSource,
+    });
+    expect(withStale.state).toBe("stale");
+    expect(withStale.sourcePaths).toEqual(["src/stale.ts"]);
+    expect(withStale.coveredSourcePaths).toEqual(["src/coarse.ts"]);
+    expect(withStale.fileDetails?.map((detail) => detail.path)).toEqual([
+      "src/stale.ts",
+    ]);
+
+    const withFresh = assessStagedSymbolsManifest({
+      symbolsManifestPath: SYMBOLS,
+      sourceFiles: [freshFile, coarseFile],
+      stagedFiles: [freshFile, coarseFile],
+      analyzeSource: analyze,
+      readBaseFile: (filePath) => (filePath === SYMBOLS ? baseManifest : null),
+      baseSource,
+    });
+    expect(withFresh).toStrictEqual({
+      state: "fresh",
+      sourcePaths: ["src/coarse.ts", "src/fresh.ts"],
+      path: SYMBOLS,
+      coveredSourcePaths: ["src/coarse.ts", "src/fresh.ts"],
+    });
+  });
+
+  test("legacy-link and unknown granularity reasons are not treated as coarse-covered with a base", () => {
+    const editedContent = [
+      "const tagIdSchema = 2;",
+      "function createTag() {",
+      "  return 1;",
+      "}",
+    ].join("\n");
+    for (const reason of ["legacy-link", "made-up-reason"]) {
+      const result = judge({
+        content: editedContent,
+        symbols: baseSymbols,
+        baseManifest: manifest(
+          rec("createTag", FILE, { granularity_reason: reason }),
+        ),
+      });
+      expect(result.state).toBe("stale");
+      expect(result.coveredSourcePaths).toEqual([]);
+      expect(result.fileDetails?.[0]?.missing).toEqual([
+        { title: "tagIdSchema", line: 1 },
+      ]);
+    }
   });
 });
 

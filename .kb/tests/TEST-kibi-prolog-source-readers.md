@@ -22,17 +22,17 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-bf8b78ba8cd7c706ce3ee707
+    receipt_id: PR-5476dada17a87353fe7a87c4
     test_id: TEST-kibi-prolog-source-readers
     scope: end_to_end
     outcome: passed
-    code_snapshot: 33f4c964367981482cdc65c02bbc95e9062a11d74fdd6e243de943b060589077
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-31T10:30:01.500Z'
-    finished_at: '2026-10-31T10:31:34.321Z'
-    artifact_digest: 319e35f83873d0c8af8ec3b477b44e37cffa560e335b596f48a3ce7e529624d1
+    code_snapshot: 75ca354cb2640db989f3719d6a1a24a9adb15151e270adbc1c6477876e56a614
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-22T18:00:57.597Z'
+    finished_at: '2026-11-22T18:01:26.549Z'
+    artifact_digest: 57c229b9b71f3f8b6f1679b1525ed14d4d4cf358ed1582dde04fc7c3991470b2
     contract_hash: 91e966aa0e07777479fabbd5967600d26d7b687f51da4950b3ec0df4fae28b1c
-    binding_hash: 4faba92210aa7c3bfdbea4066825359b2e597d4da33967dcd0e9be15aa5ef4bb
+    binding_hash: 3a89ef5597c1aea76ea8237291cd3f29391211a71bbffb02c54670b324303900
     fingerprint: 80ce64fcd087c7e0eec68fe0d3112c9277466b06a105a47cd90c340d34c4eb35
     fingerprint_components:
       contract: 91e966aa0e07777479fabbd5967600d26d7b687f51da4950b3ec0df4fae28b1c
