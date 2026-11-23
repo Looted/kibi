@@ -574,6 +574,7 @@ links:
       branch: "main",
       snapshotId: status.snapshotId,
       syncedAt: status.syncedAt,
+      syncState: status.syncState,
     });
     expect(String(status.snapshotId)).not.toBe("missing");
   }, 300_000);

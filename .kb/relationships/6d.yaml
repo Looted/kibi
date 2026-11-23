@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05549f85c2d5
+  - type: implements
+    from: SYM-content-freshness-create-freshness-memo
+    to: REQ-kibi-persist-stat-hash-freshness-memo
+    created_at: 2026-11-23T10:56:22.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87f6e97f02c9
+  - type: covered_by
+    from: SYM-content-freshness-create-freshness-memo
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:56:22.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0920987c8704

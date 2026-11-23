@@ -48,6 +48,8 @@ export type SyncCache = {
   hashes: Record<string, string>;
   /** Content hashes for relationship shards; optional for v1 caches. */
   relationshipHashes?: Record<string, string>;
+  /** Raw YAML byte hashes for symbol manifests, excluding coordinates/code. */
+  manifestBytesHashes?: Record<string, string>;
   /** Normalized entity payload hashes, keyed by canonical entity ID. */
   entityHashes?: Record<string, string>;
   /** Entity IDs last compiled from each normalized source path. */
@@ -169,19 +171,27 @@ export const SYNC_COMPILER_FINGERPRINT = createHash("sha256")
 export function compilerFingerprintReason(
   storePath: string,
   deps?: Partial<SyncCacheDeps>,
+  syncCache?: Record<string, unknown> | null,
 ): Record<string, unknown> | null {
   const resolved = resolveDeps(deps);
   const cachePath = path.join(storePath, "sync-cache.json");
   // A missing or unreadable cache has no compilation to judge.
   let recorded: unknown;
-  try {
-    recorded = (
-      JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
-        compilerFingerprint?: unknown;
-      }
-    ).compilerFingerprint;
-  } catch {
+  if (syncCache === null) {
     return null;
+  }
+  if (syncCache !== undefined) {
+    recorded = syncCache.compilerFingerprint;
+  } else {
+    try {
+      recorded = (
+        JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
+          compilerFingerprint?: unknown;
+        }
+      ).compilerFingerprint;
+    } catch {
+      return null;
+    }
   }
   if (recorded === SYNC_COMPILER_FINGERPRINT) return null;
   return {
@@ -210,11 +220,23 @@ export function sourceExtractionFailureReasons(
   workspaceRoot: string,
   storePath: string,
   deps?: Partial<SyncCacheDeps>,
+  syncCache?: Record<string, unknown> | null,
 ): Record<string, unknown>[] {
-  const failures = readExtractionFailures(
-    path.join(storePath, "sync-cache.json"),
-    resolveDeps(deps),
-  );
+  const failures: Record<string, SourceExtractionFailure> =
+    syncCache === null
+      ? {}
+      : syncCache !== undefined
+        ? syncCache.extractionFailures !== null &&
+          typeof syncCache.extractionFailures === "object"
+          ? (syncCache.extractionFailures as Record<
+              string,
+              SourceExtractionFailure
+            >)
+          : {}
+        : readExtractionFailures(
+            path.join(storePath, "sync-cache.json"),
+            resolveDeps(deps),
+          );
   const reasons: Record<string, unknown>[] = [];
   for (const [key, failure] of Object.entries(failures).sort(([a], [b]) =>
     a.localeCompare(b),
@@ -390,6 +412,7 @@ function emptySyncCache(): SyncCache {
 
 const OPTIONAL_CACHE_FIELDS = [
   "relationshipHashes",
+  "manifestBytesHashes",
   "entityHashes",
   "sourceEntityIds",
   "shardRelationships",

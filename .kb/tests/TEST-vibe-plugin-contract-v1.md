@@ -1,6 +1,6 @@
 ---
 title: 'Vibe plugin launcher contract: MCP handshake, WSL-safe spawn plan, workspace resolution, fail-open hooks'
-status: active
+status: passing
 priority: must
 verification_scope: end_to_end
 verification_perspective: consumer

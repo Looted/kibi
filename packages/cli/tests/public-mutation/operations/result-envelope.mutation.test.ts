@@ -733,4 +733,51 @@ describe("envelopeDiagnostic", () => {
         severity,
       });
   });
+
+  test("emits branch_store_stale warning diagnostic for stale discovery reads only", () => {
+    const querySpec = { name: "kb_query", effects: ["kb-read"] as const };
+    const searchSpec = { name: "kb_search", effects: ["kb-read"] as const };
+    const statusSpec = { name: "kb_status", effects: ["kb-read"] as const };
+    const stalePayload = {
+      entities: [{ id: "REQ-1" }],
+      count: 1,
+      meta: {
+        syncState: "stale",
+        dirty: true,
+        staleReasonCount: 1,
+        staleReasons: [
+          { code: "knowledge_source_newer", path: ".kb/requirements/REQ-1.md" },
+        ],
+      },
+    };
+    const queryEnvelope = toKibiResult(querySpec, stalePayload);
+    expect(queryEnvelope.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "branch_store_stale",
+        severity: "warning",
+      }),
+    );
+    expect(queryEnvelope.diagnostics[0]?.message).toContain(
+      ".kb/requirements/REQ-1.md",
+    );
+
+    const searchEnvelope = toKibiResult(searchSpec, {
+      results: [],
+      count: 0,
+      meta: stalePayload.meta,
+    });
+    expect(searchEnvelope.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "branch_store_stale",
+        severity: "warning",
+      }),
+    );
+
+    expect(toKibiResult(querySpec, { entities: [], count: 0 }).diagnostics).toEqual(
+      [],
+    );
+    expect(
+      toKibiResult(statusSpec, { meta: stalePayload.meta }).diagnostics,
+    ).toEqual([]);
+  });
 });

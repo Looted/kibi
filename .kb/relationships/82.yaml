@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-568a0a339f21
+  - type: assumes
+    from: SCEN-NEG-kibi-engine-dead-socket-reclaim-UNSAFE
+    to: FACT-NEG-kibi-engine-dead-socket-reclaim-UNSAFE
+    created_at: 2026-11-23T10:47:02.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c2b17de547a
+  - type: verified_by
+    from: SCEN-NEG-kibi-engine-dead-socket-reclaim-UNSAFE
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-23T10:47:02.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6390cbad9528

@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d3114ae4b83
+  - type: implements
+    from: SYM-requirement-lifting-owning-requirements
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-23T10:35:05.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eadb8a20ee8d
+  - type: covered_by
+    from: SYM-requirement-lifting-owning-requirements
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-23T10:35:05.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d5ae641f036

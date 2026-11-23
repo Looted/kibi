@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-engine-single-writer-protocol",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "runEngineDaemon",
+  "verdict": "keeps",
+  "note": "runEngineDaemon still runs the single-writer Node.js 18+ local framed socket engine per canonical workspace and branch.",
+  "statementHash": "sha256:48d405325ca5f561ae5a94b499059dbf6ec52185b7aac5f46476523a3875aab0",
+  "codeHash": "sha256:4ab5be4914494bda06e78e8e481298386b13e6d5c9306a202eb2c93998e3ef9c",
+  "startLine": 2270,
+  "endLine": 3067,
+  "recordedAt": "2026-11-23T10:27:16.485Z"
+}

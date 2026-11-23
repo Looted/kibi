@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-engine-daemon-package-versions",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "runEngineDaemon",
+  "verdict": "keeps",
+  "note": "runEngineDaemon still reports built package versions in handshake and rejects non-handshake/stop requests from mismatched versions.",
+  "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
+  "codeHash": "sha256:4ab5be4914494bda06e78e8e481298386b13e6d5c9306a202eb2c93998e3ef9c",
+  "startLine": 2270,
+  "endLine": 3067,
+  "recordedAt": "2026-11-23T10:27:16.485Z"
+}
