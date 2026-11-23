@@ -21,9 +21,9 @@ function runCli(args: readonly string[]) {
 
 describe("CLI unknown flags exit non-zero", () => {
   test("rejects an unknown subcommand option with a non-zero exit code", () => {
-    const result = runCli(["status", "--json"]);
+    const result = runCli(["status", "--bogus-option"]);
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("unknown option '--json'");
+    expect(result.stderr).toContain("unknown option '--bogus-option'");
   });
 
   test("rejects an unknown global option with a non-zero exit code", () => {

@@ -151,6 +151,9 @@ describe("executeOperation", () => {
     expect(JSON.parse(result.stdout ?? "").error.message).toContain(
       "unexpected",
     );
+    expect(JSON.parse(result.stdout ?? "").error.message).toContain(
+      "Run 'kibi status --schema' to print the input fields and allowed values.",
+    );
     expect(result.stderr).toBe(
       "Error [VALIDATION_FAILED]: see error.message in the JSON result on stdout\n",
     );

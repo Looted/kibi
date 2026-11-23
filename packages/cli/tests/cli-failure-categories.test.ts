@@ -131,7 +131,7 @@ describe("CLI failure categories", () => {
     expect(process.exitCode ?? 0).toBe(0);
   });
 
-  test("an invalid JSON-only input points at --schema; an integrated command's does not", async () => {
+  test("invalid input points at --schema on both JSON-only and integrated commands", async () => {
     const context = {} as Parameters<typeof executeOperation>[2];
     const bootstrap = await executeOperation(
       "kb_plan_bootstrap",
@@ -149,7 +149,7 @@ describe("CLI failure categories", () => {
       context,
     );
     expect(status.stderr).toContain("VALIDATION_FAILED");
-    expect(message(status.stdout)).not.toContain("--schema");
+    expect(message(status.stdout)).toContain("kibi status --schema");
   });
 
   test("a non-zero exit that is the command's answer gets an outcome category", async () => {
