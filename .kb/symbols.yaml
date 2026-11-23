@@ -14047,10 +14047,10 @@ symbols:
     sourceFile: scripts/sync-agent-skills.ts
     status: active
     relationships:
-      - type: implements
-        target: REQ-zcode-plugin-package
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-plugin-package-v2
   - id: SYM-sync-agent-skills-main
     title: main
     sourceFile: scripts/sync-agent-skills.ts
@@ -14134,12 +14134,12 @@ symbols:
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-zcode-adapter-package
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-zcode-plugin-package
+        target: REQ-zcode-adapter-package
+      - type: implements
+        target: REQ-zcode-plugin-package-v2
   - id: SYM-kibi-predicate-suggestion-relevance-e2e
     title: predicate suggestion relevance e2e
     status: active
