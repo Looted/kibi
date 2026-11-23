@@ -165,6 +165,35 @@ test("resolveWorkspace falls back to the pointer file, resolving relative pointe
   }
 });
 
+test("resolveWorkspace applies the pointer only outside other Git repositories", () => {
+  const tmp = makeTmp();
+  try {
+    const target = join(tmp, "target");
+    mkdirSync(target, { recursive: true });
+    // the launcher lives in its own plugin repository
+    const plugin = join(tmp, "plugin");
+    mkdirSync(join(plugin, ".git"), { recursive: true });
+    mkdirSync(join(plugin, "bin"), { recursive: true });
+    const pointerFile = join(plugin, "kibi-workspace.txt");
+    writeFileSync(pointerFile, `${target}\n`);
+
+    // a cwd inside another repository without a KB is that project's own
+    const other = join(tmp, "other");
+    mkdirSync(join(other, ".git"), { recursive: true });
+    mkdirSync(join(other, "src"), { recursive: true });
+    const r = resolveWorkspace(join(other, "src"), {}, { pointerFile });
+    assert.equal(r.root, join(other, "src"));
+    assert.equal(r.source, "cwd");
+
+    // a host spawning from the plugin directory still follows the pointer
+    const r2 = resolveWorkspace(join(plugin, "bin"), {}, { pointerFile });
+    assert.equal(r2.root, target);
+    assert.equal(r2.source, "pointer");
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test("isKibiWorkspace requires .kb/manifest.json", () => {
   const tmp = makeTmp();
   try {
