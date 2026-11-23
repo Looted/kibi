@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61d23fdc1596
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    to: FACT-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    created_at: 2026-11-22T18:24:27.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aeb9284dc8f
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:27.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70eadebd714c

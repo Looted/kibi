@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3895e879dda4
+  - type: assumes
+    from: SCEN-vibe-missing-hooks-notice
+    to: FACT-PRED-fresh-clone-missing-hooks-note
+    created_at: 2026-11-22T18:46:06.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807c8bbe43bd
+  - type: verified_by
+    from: SCEN-vibe-missing-hooks-notice
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:46:06.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-127bf14f5961

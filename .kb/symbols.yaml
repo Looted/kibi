@@ -47712,3 +47712,132 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T15:43:00.119Z
+  - id: SYM-test-vibe-hooks-decision-guard
+    title: kibi-vibe decision guard suite
+    status: active
+    sourceFile: packages/vibe/tests/guard.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:24:15.193Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-hooks-decision-guard
+  - id: SYM-guard-post-edit-note
+    title: postEditNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:24:20.328Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-firm-edit-after-notice
+    title: firmEditAfterNotice
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:52.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-session-state-dir
+    title: sessionStateDir
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:53.688Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-after-edit-input
+    title: afterEditInput
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:55.072Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-prompt-note
+    title: promptNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:30:07.342Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-session-start-note
+    title: sessionStartNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:30:12.366Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-kibi-missing-hooks-notice
+  - id: SYM-guard-is-edit-tool
+    title: isEditTool
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:47.789Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-kibi-common-guard-note
+    title: guardNote
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:49.665Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-kibi-common-join-parts
+    title: joinParts
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:51.117Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
