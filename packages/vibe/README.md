@@ -96,9 +96,11 @@ cwd. `resolveWorkspace()` resolves the workspace in this order:
    the walk stops at a `.git` boundary so unrelated enclosing repositories
    never leak in;
 3. a `kibi-workspace.txt` pointer file next to the launcher (one line, absolute
-   or launcher-relative). The pointer is **global**: it points every
-   non-Kibi cwd at one workspace, which is what makes hosts that spawn from a
-   foreign directory work. Write e.g.
+   or launcher-relative). It points a cwd that is outside any Git repository,
+   or inside the repository that holds the launcher, at one workspace, which
+   is what makes hosts that spawn from a foreign directory work. A cwd inside
+   another Git repository without a KB is never redirected, so hooks in other
+   projects keep their own folder. Write e.g.
    `\\wsl.localhost\Ubuntu-22.04\home\you\kibi` into
    `kibi-workspace.txt` beside your copied `bin/launch-kibi-mcp.mjs`;
 4. the cwd unchanged.

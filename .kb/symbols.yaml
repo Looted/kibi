@@ -14089,10 +14089,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-zcode-unowned-workspace-silence
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-zcode-hooks-invoke-hook-runner
+      - type: implements
+        target: REQ-zcode-unowned-workspace-silence
   - id: SYM-zcode-packageName
     title: packageName
     sourceFile: packages/zcode/src/index.ts
@@ -47602,6 +47604,76 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T16:11:19.609Z
+  - id: SYM-test-cli-engine-janitor-workspace-sockets
+    title: kibi engine janitor suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/janitor.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:11.736Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-engine-janitor-workspace-sockets
+  - id: SYM-cli-janitor-sweep-runtime-sockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:47.194Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
+  - id: SYM-engine-socket-key-engine-socket-key
+    title: engineSocketKey
+    sourceFile: packages/cli/src/utils/engine-socket-key.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:51:24.071Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
+  - id: SYM-zcode-case-tracked-hook-targets
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/hooks.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Hooks point at hook files a source checkout contains
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:22.857Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-copied-install-runtime-files
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/install-artifact.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Copied marketplace install contains declared runtime files
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:24.666Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-run-zcode-proof-zcode-native-cases
+    sourceFile: scripts/run-zcode-proof.mjs
+    status: active
+    symbol_role: type-shape
+    title: ZCODE_NATIVE_CASES
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:43:00.119Z
   - id: SYM-test-vibe-hooks-decision-guard
     title: kibi-vibe decision guard suite
     status: active

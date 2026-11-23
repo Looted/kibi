@@ -22,7 +22,7 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "bun run scripts/build-guard.ts && node --check bin/hooks/kibi-guard.mjs && node --check bin/kibi-runtime.mjs && node --check bin/kibi.mjs && node --check bin/launch-kibi-mcp.mjs && node --check bin/hooks/kibi-common.mjs && node --check bin/hooks/kibi-file-context.mjs && node --check bin/hooks/kibi-prompt-context.mjs && node --check bin/hooks/kibi-session-context.mjs && bun run ../../scripts/sync-agent-skills.ts --write --target vibe",

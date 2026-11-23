@@ -20,6 +20,7 @@ import {
 import {
   MANAGED_HOOK_NAMES,
   hookDelegationSnippet,
+  installGitHooks,
 } from "../../src/commands/init-helpers.js";
 import { initCommand } from "../../src/commands/init.js";
 import {
@@ -101,9 +102,12 @@ describe("existing git hook managers", () => {
     await withCwd(cwd, () => doctorCommand({ format: "json" }));
     const parsed = JSON.parse(io.logs[0] ?? "{}") as { checks: DoctorCheck[] };
     return parsed.checks.filter((check) =>
-      ["Git hooks", "pre-commit hook", "post-rewrite hook"].includes(
-        check.name,
-      ),
+      [
+        "Git hooks",
+        "pre-commit hook",
+        "post-rewrite hook",
+        "Kibi-managed hook sections",
+      ].includes(check.name),
     );
   }
 
@@ -486,7 +490,102 @@ describe("existing git hook managers", () => {
           message:
             "Managed by lefthook (lefthook.yml); post-rewrite runs 'kibi sync'",
         },
+        {
+          name: "Kibi-managed hook sections",
+          passed: true,
+          warning: undefined,
+          message: "Managed by lefthook (lefthook.yml)",
+        },
       ]);
+    });
+
+    test("warns, without failing or recommending kibi init, when pre-commit owns hooks and outdated kibi-managed sections remain", async () => {
+      const cwd = workspace();
+      writeFileSync(
+        path.join(cwd, ".pre-commit-config.yaml"),
+        hookManagerSnippet("pre-commit", MANAGED_HOOK_NAMES),
+      );
+      installGitHooks(hooksDir(cwd), { log: () => {} });
+      const preCommitPath = path.join(hooksDir(cwd), "pre-commit");
+      writeFileSync(
+        preCommitPath,
+        readFileSync(preCommitPath, "utf8").replace(
+          '"$KIBI_BIN" check-generated --staged --changed-only\n',
+          "",
+        ),
+      );
+
+      const managed = (await doctorChecks(cwd)).find(
+        (check) => check.name === "Kibi-managed hook sections",
+      );
+      expect(managed).toEqual({
+        name: "Kibi-managed hook sections",
+        passed: true,
+        warning: true,
+        message:
+          "Managed by pre-commit (.pre-commit-config.yaml); leftover kibi-managed hook sections remain in post-checkout, post-merge, post-rewrite, pre-commit (outdated: pre-commit)",
+        remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-checkout, post-merge, post-rewrite, pre-commit in ${hooksDir(cwd)} and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+      });
+      expect(managed?.remediation).not.toContain("Run: kibi init");
+    });
+
+    test("warns about leftover kibi-managed sections under husky and passes cleanly when husky hooks have none", async () => {
+      const cwd = workspace();
+      mkdirSync(path.join(cwd, ".husky"), { recursive: true });
+      writeHook(
+        cwd,
+        "pre-commit",
+        "#!/bin/sh\n# BEGIN kibi-managed\nkibi check\n# END kibi-managed\n",
+      );
+
+      const leftover = (await doctorChecks(cwd)).find(
+        (check) => check.name === "Kibi-managed hook sections",
+      );
+      expect(leftover).toEqual({
+        name: "Kibi-managed hook sections",
+        passed: true,
+        warning: true,
+        message:
+          "Managed by husky (.husky); leftover kibi-managed hook sections remain in pre-commit (outdated: pre-commit)",
+        remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from pre-commit in ${hooksDir(cwd)} and keep Kibi's commands in .husky (print them with: kibi init --print-hook all --format husky)`,
+      });
+      expect(leftover?.remediation).not.toContain("Run: kibi init");
+
+      // Once Husky owns core.hooksPath (.husky/_) and no kibi-managed sections
+      // live in that effective hooks dir, the check passes cleanly.
+      mkdirSync(path.join(cwd, ".husky", "_"), { recursive: true });
+      git(cwd, "config core.hooksPath .husky/_");
+      const clean = (await doctorChecks(cwd)).find(
+        (check) => check.name === "Kibi-managed hook sections",
+      );
+      expect(clean).toEqual({
+        name: "Kibi-managed hook sections",
+        passed: true,
+        message: "Managed by husky (.husky)",
+      });
+    });
+
+    test("warns about current leftover kibi-managed sections under lefthook without claiming they are outdated", async () => {
+      const cwd = workspace();
+      writeFileSync(
+        path.join(cwd, "lefthook.yml"),
+        hookManagerSnippet("lefthook", MANAGED_HOOK_NAMES),
+      );
+      installGitHooks(hooksDir(cwd), { log: () => {} });
+      writeHook(cwd, "pre-commit", LEFTHOOK_RUNNER);
+
+      const managed = (await doctorChecks(cwd)).find(
+        (check) => check.name === "Kibi-managed hook sections",
+      );
+      expect(managed).toEqual({
+        name: "Kibi-managed hook sections",
+        passed: true,
+        warning: true,
+        message:
+          "Managed by lefthook (lefthook.yml); leftover kibi-managed hook sections remain in post-checkout, post-merge, post-rewrite",
+        remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-checkout, post-merge, post-rewrite in ${hooksDir(cwd)} and keep Kibi's commands in lefthook.yml (print them with: kibi init --print-hook all --format lefthook)`,
+      });
+      expect(managed?.message).not.toContain("outdated");
     });
 
     test("warns, without failing, when lefthook reaches Kibi through a task runner it cannot read", async () => {
