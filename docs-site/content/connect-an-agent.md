@@ -55,6 +55,33 @@ Plugin pages in the installation guide:
 - [Cursor plugin](install.md#optional-cursor-plugin)
 - [Codex plugin](install.md#optional-codex-plugin)
 - [ZCode plugin](install.md#optional-zcode-plugin)
+- [Mistral Vibe plugin](install.md#optional-vibe-plugin)
+
+## Mistral Vibe
+
+Install the optional `kibi-vibe` plugin from a local checkout, then restart Vibe
+or run `/reload`:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+The plugin brings the `kibi` MCP server, the bundled skills, and fail-open
+hooks (KB status at session start, KB hits for each prompt, entities linked to
+a file after reads/edits). On Windows the launcher runs Kibi inside WSL
+automatically — see [Vibe plugin](install.md#optional-vibe-plugin).
+
+Without the plugin, register the server in `~/.vibe/config.toml`:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-checkout>/packages/vibe/bin/launch-kibi-mcp.mjs"]
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
 
 ## OpenCode
 

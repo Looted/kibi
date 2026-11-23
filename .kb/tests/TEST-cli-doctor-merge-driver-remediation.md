@@ -22,17 +22,17 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-604e4ec582c26e7071f94c73
+    receipt_id: PR-4cb51d8b3690287a4b3cd7cc
     test_id: TEST-cli-doctor-merge-driver-remediation
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d5bc71e944be8ddccfdb37cf3622375ef36850933b4f87d153a603152368662
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-05T12:08:14.052Z'
-    finished_at: '2026-11-05T12:08:20.040Z'
-    artifact_digest: 31c6beebb05e83004b1acde43096436dd1cfaeb4701ac6ed055ac77f4668984e
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 590e42e2a7d6f8d225609aacd4c0e56510110b623ed13986f9036ad8ea9faf53
-    binding_hash: dc10b7f3000af51a3ef8351c1fa3595abaf6bf2e98a1cf922ee1223ba25592c6
+    binding_hash: 0804ca92292613241c99b794dcd82ff109a90330a450ffe8b48aac3af5afa11d
     fingerprint: 2c6d5706ca90776ccf38b68d8acf1ef20e8d3f321642eb2fadceda3667346fbd
     fingerprint_components:
       contract: 590e42e2a7d6f8d225609aacd4c0e56510110b623ed13986f9036ad8ea9faf53

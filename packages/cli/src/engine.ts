@@ -78,6 +78,7 @@ import {
   unmigratedLegacyStoreRefusal,
 } from "./utils/branch-store-locator.js";
 import { canonicalFilesystemPath } from "./utils/canonical-path.js";
+import { engineSocketKey } from "./utils/engine-socket-key.js";
 
 export type {
   EngineAttachmentIdentity,
@@ -559,13 +560,7 @@ export function engineSocketPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  const canonicalRoot = canonicalFilesystemPath(workspaceRoot);
-  const key = createHash("sha256")
-    .update(`${canonicalRoot}\0${branch}`)
-    // Retain 128 bits of workspace/branch identity; runtimeDirectory budgets
-    // the complete pathname rather than shortening this identity.
-    .digest("hex")
-    .slice(0, 32);
+  const key = engineSocketKey(canonicalFilesystemPath(workspaceRoot), branch);
   if (process.platform === "win32") {
     return `\\\\.\\pipe\\kibi-${key}`;
   }

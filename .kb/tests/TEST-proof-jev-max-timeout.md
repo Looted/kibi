@@ -26,17 +26,17 @@ id: TEST-proof-jev-max-timeout
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-01b542909b8b485e8835ff80
+    receipt_id: PR-e871f251878eea8be8ea2c9f
     test_id: TEST-proof-jev-max-timeout
     scope: unit
     outcome: passed
-    code_snapshot: 374c0615cf4ed585796e9ab43d3b69c8e4593f2471fb8597c2a06ba7a14aad48
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T09:37:39.444Z'
-    finished_at: '2026-10-28T09:37:39.551Z'
-    artifact_digest: 6509796dd251d38a9627f1990d799ea1f01938b7a70102ac611b326513ed6dfc
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: cb400eef3ea81b71026f1f995b83197267b9f4b65a2b0b019596b79a18621487
-    binding_hash: d84559f46e3c57e1b82c27a46ab0bf5d6f04ec112afb1141af740deaa8abe760
+    binding_hash: f42b1ac775f41917e4f0bc74c7fae5da61cb9a954966bfeada0954c5aa87f04f
     fingerprint: e095667f63b709421f33ab62c29eef5b6189ffb92c239e5001c2e8222de77682
     fingerprint_components:
       contract: cb400eef3ea81b71026f1f995b83197267b9f4b65a2b0b019596b79a18621487

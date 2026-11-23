@@ -350,6 +350,15 @@ export const PACKAGE_CATALOG = [
     packAll: true,
   },
   {
+    dir: "vibe",
+    npmName: "kibi-vibe",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: false,
+    packAll: true,
+  },
+  {
     dir: "antigravity",
     npmName: "kibi-antigravity",
     publishable: false,

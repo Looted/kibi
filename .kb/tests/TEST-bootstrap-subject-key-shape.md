@@ -21,18 +21,18 @@ origin:
 id: TEST-bootstrap-subject-key-shape
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-4c819a583887ce1c3f4bb185
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-f5435075f5fffeba642110e5
     test_id: TEST-bootstrap-subject-key-shape
     scope: end_to_end
     outcome: passed
-    code_snapshot: 5bcd0d322a2e6c7d354ab67006c2435d002496d92294aa2d93965813f4aabe00
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-07T19:05:31.445Z'
-    finished_at: '2026-10-07T19:05:31.867Z'
-    artifact_digest: cd36105019b832ffca855dd99cb6f11da236a5e5af8a820828bdf92271be1852
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:41.136Z'
+    finished_at: '2026-11-20T08:25:06.631Z'
+    artifact_digest: 9889eda5b2fb23ed4a9cbb12aec4df1839d7f559d0597c27764d91f9509a8c97
     contract_hash: 32ccb5ee476ceb6380ab6e48ede8392fa2093c4f538703ceb5296ee6b9065619
-    binding_hash: acedc1a959e50e7fc844e34f706742cbec4755123c9bb34f1c9e7e50a27a4481
+    binding_hash: 23128c8b792c4979184db3eceb6d57c66a7d7aa743032c746cfa91b28e2949ce
     fingerprint: aebaad4360205df0c8be9801fc43a39fa48417b3b9c87082f05bc8e643a6fcdc
     fingerprint_components:
       contract: 32ccb5ee476ceb6380ab6e48ede8392fa2093c4f538703ceb5296ee6b9065619
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts`, which resolves claim names with and without a declared component, plans intent claims from a declared source, and checks the planned names, the diagnostic for a component-less claim, and the carried rationale.

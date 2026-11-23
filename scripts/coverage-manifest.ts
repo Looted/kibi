@@ -26,6 +26,12 @@ function walkSourceDirectory(root: string, directory: string): string[] {
   return files;
 }
 
+// Importable ESM modules that live in a package's bin/ next to the script
+// entrypoints (which run on import and therefore cannot join the in-process
+// LCOV). These are measured like src/ files; the entrypoints stay covered by
+// the spawned launcher-contract proof test.
+const EXTRA_PRODUCTION_SOURCES = ["packages/vibe/bin/kibi-runtime.mjs"];
+
 export function collectProductionSourceFiles(workspaceRoot: string): string[] {
   const packagesRoot = join(workspaceRoot, PACKAGE_ROOT);
   if (!existsSync(packagesRoot)) return [];
@@ -39,6 +45,9 @@ export function collectProductionSourceFiles(workspaceRoot: string): string[] {
         join(packagesRoot, entry.name, "src"),
       ),
     );
+  }
+  for (const extra of EXTRA_PRODUCTION_SOURCES) {
+    if (existsSync(join(workspaceRoot, extra))) sourceFiles.push(extra);
   }
   return sourceFiles.sort();
 }

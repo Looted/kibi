@@ -27,17 +27,17 @@ id: TEST-proof-brand-panel-color
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-dc411e4f7a259e0bad19e468
+    receipt_id: PR-bdef92e8f94e2d6d57f428d1
     test_id: TEST-proof-brand-panel-color
     scope: unit
     outcome: passed
-    code_snapshot: 0a46a168f79f32c7067fd54b62e7bfea277eb1d3f88ddceab97c98613f8e5f74
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:32:33.885Z'
-    finished_at: '2026-10-28T22:32:33.977Z'
-    artifact_digest: d056fc2bf6e87913761e1686335899349381a1b18844565d9301f34fecbff6e7
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:44.843Z'
+    finished_at: '2026-11-20T08:30:48.727Z'
+    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
     contract_hash: 9beebc3be4f3f99307ed6912694483e59524161dc0fffd007a1a25f5ffa2c79d
-    binding_hash: 6ef46e0e711c50ebe5cd19ae179b13203529294fcb244f1dc6bcafeef05529c9
+    binding_hash: 1f5b5787f02da28716bb3648c7117f3496ca7978b53cd507ed5842185a4819f1
     fingerprint: afc46bbfabe52b9d16aba49b0c140a559ea6bd991f86fd0a91d11109343ec938
     fingerprint_components:
       contract: 9beebc3be4f3f99307ed6912694483e59524161dc0fffd007a1a25f5ffa2c79d

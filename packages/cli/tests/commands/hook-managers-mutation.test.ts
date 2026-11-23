@@ -596,6 +596,130 @@ repos:
       # Paste into your existing post-checkout hook; it runs the same Kibi commands
       # as the Kibi-managed template.
       if [ "$3" = "1" ]; then
+        if ! command -v node >/dev/null 2>&1; then
+          kibi_node_dir=""
+          _kibi_pick_node() {
+            kibi_suffix="$1"
+            shift
+            kibi_best_dir=""
+            kibi_best_maj=-1
+            kibi_best_min=-1
+            kibi_best_pat=-1
+            for kibi_cand in "$@"; do
+              [ -f "$kibi_cand" ] && [ -x "$kibi_cand" ] || continue
+              kibi_ver="\${kibi_cand%/$kibi_suffix}"
+              kibi_ver="\${kibi_ver##*/}"
+              kibi_ver="\${kibi_ver#v}"
+              kibi_ver="\${kibi_ver%%-*}"
+              kibi_maj="\${kibi_ver%%.*}"
+              kibi_rest="\${kibi_ver#*.}"
+              if [ "$kibi_rest" = "$kibi_ver" ]; then
+                kibi_min=0
+                kibi_pat=0
+              else
+                kibi_min="\${kibi_rest%%.*}"
+                kibi_pat="\${kibi_rest#*.}"
+                if [ "$kibi_pat" = "$kibi_rest" ]; then
+                  kibi_pat=0
+                else
+                  kibi_pat="\${kibi_pat%%.*}"
+                fi
+              fi
+              case "\${kibi_maj:-x}:\${kibi_min:-x}:\${kibi_pat:-x}" in
+                *[!0-9:]*) continue ;;
+              esac
+              if [ "$kibi_maj" -gt "$kibi_best_maj" ] ||
+                 { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -gt "$kibi_best_min" ]; } ||
+                 { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -eq "$kibi_best_min" ] && [ "$kibi_pat" -gt "$kibi_best_pat" ]; }; then
+                kibi_best_maj="$kibi_maj"
+                kibi_best_min="$kibi_min"
+                kibi_best_pat="$kibi_pat"
+                kibi_best_dir="\${kibi_cand%/node}"
+              fi
+            done
+            kibi_node_dir="$kibi_best_dir"
+          }
+          kibi_nvm_dir="\${NVM_DIR:-\${HOME:+$HOME/.nvm}}"
+          if [ -n "$kibi_nvm_dir" ] && [ -d "$kibi_nvm_dir" ]; then
+            if [ -f "$kibi_nvm_dir/current/bin/node" ] && [ -x "$kibi_nvm_dir/current/bin/node" ]; then
+              kibi_node_dir="$kibi_nvm_dir/current/bin"
+            fi
+            if [ -z "$kibi_node_dir" ] && [ -f "$kibi_nvm_dir/alias/default" ] && [ -r "$kibi_nvm_dir/alias/default" ]; then
+              kibi_alias=""
+              read -r kibi_alias < "$kibi_nvm_dir/alias/default" || true
+              kibi_hops=0
+              while [ -n "$kibi_alias" ] && [ "$kibi_hops" -lt 5 ]; do
+                case "$kibi_alias" in *..*|/*) break ;; esac
+                if [ -f "$kibi_nvm_dir/alias/$kibi_alias" ] && [ -r "$kibi_nvm_dir/alias/$kibi_alias" ]; then
+                  kibi_next=""
+                  read -r kibi_next < "$kibi_nvm_dir/alias/$kibi_alias" || true
+                  kibi_alias="$kibi_next"
+                  kibi_hops=$((kibi_hops + 1))
+                else
+                  break
+                fi
+              done
+              case "\${kibi_alias#v}" in
+                ""|*[!0-9.]*) ;;
+                *)
+                  kibi_prefix="v\${kibi_alias#v}"
+                  if [ -f "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ] && [ -x "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ]; then
+                    kibi_node_dir="$kibi_nvm_dir/versions/node/$kibi_prefix/bin"
+                  else
+                    _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/"$kibi_prefix".*/bin/node
+                  fi
+                  ;;
+              esac
+            fi
+            if [ -z "$kibi_node_dir" ]; then
+              _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/*/bin/node
+            fi
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            kibi_volta_dir="\${VOLTA_HOME:-\${HOME:+$HOME/.volta}}"
+            if [ -n "$kibi_volta_dir" ] && [ -f "$kibi_volta_dir/bin/node" ] && [ -x "$kibi_volta_dir/bin/node" ]; then
+              kibi_node_dir="$kibi_volta_dir/bin"
+            fi
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            for kibi_fnm_dir in "\${FNM_DIR:-}" "\${XDG_DATA_HOME:+$XDG_DATA_HOME/fnm}" "\${HOME:+$HOME/.local/share/fnm}" "\${HOME:+$HOME/.fnm}"; do
+              [ -n "$kibi_fnm_dir" ] || continue
+              if [ -f "$kibi_fnm_dir/aliases/default/bin/node" ] && [ -x "$kibi_fnm_dir/aliases/default/bin/node" ]; then
+                kibi_node_dir="$kibi_fnm_dir/aliases/default/bin"
+                break
+              fi
+              if [ -d "$kibi_fnm_dir/node-versions" ]; then
+                _kibi_pick_node "installation/bin/node" "$kibi_fnm_dir"/node-versions/*/installation/bin/node
+                if [ -n "$kibi_node_dir" ]; then
+                  break
+                fi
+              fi
+            done
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            kibi_asdf_dir="\${ASDF_DATA_DIR:-\${HOME:+$HOME/.asdf}}"
+            kibi_mise_dir="\${MISE_DATA_DIR:-\${XDG_DATA_HOME:+$XDG_DATA_HOME/mise}}"
+            if [ -z "$kibi_mise_dir" ] && [ -n "\${HOME:-}" ]; then
+              kibi_mise_dir="$HOME/.local/share/mise"
+            fi
+            for kibi_cand_dir in "\${kibi_asdf_dir:+$kibi_asdf_dir/shims}" "\${kibi_mise_dir:+$kibi_mise_dir/shims}" "/opt/homebrew/bin" "/usr/local/bin"; do
+              if [ -n "$kibi_cand_dir" ] && [ -f "$kibi_cand_dir/node" ] && [ -x "$kibi_cand_dir/node" ]; then
+                kibi_node_dir="$kibi_cand_dir"
+                break
+              fi
+            done
+          fi
+          unset -f _kibi_pick_node 2>/dev/null || true
+          if [ -n "$kibi_node_dir" ]; then
+            PATH="\${kibi_node_dir}\${PATH:+:$PATH}"
+            export PATH
+          fi
+        fi
+        if ! command -v node >/dev/null 2>&1; then
+          echo "kibi: cannot locate 'node' on PATH or in standard version-manager locations (nvm, volta, fnm, asdf, mise, /opt/homebrew/bin, /usr/local/bin)." >&2
+          echo "Ensure Node.js is on PATH for Git hooks, and run 'kibi sync' from your shell so the branch store is not left stale." >&2
+          exit 1
+        fi
         KIBI_BIN="$(command -v kibi 2>/dev/null || true)"
         if [ -z "$KIBI_BIN" ]; then
           kibi_dir="$PWD"
@@ -623,6 +747,130 @@ repos:
       # Kibi post-merge delegation (printed by 'kibi init --print-hook post-merge').
       # Paste into your existing post-merge hook; it runs the same Kibi commands
       # as the Kibi-managed template.
+      if ! command -v node >/dev/null 2>&1; then
+        kibi_node_dir=""
+        _kibi_pick_node() {
+          kibi_suffix="$1"
+          shift
+          kibi_best_dir=""
+          kibi_best_maj=-1
+          kibi_best_min=-1
+          kibi_best_pat=-1
+          for kibi_cand in "$@"; do
+            [ -f "$kibi_cand" ] && [ -x "$kibi_cand" ] || continue
+            kibi_ver="\${kibi_cand%/$kibi_suffix}"
+            kibi_ver="\${kibi_ver##*/}"
+            kibi_ver="\${kibi_ver#v}"
+            kibi_ver="\${kibi_ver%%-*}"
+            kibi_maj="\${kibi_ver%%.*}"
+            kibi_rest="\${kibi_ver#*.}"
+            if [ "$kibi_rest" = "$kibi_ver" ]; then
+              kibi_min=0
+              kibi_pat=0
+            else
+              kibi_min="\${kibi_rest%%.*}"
+              kibi_pat="\${kibi_rest#*.}"
+              if [ "$kibi_pat" = "$kibi_rest" ]; then
+                kibi_pat=0
+              else
+                kibi_pat="\${kibi_pat%%.*}"
+              fi
+            fi
+            case "\${kibi_maj:-x}:\${kibi_min:-x}:\${kibi_pat:-x}" in
+              *[!0-9:]*) continue ;;
+            esac
+            if [ "$kibi_maj" -gt "$kibi_best_maj" ] ||
+               { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -gt "$kibi_best_min" ]; } ||
+               { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -eq "$kibi_best_min" ] && [ "$kibi_pat" -gt "$kibi_best_pat" ]; }; then
+              kibi_best_maj="$kibi_maj"
+              kibi_best_min="$kibi_min"
+              kibi_best_pat="$kibi_pat"
+              kibi_best_dir="\${kibi_cand%/node}"
+            fi
+          done
+          kibi_node_dir="$kibi_best_dir"
+        }
+        kibi_nvm_dir="\${NVM_DIR:-\${HOME:+$HOME/.nvm}}"
+        if [ -n "$kibi_nvm_dir" ] && [ -d "$kibi_nvm_dir" ]; then
+          if [ -f "$kibi_nvm_dir/current/bin/node" ] && [ -x "$kibi_nvm_dir/current/bin/node" ]; then
+            kibi_node_dir="$kibi_nvm_dir/current/bin"
+          fi
+          if [ -z "$kibi_node_dir" ] && [ -f "$kibi_nvm_dir/alias/default" ] && [ -r "$kibi_nvm_dir/alias/default" ]; then
+            kibi_alias=""
+            read -r kibi_alias < "$kibi_nvm_dir/alias/default" || true
+            kibi_hops=0
+            while [ -n "$kibi_alias" ] && [ "$kibi_hops" -lt 5 ]; do
+              case "$kibi_alias" in *..*|/*) break ;; esac
+              if [ -f "$kibi_nvm_dir/alias/$kibi_alias" ] && [ -r "$kibi_nvm_dir/alias/$kibi_alias" ]; then
+                kibi_next=""
+                read -r kibi_next < "$kibi_nvm_dir/alias/$kibi_alias" || true
+                kibi_alias="$kibi_next"
+                kibi_hops=$((kibi_hops + 1))
+              else
+                break
+              fi
+            done
+            case "\${kibi_alias#v}" in
+              ""|*[!0-9.]*) ;;
+              *)
+                kibi_prefix="v\${kibi_alias#v}"
+                if [ -f "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ] && [ -x "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ]; then
+                  kibi_node_dir="$kibi_nvm_dir/versions/node/$kibi_prefix/bin"
+                else
+                  _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/"$kibi_prefix".*/bin/node
+                fi
+                ;;
+            esac
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/*/bin/node
+          fi
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          kibi_volta_dir="\${VOLTA_HOME:-\${HOME:+$HOME/.volta}}"
+          if [ -n "$kibi_volta_dir" ] && [ -f "$kibi_volta_dir/bin/node" ] && [ -x "$kibi_volta_dir/bin/node" ]; then
+            kibi_node_dir="$kibi_volta_dir/bin"
+          fi
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          for kibi_fnm_dir in "\${FNM_DIR:-}" "\${XDG_DATA_HOME:+$XDG_DATA_HOME/fnm}" "\${HOME:+$HOME/.local/share/fnm}" "\${HOME:+$HOME/.fnm}"; do
+            [ -n "$kibi_fnm_dir" ] || continue
+            if [ -f "$kibi_fnm_dir/aliases/default/bin/node" ] && [ -x "$kibi_fnm_dir/aliases/default/bin/node" ]; then
+              kibi_node_dir="$kibi_fnm_dir/aliases/default/bin"
+              break
+            fi
+            if [ -d "$kibi_fnm_dir/node-versions" ]; then
+              _kibi_pick_node "installation/bin/node" "$kibi_fnm_dir"/node-versions/*/installation/bin/node
+              if [ -n "$kibi_node_dir" ]; then
+                break
+              fi
+            fi
+          done
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          kibi_asdf_dir="\${ASDF_DATA_DIR:-\${HOME:+$HOME/.asdf}}"
+          kibi_mise_dir="\${MISE_DATA_DIR:-\${XDG_DATA_HOME:+$XDG_DATA_HOME/mise}}"
+          if [ -z "$kibi_mise_dir" ] && [ -n "\${HOME:-}" ]; then
+            kibi_mise_dir="$HOME/.local/share/mise"
+          fi
+          for kibi_cand_dir in "\${kibi_asdf_dir:+$kibi_asdf_dir/shims}" "\${kibi_mise_dir:+$kibi_mise_dir/shims}" "/opt/homebrew/bin" "/usr/local/bin"; do
+            if [ -n "$kibi_cand_dir" ] && [ -f "$kibi_cand_dir/node" ] && [ -x "$kibi_cand_dir/node" ]; then
+              kibi_node_dir="$kibi_cand_dir"
+              break
+            fi
+          done
+        fi
+        unset -f _kibi_pick_node 2>/dev/null || true
+        if [ -n "$kibi_node_dir" ]; then
+          PATH="\${kibi_node_dir}\${PATH:+:$PATH}"
+          export PATH
+        fi
+      fi
+      if ! command -v node >/dev/null 2>&1; then
+        echo "kibi: cannot locate 'node' on PATH or in standard version-manager locations (nvm, volta, fnm, asdf, mise, /opt/homebrew/bin, /usr/local/bin)." >&2
+        echo "Ensure Node.js is on PATH for Git hooks, and run 'kibi sync' from your shell so the branch store is not left stale." >&2
+        exit 1
+      fi
       KIBI_BIN="$(command -v kibi 2>/dev/null || true)"
       if [ -z "$KIBI_BIN" ]; then
         kibi_dir="$PWD"
@@ -652,6 +900,130 @@ repos:
       "# Kibi post-merge delegation (printed by 'kibi init --print-hook post-merge').
       # Paste into your existing post-merge hook; it runs the same Kibi commands
       # as the Kibi-managed template.
+      if ! command -v node >/dev/null 2>&1; then
+        kibi_node_dir=""
+        _kibi_pick_node() {
+          kibi_suffix="$1"
+          shift
+          kibi_best_dir=""
+          kibi_best_maj=-1
+          kibi_best_min=-1
+          kibi_best_pat=-1
+          for kibi_cand in "$@"; do
+            [ -f "$kibi_cand" ] && [ -x "$kibi_cand" ] || continue
+            kibi_ver="\${kibi_cand%/$kibi_suffix}"
+            kibi_ver="\${kibi_ver##*/}"
+            kibi_ver="\${kibi_ver#v}"
+            kibi_ver="\${kibi_ver%%-*}"
+            kibi_maj="\${kibi_ver%%.*}"
+            kibi_rest="\${kibi_ver#*.}"
+            if [ "$kibi_rest" = "$kibi_ver" ]; then
+              kibi_min=0
+              kibi_pat=0
+            else
+              kibi_min="\${kibi_rest%%.*}"
+              kibi_pat="\${kibi_rest#*.}"
+              if [ "$kibi_pat" = "$kibi_rest" ]; then
+                kibi_pat=0
+              else
+                kibi_pat="\${kibi_pat%%.*}"
+              fi
+            fi
+            case "\${kibi_maj:-x}:\${kibi_min:-x}:\${kibi_pat:-x}" in
+              *[!0-9:]*) continue ;;
+            esac
+            if [ "$kibi_maj" -gt "$kibi_best_maj" ] ||
+               { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -gt "$kibi_best_min" ]; } ||
+               { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -eq "$kibi_best_min" ] && [ "$kibi_pat" -gt "$kibi_best_pat" ]; }; then
+              kibi_best_maj="$kibi_maj"
+              kibi_best_min="$kibi_min"
+              kibi_best_pat="$kibi_pat"
+              kibi_best_dir="\${kibi_cand%/node}"
+            fi
+          done
+          kibi_node_dir="$kibi_best_dir"
+        }
+        kibi_nvm_dir="\${NVM_DIR:-\${HOME:+$HOME/.nvm}}"
+        if [ -n "$kibi_nvm_dir" ] && [ -d "$kibi_nvm_dir" ]; then
+          if [ -f "$kibi_nvm_dir/current/bin/node" ] && [ -x "$kibi_nvm_dir/current/bin/node" ]; then
+            kibi_node_dir="$kibi_nvm_dir/current/bin"
+          fi
+          if [ -z "$kibi_node_dir" ] && [ -f "$kibi_nvm_dir/alias/default" ] && [ -r "$kibi_nvm_dir/alias/default" ]; then
+            kibi_alias=""
+            read -r kibi_alias < "$kibi_nvm_dir/alias/default" || true
+            kibi_hops=0
+            while [ -n "$kibi_alias" ] && [ "$kibi_hops" -lt 5 ]; do
+              case "$kibi_alias" in *..*|/*) break ;; esac
+              if [ -f "$kibi_nvm_dir/alias/$kibi_alias" ] && [ -r "$kibi_nvm_dir/alias/$kibi_alias" ]; then
+                kibi_next=""
+                read -r kibi_next < "$kibi_nvm_dir/alias/$kibi_alias" || true
+                kibi_alias="$kibi_next"
+                kibi_hops=$((kibi_hops + 1))
+              else
+                break
+              fi
+            done
+            case "\${kibi_alias#v}" in
+              ""|*[!0-9.]*) ;;
+              *)
+                kibi_prefix="v\${kibi_alias#v}"
+                if [ -f "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ] && [ -x "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ]; then
+                  kibi_node_dir="$kibi_nvm_dir/versions/node/$kibi_prefix/bin"
+                else
+                  _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/"$kibi_prefix".*/bin/node
+                fi
+                ;;
+            esac
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/*/bin/node
+          fi
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          kibi_volta_dir="\${VOLTA_HOME:-\${HOME:+$HOME/.volta}}"
+          if [ -n "$kibi_volta_dir" ] && [ -f "$kibi_volta_dir/bin/node" ] && [ -x "$kibi_volta_dir/bin/node" ]; then
+            kibi_node_dir="$kibi_volta_dir/bin"
+          fi
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          for kibi_fnm_dir in "\${FNM_DIR:-}" "\${XDG_DATA_HOME:+$XDG_DATA_HOME/fnm}" "\${HOME:+$HOME/.local/share/fnm}" "\${HOME:+$HOME/.fnm}"; do
+            [ -n "$kibi_fnm_dir" ] || continue
+            if [ -f "$kibi_fnm_dir/aliases/default/bin/node" ] && [ -x "$kibi_fnm_dir/aliases/default/bin/node" ]; then
+              kibi_node_dir="$kibi_fnm_dir/aliases/default/bin"
+              break
+            fi
+            if [ -d "$kibi_fnm_dir/node-versions" ]; then
+              _kibi_pick_node "installation/bin/node" "$kibi_fnm_dir"/node-versions/*/installation/bin/node
+              if [ -n "$kibi_node_dir" ]; then
+                break
+              fi
+            fi
+          done
+        fi
+        if [ -z "$kibi_node_dir" ]; then
+          kibi_asdf_dir="\${ASDF_DATA_DIR:-\${HOME:+$HOME/.asdf}}"
+          kibi_mise_dir="\${MISE_DATA_DIR:-\${XDG_DATA_HOME:+$XDG_DATA_HOME/mise}}"
+          if [ -z "$kibi_mise_dir" ] && [ -n "\${HOME:-}" ]; then
+            kibi_mise_dir="$HOME/.local/share/mise"
+          fi
+          for kibi_cand_dir in "\${kibi_asdf_dir:+$kibi_asdf_dir/shims}" "\${kibi_mise_dir:+$kibi_mise_dir/shims}" "/opt/homebrew/bin" "/usr/local/bin"; do
+            if [ -n "$kibi_cand_dir" ] && [ -f "$kibi_cand_dir/node" ] && [ -x "$kibi_cand_dir/node" ]; then
+              kibi_node_dir="$kibi_cand_dir"
+              break
+            fi
+          done
+        fi
+        unset -f _kibi_pick_node 2>/dev/null || true
+        if [ -n "$kibi_node_dir" ]; then
+          PATH="\${kibi_node_dir}\${PATH:+:$PATH}"
+          export PATH
+        fi
+      fi
+      if ! command -v node >/dev/null 2>&1; then
+        echo "kibi: cannot locate 'node' on PATH or in standard version-manager locations (nvm, volta, fnm, asdf, mise, /opt/homebrew/bin, /usr/local/bin)." >&2
+        echo "Ensure Node.js is on PATH for Git hooks, and run 'kibi sync' from your shell so the branch store is not left stale." >&2
+        exit 1
+      fi
       KIBI_BIN="$(command -v kibi 2>/dev/null || true)"
       if [ -z "$KIBI_BIN" ]; then
         kibi_dir="$PWD"
@@ -678,6 +1050,130 @@ repos:
       # Paste into your existing post-rewrite hook; it runs the same Kibi commands
       # as the Kibi-managed template.
       if [ "$1" = "rebase" ]; then
+        if ! command -v node >/dev/null 2>&1; then
+          kibi_node_dir=""
+          _kibi_pick_node() {
+            kibi_suffix="$1"
+            shift
+            kibi_best_dir=""
+            kibi_best_maj=-1
+            kibi_best_min=-1
+            kibi_best_pat=-1
+            for kibi_cand in "$@"; do
+              [ -f "$kibi_cand" ] && [ -x "$kibi_cand" ] || continue
+              kibi_ver="\${kibi_cand%/$kibi_suffix}"
+              kibi_ver="\${kibi_ver##*/}"
+              kibi_ver="\${kibi_ver#v}"
+              kibi_ver="\${kibi_ver%%-*}"
+              kibi_maj="\${kibi_ver%%.*}"
+              kibi_rest="\${kibi_ver#*.}"
+              if [ "$kibi_rest" = "$kibi_ver" ]; then
+                kibi_min=0
+                kibi_pat=0
+              else
+                kibi_min="\${kibi_rest%%.*}"
+                kibi_pat="\${kibi_rest#*.}"
+                if [ "$kibi_pat" = "$kibi_rest" ]; then
+                  kibi_pat=0
+                else
+                  kibi_pat="\${kibi_pat%%.*}"
+                fi
+              fi
+              case "\${kibi_maj:-x}:\${kibi_min:-x}:\${kibi_pat:-x}" in
+                *[!0-9:]*) continue ;;
+              esac
+              if [ "$kibi_maj" -gt "$kibi_best_maj" ] ||
+                 { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -gt "$kibi_best_min" ]; } ||
+                 { [ "$kibi_maj" -eq "$kibi_best_maj" ] && [ "$kibi_min" -eq "$kibi_best_min" ] && [ "$kibi_pat" -gt "$kibi_best_pat" ]; }; then
+                kibi_best_maj="$kibi_maj"
+                kibi_best_min="$kibi_min"
+                kibi_best_pat="$kibi_pat"
+                kibi_best_dir="\${kibi_cand%/node}"
+              fi
+            done
+            kibi_node_dir="$kibi_best_dir"
+          }
+          kibi_nvm_dir="\${NVM_DIR:-\${HOME:+$HOME/.nvm}}"
+          if [ -n "$kibi_nvm_dir" ] && [ -d "$kibi_nvm_dir" ]; then
+            if [ -f "$kibi_nvm_dir/current/bin/node" ] && [ -x "$kibi_nvm_dir/current/bin/node" ]; then
+              kibi_node_dir="$kibi_nvm_dir/current/bin"
+            fi
+            if [ -z "$kibi_node_dir" ] && [ -f "$kibi_nvm_dir/alias/default" ] && [ -r "$kibi_nvm_dir/alias/default" ]; then
+              kibi_alias=""
+              read -r kibi_alias < "$kibi_nvm_dir/alias/default" || true
+              kibi_hops=0
+              while [ -n "$kibi_alias" ] && [ "$kibi_hops" -lt 5 ]; do
+                case "$kibi_alias" in *..*|/*) break ;; esac
+                if [ -f "$kibi_nvm_dir/alias/$kibi_alias" ] && [ -r "$kibi_nvm_dir/alias/$kibi_alias" ]; then
+                  kibi_next=""
+                  read -r kibi_next < "$kibi_nvm_dir/alias/$kibi_alias" || true
+                  kibi_alias="$kibi_next"
+                  kibi_hops=$((kibi_hops + 1))
+                else
+                  break
+                fi
+              done
+              case "\${kibi_alias#v}" in
+                ""|*[!0-9.]*) ;;
+                *)
+                  kibi_prefix="v\${kibi_alias#v}"
+                  if [ -f "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ] && [ -x "$kibi_nvm_dir/versions/node/$kibi_prefix/bin/node" ]; then
+                    kibi_node_dir="$kibi_nvm_dir/versions/node/$kibi_prefix/bin"
+                  else
+                    _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/"$kibi_prefix".*/bin/node
+                  fi
+                  ;;
+              esac
+            fi
+            if [ -z "$kibi_node_dir" ]; then
+              _kibi_pick_node "bin/node" "$kibi_nvm_dir"/versions/node/*/bin/node
+            fi
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            kibi_volta_dir="\${VOLTA_HOME:-\${HOME:+$HOME/.volta}}"
+            if [ -n "$kibi_volta_dir" ] && [ -f "$kibi_volta_dir/bin/node" ] && [ -x "$kibi_volta_dir/bin/node" ]; then
+              kibi_node_dir="$kibi_volta_dir/bin"
+            fi
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            for kibi_fnm_dir in "\${FNM_DIR:-}" "\${XDG_DATA_HOME:+$XDG_DATA_HOME/fnm}" "\${HOME:+$HOME/.local/share/fnm}" "\${HOME:+$HOME/.fnm}"; do
+              [ -n "$kibi_fnm_dir" ] || continue
+              if [ -f "$kibi_fnm_dir/aliases/default/bin/node" ] && [ -x "$kibi_fnm_dir/aliases/default/bin/node" ]; then
+                kibi_node_dir="$kibi_fnm_dir/aliases/default/bin"
+                break
+              fi
+              if [ -d "$kibi_fnm_dir/node-versions" ]; then
+                _kibi_pick_node "installation/bin/node" "$kibi_fnm_dir"/node-versions/*/installation/bin/node
+                if [ -n "$kibi_node_dir" ]; then
+                  break
+                fi
+              fi
+            done
+          fi
+          if [ -z "$kibi_node_dir" ]; then
+            kibi_asdf_dir="\${ASDF_DATA_DIR:-\${HOME:+$HOME/.asdf}}"
+            kibi_mise_dir="\${MISE_DATA_DIR:-\${XDG_DATA_HOME:+$XDG_DATA_HOME/mise}}"
+            if [ -z "$kibi_mise_dir" ] && [ -n "\${HOME:-}" ]; then
+              kibi_mise_dir="$HOME/.local/share/mise"
+            fi
+            for kibi_cand_dir in "\${kibi_asdf_dir:+$kibi_asdf_dir/shims}" "\${kibi_mise_dir:+$kibi_mise_dir/shims}" "/opt/homebrew/bin" "/usr/local/bin"; do
+              if [ -n "$kibi_cand_dir" ] && [ -f "$kibi_cand_dir/node" ] && [ -x "$kibi_cand_dir/node" ]; then
+                kibi_node_dir="$kibi_cand_dir"
+                break
+              fi
+            done
+          fi
+          unset -f _kibi_pick_node 2>/dev/null || true
+          if [ -n "$kibi_node_dir" ]; then
+            PATH="\${kibi_node_dir}\${PATH:+:$PATH}"
+            export PATH
+          fi
+        fi
+        if ! command -v node >/dev/null 2>&1; then
+          echo "kibi: cannot locate 'node' on PATH or in standard version-manager locations (nvm, volta, fnm, asdf, mise, /opt/homebrew/bin, /usr/local/bin)." >&2
+          echo "Ensure Node.js is on PATH for Git hooks, and run 'kibi sync' from your shell so the branch store is not left stale." >&2
+          exit 1
+        fi
         KIBI_BIN="$(command -v kibi 2>/dev/null || true)"
         if [ -z "$KIBI_BIN" ]; then
           kibi_dir="$PWD"

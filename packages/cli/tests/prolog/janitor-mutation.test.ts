@@ -328,10 +328,14 @@ describe("sweepRuntimeSockets", () => {
     return directory;
   }
 
-  test("does nothing unless asked for all sockets or with no directory", () => {
+  test("ignores unrelated sockets without --all and returns empty when runtime dir is missing or has no sockets", () => {
     const directory = runtime({ "a.sock": String(DEAD_PID) });
     expect(
       sweepRuntimeSockets({ workspaceRoot: "/x", runtimeDirectory: directory }),
+    ).toStrictEqual([]);
+    const emptyDir = runtime({ "notes.txt": "123" });
+    expect(
+      sweepRuntimeSockets({ workspaceRoot: "/x", runtimeDirectory: emptyDir }),
     ).toStrictEqual([]);
     expect(
       sweepRuntimeSockets({

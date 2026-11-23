@@ -286,3 +286,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b637f8da2039
+  - type: verified_by
+    from: SCEN-vibe-mcp-launcher-contract
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:15:59.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f023f9aa8db
+  - type: specified_by
+    from: REQ-kibi-missing-hooks-notice
+    to: SCEN-vibe-missing-hooks-notice
+    created_at: 2026-11-22T18:46:07.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd9c500d0fc8
+  - type: verified_by
+    from: REQ-kibi-missing-hooks-notice
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:46:07.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-107b6bc859b8

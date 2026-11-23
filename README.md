@@ -38,7 +38,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+), macOS (Apple silicon or Intel) and native Windows (x64) there is nothing else to install. On other platforms, such as Alpine/musl or Windows arm64 (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
 
-**Recommended: let your agent set it up.** Paste this into Claude Code, Cursor, Codex, OpenCode, or any coding agent that can run commands in your repository:
+**Recommended: let your agent set it up.** Paste this into Claude Code, Cursor, Codex, OpenCode, Mistral Vibe, or any coding agent that can run commands in your repository:
 
 ```prompt
 Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
@@ -197,9 +197,34 @@ Add Kibi to `.vscode/mcp.json`:
 </details>
 
 <details>
+<summary>Mistral Vibe</summary>
+
+Install the optional `kibi-vibe` plugin (Agent Plugins 1.0 format) from a local checkout into `~/.vibe/plugins/kibi`, then restart Vibe or run `/reload`. It brings the MCP server, the bundled skills, and fail-open hooks that show KB status at session start, governing entities for each prompt, and the entities linked to a file after it is read or edited:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+On Windows the launcher detects automatically that Kibi must run inside WSL and wraps the call in `wsl.exe --exec` (never a shell string); on Linux/macOS it spawns the project-local `kibi-mcp` directly. See the [Vibe plugin guide](https://looted.github.io/kibi/guide/install.html#optional-vibe-plugin).
+
+Without the plugin, register the server in `~/.vibe/config.toml`:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-packages/vibe>/bin/launch-kibi-mcp.mjs"]
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
+
+</details>
+
+<details>
 <summary>ZCode and other MCP clients</summary>
 
-Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from the Kibi marketplace or a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
 
 </details>
 
@@ -362,7 +387,8 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
 | `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |
 | `kibi-opencode` | OpenCode guidance (including requirement context for edits) and background maintenance |
-| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (local checkout) |
+| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (marketplace or local checkout) |
+| `kibi-vibe` | Mistral Vibe skills, MCP with automatic WSL/Windows runtime detection, and context hooks (local checkout) |
 | `kibi-vscode` | VS Code knowledge explorer and traceability view |
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |

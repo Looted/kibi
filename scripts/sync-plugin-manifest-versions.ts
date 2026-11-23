@@ -513,22 +513,20 @@ async function discoverPluginManifestPaths(
 ): Promise<string[]> {
   const entries = await readdir(packageDir, { withFileTypes: true });
 
-  const manifests = entries
+  const manifestPaths = entries
     .filter(
       (entry) =>
         entry.isDirectory() &&
         entry.name.startsWith(".") &&
         entry.name.endsWith("-plugin"),
     )
-    .map((entry) => join(packageDir, entry.name, "plugin.json"))
-    .filter((manifestPath) => existsSync(manifestPath));
-
-  const rootPluginManifest = join(packageDir, "plugin.json");
-  if (existsSync(rootPluginManifest)) {
-    manifests.push(rootPluginManifest);
-  }
-
-  return manifests.sort();
+    .map((entry) => join(packageDir, entry.name, "plugin.json"));
+  // A native Agent Plugins 1.0 package (e.g. kibi-vibe, kibi-antigravity) keeps
+  // plugin.json at the package root instead of a `.<name>-plugin/` directory.
+  manifestPaths.push(join(packageDir, "plugin.json"));
+  return manifestPaths
+    .filter((manifestPath) => existsSync(manifestPath))
+    .sort();
 }
 
 async function preparePackageSync(

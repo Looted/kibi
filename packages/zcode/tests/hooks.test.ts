@@ -61,11 +61,31 @@ describe("kibi-zcode hooks.json", () => {
         for (const hook of entry.hooks ?? []) {
           expect(hook.type).toBe("command");
           expect(hook.command).toBe(
-            'node "${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js"',
+            'node "${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs"',
           );
           expect(typeof hook.timeoutMs).toBe("number");
           expect(hook.timeoutMs).toBeGreaterThan(0);
           void event;
+        }
+      }
+    }
+  });
+
+  test("hook commands point at files a source checkout already contains", () => {
+    // A ZCode marketplace install copies the repository's tracked files and
+    // never builds, so a hook target that only exists after `bun run
+    // build:zcode` leaves every lifecycle hook silently dead on arrival.
+    for (const [event, entries] of Object.entries(config.hooks ?? {})) {
+      for (const entry of entries) {
+        for (const hook of entry.hooks ?? []) {
+          const match =
+            /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(hook.command ?? "");
+          expect(match, `unexpected ${event} hook command: ${hook.command}`).toBeTruthy();
+          const relative = match?.[1] ?? "";
+          expect(
+            fs.existsSync(path.join(packageRoot, relative)),
+            `${event} hook target ${relative} must exist without a build`,
+          ).toBe(true);
         }
       }
     }

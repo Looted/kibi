@@ -370,3 +370,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3de0d3d961e
+  - type: implements
+    from: SYM-kibi-common-join-parts
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:31:51.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3586f91fe927
+  - type: covered_by
+    from: SYM-kibi-common-join-parts
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:33:21.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae6458cd61bf
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-rule-note-SILENT
+    to: FACT-NEG-vibe-hooks-rule-note-SILENT
+    created_at: 2026-11-22T18:36:04.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-752a1971df55
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-rule-note-SILENT
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:36:04.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c9d9649a7d

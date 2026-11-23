@@ -22,6 +22,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Command } from "commander";
 import { errorWasReported } from "./cli-command.js";
+import { registerJsonAliasGuard } from "./cli-json-alias.js";
 import { registerFoundationCommands } from "./cli-register-foundation.js";
 import { registerJsonOnlyCommands } from "./cli-register-json.js";
 import { registerMaintenanceCommands } from "./cli-register-maintenance.js";
@@ -85,6 +86,7 @@ export function buildProgram(): Command {
   registerSkillsCommands(program);
   registerProofCommand(program);
   registerJsonOnlyCommands(program);
+  registerJsonAliasGuard(program);
   return program;
 }
 

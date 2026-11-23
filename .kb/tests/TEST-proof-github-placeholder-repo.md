@@ -26,17 +26,17 @@ id: TEST-proof-github-placeholder-repo
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-8c39032c346c4370d0fd4d0f
+    receipt_id: PR-7eb83be71beab2271b1c7b96
     test_id: TEST-proof-github-placeholder-repo
     scope: unit
     outcome: passed
-    code_snapshot: 7f5f3cbf07bcd668a6ba1d822ce431959e51a6f2bdc18ca3aef8600b71016261
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:24:28.886Z'
-    finished_at: '2026-10-29T10:24:29.079Z'
-    artifact_digest: f43f7c393c7cf8af7c82549aabb3d362c7291bbdff093820470c61c2dd0b6fb5
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 57b933026ba5226e730d85a551e55bb71f6f74b80844da31410ab8bffbfee1f6
-    binding_hash: 03d763467661f5e116808924cc1394bcbeb94a35fbcb47318d44f406d4d16bef
+    binding_hash: 4d5c15789d8b3086ce7681647f2f15bd18eb59b430b7c7c5323897e3c62bc782
     fingerprint: 01860fe7cf79fc9420e1c22a5daf63b415c11320dab3da607537b923c34ea4c4
     fingerprint_components:
       contract: 57b933026ba5226e730d85a551e55bb71f6f74b80844da31410ab8bffbfee1f6

@@ -328,3 +328,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b31e96ebdbe
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:15:58.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cc00da5ff23
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:15:58.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3fddbc8aef1
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-workspace-resolution
+    created_at: 2026-11-19T20:15:58.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e5a0d711763
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:15:58.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0832a00de276
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-skills-mirror
+    created_at: 2026-11-19T20:15:58.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e40bb7614166
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:15:58.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce9957408580
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:15:58.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c13cb2271aa
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-workspace-resolution
+    created_at: 2026-11-19T20:15:58.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33750632312e
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:15:58.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab6bd6235b61
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-skills-mirror
+    created_at: 2026-11-19T20:15:58.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de796899f99
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-launcher-win32-workspace-routing
+    created_at: 2026-11-21T18:29:21.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbaa9b51ef67
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-drive-letter-native
+    created_at: 2026-11-21T18:29:21.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57014dccb66
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-unc-named-distro
+    created_at: 2026-11-21T18:29:21.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ac1a9b843a
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-wsl
+    created_at: 2026-11-21T18:29:21.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-538e260000e3
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-direct
+    created_at: 2026-11-21T18:29:21.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bc0cee9372b
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    created_at: 2026-11-21T18:29:21.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a5fd1a7d56
+  - type: implements
+    from: SYM-guard-is-edit-tool
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:31:48.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e0cfdb8e0f5
+  - type: covered_by
+    from: SYM-guard-is-edit-tool
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:31:48.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61140326c114

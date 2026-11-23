@@ -197,6 +197,28 @@ describe("Cursor worktree MCP resolver SWI-Prolog availability", () => {
     expectLaunch(result, fixture.worktreeRoot, fixture.worktreeRoot);
   });
 
+  test("accepts the Windows x64 bundle's lib/swipl/bin/swipl.exe", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.worktreeRoot);
+    const bin = path.join(
+      fixture.worktreeRoot,
+      "node_modules",
+      "kibi-swipl-win32-x64",
+      "lib",
+      "swipl",
+      "bin",
+    );
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, "swipl.exe"), "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(path.join(bin, "swipl.exe"), 0o755);
+
+    const result = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+    });
+
+    expectLaunch(result, fixture.worktreeRoot, fixture.worktreeRoot);
+  });
+
   test("accepts the primary checkout's bundled swipl when the worktree has none", () => {
     const fixture = createFixture();
     createRuntime(fixture.primaryRoot);
