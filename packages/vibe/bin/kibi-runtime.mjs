@@ -25,7 +25,7 @@ import {
 } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -211,6 +211,11 @@ export function isKibiWorkspace(root) {
   return existsSync(join(resolve(root), ".kb", "manifest.json"));
 }
 
+function isWithin(root, target) {
+  const rel = relative(root, target);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
 /**
  * Resolve the Kibi workspace for a launch. Hosts do not always spawn MCP
  * servers or hooks with the session folder as cwd (Vibe Desktop spawns them
@@ -219,9 +224,11 @@ export function isKibiWorkspace(root) {
  *   2. the cwd or its nearest ancestor that owns .kb/manifest.json — the walk
  *      stops at a .git boundary so unrelated enclosing repos never leak in;
  *   3. a `kibi-workspace.txt` pointer file next to this launcher (one line:
- *      an absolute path, or a path relative to the launcher directory). The
- *      pointer is global: it points every non-Kibi cwd at one workspace, which
- *      is what makes hosts that spawn from a foreign cwd work;
+ *      an absolute path, or a path relative to the launcher directory). It
+ *      points a cwd outside any Git repository, or inside the repository that
+ *      holds the launcher, at one workspace, which is what makes hosts that
+ *      spawn from a foreign cwd work; a cwd inside another repository without
+ *      a KB is never redirected;
  *   4. the cwd unchanged.
  * Returns { root, source }.
  */
@@ -235,12 +242,23 @@ export function resolveWorkspace(
     if (value) return { root: resolve(value), source: `env:${key}` };
   }
   let dir = resolve(cwd);
+  let repoRoot = null;
   for (;;) {
     if (isKibiWorkspace(dir)) return { root: dir, source: "walk" };
-    if (existsSync(join(dir, ".git"))) break; // repo boundary: never walk past it
+    if (existsSync(join(dir, ".git"))) {
+      repoRoot = dir; // repo boundary: never walk past it
+      break;
+    }
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
+  }
+  // A cwd inside some other Git repository that has no KB is that project,
+  // not the pointer's: redirecting it would feed one project's KB into
+  // another's session. The pointer still applies when the cwd's repository
+  // holds the launcher itself (a host spawning from the plugin directory).
+  if (repoRoot !== null && !isWithin(repoRoot, dirname(resolve(pointerFile)))) {
+    return { root: resolve(cwd), source: "cwd" };
   }
   try {
     const pointer = readFileSync(pointerFile, "utf8").trim();
