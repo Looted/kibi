@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01922569d646
+  - type: implements
+    from: SYM-requirement-lifting-lift-assumed-fact
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-23T10:35:08.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1382cf5407eb
+  - type: covered_by
+    from: SYM-requirement-lifting-lift-assumed-fact
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-23T10:35:08.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7088d086fc42

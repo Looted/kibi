@@ -448,6 +448,18 @@ test(each_lane_alone_makes_the_store_stale, [setup(workspace(Root, Kb)), cleanup
                state(false, fresh)
            )).
 
+test(relationship_shards_make_the_store_stale, [setup(workspace(Root, Kb)), cleanup(drop_workspace(Root))]) :-
+    snapshot_file(Kb, 'kb.rdf', 0),
+    file_at(Root, '.kb/relationships/same.yaml', "links: []\n", 0),
+    file_at(Root, '.kb/relationships/README.md', "# notes\n", 10),
+    file_at(Root, '.kb/relationships/notes.txt', "ignored\n", 10),
+    state(false, fresh),
+    file_at(Root, '.kb/relationships/shard.yaml', "links: []\n", 10),
+    file_at(Root, '.kb/relationships/nested/other.yml', "links: []\n", 10),
+    state(true, stale),
+    expect_reasons([ reason(relationship_source_newer, '.kb/relationships/nested/other.yml', []),
+                     reason(relationship_source_newer, '.kb/relationships/shard.yaml', []) ]).
+
 test(lane_files_at_the_snapshot_or_not_entities_are_fresh, [setup(workspace(Root, Kb)), cleanup(drop_workspace(Root))]) :-
     snapshot_file(Kb, 'kb.rdf', 0),
     doc_at(Root, '.kb/requirements/same.md', 0),
@@ -615,5 +627,41 @@ test(legacy_entities_without_an_id_are_skipped,
     snapshot_file(Kb, 'kb.rdf', 0),
     expect_reasons([ reason(indexed_source_missing, 'src/blank.ts', []),
                      reason(indexed_source_missing, 'src/legacy.ts', ['REQ-L']) ]).
+
+test(query_freshness_scopes_production_files_to_requested_paths, [setup(workspace(Root, Kb)), cleanup(drop_workspace(Root))]) :-
+    snapshot_file(Kb, 'kb.rdf', 0),
+    file_at(Root, 'src/a.ts', "export const a = 1;\n", 10),
+    file_at(Root, 'src/b.ts', "export const b = 2;\n", 0),
+    source_entity('REQ-A', "src/a.ts"),
+    source_entity('REQ-B', "src/b.ts"),
+    kb_query_freshness_json([], UnscopedJson),
+    atom_json_dict(UnscopedJson, UnscopedDict, []),
+    UnscopedDict.syncState == "fresh",
+    UnscopedDict.staleReasons == [],
+    kb_query_freshness_json(['src/a.ts'], ScopedJson),
+    atom_json_dict(ScopedJson, ScopedDict, []),
+    ScopedDict.syncState == "stale",
+    length(ScopedDict.staleReasons, 1),
+    [Reason] = ScopedDict.staleReasons,
+    Reason.code == "indexed_source_newer",
+    Reason.path == "src/a.ts",
+    doc_at(Root, '.kb/requirements/REQ-N.md', 10),
+    kb_query_freshness_json([], KbDocJson),
+    atom_json_dict(KbDocJson, KbDocDict, []),
+    KbDocDict.syncState == "stale",
+    delete_file_at(Root, '.kb/requirements/REQ-N.md'),
+    file_at(Root, '.kb/relationships/shard.yaml', "links: []\n", 10),
+    kb_query_freshness_json([], RelJson),
+    atom_json_dict(RelJson, RelDict, []),
+    RelDict.syncState == "stale",
+    delete_file_at(Root, '.kb/relationships/shard.yaml'),
+    file_at(Root, '.kb/symbols.yaml', "symbols: []\n", 10),
+    kb_query_freshness_json([], SymJson),
+    atom_json_dict(SymJson, SymDict, []),
+    SymDict.syncState == "stale".
+
+delete_file_at(Root, Relative) :-
+    directory_file_path(Root, Relative, Full),
+    delete_file(Full).
 
 :- end_tests(status_values).

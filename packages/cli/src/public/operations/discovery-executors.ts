@@ -14,6 +14,7 @@ import {
   type MarkdownBodyCache,
   type SourceLocation,
   executeIntentSearch,
+  isBroadRationaleQuery,
   questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
@@ -40,7 +41,13 @@ import {
   storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
-import { confirmSourceNewerReasons } from "../../utils/content-freshness.js";
+import {
+  confirmSourceNewerReasons,
+  missingCachedKbSourceReasons,
+  readSyncCacheRecord,
+  staleStoreWarningNote,
+} from "../../utils/content-freshness.js";
+import { KB_ROOT } from "../../utils/kb-paths.js";
 import {
   loadEntities,
   loadSearchCandidates,
@@ -131,6 +138,8 @@ export type QueryPayload = {
   readonly factQuery?: FactQueryPayload;
   /** Present when an empty answer came from a store never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+  /** Present when the queried compiled branch store is confirmed stale. */
+  readonly meta?: Readonly<Record<string, unknown>>;
   /** Present when `includeBody` was requested for an `id`. */
   readonly body?: QueryBody;
 };
@@ -221,6 +230,8 @@ export type SearchPayload = {
   readonly branch?: string | null;
   /** Present when the searched store was never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+  /** Present when the searched compiled branch store is confirmed stale. */
+  readonly meta?: Readonly<Record<string, unknown>>;
 };
 
 export type SearchBranchStoreNotice = {
@@ -255,6 +266,260 @@ function uncompiledSearchNotice(
     detail: String(reason.detail),
     remediation: reason.remediation as Readonly<Record<string, unknown>>,
   };
+}
+
+const COMPACT_STALE_REASON_LIMIT = 10;
+const COMPACT_STALE_ENTITY_LIMIT = 10;
+
+type QueryFreshnessResult =
+  | { readonly state: "fresh" }
+  | {
+      readonly state: "stale";
+      readonly meta: Readonly<Record<string, unknown>>;
+      readonly note: string;
+      readonly staleReasonCount: number;
+    }
+  | { readonly state: "unknown" };
+
+function compactStaleReason(
+  reason: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const code = typeof reason.code === "string" ? reason.code : "stale_source";
+  const reasonPath = typeof reason.path === "string" ? reason.path : undefined;
+  const entityIds = Array.isArray(reason.entityIds)
+    ? reason.entityIds
+        .filter((id): id is string => typeof id === "string")
+        .slice(0, COMPACT_STALE_ENTITY_LIMIT)
+    : [];
+  return {
+    code,
+    ...(reasonPath !== undefined ? { path: reasonPath } : {}),
+    entityIds,
+  };
+}
+
+function buildCompactStaleMeta(
+  reasons: readonly Readonly<Record<string, unknown>>[],
+): Readonly<Record<string, unknown>> {
+  const compact = reasons
+    .slice(0, COMPACT_STALE_REASON_LIMIT)
+    .map(compactStaleReason);
+  return {
+    syncState: "stale",
+    dirty: true,
+    staleReasonCount: reasons.length,
+    staleReasons: compact,
+    ...(reasons.length > COMPACT_STALE_REASON_LIMIT
+      ? { staleReasonsTruncated: true }
+      : {}),
+  };
+}
+
+function normalizeFilterPath(
+  workspaceRoot: string,
+  rawFilter: string,
+): string | null {
+  const withoutFragment = (rawFilter.split("#", 1)[0] ?? "").trim();
+  if (withoutFragment === "") return null;
+  const rel = path
+    .relative(workspaceRoot, path.resolve(workspaceRoot, withoutFragment))
+    .replaceAll(path.sep, "/")
+    .replace(/^\.\//, "");
+  if (rel === ".." || rel.startsWith("../")) return null;
+  return rel;
+}
+
+function sourcePathsOverlap(
+  workspaceRoot: string,
+  rawFilter: string,
+  reasonPosix: string,
+): boolean {
+  const rel = normalizeFilterPath(workspaceRoot, rawFilter);
+  if (rel === null) return false;
+  if (rel === "" || rel === ".") return true;
+  return (
+    rel === reasonPosix ||
+    reasonPosix.startsWith(`${rel}/`) ||
+    rel.startsWith(`${reasonPosix}/`)
+  );
+}
+
+function isRelevantQueryStaleReason(
+  reason: Readonly<Record<string, unknown>>,
+  workspaceRoot: string,
+  sourceFilterPaths: readonly string[],
+): boolean {
+  if (reason.code !== "indexed_source_newer") return true;
+  if (typeof reason.path !== "string") return true;
+  const posix = reason.path.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (posix === KB_ROOT || posix.startsWith(`${KB_ROOT}/`)) return true;
+  if (sourceFilterPaths.length === 0) return false;
+  return sourceFilterPaths.some((candidate) =>
+    sourcePathsOverlap(workspaceRoot, candidate, posix),
+  );
+}
+
+function sortReasons(
+  reasons: readonly Readonly<Record<string, unknown>>[],
+): Record<string, unknown>[] {
+  return [...reasons].sort((left, right) =>
+    String(left.path ?? "").localeCompare(String(right.path ?? "")),
+  );
+}
+
+type HealthyStoreEvidence = Readonly<{
+  confirmed: ReturnType<typeof confirmSourceNewerReasons>;
+  compilerReason: ReturnType<typeof compilerFingerprintReason>;
+  extractionReasons: ReturnType<typeof sourceExtractionFailureReasons>;
+  missingShardReasons: ReturnType<typeof missingCachedKbSourceReasons>;
+}>;
+
+function collectHealthyStoreEvidence(
+  workspaceRoot: string,
+  storePath: string,
+  prologReasons: readonly Readonly<Record<string, unknown>>[],
+  includeHealthyOnlyReasons: boolean,
+): HealthyStoreEvidence {
+  const syncCache = readSyncCacheRecord(storePath);
+  const cachedArgs = syncCache !== null ? ([syncCache] as const) : ([] as const);
+  const depCacheArgs =
+    syncCache !== null ? ([undefined, syncCache] as const) : ([] as const);
+  return {
+    confirmed: confirmSourceNewerReasons(
+      workspaceRoot,
+      storePath,
+      prologReasons,
+      ...cachedArgs,
+    ),
+    compilerReason: compilerFingerprintReason(storePath, ...depCacheArgs),
+    extractionReasons: includeHealthyOnlyReasons
+      ? sourceExtractionFailureReasons(workspaceRoot, storePath, ...depCacheArgs)
+      : [],
+    missingShardReasons: includeHealthyOnlyReasons
+      ? missingCachedKbSourceReasons(
+          workspaceRoot,
+          storePath,
+          undefined,
+          ...cachedArgs,
+        )
+      : [],
+  };
+}
+
+async function inspectQueryFreshness(
+  context: OperationContext,
+  prolog: PrologPort,
+  options: { readonly sourceFilterPaths: readonly string[] },
+): Promise<QueryFreshnessResult> {
+  const attachment = context.branchAttachment;
+  if (attachment === undefined) return { state: "unknown" };
+  const store = inspectBranchStore(context.workspaceRoot, attachment.kbBranch);
+  if (store.state === "missing") return { state: "unknown" };
+  if (store.state !== "healthy") {
+    const storeReason = branchStoreReason(store);
+    if (storeReason === null) return { state: "unknown" };
+    return {
+      state: "stale",
+      meta: buildCompactStaleMeta([storeReason]),
+      note: staleStoreWarningNote(1, [store.path]),
+      staleReasonCount: 1,
+    };
+  }
+
+  let prologReasons: Record<string, unknown>[] = [];
+  let prologSyncState: string | undefined;
+  let prologUnavailable = false;
+  const normalizedScopePaths = [
+    ...new Set(
+      options.sourceFilterPaths
+        .map((raw) => normalizeFilterPath(context.workspaceRoot, raw))
+        .filter((rel): rel is string => rel !== null),
+    ),
+  ];
+  const scopeAtoms = normalizedScopePaths.map(toPrologAtom).join(",");
+  let statusPayload: Record<string, unknown> | undefined;
+  try {
+    statusPayload = await runOperationJsonQuery<Record<string, unknown>>(
+      prolog,
+      "status.pl",
+      `status:kb_query_freshness_json([${scopeAtoms}], JsonString)`,
+      "Query freshness",
+      context.signal,
+    );
+  } catch {
+    if (context.signal?.aborted) {
+      prologUnavailable = true;
+    } else {
+      try {
+        statusPayload = await runOperationJsonQuery<Record<string, unknown>>(
+          prolog,
+          "status.pl",
+          "status:kb_status_json(JsonString)",
+          "Status execution",
+          context.signal,
+        );
+      } catch {
+        prologUnavailable = true;
+      }
+    }
+  }
+  if (
+    statusPayload !== undefined &&
+    statusPayload !== null &&
+    typeof statusPayload === "object" &&
+    typeof statusPayload.syncState === "string"
+  ) {
+    prologSyncState = statusPayload.syncState;
+    prologReasons = Array.isArray(statusPayload.staleReasons)
+      ? (statusPayload.staleReasons as Record<string, unknown>[])
+      : [];
+  } else if (!prologUnavailable) {
+    prologUnavailable = true;
+  }
+
+  // Filter to query-relevant paths before content hashing so unrequested
+  // production code edits do not trigger disk reads even on the fallback path.
+  const relevantPrologReasons = prologReasons.filter((reason) =>
+    isRelevantQueryStaleReason(
+      reason,
+      context.workspaceRoot,
+      options.sourceFilterPaths,
+    ),
+  );
+  const evidence = collectHealthyStoreEvidence(
+    context.workspaceRoot,
+    store.path,
+    relevantPrologReasons,
+    true,
+  );
+  const allReasons = sortReasons([
+    ...evidence.confirmed.kept,
+    ...(evidence.compilerReason ? [evidence.compilerReason] : []),
+    ...evidence.extractionReasons,
+    ...evidence.missingShardReasons,
+  ]);
+  const relevantReasons = allReasons.filter((reason) =>
+    isRelevantQueryStaleReason(
+      reason,
+      context.workspaceRoot,
+      options.sourceFilterPaths,
+    ),
+  );
+  if (relevantReasons.length > 0) {
+    const paths = relevantReasons.flatMap((reason) =>
+      typeof reason.path === "string" ? [reason.path] : [],
+    );
+    return {
+      state: "stale",
+      meta: buildCompactStaleMeta(relevantReasons),
+      note: staleStoreWarningNote(relevantReasons.length, paths),
+      staleReasonCount: relevantReasons.length,
+    };
+  }
+  if (prologUnavailable || prologSyncState === "unknown") {
+    return { state: "unknown" };
+  }
+  return { state: "fresh" };
 }
 
 export type StatusInput = Readonly<Record<string, never>>;
@@ -724,6 +989,18 @@ async function executeFactQuery(
         : response.mode === "schemas"
           ? "predicate schemas"
           : `${String(factKind)} facts`;
+  const storeNotice = count === 0 ? uncompiledSearchNotice(context) : null;
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, { sourceFilterPaths: [] })
+      : null;
+  const staleSuffix = storeNotice
+    ? [
+        `Note: ${storeNotice.detail} Run kibi sync before relying on query results.`,
+      ]
+    : freshness?.state === "stale"
+      ? [freshness.note]
+      : [];
   const lines = [
     count === 0
       ? `No ${subject} matched.`
@@ -738,10 +1015,17 @@ async function executeFactQuery(
       : []),
     ...warnings.map((warning) => `Warning: ${warning}`),
     ...factQuery.next.map((entry) => `Next: ${entry.call} (${entry.why})`),
+    ...staleSuffix,
   ];
   return {
     content: [{ type: "text", text: lines.join("\n") }],
-    structuredContent: { entities: rows, count, factQuery },
+    structuredContent: {
+      entities: rows,
+      count,
+      factQuery,
+      ...(storeNotice ? { branchStore: storeNotice } : {}),
+      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+    },
   };
 }
 
@@ -826,9 +1110,30 @@ async function executeSubjectDomainQuery(
     subjectKey,
     definition: fact.definition,
   }));
+  const storeNotice = rows.length === 0 ? uncompiledSearchNotice(context) : null;
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, { sourceFilterPaths: [] })
+      : null;
+  const allLines = [
+    ...lines,
+    ...(storeNotice
+      ? [
+          `Note: ${storeNotice.detail} Run kibi sync before relying on query results.`,
+        ]
+      : freshness?.state === "stale"
+        ? [freshness.note]
+        : []),
+  ];
   return {
-    content: [{ type: "text", text: lines.join("\n") }],
-    structuredContent: { entities: rows, count: rows.length, factQuery },
+    content: [{ type: "text", text: allLines.join("\n") }],
+    structuredContent: {
+      entities: rows,
+      count: rows.length,
+      factQuery,
+      ...(storeNotice ? { branchStore: storeNotice } : {}),
+      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+    },
   };
 }
 
@@ -883,7 +1188,13 @@ export async function executeQuery(
     // authored entities, so the answer names the store state.
     const storeNotice =
       indexedPage.count === 0 ? uncompiledSearchNotice(context) : null;
-    const text =
+    const freshness =
+      storeNotice === null
+        ? await inspectQueryFreshness(context, prolog, {
+            sourceFilterPaths: sourceFile !== undefined ? [sourceFile] : [],
+          })
+        : null;
+    const baseText =
       indexedPage.count === 0
         ? `No entities found${type ? ` of type '${type}'` : ""}.${storeNotice ? ` Note: ${storeNotice.detail} Run kibi sync before relying on query results.` : ""}`
         : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
@@ -895,6 +1206,10 @@ export async function executeQuery(
               return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
             })
             .join(", ")}`;
+    const text =
+      freshness?.state === "stale"
+        ? `${baseText} ${freshness.note}`
+        : baseText;
     const body =
       input.includeBody === true
         ? await readQueryBody(
@@ -912,6 +1227,7 @@ export async function executeQuery(
         entities: paginated,
         count: indexedPage.count,
         ...(storeNotice ? { branchStore: storeNotice } : {}),
+        ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
         ...(body ? { body } : {}),
       },
     };
@@ -1182,6 +1498,14 @@ export async function executeSearch(
         },
       );
       const paginated = paginateResults(intentResult.matches, limit, offset);
+      const freshness =
+        storeNotice === null
+          ? await inspectQueryFreshness(context, prolog, {
+              sourceFilterPaths: (sourceLocations ?? []).map((loc) => loc.path),
+            })
+          : undefined;
+      const answerSyncState: "fresh" | "stale" | "unknown" =
+        storeNotice !== null ? "stale" : (freshness?.state ?? "unknown");
       // The answer layer summarizes the whole ranking, so it belongs to the
       // first page only.
       const answerLayer =
@@ -1190,6 +1514,15 @@ export async function executeSearch(
               workspaceRoot: context.workspaceRoot,
               branch: context.branchAttachment?.kbBranch ?? null,
               detail: fields === "full" ? "full" : "summary",
+              syncState: answerSyncState,
+              ...(storeNotice !== null
+                ? { staleReasonCount: 1 }
+                : freshness?.state === "stale"
+                  ? {
+                      staleReasonCount: freshness.staleReasonCount,
+                      staleWarningNote: freshness.note,
+                    }
+                  : {}),
             })
           : undefined;
       // The structured payload carries every row; the text is a short
@@ -1215,6 +1548,20 @@ export async function executeSearch(
               prolog,
             })
           : undefined;
+      const weakAdrNote =
+        isBroadRationaleQuery({
+          query: trimmedQuery,
+          ...(type !== undefined ? { type } : {}),
+          ...(sourceLocations !== undefined ? { sourceLocations } : {}),
+        }) &&
+        searchHintsTrigger(intentResult.analysis) !== null &&
+        (answerLayer?.rationale.length ?? 0) === 0 &&
+        !paginated.some((match) => match.entity.type === "adr")
+          ? ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).'
+          : "";
+      const staleOrStoreNote =
+        storeNote ||
+        (freshness?.state === "stale" ? ` ${freshness.note}` : "");
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -1224,7 +1571,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${weakAdrNote}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
@@ -1238,6 +1585,7 @@ export async function executeSearch(
               : intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
           ...branchFields,
+          ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
         },
       };
     }
@@ -1258,6 +1606,14 @@ export async function executeSearch(
       context.workspaceRoot,
     );
     const paginated = paginateResults(matches, limit, offset);
+    const freshness =
+      storeNotice === null
+        ? await inspectQueryFreshness(context, prolog, {
+            sourceFilterPaths: [],
+          })
+        : undefined;
+    const staleOrStoreNote =
+      storeNote || (freshness?.state === "stale" ? ` ${freshness.note}` : "");
     const text = `${
       matches.length === 0
         ? `No search results for '${trimmedQuery}'.`
@@ -1267,7 +1623,7 @@ export async function executeSearch(
                 `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
             )
             .join(", ")}`
-    }${storeNote}`;
+    }${staleOrStoreNote}`;
     return {
       content: [{ type: "text", text }],
       structuredContent: {
@@ -1276,6 +1632,7 @@ export async function executeSearch(
         returned: paginated.length,
         truncated: offset + paginated.length < matches.length,
         ...branchFields,
+        ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
       },
     };
   } catch (error) {
@@ -1380,10 +1737,16 @@ export async function executeStatus(
     // every mtime without changing a byte, so confirm each "newer" source
     // against the content hashes the last compilation recorded.
     const prologReasons = payload.staleReasons ?? [];
-    const confirmed = confirmSourceNewerReasons(
+    const {
+      confirmed,
+      compilerReason,
+      extractionReasons,
+      missingShardReasons,
+    } = collectHealthyStoreEvidence(
       context.workspaceRoot,
       store.path,
       prologReasons,
+      store.state === "healthy",
     );
     const existingReasons = confirmed.kept;
     if (
@@ -1413,13 +1776,6 @@ export async function executeStatus(
       ...(takeoverNotice ? [takeoverNotice] : []),
       ...(repairNotice ? [repairNotice] : []),
     ];
-    const compilerReason = compilerFingerprintReason(store.path);
-    // A source the last sync could not extract is missing from the store
-    // even when every compiled file is current.
-    const extractionReasons =
-      store.state === "healthy"
-        ? sourceExtractionFailureReasons(context.workspaceRoot, store.path)
-        : [];
     // A status the engine could not give always carries its code and detail.
     const engineReason = engineStatus
       ? {
@@ -1439,16 +1795,15 @@ export async function executeStatus(
           },
         }
       : null;
-    const staleReasons = [
+    const staleReasons = sortReasons([
       ...existingReasons,
       ...(storeReason ? [storeReason] : []),
       ...(lockReason ? [lockReason] : []),
       ...(compilerReason ? [compilerReason] : []),
       ...extractionReasons,
+      ...missingShardReasons,
       ...(engineReason ? [engineReason] : []),
-    ].sort((left, right) =>
-      String(left.path ?? "").localeCompare(String(right.path ?? "")),
-    );
+    ]);
     const enrichedPayload: StatusPayload = {
       ...payload,
       // Source hashes can all match while the compilation itself is lossy, so
@@ -1457,6 +1812,10 @@ export async function executeStatus(
       // An authored source sync cannot extract leaves its entities out of
       // the store, so the KB is not current until the file is fixed.
       ...(extractionReasons.length > 0
+        ? { syncState: "stale", dirty: true }
+        : {}),
+      // A deleted relationship shard leaves stale edges in RDF until sync runs.
+      ...(missingShardReasons.length > 0
         ? { syncState: "stale", dirty: true }
         : {}),
       // A missing or empty store has no stale file to report, yet nothing in

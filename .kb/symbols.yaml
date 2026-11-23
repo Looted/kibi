@@ -47674,3 +47674,354 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T15:43:00.119Z
+  - id: SYM-sync-next-sync-cache
+    title: NextSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:21.075Z
+  - id: SYM-cache-sync-cache
+    title: SyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:28.937Z
+  - id: SYM-discovery-executors-query-payload
+    title: QueryPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:37.901Z
+  - id: SYM-discovery-executors-search-payload
+    title: SearchPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:46.342Z
+  - id: SYM-requirement-lifting-current-req-statuses
+    title: CURRENT_REQ_STATUSES
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:54.532Z
+  - id: SYM-requirement-lifting-superseded-adr-statuses
+    title: SUPERSEDED_ADR_STATUSES
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:02.747Z
+  - id: SYM-requirement-lifting-fact-links
+    title: FACT_LINKS
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:13.298Z
+  - id: SYM-requirement-lifting-lift-relationships
+    title: LIFT_RELATIONSHIPS
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:23.895Z
+  - id: SYM-requirement-lifting-lift-edge
+    title: LiftEdge
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:33.619Z
+  - id: SYM-search-answer-search-answer-scope
+    title: SearchAnswerScope
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:42.633Z
+  - id: SYM-content-freshness-mtime-source-reason-codes
+    title: MTIME_SOURCE_REASON_CODES
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:54.235Z
+  - id: SYM-content-freshness-branch-store-stale
+    title: BRANCH_STORE_STALE
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:29:06.755Z
+  - id: SYM-sync-compiled-sync-cache
+    title: compiledSyncCache
+    sourceFile: packages/cli/src/commands/sync.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:15.633Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-content-freshness-read-sync-cache-record
+    title: readSyncCacheRecord
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:18.883Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-content-freshness-string-hash-map
+    title: stringHashMap
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:19.823Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-cache-compiler-fingerprint-reason
+    title: compilerFingerprintReason
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:51.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-stale-store-warning-note
+    title: staleStoreWarningNote
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:52.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-missing-cached-kb-source-reasons
+    title: missingCachedKbSourceReasons
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:53.732Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-confirm-source-newer-reasons
+    title: confirmSourceNewerReasons
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:54.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-engine-engine-client-stop-or-reclaim
+    title: EngineClient.stopOrReclaim
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:27.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-engine-engine-client-get-pid
+    title: EngineClient.getPid
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:28.743Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-engine-engine-client-stop
+    title: EngineClient.stop
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:29.712Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-requirement-lifting-owning-requirements
+    title: owningRequirements
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:04.575Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-assumed-scenario-ids
+    title: assumedScenarioIds
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:05.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-lift-test-targets
+    title: liftTestTargets
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:06.646Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-lift-assumed-fact
+    title: liftAssumedFact
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:07.591Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-resolve-supersedes-target
+    title: resolveSupersedesTarget
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:08.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-query-typed-edges
+    title: queryTypedEdges
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:09.487Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-search-hints-search-hints-entities
+    title: searchHintsEntities
+    sourceFile: packages/cli/src/search-hints.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:10.487Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-intent-search-is-broad-rationale-query
+    title: isBroadRationaleQuery
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:11.447Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-content-freshness-freshness-memo
+    title: FreshnessMemo
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:51:07.074Z
+  - id: SYM-content-freshness-create-freshness-memo
+    title: createFreshnessMemo
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:56:21.724Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo

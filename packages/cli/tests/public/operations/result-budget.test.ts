@@ -551,4 +551,54 @@ describe("fitOperationResult", () => {
     expect(envelope.diagnostics.at(-1)?.code).toBe(RESULT_TRUNCATED);
     expect(envelope.nextActions.at(-1)?.reason).toBe("next");
   });
+
+  test("preserves stale and not-compiled notes when rebuilding cut kb_query text", () => {
+    const staleCut = fitOperationResult(
+      read,
+      {},
+      {
+        content: [{ type: "text", text: "original" }],
+        structuredContent: {
+          entities: Array.from({ length: 40 }, (_, index) =>
+            row(`REQ-${index}`, 900),
+          ),
+          count: 40,
+          meta: {
+            syncState: "stale",
+            dirty: true,
+            staleReasonCount: 2,
+            staleReasons: [
+              { code: "knowledge_source_newer", path: ".kb/requirements/REQ-0.md" },
+              { code: "relationship_source_newer", path: ".kb/relationships/links.yaml" },
+            ],
+          },
+        },
+      },
+    );
+    const staleText = staleCut.result.content[0]?.text ?? "";
+    expect(staleText).toContain("KB store is stale (2 uncompiled changes");
+    expect(staleText).toContain(".kb/requirements/REQ-0.md");
+    expect(staleText).toContain("Run `kibi sync` before relying on these results.");
+
+    const uncompiledCut = fitOperationResult(
+      read,
+      {},
+      {
+        content: [{ type: "text", text: "original" }],
+        structuredContent: {
+          entities: Array.from({ length: 40 }, (_, index) =>
+            row(`REQ-${index}`, 900),
+          ),
+          count: 40,
+          branchStore: {
+            state: "not_compiled",
+            detail: "Branch store has never been compiled.",
+          },
+        },
+      },
+    );
+    const uncompiledText = uncompiledCut.result.content[0]?.text ?? "";
+    expect(uncompiledText).toContain("Branch store has never been compiled.");
+    expect(uncompiledText).toContain("Run kibi sync before relying on query results.");
+  });
 });

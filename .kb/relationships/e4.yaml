@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b2ee6424379
+  - type: implements
+    from: SYM-content-freshness-stale-store-warning-note
+    to: REQ-kb-query-kb-search-confirm-source
+    created_at: 2026-11-23T10:33:53.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd9fa7044f91
+  - type: covered_by
+    from: SYM-content-freshness-stale-store-warning-note
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:53.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d24f19d1f3f
