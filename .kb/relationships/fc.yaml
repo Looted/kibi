@@ -391,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13f0c9347c8e
+  - type: verified_by
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T17:43:03.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-febbb49cc18d
+  - type: constrains
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: FACT-SUBJECT-kibi-host-hook-inputs
+    created_at: 2026-11-23T17:43:03.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57064b5d3a23
+  - type: requires_property
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: FACT-PROP-67A4D0A7F5D1799C
+    created_at: 2026-11-23T17:46:48.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d2b5f0c1d41
+  - type: specified_by
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: SCEN-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:47:35.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-258576c2c242
+  - type: specified_by
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: SCEN-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    created_at: 2026-11-23T17:47:35.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bec78f28614
+  - type: verified_by
+    from: REQ-agent-hosts-kb-call-workspace-stamp
+    to: TEST-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:55:51.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f13a83ecd9c

@@ -44,6 +44,7 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import {
   extractKbMcpToolCall,
+  isKibiMcpToolName,
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
 import {
@@ -542,22 +543,25 @@ export async function runHook(
       }
 
       case "PreToolUse": {
-        // Name the session's workspace on every Kibi MCP call so the launcher
-        // answers from it, even after the thread moves into a git worktree.
-        const stamped = stampKibiWorkspace(
-          input.toolName,
-          input.toolInput,
-          workspace.root,
-        );
-        if (stamped) {
-          return {
-            continue: true,
-            hookSpecificOutput: {
-              hookEventName: "PreToolUse",
-              permissionDecision: "allow",
-              updatedInput: stamped,
-            },
-          };
+        // Name the session's workspace on a Kibi MCP call that carries none,
+        // so the launcher answers from it, even after the thread moves into a
+        // git worktree. A call that names its own workspace passes through.
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(
+            input.toolName,
+            input.toolInput,
+            workspace.root,
+          );
+          return stamped === undefined
+            ? defaultResult()
+            : {
+                continue: true,
+                hookSpecificOutput: {
+                  hookEventName: "PreToolUse",
+                  permissionDecision: "allow",
+                  updatedInput: stamped,
+                },
+              };
         }
         // Paths come from explicit fields and from `apply_patch` headers, so a
         // patch to .kb/ is warned about like an explicit-path edit.

@@ -12,9 +12,10 @@ skills + hooks + MCP), declared in ZCode's native plugin format.
 
 - `.zcode-plugin/plugin.json` — ZCode plugin manifest (inline `mcpServers`)
 - `bin/mcp-launcher.cjs` — stdio MCP launcher (silent outside Kibi workspaces).
-  The `PreToolUse` hook adds `workspaceRoot` (the session's workspace) to every
-  Kibi MCP call, so a session in a git worktree is answered from that
-  worktree's branch; `KIBI_WORKSPACE` pins one workspace instead.
+  The `PreToolUse` hook adds `workspaceRoot` (the session's workspace) to a
+  Kibi MCP call that carries none, so a session in a git worktree is answered
+  from that worktree's branch; a `workspaceRoot` the agent passes is kept, and
+  `KIBI_WORKSPACE` pins one workspace instead.
 - `hooks/hooks.json` — ZCode hook declarations
 - `skills/` — generated mirror of the canonical Kibi skills
   (`packages/runtime/src/skills/`), frontmatter-rewritten for ZCode's skill

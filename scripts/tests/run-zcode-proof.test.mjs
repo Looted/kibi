@@ -111,6 +111,18 @@ test("ZCode producer accepts only its exact proof test selection and disables re
       classname: "kibi-zcode distribution artifacts",
       name: "a copied marketplace install contains every declared runtime file and runs under node",
     },
+    {
+      symbol_id: "SYM-zcode-case-kb-call-without-workspace",
+      file: "packages/zcode/tests/hook-runner.test.ts",
+      classname: "ZCode hook runner workspace stamp",
+      name: "PreToolUse names the session workspace on a Kibi MCP call that carries none",
+    },
+    {
+      symbol_id: "SYM-zcode-case-kb-call-names-workspace",
+      file: "packages/zcode/tests/hook-runner.test.ts",
+      classname: "ZCode hook runner workspace stamp",
+      name: "PreToolUse leaves a Kibi MCP call that names a workspace alone",
+    },
   ]);
 });
 
@@ -220,7 +232,7 @@ test("ZCode producer emits a strict native proof artifact for every required beh
     name: "kibi-zcode-proof-producer",
     version: "1.0.0",
   });
-  assert.equal(artifact.proof_results.length, 14);
+  assert.equal(artifact.proof_results.length, 16);
   for (const result of artifact.proof_results) {
     assert.equal(result.binding, "native_case");
     assert.equal(result.attempts.status, "complete");

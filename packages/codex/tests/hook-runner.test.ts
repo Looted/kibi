@@ -429,7 +429,7 @@ function loadHookStateFromPluginData(pluginData: string) {
 }
 
 describe("Codex hook runner workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(cwd, pluginData);
@@ -454,6 +454,27 @@ describe("Codex hook runner workspace stamp", () => {
         updatedInput: { query: "checkout", limit: 5, workspaceRoot: cwd },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    const worktree = createTempRoot("kibi-codex-worktree-");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, worktree, pluginData);
+    optInWorkspace(cwd);
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          cwd,
+          tool_name: "mcp__kibi__kb_search",
+          tool_input: { query: "checkout", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
   });
 
   test("other tools and unconfigured workspaces are left alone", async () => {

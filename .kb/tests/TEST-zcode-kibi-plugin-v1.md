@@ -46,27 +46,31 @@ proof_contract:
       target: default
     - symbol_id: SYM-zcode-case-copied-install-runtime-files
       target: default
+    - symbol_id: SYM-zcode-case-kb-call-without-workspace
+      target: default
+    - symbol_id: SYM-zcode-case-kb-call-names-workspace
+      target: default
   success_policy: all_required_first_attempt
   version: kibi.proof-contract.v1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-9a02b3a24e4bca3a042c2e98
+    receipt_id: PR-4d90cc06602f958f11e88376
     test_id: TEST-zcode-kibi-plugin-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 75ca354cb2640db989f3719d6a1a24a9adb15151e270adbc1c6477876e56a614
-    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-22T17:57:02.221Z'
-    finished_at: '2026-11-22T17:57:48.386Z'
-    artifact_digest: 0b10d0ca3dfa627aea0ca982100a62d3941dffa1837d12a2a999a08d6e6ba563
-    contract_hash: 4d9438624d00327df2e8fd2ca52b3694c85b5e5e22c248e7f4530b85bcac8c09
-    binding_hash: afea2dff4112a191ae84676751cdf8a095afdebbda16c3e8c02d47a83873366e
-    fingerprint: 6b80a3fb89fd41ce5344ac75f685cb4cf72805e5191a57f272e9090845c20b64
+    code_snapshot: e604bc19abddc400eaf3439496fcebfaa156c54c053d8fe9941e928b2c5544c3
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T18:21:52.563Z'
+    finished_at: '2026-11-23T18:23:35.674Z'
+    artifact_digest: 1ed44f315dae076ef12d35bc40d3080ad99937bdc253adc0b36c6f4c68cb5f63
+    contract_hash: 1fd5caba9b52d20ca0ea38ddac95f539e151d42f079957a95332e0af30fae592
+    binding_hash: 14fa60ea3d7f0e74a0d478c134e61e8f5044da0777cf01d95976e646220a0dee
+    fingerprint: 8c87a38e1d24a3250944d7eefef5c7d41082c2250bb8cd58a3f2fd3796941002
     fingerprint_components:
-      contract: 4d9438624d00327df2e8fd2ca52b3694c85b5e5e22c248e7f4530b85bcac8c09
+      contract: 1fd5caba9b52d20ca0ea38ddac95f539e151d42f079957a95332e0af30fae592
       integration: f76bb08ae079ddd3c7f0f61e3f0c6483de0971067b9dcca735c1a465a4383561
       command: 75249c45ddaab551990b3c97122926f5139c8b9b6de1c6326ddcf90acab518fc
-      bindings: 1828929cf671d8f85e26162fd6b7ef72ea929e2fdbfc2035beefde87fffb60d5
+      bindings: a9671800094b5f0c7741c3d4de61d01d273807fae0ad13e84b95c1ea6d6f990f
       producer: 0a46f16b4bb4a89955a224cedc6f8aa4d2e9a365e096a61d8c7f6b43df0f0dc2
     integration_id: zcode-native
     producer:
@@ -86,7 +90,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 4
+              duration_ms: 17
       - symbol_id: SYM-zcode-case-canonicalize-check-source-files
         target: default
         outcome: passed
@@ -96,7 +100,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 5
+              duration_ms: 12
       - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
         target: default
         outcome: passed
@@ -106,7 +110,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 1
+              duration_ms: 2
       - symbol_id: SYM-zcode-case-session-state-isolation
         target: default
         outcome: passed
@@ -116,7 +120,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 150
+              duration_ms: 346
       - symbol_id: SYM-zcode-case-canonicalize-workspace-path
         target: default
         outcome: passed
@@ -126,7 +130,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 2
+              duration_ms: 7
       - symbol_id: SYM-zcode-case-packed-consumer-install-launch
         target: default
         outcome: passed
@@ -136,7 +140,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 40888
+              duration_ms: 89782
       - symbol_id: SYM-zcode-case-optional-package-contract
         target: default
         outcome: passed
@@ -156,7 +160,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 0
+              duration_ms: 1
       - symbol_id: SYM-zcode-case-manual-mcp-fallback
         target: default
         outcome: passed
@@ -166,7 +170,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 0
+              duration_ms: 10
       - symbol_id: SYM-zcode-case-advisory-hooks
         target: default
         outcome: passed
@@ -176,7 +180,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 5
+              duration_ms: 10
       - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
         target: default
         outcome: passed
@@ -186,7 +190,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 6
+              duration_ms: 18
       - symbol_id: SYM-zcode-case-shipped-plugin-payload
         target: default
         outcome: passed
@@ -196,7 +200,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 3635
+              duration_ms: 6851
       - symbol_id: SYM-zcode-case-tracked-hook-targets
         target: default
         outcome: passed
@@ -216,7 +220,27 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 59
+              duration_ms: 122
+      - symbol_id: SYM-zcode-case-kb-call-without-workspace
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace stamp::PreToolUse names the session workspace on a Kibi MCP call that carries none
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-kb-call-names-workspace
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace stamp::PreToolUse leaves a Kibi MCP call that names a workspace alone
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 3
     kind: e2e
     evidence_level: tested
 proof_bindings:
@@ -276,6 +300,16 @@ proof_bindings:
     source_file: packages/zcode/tests/install-artifact.test.ts
     symbol_id: SYM-zcode-case-copied-install-runtime-files
     target: default
+  - symbol_id: SYM-zcode-case-kb-call-without-workspace
+    target: default
+    native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace stamp::PreToolUse names the session workspace on a Kibi MCP call that carries none
+    source_file: packages/zcode/tests/hook-runner.test.ts
+    line: 1551
+  - symbol_id: SYM-zcode-case-kb-call-names-workspace
+    target: default
+    native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace stamp::PreToolUse leaves a Kibi MCP call that names a workspace alone
+    source_file: packages/zcode/tests/hook-runner.test.ts
+    line: 1576
 origin:
   kind: migration
   ref: kibi migrate v5->v6
