@@ -1,5 +1,5 @@
 ---
-title: The kibi-zcode manifest declares its skills, commands, hooks and MCP servers, by a source proof
+title: The kibi-zcode manifest declares its skills, commands and MCP servers, by a source proof
 status: passing
 tags:
   - proof
@@ -26,23 +26,23 @@ proof_contract:
     path: ''
     select: keys
   proves:
-    - CLAIM-2C1636E502EB6164
+    - CLAIM-60DC86D3C7A20F0D
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-4414a02e1fc75bbc0e321323
+    receipt_id: PR-d8cda81be7eb4cbb51c9c3a5
     test_id: TEST-proof-zcode-manifest-fields
     scope: unit
     outcome: passed
-    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-20T07:56:44.843Z'
-    finished_at: '2026-11-20T08:30:48.727Z'
-    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
-    contract_hash: 50309ab1b9b2fb9f756da05de272826dbc481d73b9a14c56469c2b082ea979c0
-    binding_hash: 232486134dc73908a8af982c4e5b9beb64ac22ca1c10ae552cd22c7b2e6a87f6
-    fingerprint: 93632abb133fad03878960ecb1cb3d2db9b8b7cbf7bf023709937cde2d856b4f
+    code_snapshot: 9386eaa53daa10f81157166c388a39229b4b1a7e1a8c41b588be3f34652fcf8e
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T18:35:06.505Z'
+    finished_at: '2026-11-23T18:35:06.777Z'
+    artifact_digest: 75c419c60640d309a3f5a9c56d3496f2a445295f88d05c4d86106d5ce16e132d
+    contract_hash: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
+    binding_hash: 771f8cf8c9f378d11aaa85a9155c761388e66fad5b10f6e4abb4e4e4bb5b40af
+    fingerprint: 6883c50b356e80dc070e14919f67e3ac5a9a89956b691574f809d6942985f98d
     fingerprint_components:
-      contract: 50309ab1b9b2fb9f756da05de272826dbc481d73b9a14c56469c2b082ea979c0
+      contract: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -77,24 +77,22 @@ proof_receipts:
           - author
           - commands
           - description
-          - hooks
           - license
           - mcpServers
           - name
           - skills
           - version
-    certificate_digest: d00d60f6983362039d68c7d7dd331b76b620c9d39844d00e6401e1dd20ba5d4a
+    certificate_digest: 111acc7dd9de331b52544b2d592cf0c5ab1a4d3d6057b7b8f853d899a82ded0f
     claim_bindings:
-      - claim_key: CLAIM-2C1636E502EB6164
-        requirement_id: REQ-zcode-plugin-package
-        fact_id: FACT-zcode-manifest-declares-plugin-parts
+      - claim_key: CLAIM-60DC86D3C7A20F0D
+        requirement_id: REQ-zcode-plugin-package-v2
+        fact_id: FACT-zcode-manifest-declares-plugin-parts-v2
         binding: derived
         scope: source
         obligation:
           kind: set_relation
           members:
             - commands
-            - hooks
             - mcpServers
             - skills
           operator: includes
