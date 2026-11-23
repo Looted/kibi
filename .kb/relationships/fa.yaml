@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43fc53ffa5d8
+  - type: assumes
+    from: SCEN-NEG-cli-json-format-alias-SILENT
+    to: FACT-NEG-cli-json-format-alias-SILENT
+    created_at: 2026-11-22T17:45:50.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ec9be4c7811
+  - type: verified_by
+    from: SCEN-NEG-cli-json-format-alias-SILENT
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:45:50.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd977fa0324e

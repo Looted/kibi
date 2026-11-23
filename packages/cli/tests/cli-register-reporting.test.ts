@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as jsonCommand from "../src/cli-json-command.js";
+import * as registerJson from "../src/cli-register-json.js";
 import { registerReportingCommands } from "../src/cli-register-reporting.js";
 import * as checkCertificates from "../src/commands/check-certificates.js";
 import * as checkDiff from "../src/commands/check-diff.js";
@@ -134,6 +135,82 @@ describe("registerReportingCommands", () => {
     expect(coverageSpy.mock.calls.length).toBe(0);
     expect(graphSpy.mock.calls.length).toBe(0);
     expect(json.mock.calls.length).toBe(0);
+  });
+
+  test("find-gaps, coverage, graph and check print their input schema on --schema", async () => {
+    const schemaSpy = stub(registerJson, "printOperationInputSchema");
+    const scope = spyOn(kbDependency, "applyKbOption").mockImplementation(
+      () => false,
+    );
+    restores.push(() => scope.mockRestore());
+    const gapsSpy = stub(gaps, "gapsCommand");
+    const coverageSpy = stub(coverage, "coverageCommand");
+    const graphSpy = stub(graph, "graphCommand");
+    const checkSpy = stub(check, "checkCommand");
+    const json = stub(jsonCommand, "runJsonInvocation");
+
+    await run("find-gaps", "--schema");
+    await run("gaps", "--schema");
+    await run("coverage", "--schema");
+    await run("graph", "--schema");
+    await run("check", "--schema");
+
+    expect(plainCalls(schemaSpy)).toStrictEqual([
+      ["kb_find_gaps"],
+      ["kb_find_gaps"],
+      ["kb_coverage"],
+      ["kb_graph"],
+      ["kb_check"],
+    ]);
+    expect(scope.mock.calls.length).toBe(0);
+    expect(gapsSpy.mock.calls.length).toBe(0);
+    expect(coverageSpy.mock.calls.length).toBe(0);
+    expect(graphSpy.mock.calls.length).toBe(0);
+    expect(checkSpy.mock.calls.length).toBe(0);
+    expect(json.mock.calls.length).toBe(0);
+  });
+
+  test("--json resolves to format: json on find-gaps, signoff, coverage, graph and check", async () => {
+    const gapsSpy = stub(gaps, "gapsCommand");
+    const signoffSpy = stub(signoff, "signoffCommand");
+    const coverageSpy = stub(coverage, "coverageCommand");
+    const graphSpy = stub(graph, "graphCommand");
+    const checkSpy = stub(check, "checkCommand", { exitCode: 0 });
+    const recheckSpy = stub(checkCertificates, "checkCertificatesCommand", {
+      exitCode: 0,
+    });
+
+    await run("find-gaps", "req", "--json");
+    await run("signoff", "--staged", "--json");
+    await run("coverage", "--json");
+    await run("graph", "--from", "REQ-1", "--json");
+    await run("check", "--json");
+    await run("check", "--certificates", "b.json", "--json");
+
+    expect(plainCalls(gapsSpy)).toStrictEqual([
+      ["req", { limit: "100", offset: "0", format: "json" }],
+    ]);
+    expect(plainCalls(signoffSpy)).toStrictEqual([
+      [{ staged: true, open: false, proof: true, format: "json" }],
+    ]);
+    expect(plainCalls(coverageSpy)).toStrictEqual([
+      [expect.objectContaining({ format: "json" })],
+    ]);
+    expect(
+      (coverageSpy.mock.calls[0]?.[0] as Record<string, unknown>).json,
+    ).toBeUndefined();
+    expect(plainCalls(graphSpy)).toStrictEqual([
+      [expect.objectContaining({ from: "REQ-1", format: "json" })],
+    ]);
+    expect(
+      (graphSpy.mock.calls[0]?.[0] as Record<string, unknown>).json,
+    ).toBeUndefined();
+    expect(plainCalls(checkSpy)).toStrictEqual([
+      [{ minLinks: "1", format: "json" }],
+    ]);
+    expect(plainCalls(recheckSpy)).toStrictEqual([
+      [{ certificates: "b.json", json: true }],
+    ]);
   });
 });
 
