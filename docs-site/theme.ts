@@ -79,6 +79,7 @@ function svgFavicon(svg: string): string {
  * brand rules restrict use and recoloring of their logos.
  */
 const HARNESSES: ReadonlyArray<{ id: string; name: string }> = [
+  { id: "antigravity", name: "Antigravity" },
   { id: "claude-code", name: "Claude Code" },
   { id: "codex", name: "Codex" },
   { id: "cursor", name: "Cursor" },

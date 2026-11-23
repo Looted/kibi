@@ -70,11 +70,11 @@ describe("sync-agent-skills argument parsing", () => {
   test("defaults to write mode for all targets", () => {
     expect(parseArgs([])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode", "claude"],
+      targets: ["cursor", "codex", "zcode", "claude", "antigravity"],
     });
     expect(parseArgs(["--write"])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode", "claude"],
+      targets: ["cursor", "codex", "zcode", "claude", "antigravity"],
     });
     expect(parseArgs(["--check", "--target", "cursor"])).toEqual({
       mode: "check",

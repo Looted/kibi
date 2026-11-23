@@ -311,3 +311,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e176c2de15a4
+  - type: implements
+    from: SYM-kb-tools-unwrap-kibi-mcp-call
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:05:39.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebb5c2ba07cf
+  - type: covered_by
+    from: SYM-kb-tools-unwrap-kibi-mcp-call
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:39.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14adf0d26209
+  - type: implements
+    from: SYM-session-state-session-journal
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:18.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5b260c5ae06
+  - type: covered_by
+    from: SYM-session-state-session-journal
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:18.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8514db02ea27

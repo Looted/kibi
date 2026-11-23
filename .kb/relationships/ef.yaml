@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f27086530679
+  - type: constrains
+    from: REQ-antigravity-session-journal
+    to: FACT-SUBJECT-antigravity-plugin
+    created_at: 2026-11-22T05:06:12.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef026ece48fe
+  - type: specified_by
+    from: REQ-antigravity-session-journal
+    to: SCEN-antigravity-session-journal
+    created_at: 2026-11-22T05:06:12.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f8dfbb7d2dd
+  - type: verified_by
+    from: REQ-antigravity-session-journal
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:12.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2512cf682d56
+  - type: requires_property
+    from: REQ-antigravity-session-journal
+    to: FACT-antigravity-append-only-journal
+    created_at: 2026-11-22T05:14:43.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-705603a1ec36

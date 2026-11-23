@@ -13,7 +13,7 @@ Once Kibi is installed in the repository, your agent needs a way to call it. Two
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Antigravity, Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
 
 ## Claude Code
 
@@ -51,6 +51,7 @@ Add this server to the client's MCP config. The working directory must be the re
 
 Plugin pages in the installation guide:
 
+- [Antigravity plugin](install.md#optional-antigravity-plugin)
 - [Cursor plugin](install.md#optional-cursor-plugin)
 - [Codex plugin](install.md#optional-codex-plugin)
 - [ZCode plugin](install.md#optional-zcode-plugin)

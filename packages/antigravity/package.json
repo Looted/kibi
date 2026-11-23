@@ -1,0 +1,71 @@
+{
+  "name": "kibi-antigravity",
+  "version": "0.1.0",
+  "description": "Kibi Antigravity plugin - progressive-disclosure knowledge snippets, firm-edit confirmation, advisory freshness hooks, bundled skills, rules, and the workspace-gated Kibi MCP server",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "plugin.json",
+    "mcp_config.json",
+    "hooks.json",
+    "assets",
+    "bin",
+    "rules",
+    "skills",
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/antigravity"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && bun run build:hook-bundle && bun run ../../scripts/sync-agent-skills.ts --write --target antigravity",
+    "build:hook-bundle": "bun run scripts/build-hook-bundle.ts",
+    "check:hook-bundle": "bun run --cwd ../agent-core build && bun run scripts/build-hook-bundle.ts --check",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "kibi-cli": ">=1.0.0",
+    "kibi-mcp": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "kibi-cli": {
+      "optional": true
+    },
+    "kibi-mcp": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.8",
+    "kibi-agent-core": "^0.15.0",
+    "typescript": "^5.7.0",
+    "yaml": "^2.9.1"
+  }
+}

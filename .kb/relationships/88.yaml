@@ -293,3 +293,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa37d33c8aa9
+  - type: implements
+    from: SYM-session-state-append-session-events
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:20.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfcd311a7f1c
+  - type: covered_by
+    from: SYM-session-state-append-session-events
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:20.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7a0cd6d2c9c
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:53.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-181d7b944164
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:08:53.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-914439316bf5
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:08:53.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef26063f72a
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-session-journal
+    created_at: 2026-11-22T05:08:53.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4af90cfbc26
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:08:53.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a17dcbb46dc1
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:08:53.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8446f9af802
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:53.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4603aee08ea2
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:08:53.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee455e0c02b8
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:08:53.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c948919ddd4
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:08:53.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b193f9424841
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:08:53.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdd9d1e30f42
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:08:53.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11dbeedc5b48
