@@ -34,6 +34,8 @@ logic_claims:
   - CLAIM-6F426DA0BEA06A75
 origin:
   kind: agent
+  ref: 'Maintainer approval, 2026-11-23: Approved.'
+  approved_by: maintainer
   recorded_at: '2026-11-22T18:24:19.109Z'
 id: REQ-vibe-hooks-firm-edit-notice
 type: req
