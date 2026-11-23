@@ -33,6 +33,12 @@
             "description": "Output format: json|text",
             "default": "text",
             "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Alias for --format json",
+            "default": null,
+            "mandatory": false
           }
         ],
         "commands": []
@@ -49,6 +55,12 @@
             "description": "Output format: json|text",
             "default": "text",
             "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Alias for --format json",
+            "default": null,
+            "mandatory": false
           }
         ],
         "commands": []
@@ -64,6 +76,12 @@
             "flags": "--format <format>",
             "description": "Output format: json|text",
             "default": "text",
+            "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Alias for --format json",
+            "default": null,
             "mandatory": false
           }
         ],
@@ -120,6 +138,12 @@
             "flags": "--format <format>",
             "description": "Output format: json|table",
             "default": "table",
+            "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Alias for --format json",
+            "default": null,
             "mandatory": false
           }
         ],
@@ -217,6 +241,12 @@
         "description": "Output format: json|table",
         "default": "table",
         "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
@@ -232,6 +262,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {
@@ -263,6 +299,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--limit <n>",
         "description": "Limit rendered table rows",
         "default": "50",
@@ -290,6 +332,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|text",
         "default": "text",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       }
     ],
