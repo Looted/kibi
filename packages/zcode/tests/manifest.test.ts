@@ -98,7 +98,11 @@ describe("kibi-zcode plugin manifest", () => {
     expect(manifest.description).toEqual(expect.stringContaining("Kibi"));
     expect(manifest.skills).toBe("skills");
     expect(manifest.commands).toBe("commands");
-    expect(manifest.hooks).toBe("hooks");
+    // ZCode reads the manifest `hooks` field as the path of a hooks file and
+    // always loads the conventional hooks/hooks.json, so the plugin declares
+    // no `hooks` field: naming the directory there raised an error on every
+    // start.
+    expect(manifest.hooks).toBeUndefined();
 
     const server = manifest.mcpServers?.kibi;
     expect(server).toBeDefined();
@@ -137,14 +141,9 @@ describe("kibi-zcode plugin manifest", () => {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
       skills?: string;
       commands?: string;
-      hooks?: string;
     };
 
-    for (const component of [
-      manifest.skills,
-      manifest.commands,
-      manifest.hooks,
-    ]) {
+    for (const component of [manifest.skills, manifest.commands]) {
       expect(typeof component).toBe("string");
       const value = component as string;
       expect(path.isAbsolute(value)).toBe(false);
