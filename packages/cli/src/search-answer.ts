@@ -248,6 +248,11 @@ export type SearchAnswerOptions = Readonly<{
   staleReasonCount?: number;
   /** Concise staleness warning prepended to `answer.note` when stale. */
   staleWarningNote?: string;
+  /**
+   * The ranking's top matches are close (the query analysis is ambiguous):
+   * the note says the governing list holds candidates to confirm.
+   */
+  ambiguous?: boolean;
 }>;
 
 /**
@@ -1222,8 +1227,7 @@ export async function buildSearchAnswer(
       else if (row !== null) truncated = true;
       continue;
     }
-    for (const { owner, via } of owners)
-      propose(owner, fact.score * 0.85, via);
+    for (const { owner, via } of owners) propose(owner, fact.score * 0.85, via);
   }
 
   // A matched requirement that was superseded points at what governs now:
@@ -1472,7 +1476,9 @@ export async function buildSearchAnswer(
       typeof verdicts?.scope?.syncedAt === "string"
         ? verdicts.scope.syncedAt
         : null,
-    ...(options.syncState !== undefined ? { syncState: options.syncState } : {}),
+    ...(options.syncState !== undefined
+      ? { syncState: options.syncState }
+      : {}),
     ...(options.staleReasonCount !== undefined
       ? { staleReasonCount: options.staleReasonCount }
       : {}),
@@ -1539,6 +1545,7 @@ export async function buildSearchAnswer(
       governing.length,
       ungovernedAnswer,
       options.staleWarningNote,
+      options.ambiguous === true,
     ),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
@@ -1553,8 +1560,15 @@ export function answerNote(
   governingCount: number,
   ungoverned: readonly SearchAnswerUngoverned[],
   staleWarningNote?: string,
+  ambiguous = false,
 ): string {
   const staleLead = staleWarningNote ? `${staleWarningNote} ` : "";
+  // A close ranking reaches look-alikes and neighbours as easily as the rule
+  // that applies, so the list is not presented as settled.
+  const candidates =
+    ambiguous && governingCount > 0
+      ? "The top matches are close, so the governing list holds candidates, not requirements confirmed to govern this change: read each statement and keep only those about the code being changed. "
+      : "";
   const top = ungoverned.find((entry) => entry.rank === 1);
   const lead =
     top === undefined
@@ -1577,6 +1591,7 @@ export function answerNote(
     .join("");
   return (
     staleLead +
+    candidates +
     lead +
     ungovernedFact +
     overridden +

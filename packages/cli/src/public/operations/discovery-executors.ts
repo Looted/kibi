@@ -397,7 +397,8 @@ function collectHealthyStoreEvidence(
   includeHealthyOnlyReasons: boolean,
 ): HealthyStoreEvidence {
   const syncCache = readSyncCacheRecord(storePath);
-  const cachedArgs = syncCache !== null ? ([syncCache] as const) : ([] as const);
+  const cachedArgs =
+    syncCache !== null ? ([syncCache] as const) : ([] as const);
   const depCacheArgs =
     syncCache !== null ? ([undefined, syncCache] as const) : ([] as const);
   return {
@@ -409,7 +410,11 @@ function collectHealthyStoreEvidence(
     ),
     compilerReason: compilerFingerprintReason(storePath, ...depCacheArgs),
     extractionReasons: includeHealthyOnlyReasons
-      ? sourceExtractionFailureReasons(workspaceRoot, storePath, ...depCacheArgs)
+      ? sourceExtractionFailureReasons(
+          workspaceRoot,
+          storePath,
+          ...depCacheArgs,
+        )
       : [],
     missingShardReasons: includeHealthyOnlyReasons
       ? missingCachedKbSourceReasons(
@@ -1126,7 +1131,8 @@ async function executeSubjectDomainQuery(
     subjectKey,
     definition: fact.definition,
   }));
-  const storeNotice = rows.length === 0 ? uncompiledSearchNotice(context) : null;
+  const storeNotice =
+    rows.length === 0 ? uncompiledSearchNotice(context) : null;
   const freshness =
     storeNotice === null
       ? await inspectQueryFreshness(context, prolog, { sourceFilterPaths: [] })
@@ -1592,6 +1598,7 @@ export async function executeSearch(
               branch: context.branchAttachment?.kbBranch ?? null,
               detail: fields === "full" ? "full" : "summary",
               syncState: answerSyncState,
+              ...(intentResult.analysis.ambiguous ? { ambiguous: true } : {}),
               ...(storeNotice !== null
                 ? { staleReasonCount: 1 }
                 : freshness?.state === "stale"
@@ -1653,8 +1660,7 @@ export async function executeSearch(
           ? ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).'
           : "";
       const staleOrStoreNote =
-        storeNote ||
-        (freshness?.state === "stale" ? ` ${freshness.note}` : "");
+        storeNote || (freshness?.state === "stale" ? ` ${freshness.note}` : "");
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -1663,7 +1669,7 @@ export async function executeSearch(
               .map((match) => topMatchLabel(match))
               .join(
                 ", ",
-              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
+              )}${answerLayer ? `. ${intentResult.analysis.ambiguous && answerLayer.governing.length > 0 ? "Candidate requirements, not confirmed to govern" : "Governing"}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
       }${searchHintsNote(hints)}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${weakAdrNote}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],
