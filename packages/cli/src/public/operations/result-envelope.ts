@@ -1,4 +1,8 @@
 import { MIGRATION_PLAN_REFUSED } from "../../operations/planning/migration-refusal.js";
+import {
+  BRANCH_STORE_STALE,
+  staleStoreWarningNote,
+} from "../../utils/content-freshness.js";
 import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export {
@@ -101,6 +105,35 @@ function uncompiledStoreDiagnostics(
       ...(typeof store.code === "string" ? { code: store.code } : {}),
       severity: "warning",
       message: `${typeof store.detail === "string" ? `${store.detail} ` : ""}An empty answer here does not mean no requirement governs this; run \`kibi sync\` and ask again.`,
+    },
+  ];
+}
+
+function staleStoreDiagnostics(
+  operation: string,
+  row: Record<string, unknown> | undefined,
+): KibiResult["diagnostics"] {
+  if (!STORE_READ_OPERATIONS.has(operation)) return [];
+  const meta = row?.meta;
+  if (!record(meta) || meta.syncState !== "stale") return [];
+  const count =
+    typeof meta.staleReasonCount === "number" &&
+    Number.isInteger(meta.staleReasonCount) &&
+    meta.staleReasonCount > 0
+      ? meta.staleReasonCount
+      : Array.isArray(meta.staleReasons)
+        ? Math.max(1, meta.staleReasons.length)
+        : 1;
+  const paths = Array.isArray(meta.staleReasons)
+    ? meta.staleReasons.flatMap((reason) =>
+        record(reason) && typeof reason.path === "string" ? [reason.path] : [],
+      )
+    : [];
+  return [
+    {
+      code: BRANCH_STORE_STALE,
+      severity: "warning",
+      message: staleStoreWarningNote(count, paths),
     },
   ];
 }
@@ -330,6 +363,7 @@ export function toKibiResult<T>(
       options.diagnostics ?? [
         ...diagnostics(row?.diagnostics),
         ...uncompiledStoreDiagnostics(String(spec.name), row),
+        ...staleStoreDiagnostics(String(spec.name), row),
       ],
       options.appendDiagnostics,
     ),

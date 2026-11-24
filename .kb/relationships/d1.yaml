@@ -650,3 +650,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42002f8de845
+  - type: assumes
+    from: SCEN-NEG-kibi-branch-store-freshness-memo-REHASHED
+    to: FACT-NEG-kibi-branch-store-freshness-memo-REHASHED
+    created_at: 2026-11-23T10:45:57.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1929380794a8
+  - type: verified_by
+    from: SCEN-NEG-kibi-branch-store-freshness-memo-REHASHED
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:45:57.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b653e96408f9

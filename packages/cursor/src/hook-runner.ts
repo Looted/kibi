@@ -39,7 +39,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  isKibiMcpToolName,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
@@ -355,17 +358,20 @@ export async function runHook(
         }
 
       case "preToolUse": {
-        // Name the agent's workspace on every Kibi MCP call so the launcher
-        // answers from it, also for agents working in a git worktree. The
+        // Name the agent's workspace on a Kibi MCP call that carries none, so
+        // the launcher answers from it, also for agents working in a git
+        // worktree. A call that names its own workspace passes through. The
         // per-call cwd wins over workspace_roots, which can be the window's
         // folders rather than the agent's checkout.
-        const stamped = stampKibiWorkspace(
-          input.toolName,
-          input.toolInput,
-          kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
-        );
-        if (stamped) {
-          return { updated_input: stamped };
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(
+            input.toolName,
+            input.toolInput,
+            kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
+          );
+          return stamped === undefined
+            ? emptyResult()
+            : { updated_input: stamped };
         }
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =

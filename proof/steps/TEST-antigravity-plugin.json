@@ -1,0 +1,4 @@
+{
+  "test_id": "TEST-antigravity-plugin",
+  "steps": [["bun", "test", "./packages/antigravity/tests"]]
+}

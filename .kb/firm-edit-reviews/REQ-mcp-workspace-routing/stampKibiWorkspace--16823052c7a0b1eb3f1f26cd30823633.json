@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-mcp-workspace-routing",
+  "sourceFile": "packages/agent-core/src/kb-mcp-tools.ts",
+  "symbol": "stampKibiWorkspace",
+  "verdict": "keeps",
+  "note": "The hook no longer replaces a workspaceRoot the agent passes, so a call that carries one reaches kibi-mcp as sent and is answered from the workspace that owns that directory, as the requirement says; calls without one are stamped as before.",
+  "statementHash": "sha256:de057c7cb4236dced57dee853fcf8ea2c40f515cc44bf6556eca9ae189a30f92",
+  "codeHash": "sha256:b90ec42d20bf60d54f0d945e691a394798a0c5a2216334fbd609bd5ac9e3cf60",
+  "startLine": 113,
+  "endLine": 123,
+  "recordedAt": "2026-11-23T18:17:51.201Z"
+}

@@ -552,3 +552,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-87b9efc4d2bd
+  - type: verified_by
+    from: REQ-kibi-persist-stat-hash-freshness-memo
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:14.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d15f0a11ddb
+  - type: constrains
+    from: REQ-kibi-persist-stat-hash-freshness-memo
+    to: FACT-SUBJ-kibi-branch-store-freshness-memo
+    created_at: 2026-11-23T10:46:43.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3996b3978e98
+  - type: requires_property
+    from: REQ-kibi-persist-stat-hash-freshness-memo
+    to: FACT-kibi-branch-store-freshness-memo
+    created_at: 2026-11-23T10:46:43.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62ce2b10e63b
+  - type: specified_by
+    from: REQ-kibi-persist-stat-hash-freshness-memo
+    to: SCEN-kibi-branch-store-freshness-memo
+    created_at: 2026-11-23T10:46:43.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b5fbf42292c
+  - type: specified_by
+    from: REQ-kibi-persist-stat-hash-freshness-memo
+    to: SCEN-NEG-kibi-branch-store-freshness-memo-REHASHED
+    created_at: 2026-11-23T10:46:43.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-944abb0ad66c
+  - type: implements
+    from: SYM-kb-tools-extract-cli-kb-usage
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:05:44.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83feeb8f81c2
+  - type: covered_by
+    from: SYM-kb-tools-extract-cli-kb-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:44.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f05852ab9e5d

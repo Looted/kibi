@@ -463,6 +463,7 @@ export const COVERAGE_SHARDS: readonly {
   { label: "vibe", paths: VIBE_UNIT_TESTS },
   { label: "agent-core", paths: ["./packages/agent-core"] },
   { label: "claude", paths: ["./packages/claude"] },
+  { label: "antigravity", paths: ["./packages/antigravity/tests"] },
   {
     label: "skillopt",
     costSeconds: 60,

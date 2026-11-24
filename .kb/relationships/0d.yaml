@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f91338e0668
+  - type: implements
+    from: SYM-content-freshness-string-hash-map
+    to: REQ-kibi-persist-stat-hash-freshness-memo
+    created_at: 2026-11-23T10:33:20.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4f011e25089
+  - type: covered_by
+    from: SYM-content-freshness-string-hash-map
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:20.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c1a15eab2af

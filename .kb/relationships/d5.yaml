@@ -300,3 +300,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a47b5a7ef63a
+  - type: implements
+    from: SYM-index-package-name
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:04:32.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-105e6a3be822
+  - type: covered_by
+    from: SYM-index-package-name
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:04:32.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fe9f9942a3e
+  - type: implements
+    from: SYM-index-adapter-kind
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:04:33.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-186fb898149e
+  - type: covered_by
+    from: SYM-index-adapter-kind
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:04:33.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b3a4f60408f

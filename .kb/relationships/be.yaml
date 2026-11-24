@@ -531,3 +531,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37c6986209da
+  - type: assumes
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: FACT-zcode-bundled-skills
+    created_at: 2026-11-23T18:33:21.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-914aac6b02fd
+  - type: assumes
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: FACT-zcode-mcp-server-launcher
+    created_at: 2026-11-23T18:33:21.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3814857f700
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-manifest-fields
+    created_at: 2026-11-23T18:33:21.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79d1ac4d72e3
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-commands
+    created_at: 2026-11-23T18:33:21.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aa85537de1d
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-skills
+    created_at: 2026-11-23T18:33:21.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b55bab6c9851
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-mcp-launcher
+    created_at: 2026-11-23T18:33:21.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be6701e93f7c
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-lifecycle-hooks
+    created_at: 2026-11-23T18:33:21.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f57786327fd0
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T18:34:59.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9bfe931e731

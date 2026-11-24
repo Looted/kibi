@@ -24,7 +24,10 @@ import {
   removesOnlyDeadImplementsComments,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  isKibiMcpToolName,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   requestTopicWords,
   requirementCandidatesForPath,
@@ -334,16 +337,23 @@ function preToolUse(
   trace: HookTrace = {},
 ): HookOutput {
   const toolName = input.toolName;
-  // Name the session's workspace on every Kibi MCP call so the MCP launcher
-  // answers from it, even after the session moves into a git worktree.
-  const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
-  if (stamped) {
-    return {
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        updatedInput: stamped,
-      },
-    };
+  // Name the session's workspace on a Kibi MCP call that carries none, so
+  // the MCP launcher answers from it, even after the session moves into a
+  // git worktree. A call that names its own workspace passes through.
+  if (isKibiMcpToolName(toolName)) {
+    const stamped = stampKibiWorkspace(
+      toolName,
+      input.toolInput,
+      workspace.root,
+    );
+    return stamped === undefined
+      ? {}
+      : {
+          hookSpecificOutput: {
+            hookEventName: "PreToolUse",
+            updatedInput: stamped,
+          },
+        };
   }
   const state = loadSessionState(workspace.stateDir);
   trace.kbUsedBefore = state.kbUsed;

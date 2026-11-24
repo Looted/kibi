@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68021509c232
+  - type: implements
+    from: SYM-usage-log-flush-hook-telemetry
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:23.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c260b615e18e
+  - type: covered_by
+    from: SYM-usage-log-flush-hook-telemetry
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:23.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f77f77608d30

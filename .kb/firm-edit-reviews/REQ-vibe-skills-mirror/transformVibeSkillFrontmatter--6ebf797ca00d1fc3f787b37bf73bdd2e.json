@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-skills-mirror",
+  "sourceFile": "scripts/sync-agent-skills.ts",
+  "symbol": "transformVibeSkillFrontmatter",
+  "verdict": "keeps",
+  "note": "Merge of origin/develop keeps transformVibeSkillFrontmatter byte-identical to origin/develop while retaining the antigravity sync target alongside vibe.",
+  "statementHash": "sha256:b9f5c5e1a1418a1abad381b9a11ed755a5d028dac58181a96ede9d3589269c77",
+  "codeHash": "sha256:a190a233a0f4a46db0e28913dc8381527e99336d8ea3cac8ad627064f4b944c2",
+  "startLine": 180,
+  "endLine": 186,
+  "recordedAt": "2026-11-23T10:13:22.141Z"
+}

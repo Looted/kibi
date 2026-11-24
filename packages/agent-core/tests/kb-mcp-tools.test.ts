@@ -80,6 +80,35 @@ describe("stampKibiWorkspace", () => {
     ).toBeUndefined();
     expect(stampKibiWorkspace("Edit", {}, "/w")).toBeUndefined();
   });
+
+  test("keeps a workspace the call already names", () => {
+    expect(
+      stampKibiWorkspace(
+        "mcp__kibi__kb_check",
+        { a: 1, workspaceRoot: "/worktree" },
+        "/w",
+      ),
+    ).toBeUndefined();
+    expect(
+      stampKibiWorkspace(
+        "MCP:kb_check",
+        { workspaceRoot: " /worktree " },
+        "/w",
+      ),
+    ).toBeUndefined();
+  });
+
+  test("replaces a workspace argument that names none", () => {
+    for (const named of ["", "   ", null, 7, { path: "/x" }, ["/x"]]) {
+      expect(
+        stampKibiWorkspace(
+          "mcp__kibi__kb_check",
+          { a: 1, workspaceRoot: named },
+          "/w",
+        ),
+      ).toStrictEqual({ a: 1, workspaceRoot: "/w" });
+    }
+  });
 });
 
 describe("extractKbMcpToolCall", () => {

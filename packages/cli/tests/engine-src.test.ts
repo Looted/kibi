@@ -1,12 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawn, spawnSync } from "node:child_process";
 import {
+  chmodSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   rmSync,
   utimesSync,
   writeFileSync,
 } from "node:fs";
+import * as net from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -435,4 +439,300 @@ describe("EngineClient from source", () => {
       /corrupt/,
     );
   });
+});
+
+const unixSocketTest = test.skipIf(process.platform === "win32");
+
+function createOrphanedUnixSocket(socketPath: string): void {
+  mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+  const res = spawnSync(
+    "python3",
+    [
+      "-c",
+      [
+        "import socket, sys",
+        "s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)",
+        "s.bind(sys.argv[1])",
+        "s.close()",
+      ].join("\n"),
+      socketPath,
+    ],
+    { encoding: "utf8" },
+  );
+  if (res.status !== 0) {
+    throw new Error(`Failed to create orphaned unix socket: ${res.stderr}`);
+  }
+}
+
+describe("engine socket auto-reclaim and drain guards", () => {
+  unixSocketTest(
+    "startLockPath shields the bind-to-listen gap from concurrent reclaim",
+    async () => {
+      const root = tempRoot();
+      const socketPath = engineSocketPath(root, "main");
+      const pidPath = enginePidPath(root, "main");
+      const startLockPath = engineStartLockPath(root, "main");
+      mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+      // Starter A holds startLockPath across bind() -> listen().
+      writeFileSync(startLockPath, `${process.pid}:${Date.now()}\n`);
+
+      const child = spawn(
+        "python3",
+        [
+          "-u",
+          "-c",
+          [
+            "import json, socket, struct, sys",
+            "sock_path = sys.argv[1]",
+            "s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)",
+            "s.bind(sock_path)",
+            "print('BOUND', flush=True)",
+            "sys.stdin.readline()",
+            "s.listen(4)",
+            "print('LISTENING', flush=True)",
+            "conn, _ = s.accept()",
+            "hdr = conn.recv(4)",
+            "if len(hdr) == 4:",
+            "    n = struct.unpack('>I', hdr)[0]",
+            "    req = json.loads(conn.recv(n).decode('utf-8'))",
+            "    body = json.dumps({'id': req['id'], 'ok': True, 'result': {'stopped': True}}).encode('utf-8')",
+            "    conn.sendall(struct.pack('>I', len(body)) + body)",
+            "conn.close()",
+            "s.close()",
+          ].join("\n"),
+          socketPath,
+        ],
+        { stdio: ["pipe", "pipe", "pipe"] },
+      );
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          let buf = "";
+          const timer = setTimeout(
+            () => reject(new Error(`Helper bind timeout: ${buf}`)),
+            5_000,
+          );
+          child.stdout.setEncoding("utf8");
+          child.stdout.on("data", (chunk: string) => {
+            buf += chunk;
+            if (buf.includes("BOUND")) {
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+          child.once("exit", (code) => {
+            clearTimeout(timer);
+            reject(new Error(`Helper exited early (${code})`));
+          });
+        });
+
+        // Socket exists on disk in ECONNREFUSED state (between bind and listen).
+        expect(lstatSync(socketPath).isSocket()).toBe(true);
+
+        // Concurrent caller cannot acquire startLockPath to unlink the booting socket.
+        const contender = new EngineClient({
+          workspaceRoot: root,
+          branch: "main",
+          timeout: 150,
+        });
+        await expect(contender.stopOrReclaim()).rejects.toThrow(
+          "Kibi engine start or shutdown is already in progress",
+        );
+        expect(lstatSync(socketPath).isSocket()).toBe(true);
+
+        // Starter A transitions the same socket to listen(), publishes pid, releases startLockPath.
+        await new Promise<void>((resolve, reject) => {
+          let buf = "";
+          const timer = setTimeout(
+            () => reject(new Error(`Helper listen timeout: ${buf}`)),
+            5_000,
+          );
+          child.stdout.on("data", (chunk: string) => {
+            buf += chunk;
+            if (buf.includes("LISTENING")) {
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+          child.stdin.write("LISTEN\n");
+        });
+        writeFileSync(pidPath, `${child.pid}\n`);
+        rmSync(startLockPath, { force: true });
+
+        // Once startLockPath is released, caller connects to the live listener and stops it cleanly.
+        const stopper = new EngineClient({
+          workspaceRoot: root,
+          branch: "main",
+          timeout: 2_000,
+        });
+        setTimeout(() => {
+          rmSync(socketPath, { force: true });
+          rmSync(pidPath, { force: true });
+        }, 60);
+        expect(await stopper.stopOrReclaim()).toBe(true);
+      } finally {
+        try {
+          child.kill("SIGKILL");
+        } catch {}
+        rmSync(startLockPath, { force: true });
+        rmSync(socketPath, { force: true });
+        rmSync(pidPath, { force: true });
+      }
+    },
+  );
+
+  unixSocketTest(
+    "reclaims an ECONNREFUSED dead unix socket at 0 ms even when pid was recycled",
+    async () => {
+      const root = tempRoot();
+      const socketPath = engineSocketPath(root, "main");
+      const pidPath = enginePidPath(root, "main");
+      createOrphanedUnixSocket(socketPath);
+      // Simulate recycled OS PID still alive alongside dead socket.
+      writeFileSync(pidPath, `${process.pid}\n`);
+
+      const client = new EngineClient({
+        workspaceRoot: root,
+        branch: "main",
+        timeout: 5_000,
+      });
+      const started = performance.now();
+      expect(await client.stopOrReclaim()).toBe(false);
+      expect(performance.now() - started).toBeLessThan(500);
+      expect(existsSync(socketPath)).toBe(false);
+      expect(existsSync(pidPath)).toBe(false);
+    },
+  );
+
+  test("waits on actively draining pid without publication lease, but treats stale non-touching pid differently on rebuild/migrate", async () => {
+    const root1 = tempRoot();
+    const sock1 = engineSocketPath(root1, "main");
+    const pid1 = enginePidPath(root1, "main");
+    mkdirSync(path.dirname(sock1), { recursive: true, mode: 0o700 });
+    const helper1 = spawn(
+      process.execPath,
+      ["-e", "setTimeout(() => {}, 10000)"],
+      { stdio: "ignore" },
+    );
+    try {
+      writeFileSync(pid1, `${helper1.pid}\n`);
+      const touchTimer = setInterval(() => {
+        const now = new Date();
+        try {
+          utimesSync(pid1, now, now);
+        } catch {}
+      }, 60);
+      setTimeout(() => {
+        clearInterval(touchTimer);
+        rmSync(pid1, { force: true });
+      }, 220);
+
+      const started = performance.now();
+      const stopped = await new EngineClient({
+        workspaceRoot: root1,
+        branch: "main",
+        timeout: 2_000,
+      }).stopOrReclaim();
+      expect(stopped).toBe(true);
+      expect(performance.now() - started).toBeGreaterThanOrEqual(150);
+    } finally {
+      try {
+        helper1.kill("SIGKILL");
+      } catch {}
+    }
+
+    // Stale mtime (> 5s) + alive PID: a non-lease caller waits the full stop
+    // window (a daemon from an older release drains without touching its pid
+    // file) and then clears it; holdsPublicationLease=true waits for the
+    // older daemon to finish draining.
+    const root2 = tempRoot();
+    const sock2 = engineSocketPath(root2, "main");
+    const pid2 = enginePidPath(root2, "main");
+    mkdirSync(path.dirname(sock2), { recursive: true, mode: 0o700 });
+    const helper2 = spawn(
+      process.execPath,
+      ["-e", "setTimeout(() => {}, 10000)"],
+      { stdio: "ignore" },
+    );
+    try {
+      writeFileSync(pid2, `${helper2.pid}\n`);
+      const staleTime = (Date.now() - 10_000) / 1000;
+      utimesSync(pid2, staleTime, staleTime);
+
+      const nonLease = new EngineClient({
+        workspaceRoot: root2,
+        branch: "main",
+        timeout: 2_000,
+      });
+      const reclaimStarted = performance.now();
+      expect(await nonLease.stopOrReclaim({ holdsPublicationLease: false })).toBe(
+        false,
+      );
+      expect(performance.now() - reclaimStarted).toBeGreaterThanOrEqual(4_900);
+      expect(existsSync(pid2)).toBe(false);
+
+      // Re-create stale pid file and test holdsPublicationLease=true (5 s wait).
+      writeFileSync(pid2, `${helper2.pid}\n`);
+      utimesSync(pid2, staleTime, staleTime);
+      setTimeout(() => rmSync(pid2, { force: true }), 220);
+      const leaseClient = new EngineClient({
+        workspaceRoot: root2,
+        branch: "main",
+        timeout: 2_000,
+        allowPublicationLock: true,
+      });
+      const started = performance.now();
+      expect(
+        await leaseClient.stopOrReclaim({ holdsPublicationLease: true }),
+      ).toBe(true);
+      expect(performance.now() - started).toBeGreaterThanOrEqual(150);
+    } finally {
+      try {
+        helper2.kill("SIGKILL");
+      } catch {}
+    }
+  }, 20_000);
+
+  unixSocketTest(
+    "fails closed on regular files and EACCES sockets without unlinking them",
+    async () => {
+      const root = tempRoot();
+      const socketPath = engineSocketPath(root, "main");
+      mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+      writeFileSync(socketPath, "not a socket");
+
+      const client = new EngineClient({
+        workspaceRoot: root,
+        branch: "main",
+        timeout: 500,
+      });
+      await expect(client.stopOrReclaim()).rejects.toThrow(
+        "socket remains present but is not reachable",
+      );
+      expect(existsSync(socketPath)).toBe(true);
+      await expect(client.start()).rejects.toThrow(
+        "socket remains present but is not reachable",
+      );
+      expect(existsSync(socketPath)).toBe(true);
+      rmSync(socketPath, { force: true });
+
+      if (process.getuid?.() !== 0) {
+        const server = net.createServer();
+        await new Promise<void>((resolve) =>
+          server.listen(socketPath, resolve),
+        );
+        try {
+          chmodSync(socketPath, 0o000);
+          await expect(client.stopOrReclaim()).rejects.toThrow(
+            "socket remains present but is not reachable",
+          );
+          expect(lstatSync(socketPath).isSocket()).toBe(true);
+        } finally {
+          chmodSync(socketPath, 0o600);
+          server.close();
+          rmSync(socketPath, { force: true });
+        }
+      }
+    },
+  );
 });

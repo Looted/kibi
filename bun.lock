@@ -36,6 +36,24 @@
         "yaml": "^2.9.1",
       },
     },
+    "packages/antigravity": {
+      "name": "kibi-antigravity",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "^25.9.8",
+        "kibi-agent-core": "^0.15.0",
+        "typescript": "^5.7.0",
+        "yaml": "^2.9.1",
+      },
+      "peerDependencies": {
+        "kibi-cli": ">=1.0.0",
+        "kibi-mcp": ">=1.0.0",
+      },
+      "optionalPeers": [
+        "kibi-cli",
+        "kibi-mcp",
+      ],
+    },
     "packages/claude": {
       "name": "kibi-claude",
       "version": "0.17.0",
@@ -1237,6 +1255,8 @@
     "keytar": ["keytar@7.9.0", "", { "dependencies": { "node-addon-api": "^4.3.0", "prebuild-install": "^7.0.1" } }, "sha512-VPD8mtVtm5JNtA2AErl6Chp06JBfy7diFQ7TQQhdpWOl6MrCRB+eRbvAZUsbGQS9kiMq0coJsy0W0vHpDCkWsQ=="],
 
     "kibi-agent-core": ["kibi-agent-core@workspace:packages/agent-core"],
+
+    "kibi-antigravity": ["kibi-antigravity@workspace:packages/antigravity"],
 
     "kibi-claude": ["kibi-claude@workspace:packages/claude"],
 

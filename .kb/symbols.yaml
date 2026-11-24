@@ -14049,10 +14049,10 @@ symbols:
     sourceFile: scripts/sync-agent-skills.ts
     status: active
     relationships:
-      - type: implements
-        target: REQ-zcode-plugin-package
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-plugin-package-v2
   - id: SYM-sync-agent-skills-main
     title: main
     sourceFile: scripts/sync-agent-skills.ts
@@ -14136,12 +14136,12 @@ symbols:
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-zcode-adapter-package
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-zcode-plugin-package
+        target: REQ-zcode-adapter-package
+      - type: implements
+        target: REQ-zcode-plugin-package-v2
   - id: SYM-kibi-predicate-suggestion-relevance-e2e
     title: predicate suggestion relevance e2e
     status: active
@@ -21731,7 +21731,15 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-kb-call-workspace-stamp
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
         target: TEST-mcp-workspace-routing
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-kb-call-workspace-stamp
       - type: implements
         target: REQ-mcp-workspace-routing
   - id: SYM-mcp-WorkspaceRouter-route
@@ -47577,6 +47585,382 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T16:11:19.609Z
+  - id: SYM-index-package-name
+    title: packageName
+    sourceFile: packages/antigravity/src/index.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:04:32.130Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
+  - id: SYM-index-adapter-kind
+    title: adapterKind
+    sourceFile: packages/antigravity/src/index.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:04:33.217Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
+  - id: SYM-kb-tools-kb-usage
+    title: KbUsage
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:36.917Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-canonical-kb-operation
+    title: canonicalKbOperation
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:37.985Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-unwrap-kibi-mcp-call
+    title: unwrapKibiMcpCall
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:38.989Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-workspace-overwrite
+    title: workspaceOverwrite
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:40.027Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-extract-mcp-kb-usage
+    title: extractMcpKbUsage
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:41.209Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-is-verified-git-commit
+    title: isVerifiedGitCommit
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:42.314Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-kb-tools-extract-cli-kb-usage
+    title: extractCliKbUsage
+    sourceFile: packages/antigravity/src/kb-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:05:43.716Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-src-session-state-session-event
+    title: SessionEvent
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:13.386Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-src-session-state-session-state
+    title: SessionState
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:14.657Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-session-state-workspace-data-dir
+    title: workspaceDataDir
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:15.926Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-session-state-session-dir
+    title: sessionDir
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:17.059Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-session-state-session-journal
+    title: sessionJournal
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:18.101Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-session-state-load-session-state
+    title: loadSessionState
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:19.137Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-session-state-append-session-events
+    title: appendSessionEvents
+    sourceFile: packages/antigravity/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:20.113Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-session-journal
+  - id: SYM-hook-input-antigravity-hook-input
+    title: AntigravityHookInput
+    sourceFile: packages/antigravity/src/hook-input.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:49.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-hook-input-parse-hook-input
+    title: parseHookInput
+    sourceFile: packages/antigravity/src/hook-input.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:50.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-hook-runner-run-hook
+    title: runHook
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:51.056Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-snippets-search-tip
+    title: searchTip
+    sourceFile: packages/antigravity/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:52.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-snippets-direct-kb-access-note
+    title: DIRECT_KB_ACCESS_NOTE
+    sourceFile: packages/antigravity/src/snippets.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:52.999Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-snippets-session-start-context
+    title: sessionStartContext
+    sourceFile: packages/antigravity/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:53.966Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-snippets-stop-reminder
+    title: stopReminder
+    sourceFile: packages/antigravity/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:06:54.976Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-lifecycle-and-scoping
+  - id: SYM-usage-log-append-hook-usage
+    title: appendHookUsage
+    sourceFile: packages/antigravity/src/usage-log.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:07:22.303Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-usage-telemetry
+  - id: SYM-usage-log-flush-hook-telemetry
+    title: flushHookTelemetry
+    sourceFile: packages/antigravity/src/usage-log.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:07:23.353Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-hook-usage-telemetry
+  - id: SYM-antigravity-mcp-launcher
+    granularity_reason: extractor-miss
+    sourceFile: packages/antigravity/bin/mcp-launcher.cjs
+    status: active
+    symbol_role: module
+    title: Antigravity MCP launcher (workspace-gated and roots/list kibi-mcp proxy)
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:07:47.654Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-mcp-workspace-discovery
+  - id: SYM-package-catalog-PACKAGE_CATALOG
+    sourceFile: scripts/package-catalog.ts
+    status: active
+    symbol_role: config
+    title: PACKAGE_CATALOG
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:07:59.882Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+  - id: SYM-sync-agent-skills-Target
+    granularity_reason: module-level-behavior
+    sourceFile: scripts/sync-agent-skills.ts
+    status: active
+    symbol_role: type-shape
+    title: Target
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:08:29.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
+  - id: SYM-sync-agent-skills-parseArgs
+    granularity_reason: module-level-behavior
+    sourceFile: scripts/sync-agent-skills.ts
+    status: active
+    symbol_role: behavioral
+    title: parseArgs
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T05:08:39.727Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
   - id: SYM-cli-json-alias-resolve-json-format
     title: resolveJsonFormat
     sourceFile: packages/cli/src/cli-json-alias.ts
@@ -47685,6 +48069,357 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T15:43:00.119Z
+  - id: SYM-sync-next-sync-cache
+    title: NextSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:21.075Z
+  - id: SYM-cache-sync-cache
+    title: SyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:28.937Z
+  - id: SYM-discovery-executors-query-payload
+    title: QueryPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:37.901Z
+  - id: SYM-discovery-executors-search-payload
+    title: SearchPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:46.342Z
+  - id: SYM-requirement-lifting-current-req-statuses
+    title: CURRENT_REQ_STATUSES
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:27:54.532Z
+  - id: SYM-requirement-lifting-superseded-adr-statuses
+    title: SUPERSEDED_ADR_STATUSES
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:02.747Z
+  - id: SYM-requirement-lifting-fact-links
+    title: FACT_LINKS
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:13.298Z
+  - id: SYM-requirement-lifting-lift-relationships
+    title: LIFT_RELATIONSHIPS
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:23.895Z
+  - id: SYM-requirement-lifting-lift-edge
+    title: LiftEdge
+    status: active
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:33.619Z
+  - id: SYM-search-answer-search-answer-scope
+    title: SearchAnswerScope
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:42.633Z
+  - id: SYM-content-freshness-mtime-source-reason-codes
+    title: MTIME_SOURCE_REASON_CODES
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:28:54.235Z
+  - id: SYM-content-freshness-branch-store-stale
+    title: BRANCH_STORE_STALE
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:29:06.755Z
+  - id: SYM-sync-compiled-sync-cache
+    title: compiledSyncCache
+    sourceFile: packages/cli/src/commands/sync.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:15.633Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-content-freshness-read-sync-cache-record
+    title: readSyncCacheRecord
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:18.883Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-content-freshness-string-hash-map
+    title: stringHashMap
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:19.823Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
+  - id: SYM-cache-compiler-fingerprint-reason
+    title: compilerFingerprintReason
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:51.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-stale-store-warning-note
+    title: staleStoreWarningNote
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:52.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-missing-cached-kb-source-reasons
+    title: missingCachedKbSourceReasons
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:53.732Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-content-freshness-confirm-source-newer-reasons
+    title: confirmSourceNewerReasons
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:33:54.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kb-query-kb-search-confirm-source
+  - id: SYM-engine-engine-client-stop-or-reclaim
+    title: EngineClient.stopOrReclaim
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:27.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-engine-engine-client-get-pid
+    title: EngineClient.getPid
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:28.743Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-engine-engine-client-stop
+    title: EngineClient.stop
+    sourceFile: packages/cli/src/engine.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:34:29.712Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-engine-client-reclaim-dead-unix-socket
+  - id: SYM-requirement-lifting-owning-requirements
+    title: owningRequirements
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:04.575Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-assumed-scenario-ids
+    title: assumedScenarioIds
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:05.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-lift-test-targets
+    title: liftTestTargets
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:06.646Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-lift-assumed-fact
+    title: liftAssumedFact
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:07.591Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-resolve-supersedes-target
+    title: resolveSupersedesTarget
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:08.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-requirement-lifting-query-typed-edges
+    title: queryTypedEdges
+    sourceFile: packages/cli/src/requirement-lifting.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:09.487Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-search-hints-search-hints-entities
+    title: searchHintsEntities
+    sourceFile: packages/cli/src/search-hints.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:10.487Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-intent-search-is-broad-rationale-query
+    title: isBroadRationaleQuery
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:35:11.447Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-answers-search-hints-lift-two
+  - id: SYM-content-freshness-freshness-memo
+    title: FreshnessMemo
+    status: active
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:51:07.074Z
+  - id: SYM-content-freshness-create-freshness-memo
+    title: createFreshnessMemo
+    sourceFile: packages/cli/src/utils/content-freshness.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T10:56:21.724Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-persist-stat-hash-freshness-memo
   - id: SYM-test-vibe-hooks-decision-guard
     title: kibi-vibe decision guard suite
     status: active
@@ -47854,3 +48589,135 @@ symbols:
         target: REQ-kibi-search-abstention-next-step
       - type: implements
         target: REQ-kibi-search-question-next-steps
+  - id: SYM-zcode-case-kb-call-without-workspace
+    title: ZCode names the session workspace on a Kibi MCP call that carries none
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:48:54.226Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-kb-call-names-workspace
+    title: ZCode leaves a Kibi MCP call that names a workspace alone
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:48:57.324Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-test-agent-hosts-kb-call-workspace-stamp
+    title: Host Kibi MCP call workspace stamp suite
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    sourceFile: packages/agent-core/tests/kb-mcp-tools.test.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-23T17:56:33.129Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-kb-call-workspace-stamp
+  - id: SYM-antigravity-hook-runner-branches-test
+    title: Antigravity hook runner branch tests
+    status: active
+    sourceFile: packages/antigravity/tests/hook-runner-branches.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:12.564Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-hook-runner-test
+    title: Antigravity hook runner tests
+    status: active
+    sourceFile: packages/antigravity/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:15.254Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-kb-tools-session-test
+    title: Antigravity KB tool and session journal tests
+    status: active
+    sourceFile: packages/antigravity/tests/kb-tools-session.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:17.781Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-edges-test
+    title: Antigravity MCP launcher edge-case tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher-edges.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:20.301Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-port-test
+    title: Antigravity MCP launcher resolution tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher-port.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:22.954Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-test
+    title: Antigravity MCP launcher tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:25.544Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-plugin-contract-test
+    title: Antigravity plugin contract tests
+    status: active
+    sourceFile: packages/antigravity/tests/plugin-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:28.063Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-serve-deferred-test
+    title: Antigravity deferred MCP server tests
+    status: active
+    sourceFile: packages/antigravity/tests/serve-deferred.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:30.862Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
