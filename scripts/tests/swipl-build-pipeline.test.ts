@@ -633,3 +633,108 @@ describe("SWI build pipeline workflow contract", () => {
     }
   });
 });
+
+const ARCHIVE_CACHE_INPUTS = [
+  "scripts/swipl-version.json",
+  "scripts/swipl-spike.py",
+  "scripts/swipl-spike.sh",
+  "scripts/swipl-windows-repack.py",
+  "scripts/patches/swipl-*.patch",
+  ".github/workflows/swipl-build.yml",
+];
+
+type CacheStep = {
+  name?: string;
+  uses?: string;
+  if?: string;
+  run?: string;
+  env?: Record<string, string>;
+  "continue-on-error"?: string;
+  with?: Record<string, string>;
+};
+
+describe("release archive cache", () => {
+  const parsed = Bun.YAML.parse(
+    readFileSync(join(ROOT, ".github/workflows/swipl-build.yml"), "utf8"),
+  ) as {
+    on: {
+      workflow_call: { inputs: { "archive-cache": { default: string } } };
+    };
+    jobs: Record<string, { steps: CacheStep[] }>;
+  };
+
+  test("defaults to off, so a caller that omits the input builds from source", () => {
+    expect(parsed.on.workflow_call.inputs["archive-cache"].default).toBe(
+      "off",
+    );
+  });
+
+  test("each producer restores and saves under one exact per-target key", () => {
+    for (const id of ["build-linux", "build-macos", "build-windows"]) {
+      const steps = parsed.jobs[id]?.steps ?? [];
+      const restore = steps.find((step) => step.name === "Restore a cached archive");
+      const save = steps.find((step) => step.name === "Save the archive cache");
+      expect(restore?.uses).toMatch(/^actions\/cache\/restore@/);
+      expect(save?.uses).toMatch(/^actions\/cache\/save@/);
+      expect(restore?.["with"]?.["lookup-only"]).toBe(
+        "${{ inputs.archive-cache == 'write' }}",
+      );
+      expect(restore?.if).toContain("inputs.archive-cache == 'read'");
+      expect(restore?.if).toContain("inputs.archive-cache == 'write'");
+      expect(restore?.with).not.toHaveProperty("restore-keys");
+      expect(save?.with).not.toHaveProperty("restore-keys");
+      const key = restore?.with?.key ?? "";
+      expect(key).toBe(save?.with?.key);
+      expect(key.startsWith("swipl-release-archive-${{ matrix.target }}-")).toBe(
+        true,
+      );
+      for (const input of ARCHIVE_CACHE_INPUTS) {
+        expect(key, input).toContain(`'${input}'`);
+      }
+      expect(save?.if).toContain("steps.cache.outputs.cache-hit != 'true'");
+      expect(save?.["continue-on-error"]).toBe(
+        "${{ inputs.archive-cache == 'read' }}",
+      );
+      expect(save?.with?.path ?? "").not.toContain("cache-status");
+      const build = steps.find((step) => step.run?.includes(" build-archive "));
+      expect(build?.if).toBe(
+        "success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')",
+      );
+      const record = steps.find(
+        (step) => step.name === "Record archive cache status",
+      );
+      expect(record?.env?.ARCHIVE_CACHE_MODE).toBe("${{ inputs.archive-cache }}");
+      expect(record?.env?.ARCHIVE_CACHE_HIT).toBe(
+        "${{ steps.cache.outputs.cache-hit }}",
+      );
+      expect(record?.run).toContain(
+        '[[ "$ARCHIVE_CACHE_MODE" == "read" && "$ARCHIVE_CACHE_HIT" == "true" ]]',
+      );
+      expect(record?.run).toContain("printf 'hit\\n'");
+      expect(record?.run).toContain("printf 'miss\\n'");
+      const upload = steps.find(
+        (step) =>
+          step.uses?.startsWith("actions/upload-artifact@") &&
+          step.with?.path?.includes("cache-status"),
+      );
+      expect(upload?.with?.path).toContain("cache-status");
+      expect(upload?.with?.path).toContain(".tar.gz");
+    }
+  });
+
+  test("smoke drops the run binding only when the artifact says the cache hit", () => {
+    for (const id of ["smoke-linux", "smoke-macos", "smoke-windows"]) {
+      const smoke = (parsed.jobs[id]?.steps ?? []).find((step) =>
+        step.run?.includes("cache-status"),
+      );
+      const run = smoke?.run ?? "";
+      expect(run).toContain(
+        '[[ "$(cat "$ARTIFACT_DIR/cache-status")" == "hit" ]]',
+      );
+      expect(run).toContain("unset GITHUB_SHA GITHUB_RUN_ID");
+      expect(run.indexOf("unset GITHUB_SHA")).toBeLessThan(
+        run.indexOf("smoke-archive"),
+      );
+    }
+  });
+});

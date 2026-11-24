@@ -14,10 +14,21 @@ on:
       - scripts/tests/swipl-spike-config.test.ts
       - scripts/tests/swipl-build-*.test.ts
   workflow_dispatch:
-  # Release workflows build the archives themselves, in their own run and from
-  # their own commit, so the artifacts they package were produced by this exact
-  # source and pins and never come from an earlier or foreign run.
+  # Publish and every non-pull-request caller build the archives in this run
+  # from this commit. The default archive-cache mode is off: no restore and no
+  # save, so a released package cannot be a cached build. A pull-request dry
+  # run passes read and may restore an archive whose key still matches. A
+  # develop push of the dry run passes write: it still builds from source, then
+  # saves that archive so later pull requests can restore it.
   workflow_call:
+    inputs:
+      archive-cache:
+        description: >
+          off (default) builds from source and does not touch the cache.
+          read restores a matching archive and builds from source on a miss.
+          write always builds from source, then saves a new key.
+        type: string
+        default: "off"
 
 permissions:
   contents: read
@@ -39,21 +50,54 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Locate artifact directory
+        id: paths
+        run: echo "dir=$RUNNER_TEMP/swipl-build/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
+      # Exact key, no restore-keys. A pin, patch, script, or workflow change
+      # misses instead of restoring an older archive. write looks up only, so
+      # this step never replaces the from-source build.
+      - name: Restore a cached archive
+        id: cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write')
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          lookup-only: ${{ inputs.archive-cache == 'write' }}
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
       - name: Require no preinstalled SWI-Prolog
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
           if command -v swipl; then exit 1; fi
       - name: Install native build and audit tools
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
           dnf install -y perl-core make gcc gcc-c++ binutils file
           /opt/python/cp311-cp311/bin/python -m pip install --no-cache-dir cmake==3.31.10 ninja==1.13.0 patchelf==0.17.2.4
           echo /opt/python/cp311-cp311/bin >> "$GITHUB_PATH"
-      - name: Locate artifact directory
-        id: paths
-        run: echo "dir=$RUNNER_TEMP/swipl-build/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
       - name: Build, relocate, audit, and smoke
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
+      - name: Record archive cache status
+        if: success()
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          ARCHIVE_CACHE_MODE: ${{ inputs.archive-cache }}
+          ARCHIVE_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          if [[ "$ARCHIVE_CACHE_MODE" == "read" && "$ARCHIVE_CACHE_HIT" == "true" ]]; then
+            printf 'hit\n' > "$BUILD_DIR/cache-status"
+            status=hit
+          else
+            printf 'miss\n' > "$BUILD_DIR/cache-status"
+            status=miss
+          fi
+          echo "swipl ${{ matrix.target }} archive cache: $status" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -69,8 +113,19 @@ jobs:
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz.sha256
             ${{ steps.paths.outputs.dir }}/report.json
+            ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Save the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        continue-on-error: ${{ inputs.archive-cache == 'read' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   build-macos:
     strategy:
@@ -85,26 +140,57 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Locate artifact directory
+        id: paths
+        run: echo "dir=$RUNNER_TEMP/swipl-build/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
+      - name: Restore a cached archive
+        id: cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write')
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          lookup-only: ${{ inputs.archive-cache == 'write' }}
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
       - name: Require no preinstalled SWI-Prolog
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
           if command -v swipl; then exit 1; fi
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         with:
           python-version: '3.12'
       - name: Install pinned build tools and check native audits
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
           python3 -m pip install cmake==3.31.10 ninja==1.13.0
           command -v make
           command -v install_name_tool
           command -v codesign
           command -v otool
-      - name: Locate artifact directory
-        id: paths
-        run: echo "dir=$RUNNER_TEMP/swipl-build/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
       - name: Build, relocate, sign, audit, and smoke
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
+      - name: Record archive cache status
+        if: success()
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          ARCHIVE_CACHE_MODE: ${{ inputs.archive-cache }}
+          ARCHIVE_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          if [[ "$ARCHIVE_CACHE_MODE" == "read" && "$ARCHIVE_CACHE_HIT" == "true" ]]; then
+            printf 'hit\n' > "$BUILD_DIR/cache-status"
+            status=hit
+          else
+            printf 'miss\n' > "$BUILD_DIR/cache-status"
+            status=miss
+          fi
+          echo "swipl ${{ matrix.target }} archive cache: $status" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -120,8 +206,19 @@ jobs:
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz.sha256
             ${{ steps.paths.outputs.dir }}/report.json
+            ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Save the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        continue-on-error: ${{ inputs.archive-cache == 'read' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   build-windows:
     strategy:
@@ -137,21 +234,52 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Require no preinstalled SWI-Prolog
-        run: |
-          if command -v swipl swipl.exe; then exit 1; fi
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: '3.12'
-      - name: Check 7-Zip is present
-        run: 7z i | head -2
       - name: Locate artifact directory
         id: paths
         run: echo "dir=$RUNNER_TEMP/swipl-build/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
+      - name: Restore a cached archive
+        id: cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write')
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          lookup-only: ${{ inputs.archive-cache == 'write' }}
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
+      - name: Require no preinstalled SWI-Prolog
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
+        run: |
+          if command -v swipl swipl.exe; then exit 1; fi
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
+        with:
+          python-version: '3.12'
+      - name: Check 7-Zip is present
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
+        run: 7z i | head -2
       - name: Repackage, trim, audit, and smoke
+        if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: python3 scripts/swipl-windows-repack.py build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
+      - name: Record archive cache status
+        if: success()
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          ARCHIVE_CACHE_MODE: ${{ inputs.archive-cache }}
+          ARCHIVE_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          if [[ "$ARCHIVE_CACHE_MODE" == "read" && "$ARCHIVE_CACHE_HIT" == "true" ]]; then
+            printf 'hit\n' > "$BUILD_DIR/cache-status"
+            status=hit
+          else
+            printf 'miss\n' > "$BUILD_DIR/cache-status"
+            status=miss
+          fi
+          echo "swipl ${{ matrix.target }} archive cache: $status" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -167,8 +295,19 @@ jobs:
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz
             ${{ steps.paths.outputs.dir }}/swipl-*.tar.gz.sha256
             ${{ steps.paths.outputs.dir }}/report.json
+            ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Save the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        continue-on-error: ${{ inputs.archive-cache == 'read' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
+            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   smoke-linux:
     needs: build-linux
@@ -213,6 +352,12 @@ jobs:
           shopt -s nullglob
           archives=("$ARTIFACT_DIR"/*.tar.gz)
           test "${#archives[@]}" -eq 1
+          # hit means this archive was restored. Drop only the commit and run
+          # binding; pins, checksum, native audit and smoke still run. A miss
+          # keeps the binding, so a from-source archive must be from this run.
+          if [[ "$(cat "$ARTIFACT_DIR/cache-status")" == "hit" ]]; then
+            unset GITHUB_SHA GITHUB_RUN_ID
+          fi
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -262,6 +407,12 @@ jobs:
           shopt -s nullglob
           archives=("$ARTIFACT_DIR"/*.tar.gz)
           test "${#archives[@]}" -eq 1
+          # hit means this archive was restored. Drop only the commit and run
+          # binding; pins, checksum, native audit and smoke still run. A miss
+          # keeps the binding, so a from-source archive must be from this run.
+          if [[ "$(cat "$ARTIFACT_DIR/cache-status")" == "hit" ]]; then
+            unset GITHUB_SHA GITHUB_RUN_ID
+          fi
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -311,6 +462,9 @@ jobs:
           shopt -s nullglob
           archives=("$ARTIFACT_DIR"/*.tar.gz)
           test "${#archives[@]}" -eq 1
+          if [[ "$(cat "$ARTIFACT_DIR/cache-status")" == "hit" ]]; then
+            unset GITHUB_SHA GITHUB_RUN_ID
+          fi
           python3 scripts/swipl-windows-repack.py smoke-archive --target win32-x64             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
