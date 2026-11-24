@@ -17,6 +17,47 @@ type Header = {
 };
 
 /**
+ * The vectors a cache file holds for `model`. A missing, foreign or damaged
+ * file gives none: every vector is then rebuilt, and nothing stale is ever
+ * returned.
+ */
+export function readVectorFile(
+  file: string,
+  model: string,
+  dims: number,
+): Map<string, CachedVector> {
+  const vectors = new Map<string, CachedVector>();
+  try {
+    const bytes = readFileSync(file);
+    if (
+      bytes.toString("ascii", 0, 4) !== MAGIC ||
+      bytes.readUInt32LE(4) !== FORMAT_VERSION
+    )
+      return vectors;
+    const headerLength = bytes.readUInt32LE(8);
+    const header = JSON.parse(
+      bytes.toString("utf8", 12, 12 + headerLength),
+    ) as Header;
+    // A file of other dimensions fails the length check below.
+    if (header.model !== model) return vectors;
+    const start = 12 + headerLength;
+    const width = dims * 4;
+    if (bytes.length !== start + header.entries.length * width) return vectors;
+    // A DataView reads little-endian floats at any offset without a
+    // per-value call into Buffer, which dominates a warm search otherwise.
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+    header.entries.forEach(([key, hash], index) => {
+      const offset = start + index * width;
+      const vector = new Float32Array(dims);
+      for (let col = 0; col < dims; col += 1)
+        vector[col] = view.getFloat32(offset + col * 4, true);
+      vectors.set(key, { hash, vector });
+    });
+  } catch {}
+  return vectors;
+}
+
+/**
  * Entity vectors keyed by type::id and the host content hash. A changed
  * entity, a different model or a damaged file means that vector (or the
  * whole file) is rebuilt; nothing stale is ever returned.
@@ -33,37 +74,9 @@ export class VectorCache {
 
   static open(directory: string, model: string, dims: number): VectorCache {
     const cache = new VectorCache(path.join(directory, FILE_NAME), model, dims);
-    cache.read();
+    for (const [key, cached] of readVectorFile(cache.file, model, dims))
+      cache.vectors.set(key, cached);
     return cache;
-  }
-
-  private read(): void {
-    // A missing, foreign or damaged file leaves the cache empty: every
-    // vector is then rebuilt, and nothing stale is ever returned.
-    try {
-      const bytes = readFileSync(this.file);
-      if (
-        bytes.toString("ascii", 0, 4) !== MAGIC ||
-        bytes.readUInt32LE(4) !== FORMAT_VERSION
-      )
-        return;
-      const headerLength = bytes.readUInt32LE(8);
-      const header = JSON.parse(
-        bytes.toString("utf8", 12, 12 + headerLength),
-      ) as Header;
-      // A file of other dimensions fails the length check below.
-      if (header.model !== this.model) return;
-      const start = 12 + headerLength;
-      const width = this.dims * 4;
-      if (bytes.length !== start + header.entries.length * width) return;
-      header.entries.forEach(([key, hash], index) => {
-        const offset = start + index * width;
-        const vector = Float32Array.from({ length: this.dims }, (_, col) =>
-          bytes.readFloatLE(offset + col * 4),
-        );
-        this.vectors.set(key, { hash, vector });
-      });
-    } catch {}
   }
 
   /** The vector of each entity, computing only the ones not cached. */
@@ -118,9 +131,11 @@ export class VectorCache {
     out.writeUInt32LE(FORMAT_VERSION, 4);
     out.writeUInt32LE(header.length, 8);
     header.copy(out, 12);
+    const view = new DataView(out.buffer, out.byteOffset, out.length);
     entries.forEach(([, { vector }], index) => {
       const offset = 12 + header.length + index * width;
-      vector.forEach((value, col) => out.writeFloatLE(value, offset + col * 4));
+      for (let col = 0; col < vector.length; col += 1)
+        view.setFloat32(offset + col * 4, vector[col] as number, true);
     });
     const temporary = `${this.file}.${process.pid}.tmp`;
     try {

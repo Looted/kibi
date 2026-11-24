@@ -12,4 +12,4 @@ origin:
 id: SCEN-ci-proof-search-gates-before-prove
 type: scenario
 ---
-A change that pushes a gold answer out of the top three fails the kb_search gold-set gate right after the KB sync, before the long kibi prove --all step starts, and the gates run alone on the runner so their latency thresholds measure search, not proof load.
+The kb_search gold-set gates run on their own job, right after that job syncs the KB, with no prove step on the runner. A failure cancels the rest of the proof run, so a search regression is reported without waiting for kibi prove --all to finish, and the latency thresholds measure search rather than load from a concurrent prove.

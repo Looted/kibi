@@ -13,7 +13,7 @@ import {
  * The upstream embedding model kibi-plugin-search-hints bundles and the revision of it. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */
 
-/** The search hints embedding model shall be minishlab/potion-base-8M. */
+/** The search hints embedding model shall be minishlab/potion-retrieval-32M. */
 export function searchHintsModelIdCertificate(): CodeCertificate {
   return regexCertificate({
     testId: "TEST-proof-search-hints-model-id",
@@ -22,7 +22,7 @@ export function searchHintsModelIdCertificate(): CodeCertificate {
   });
 }
 
-/** The search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23. */
+/** The search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7. */
 export function searchHintsModelRevisionCertificate(): CodeCertificate {
   return regexCertificate({
     testId: "TEST-proof-search-hints-model-revision",
@@ -32,13 +32,13 @@ export function searchHintsModelRevisionCertificate(): CodeCertificate {
 }
 
 describe("Search hints embedding model pin", () => {
-  test("The search hints embedding model shall be minishlab/potion-base-8M", () => {
+  test("The search hints embedding model shall be minishlab/potion-retrieval-32M", () => {
     writeCodeCertificate(searchHintsModelIdCertificate());
-    expect(MODEL_ID).toBe("minishlab/potion-base-8M");
+    expect(MODEL_ID).toBe("minishlab/potion-retrieval-32M");
   });
 
-  test("The search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23", () => {
+  test("The search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7", () => {
     writeCodeCertificate(searchHintsModelRevisionCertificate());
-    expect(MODEL_REVISION).toBe("bf8b056651a2c21b8d2565580b8569da283cab23");
+    expect(MODEL_REVISION).toBe("6fc8051fab2a1e0ee76689cf08c853792ac285e7");
   });
 });

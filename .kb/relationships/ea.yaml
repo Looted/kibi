@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cdc8a94000a
+  - type: implements
+    from: SYM-plugin-search-hints-vector-cache
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:21:09.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c7989f78d17
+  - type: covered_by
+    from: SYM-plugin-search-hints-vector-cache
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:21:09.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee4ce56db7f7
