@@ -409,3 +409,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e772881021c
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:39:01.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e8bc1677e78
+  - type: assumes
+    from: SCEN-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    to: FACT-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:01.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caafaae73b62

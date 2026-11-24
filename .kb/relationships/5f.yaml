@@ -202,13 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d56eee8a9b5
-  - type: requires_property
-    from: REQ-kibi-plugin-search-hints
-    to: FACT-plugin-search-hints-bootstrap-offer
-    created_at: 2026-10-29T19:21:51.311Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b670248d645
   - type: specified_by
     from: REQ-kibi-plugin-search-hints
     to: SCEN-NEG-kibi-plugin-search-hints-STALE-VECTOR
@@ -216,20 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48c415289eff
-  - type: specified_by
-    from: REQ-kibi-plugin-search-hints
-    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
-    created_at: 2026-10-30T14:58:42.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12eb17049085
-  - type: specified_by
-    from: REQ-kibi-plugin-search-hints
-    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
-    created_at: 2026-10-30T14:58:45.588Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-abe2532e93a8
   - type: assumes
     from: SCEN-agent-core-shared-hook-inputs
     to: FACT-PRED-agent-core-shared-hook-inputs
@@ -258,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01f3e3a3f139
-  - type: constrains
-    from: REQ-kibi-plugin-search-hints
-    to: FACT-search-hint-limits-component
-    created_at: 2026-11-16T10:44:29.077Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-18e0a6c7e23c
   - type: restates
     from: REQ-kibi-plugin-search-hints
     to: REQ-kibi-search-hints-limits
@@ -307,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-707ef5aa04ff
+  - type: implements
+    from: SYM-search-hints-default-resolution
+    to: REQ-kibi-search-hints-default
+    created_at: 2026-11-24T08:22:45.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93ece44ab169
+  - type: covered_by
+    from: SYM-search-hints-default-resolution
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T08:22:45.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb2b57ce19a5
