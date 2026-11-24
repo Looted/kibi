@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e2131f8e9d9
+  - type: implements
+    from: SYM-kibi-check-build-structured-content
+    to: REQ-kb-check-symbols-without-links
+    created_at: 2026-11-24T19:21:42.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6d5da2f4dca
+  - type: covered_by
+    from: SYM-kibi-check-build-structured-content
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:42.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25f12cadfc89

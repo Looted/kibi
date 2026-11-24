@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7088d086fc42
+  - type: assumes
+    from: SCEN-CASE-kb-check-symbols-without-links-CHECK-SYMBOL-WITH-LINKS
+    to: FACT-CASE-kb-check-symbols-without-links-CHECK-SYMBOL-WITH-LINKS
+    created_at: 2026-11-24T19:26:43.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1647afaed061
+  - type: verified_by
+    from: SCEN-CASE-kb-check-symbols-without-links-CHECK-SYMBOL-WITH-LINKS
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:26:43.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5db269832cd

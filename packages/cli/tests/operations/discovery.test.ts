@@ -553,8 +553,26 @@ describe("shared discovery operation executors", () => {
             },
     );
 
-    const summary = await searchSpec.execute(
+    // The answer quotes REQ-1's statement, so its result is cut to its
+    // identity, score and reasons; without the answer it is a summary.
+    const answered = await searchSpec.execute(
       { query: "OAuth login" },
+      createContext(query),
+    );
+    const slim = answered.structuredContent?.results[0];
+    expect(Object.keys(slim ?? {}).sort()).toEqual([
+      "entity",
+      "reasons",
+      "score",
+    ]);
+    expect(slim?.entity).toEqual({
+      id: "REQ-1",
+      type: "req",
+      title: "OAuth login flow",
+    });
+
+    const summary = await searchSpec.execute(
+      { query: "OAuth login", answer: false },
       createContext(query),
     );
     const summarized = summary.structuredContent?.results[0];
