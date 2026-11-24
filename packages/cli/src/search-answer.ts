@@ -232,6 +232,26 @@ export type SearchAnswer = Readonly<{
   note: string;
 }>;
 
+/**
+ * The ids of the entities the answer quotes in full: governing requirements
+ * whose statement was not clipped, and facts (governing or not) with their
+ * claim. kb_search returns these entities' results without their text.
+ */
+export function answerQuotedIds(answer: SearchAnswer): Set<string> {
+  const ids = new Set<string>();
+  const addFact = (fact: SearchAnswerFact) => {
+    if (fact.claim !== undefined) ids.add(fact.id);
+  };
+  for (const requirement of answer.governing) {
+    const statement = requirement.statement;
+    if (statement !== undefined && !statement.endsWith("…"))
+      ids.add(requirement.id);
+    requirement.facts.forEach(addFact);
+  }
+  answer.ungoverned.forEach(addFact);
+  return ids;
+}
+
 export type SearchAnswerOptions = Readonly<{
   /** Root that ADR sources resolve against; without it no excerpts. */
   workspaceRoot?: string;
@@ -1222,8 +1242,7 @@ export async function buildSearchAnswer(
       else if (row !== null) truncated = true;
       continue;
     }
-    for (const { owner, via } of owners)
-      propose(owner, fact.score * 0.85, via);
+    for (const { owner, via } of owners) propose(owner, fact.score * 0.85, via);
   }
 
   // A matched requirement that was superseded points at what governs now:
@@ -1472,7 +1491,9 @@ export async function buildSearchAnswer(
       typeof verdicts?.scope?.syncedAt === "string"
         ? verdicts.scope.syncedAt
         : null,
-    ...(options.syncState !== undefined ? { syncState: options.syncState } : {}),
+    ...(options.syncState !== undefined
+      ? { syncState: options.syncState }
+      : {}),
     ...(options.staleReasonCount !== undefined
       ? { staleReasonCount: options.staleReasonCount }
       : {}),

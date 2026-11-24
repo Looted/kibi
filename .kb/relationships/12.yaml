@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1e2bafd7bfa
+  - type: assumes
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    to: FACT-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    created_at: 2026-11-24T19:29:40.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b400eb1dde28
+  - type: verified_by
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:29:40.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-736dc84a248b

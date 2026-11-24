@@ -496,3 +496,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6017adddc2cb
+  - type: constrains
+    from: REQ-kb-check-impact-advice-once
+    to: FACT-SUBJ-kibi-impact-next-actions
+    created_at: 2026-11-24T19:21:18.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6859df13d90
+  - type: requires_property
+    from: REQ-kb-check-impact-advice-once
+    to: FACT-check-impact-advice-once
+    created_at: 2026-11-24T19:21:18.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9122c5ade43a
+  - type: specified_by
+    from: REQ-kb-check-impact-advice-once
+    to: SCEN-kb-check-impact-advice-once
+    created_at: 2026-11-24T19:21:18.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43a4d2eb09c
+  - type: relates_to
+    from: REQ-kb-check-impact-advice-once
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-24T19:21:18.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16e208a8b259
+  - type: specified_by
+    from: REQ-kb-check-impact-advice-once
+    to: SCEN-CASE-kb-check-impact-advice-once-CHECK-ADVICE-COPIED
+    created_at: 2026-11-24T19:26:51.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20afc26bf577

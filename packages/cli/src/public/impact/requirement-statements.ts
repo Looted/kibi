@@ -8,6 +8,11 @@ import {
 } from "../../extractors/markdown.js";
 import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
+import {
+  STATEMENT_UNVERIFIED_ADVICE,
+  STATEMENT_UNVERIFIED_FIRM_ADVICE,
+  fillAdvice,
+} from "./shared-advice.js";
 
 /**
  * Kibi's checks compare structure (links, coverage, facts), never code with a
@@ -117,10 +122,12 @@ export function createRequirementStatementDiagnostics(
       files: [...entry.files].sort(),
       docs: ["docs/symbol-traceability-taxonomy.md"],
       message: `The change edits ${names}, which ${verb} ${id} [${label}]: "${statement}" Kibi compared links and facts, not the code with this statement, so no violation here does not mean the change keeps it.`,
-      suggestion:
+      suggestion: fillAdvice(
         firmness === "firm"
-          ? `Confirm the changed code still does what ${id} says. If it no longer does, the request conflicts with a rule a person set: stop and ask whether to change ${id}; change it only with their words in origin.ref, and say in the final answer which rule changed.`
-          : `Confirm the changed code still does what ${id} says. If it no longer does, the request conflicts with a recorded rule: ask whether to change ${id} before keeping the change, then supersede or update it in the same change with the person's words, and say in the final answer which rule changed.`,
+          ? STATEMENT_UNVERIFIED_FIRM_ADVICE
+          : STATEMENT_UNVERIFIED_ADVICE,
+        { requirement: id },
+      ),
       evidence: {
         requirement: id,
         firmness,
@@ -130,6 +137,35 @@ export function createRequirementStatementDiagnostics(
     });
   }
   return diagnostics;
+}
+
+/**
+ * The diagnostic with its message no longer quoting the requirement's
+ * statement, which its evidence carries: a result that lists the evidence
+ * quotes the statement once. Any other diagnostic is returned as it is.
+ */
+export function withoutQuotedStatement<
+  T extends {
+    readonly id: string;
+    readonly message: string;
+    readonly evidence?: Readonly<Record<string, unknown>>;
+  },
+>(diagnostic: T): T {
+  const statement = diagnostic.evidence?.statement;
+  if (
+    diagnostic.id !== "requirement_statement_unverified" ||
+    typeof statement !== "string"
+  )
+    return diagnostic;
+  const quoted = `: "${statement}" `;
+  if (!diagnostic.message.includes(quoted)) return diagnostic;
+  return {
+    ...diagnostic,
+    message: diagnostic.message.replace(
+      quoted,
+      "; its statement is in evidence.statement. ",
+    ),
+  };
 }
 
 /**

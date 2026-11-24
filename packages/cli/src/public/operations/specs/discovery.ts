@@ -291,9 +291,9 @@ export const searchSpec = {
         enum: ["summary", "full"],
         default: "summary",
         description:
-          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
+          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery; a result whose entity the answer already quotes (a requirement with its whole statement, a fact with its claim) gives only its id, type, title, score and reasons. Use 'full' to include complete entity bodies for every result, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
         [ADVERTISED_DESCRIPTION]:
-          "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
+          "'summary': metadata, snippet (bare rows for entities the answer quotes); 'full': bodies, graph paths, fact queries.",
       },
     },
   },
