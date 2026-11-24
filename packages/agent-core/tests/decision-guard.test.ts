@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   type DecisionSession,
+  RECORD_FOLLOW_UP_LINE,
   SIGNOFF_LATEST_JSON,
   captureReminder,
   claimCaptureReminder,
@@ -1011,14 +1012,14 @@ describe("statedRule and notes", () => {
     expect(captureReminder("never")).toBe(
       [
         'Kibi: the person\'s request said "never", this session changed source files, and nothing was recorded in the knowledge base.',
-        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule.',
+        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule. kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.',
       ].join("\n"),
     );
     expect(captureReminder("never")).not.toContain("when there was none");
     expect(captureReminder(undefined)).toBe(
       [
         "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line. kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.",
       ].join("\n"),
     );
   });
@@ -1026,7 +1027,8 @@ describe("statedRule and notes", () => {
   test("the capture template quotes the phrase and is one kb_record input", () => {
     const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
     expect(rest).toEqual([
-      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+      "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.",
+      "Facts, decisions and other modeling go through kb_upsert.",
     ]);
     expect(intro).toBe(
       'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:',
@@ -1048,7 +1050,7 @@ describe("statedRule and notes", () => {
     expect(rulePromptNote("must", "because longer ones get skipped")).toBe(
       `${rulePromptNote("must")}\n${ask}`,
     );
-    const [, payload, line, last] = ruleCaptureTemplate(
+    const [, payload, line, followUp, last] = ruleCaptureTemplate(
       "must",
       "because longer ones get skipped",
     ).split("\n");
@@ -1056,8 +1058,9 @@ describe("statedRule and notes", () => {
       "<the person's reason, in their words>",
     );
     expect(line).toBe(ask);
+    expect(followUp).toBe(RECORD_FOLLOW_UP_LINE);
     expect(last).toBe(
-      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+      "Facts, decisions and other modeling go through kb_upsert.",
     );
   });
 });

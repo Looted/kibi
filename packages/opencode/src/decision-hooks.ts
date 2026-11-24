@@ -160,10 +160,11 @@ export function createDecisionHooks(
       const text = messageText(parts);
       if (text.trim() === "") return;
       const session = sessionFor(sessionId);
-      const rule = recordRequest(session, text);
+      const rule = recordRequest(session, text, { workspaceRoot });
       // The message hook cannot add context: the note waits for the next
       // tool result the agent reads.
-      if (rule !== undefined) holdRuleNote(session, rule, statedReason(text));
+      if (rule !== undefined)
+        holdRuleNote(session, rule, statedReason(text, workspaceRoot));
     },
 
     beforeTool(tool, sessionId, args) {

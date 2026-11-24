@@ -142,6 +142,8 @@ export type RequirementHead = {
   id: string;
   title: string;
   status?: string;
+  /** The front matter's one-line `semantic_text`, when it has one. */
+  statement?: string;
 };
 
 function unquote(value: string): string {
@@ -170,14 +172,17 @@ function readHead(file: string): RequirementHead | undefined {
   for (const line of lines.slice(1)) {
     if (line.trim() === "---") break;
     // unquote trims the value, so the space after the colon is optional.
-    const match = /^(id|title|status):(.+)/.exec(line);
+    const match = /^(id|title|status|semantic_text):(.+)/.exec(line);
     if (match) fields[match[1] as string] = unquote(match[2] as string);
   }
   if (!fields.id || !fields.title) return undefined;
+  // A folded or block value (`>-`, `|`) is not read from the head.
+  const statement = fields.semantic_text?.replace(/''/g, "'");
   return {
     id: fields.id,
     title: fields.title,
     ...(fields.status ? { status: fields.status } : {}),
+    ...(statement && !/^[>|]/.test(statement) ? { statement } : {}),
   };
 }
 
@@ -397,4 +402,69 @@ export function requirementCandidatesForPath(
     requestWords,
     replaced,
   );
+}
+
+/** Words that turn a rule around: a sentence and a requirement must agree. */
+const NEGATION = /\b(?:not|never|no|none|without|cannot|nor)\b|n't\b/i;
+
+/** The fewest topic words a sentence needs before it can restate a rule. */
+const MIN_RESTATED_WORDS = 3;
+
+/**
+ * Topic words of a rule sentence or a requirement for the restatement test:
+ * like requestTopicWords, but numbers count, since "after 30 days" and
+ * "after 90 days" are different rules.
+ */
+function ruleWords(text: string): Set<string> {
+  const found = [
+    ...words(text),
+    ...(text.match(/\d+(?:[.,]\d+)?/g) ?? []),
+  ].filter(
+    (word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word),
+  );
+  return new Set(found);
+}
+
+/**
+ * The current requirement a rule sentence only restates, or undefined. A
+ * sentence restates one when it has at least three topic words, every one of
+ * them (numbers included) is in the requirement's title or one sentence of
+ * its statement read with the title, and both say "not" or neither does. Anything the requirement does not already
+ * say, such as another number, a new term or a negation, is a new or changed
+ * rule and is not matched. Read from the requirement documents like
+ * requirementCandidatesForPath, and empty for a KB too large to scan.
+ */
+export function restatedRequirement(
+  workspaceRoot: string,
+  sentence: string,
+): RequirementHead | undefined {
+  const asked = ruleWords(sentence);
+  if (asked.size < MIN_RESTATED_WORDS) return undefined;
+  const negated = NEGATION.test(sentence);
+  const directory = path.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names: string[];
+  try {
+    names = fs.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return undefined;
+  }
+  if (names.length > MAX_SCANNED) return undefined;
+  for (const name of names.sort()) {
+    const head = readHead(path.join(directory, name));
+    if (head === undefined || isClosed(head)) continue;
+    if (RETIRED_STATUS.test(String(head.status))) continue;
+    // Each sentence of the statement is a rule of its own, read with the
+    // title, so one negated clause does not hide the others.
+    const title = ruleWords(head.title);
+    const clauses = [
+      head.title,
+      ...(head.statement ?? "").split(/(?<=[.;!?])\s+/),
+    ].filter((clause) => clause.trim() !== "");
+    for (const clause of clauses) {
+      if (NEGATION.test(clause) !== negated) continue;
+      const known = new Set([...title, ...ruleWords(clause)]);
+      if ([...asked].every((word) => known.has(word))) return head;
+    }
+  }
+  return undefined;
 }
