@@ -66,6 +66,10 @@
         "type": "object",
         "additionalProperties": true
       },
+      "meta": {
+        "type": "object",
+        "additionalProperties": true
+      },
       "body": {
         "type": "object",
         "additionalProperties": true
@@ -109,6 +113,10 @@
         "type": ["string", "null"]
       },
       "branchStore": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "meta": {
         "type": "object",
         "additionalProperties": true
       },

@@ -853,6 +853,7 @@ export const FRESHNESS_RESYNC = "freshness_resync";
  */
 const RESYNC_REASON_CODES: ReadonlySet<string> = new Set([
   ...MTIME_SOURCE_REASON_CODES,
+  "relationship_source_missing",
   "compiler_changed",
 ]);
 

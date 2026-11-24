@@ -345,6 +345,7 @@ describe("executeSearch intent ranking", () => {
       workspaceRoot: "/ws",
       branch: "kb-main",
       detail: "summary",
+      syncState: "unknown",
     });
     expect(calls.build).toHaveBeenCalledWith({
       query: "login",
@@ -592,6 +593,25 @@ describe("executeSearch intent ranking", () => {
         context({ branchAttachment: { gitBranch: "m", kbBranch: "k" } }),
       ),
     ).toBe(" Note: empty. Run kibi sync before relying on search results.");
+
+    const weakCalls = intentFakes({ matches: [] });
+    weakCalls.trigger.mockReturnValue("abstained");
+    expect(
+      await tail({ query: "why did we choose this architecture?" }),
+    ).toBe(
+      ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).',
+    );
+    // Filtered or strong rationale searches do not add the weak ADR note.
+    expect(
+      await tail({
+        query: "why did we choose this architecture?",
+        type: "req",
+      }),
+    ).toBe("");
+    weakCalls.trigger.mockReturnValue(null);
+    expect(
+      await tail({ query: "why did we choose this architecture?" }),
+    ).toBe("");
   });
 
   test("uses intent ranking for facets or locations in legacy mode", async () => {

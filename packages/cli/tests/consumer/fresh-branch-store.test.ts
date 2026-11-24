@@ -226,3 +226,227 @@ describe("a new branch whose store was never compiled", () => {
     expect(search.data.branchStore?.code).toBe("branch_store_not_compiled");
   }, 240_000);
 });
+
+describe("stale branch store auto-sync and staleness surfacing", () => {
+  test("auto-syncs stale tracked Markdown, relationship shards, and symbols manifest without touching tracked files", () => {
+    const ws = createConsumerWorkspace("kibi-stale-autosync-");
+    workspace = ws;
+    authorLinkedRequirement(ws);
+    ws.write("src/login.ts", "export function loginUser() { return true; }\n");
+    ws.write(
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-demo-login",
+        "    title: loginUser",
+        "    sourceFile: src/login.ts",
+        "    implements:",
+        "      - REQ-demo-login",
+        "",
+      ].join("\n"),
+    );
+    ws.write(
+      ".kb/relationships/extra.yaml",
+      [
+        "relationships:",
+        "  - id: REL-demo-1",
+        "    type: validates",
+        "    from: SCEN-demo-login",
+        "    to: REQ-demo-login",
+        "    created_at: 2026-01-01T00:00:00Z",
+        "    created_by: test",
+        "    source: manual",
+        "",
+      ].join("\n"),
+    );
+    ws.git("add", "-A");
+    ws.sync();
+    ws.git("add", "-A");
+    ws.git("commit", "-qm", "initial synced kb");
+
+    // Edit tracked .kb Markdown, relationship shard, and symbols manifest directly.
+    ws.write(
+      ".kb/requirements/REQ-demo-mfa.md",
+      doc(
+        "id: REQ-demo-mfa\ntitle: Users verify MFA token\nstatus: open",
+        "## Context\n\nUsers must verify an MFA token.\n",
+      ),
+    );
+    ws.write(
+      ".kb/relationships/extra.yaml",
+      [
+        "relationships:",
+        "  - id: REL-demo-1",
+        "    type: validates",
+        "    from: SCEN-demo-login",
+        "    to: REQ-demo-login",
+        "    created_at: 2026-01-01T00:00:00Z",
+        "    created_by: test",
+        "    source: manual",
+        "  - id: REL-demo-2",
+        "    type: depends_on",
+        "    from: REQ-demo-mfa",
+        "    to: REQ-demo-login",
+        "    created_at: 2026-01-01T00:00:00Z",
+        "    created_by: test",
+        "    source: manual",
+        "",
+      ].join("\n"),
+    );
+    ws.write("src/mfa.ts", "export function verifyMfa() { return true; }\n");
+    ws.write(
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-demo-login",
+        "    title: loginUser",
+        "    sourceFile: src/login.ts",
+        "    implements:",
+        "      - REQ-demo-login",
+        "  - id: SYM-demo-mfa",
+        "    title: verifyMfa",
+        "    sourceFile: src/mfa.ts",
+        "    implements:",
+        "      - REQ-demo-mfa",
+        "",
+      ].join("\n"),
+    );
+    ws.git("add", ".kb/requirements/REQ-demo-mfa.md", ".kb/relationships/extra.yaml", ".kb/symbols.yaml", "src/mfa.ts");
+    const symbolsEdited = ws.read(".kb/symbols.yaml");
+
+    const query = ws.json(["query"], { id: "REQ-demo-mfa" }) as {
+      data: { count: number; meta?: Json };
+      diagnostics: Array<{ code?: string }>;
+    };
+    expect(query.data.count).toBe(1);
+    expect(query.data.meta).toBeUndefined();
+    expect(query.diagnostics).toEqual([]);
+    expect(ws.read(".kb/symbols.yaml")).toBe(symbolsEdited);
+    expect(status(ws).syncState).toBe("fresh");
+  }, 240_000);
+
+  test("with KIBI_AUTO_SYNC=0, kb_query and kb_search surface staleness on non-empty and empty results and respect code-overlap filtering", () => {
+    const ws = createConsumerWorkspace("kibi-stale-surface-");
+    workspace = ws;
+    authorLinkedRequirement(ws);
+    ws.write("src/login.ts", "export function loginUser() { return true; }\n");
+    ws.write(
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-demo-login",
+        "    title: loginUser",
+        "    sourceFile: src/login.ts",
+        "    implements:",
+        "      - REQ-demo-login",
+        "",
+      ].join("\n"),
+    );
+    ws.git("add", "-A");
+    ws.sync();
+    ws.git("add", "-A");
+    ws.git("commit", "-qm", "synced");
+
+    // 1. Bare production code edit alone: never auto-syncs, suppressed on unrelated query, surfaced on matching sourceFile/sourceLocations.
+    ws.write("src/login.ts", "export function loginUser() { return false; }\n");
+    const unrelatedQuery = ws.json(["query"], { id: "REQ-demo-login" }) as {
+      data: { count: number; meta?: Json; branchStore?: Json };
+      diagnostics: Array<{ code?: string }>;
+    };
+    expect(unrelatedQuery.data.count).toBe(1);
+    expect(unrelatedQuery.data.meta).toBeUndefined();
+    expect(unrelatedQuery.data.branchStore).toBeUndefined();
+    expect(unrelatedQuery.diagnostics).toEqual([]);
+
+    const overlappingQuery = ws.json(["query"], {
+      sourceFile: "src/login.ts",
+    }) as {
+      data: {
+        count: number;
+        meta?: { syncState: string; staleReasonCount: number };
+      };
+      diagnostics: Array<{ code?: string; severity?: string }>;
+    };
+    expect(overlappingQuery.data.count).toBe(1);
+    expect(overlappingQuery.data.meta?.syncState).toBe("stale");
+    expect(overlappingQuery.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "branch_store_stale",
+        severity: "warning",
+      }),
+    );
+
+    const overlappingSearch = ws.json(["search"], {
+      query: "login",
+      sourceLocations: [{ path: "src/login.ts" }],
+    }) as {
+      data: {
+        meta?: { syncState: string };
+        answer?: {
+          scope?: { syncState?: string; staleReasonCount?: number };
+          note?: string;
+        };
+      };
+      diagnostics: Array<{ code?: string }>;
+    };
+    expect(overlappingSearch.data.meta?.syncState).toBe("stale");
+    expect(overlappingSearch.data.answer?.scope?.syncState).toBe("stale");
+    expect(overlappingSearch.data.answer?.note).toContain("KB store is stale");
+    expect(overlappingSearch.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "branch_store_stale" }),
+    );
+
+    // 2. Stale tracked .kb/ Markdown file with KIBI_AUTO_SYNC=0 surfaces on both count > 0 and count === 0.
+    ws.write(
+      ".kb/requirements/REQ-demo-new.md",
+      doc(
+        "id: REQ-demo-new\ntitle: New unsynced requirement\nstatus: open",
+        "## Context\n\nPending sync.\n",
+      ),
+    );
+    ws.git("add", ".kb/requirements/REQ-demo-new.md");
+
+    for (const input of [
+      { id: "REQ-demo-login" },
+      { id: "REQ-demo-new" },
+    ] as const) {
+      const q = ws.json(["query"], input, NO_AUTO_SYNC) as {
+        data: {
+          count: number;
+          branchStore?: Json;
+          meta?: { syncState: string; staleReasonCount: number };
+        };
+        diagnostics: Array<{ code?: string; severity?: string }>;
+      };
+      expect(q.data.count).toBe(input.id === "REQ-demo-login" ? 1 : 0);
+      expect(q.data.branchStore).toBeUndefined();
+      expect(q.data.meta?.syncState).toBe("stale");
+      expect(q.data.meta?.staleReasonCount).toBeGreaterThanOrEqual(1);
+      expect(q.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: "branch_store_stale",
+          severity: "warning",
+        }),
+      );
+    }
+
+    const s = ws.json(["search"], { query: "login" }, NO_AUTO_SYNC) as {
+      data: {
+        meta?: { syncState: string };
+        branchStore?: Json;
+        answer?: {
+          scope?: { syncState?: string; staleReasonCount?: number };
+          note?: string;
+        };
+      };
+      diagnostics: Array<{ code?: string }>;
+    };
+    expect(s.data.branchStore).toBeUndefined();
+    expect(s.data.meta?.syncState).toBe("stale");
+    expect(s.data.answer?.scope?.syncState).toBe("stale");
+    expect(s.data.answer?.note).toContain("KB store is stale");
+    expect(s.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "branch_store_stale" }),
+    );
+  }, 240_000);
+});

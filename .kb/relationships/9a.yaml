@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-81a5ad57817b
+  - type: assumes
+    from: SCEN-kibi-branch-store-freshness-memo
+    to: FACT-kibi-branch-store-freshness-memo
+    created_at: 2026-11-23T10:45:56.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-badf0adc329f
+  - type: verified_by
+    from: SCEN-kibi-branch-store-freshness-memo
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:45:56.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7bdc2394894

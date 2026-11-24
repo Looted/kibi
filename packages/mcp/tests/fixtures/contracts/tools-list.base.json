@@ -167,6 +167,11 @@
                 "properties": {},
                 "type": "object"
               },
+              "meta": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
               "truncated": {
                 "type": "boolean"
               },
@@ -480,6 +485,11 @@
                 "maximum": 9007199254740991,
                 "minimum": -9007199254740991,
                 "type": "integer"
+              },
+              "meta": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               },
               "queryAnalysis": {
                 "additionalProperties": {},

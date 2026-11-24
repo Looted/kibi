@@ -169,6 +169,12 @@ describe("search hints entities", () => {
       { id: "REQ-old", type: "req", title: "Old", status: "superseded" },
       { id: "REQ-closed", type: "req", title: "Closed", status: "closed" },
       {
+        id: "REQ-closed-sup",
+        type: "req",
+        title: "Closed Superseded",
+        status: "closed",
+      },
+      {
         id: "FACT-stub",
         type: "fact",
         title: "Stub",
@@ -178,12 +184,26 @@ describe("search hints entities", () => {
     ];
     const read: MarkdownBodyCache = new Map();
     const unread: MarkdownBodyCache = new Map();
-    const first = searchHintsEntities(rows, read, workspace);
+    const first = searchHintsEntities(
+      rows,
+      read,
+      workspace,
+      new Set(["REQ-closed-sup"]),
+    );
     read.set(doc, "The body of A.\n");
-    const second = searchHintsEntities(rows, unread, workspace);
-    expect(first.map((row) => row.id)).toEqual(["REQ-a", "SCEN-a"]);
+    const second = searchHintsEntities(
+      rows,
+      unread,
+      workspace,
+      new Set(["REQ-closed-sup"]),
+    );
+    expect(first.map((row) => row.id)).toEqual([
+      "REQ-a",
+      "REQ-closed",
+      "SCEN-a",
+    ]);
     expect(first[0]?.text).toContain("The body of A.");
-    expect(first[1]?.text).toBe("S\nWhen A");
+    expect(first[2]?.text).toBe("S\nWhen A");
     // The body is read when the ranking left it out, so hashes agree.
     expect(second.map((row) => row.hash)).toEqual(first.map((row) => row.hash));
   });
@@ -497,6 +517,12 @@ describe("search hints host edges", () => {
       [
         { id: "REQ-old", type: "req", title: "Old", status: " Superseded " },
         { id: "REQ-closed", type: "req", title: "C", status: "CLOSED" },
+        {
+          id: "REQ-closed-sup",
+          type: "req",
+          title: "CS",
+          status: " CLOSED ",
+        },
         { type: "req", title: "No id" },
         { id: "", type: "req", title: "Empty id" },
         { id: "REQ-bare" },
@@ -504,13 +530,15 @@ describe("search hints host edges", () => {
       ],
       new Map(),
       workspace,
+      new Set(["REQ-closed-sup"]),
     );
     expect(rows.map((row) => [row.id, row.type, row.title, row.text])).toEqual([
+      ["REQ-closed", "req", "C", "C"],
       ["REQ-bare", "", "", ""],
       ["REQ-two", "req", "Two", "Two"],
     ]);
     // Different text, different hash.
-    expect(rows[0]?.hash).not.toBe(rows[1]?.hash);
+    expect(rows[1]?.hash).not.toBe(rows[2]?.hash);
   });
 
   test("a body the ranking already read is reused, and one it skipped is read and kept", () => {
@@ -578,8 +606,8 @@ describe("search hints host edges", () => {
       ["specified_by", "REQ-export", "SCEN-export"],
       // Not a current entity: never lifted to.
       ["specified_by", "REQ-gone", "SCEN-export"],
-      ["validates", "TEST-orphan", "SCEN-export"],
-      ["supersedes", "REQ-audit", "REQ-login"],
+      // Plain relates_to never lifts an orphan test to a requirement.
+      ["relates_to", "TEST-orphan", "REQ-export"],
     ]);
     const hints = await hintsFor(replace, { prolog });
     expect(prolog.goals).toHaveLength(1);
@@ -597,13 +625,126 @@ describe("search hints host edges", () => {
       },
       { id: "REQ-login", title: "Sign in", score: 0.7, via: "SCEN-export" },
     ]);
-    // Requirement hits alone need no graph lookup.
+    // Requirement and ADR hits alone need no graph lookup.
     const direct = capturingProlog([]);
-    const onlyRequirements = provider(() => ({
-      hints: [{ id: "REQ-audit", score: 0.9 }],
+    const onlyReqsAndAdrs = provider(() => ({
+      hints: [
+        { id: "REQ-audit", score: 0.9 },
+        { id: "ADR-choice", score: 0.8 },
+      ],
     }));
-    await hintsFor(onlyRequirements, { prolog: direct });
+    const withAdr = await hintsFor(onlyReqsAndAdrs, {
+      prolog: direct,
+      entities: [
+        ...kbRows,
+        {
+          id: "ADR-choice",
+          type: "adr",
+          title: "Choose Prolog",
+          status: "accepted",
+        },
+      ],
+    });
     expect(direct.goals).toEqual([]);
+    expect(withAdr?.items).toEqual([
+      { id: "REQ-audit", title: "Audit log", score: 0.9 },
+      { id: "ADR-choice", title: "Choose Prolog", score: 0.8 },
+    ]);
+  });
+
+  test("lifts 2-hop tests and scenario-assumed clause facts, walks supersedes chains, and filters superseded closed requirements", async () => {
+    const entities = [
+      {
+        id: "REQ-closed-live",
+        type: "req",
+        title: "Live closed requirement",
+        status: "closed",
+      },
+      {
+        id: "REQ-closed-old",
+        type: "req",
+        title: "Superseded closed requirement",
+        status: "closed",
+      },
+      {
+        id: "REQ-v2",
+        type: "req",
+        title: "Intermediate superseded requirement",
+        status: "superseded",
+      },
+      {
+        id: "REQ-v3",
+        type: "req",
+        title: "Current replacement requirement",
+        status: "open",
+      },
+      {
+        id: "SCEN-clause",
+        type: "scenario",
+        title: "Clause scenario",
+        status: "active",
+      },
+      {
+        id: "FACT-clause",
+        type: "fact",
+        title: "Two-hop clause fact",
+        status: "active",
+      },
+      {
+        id: "TEST-two-hop",
+        type: "test",
+        title: "Two-hop test",
+        status: "passing",
+      },
+    ];
+    const replace = provider((callInput) => {
+      // Only non-superseded closed requirement is eligible for provider corpus.
+      const ids = callInput.entities.map((e) => e.id);
+      expect(ids).toContain("REQ-closed-live");
+      expect(ids).not.toContain("REQ-closed-old");
+      expect(ids).not.toContain("REQ-v2");
+      return {
+        hints: [
+          { id: "TEST-two-hop", score: 0.88 },
+          { id: "FACT-clause", score: 0.82 },
+        ],
+      };
+    });
+    const prolog = {
+      async query(goal: string): Promise<PrologQueryResult> {
+        if (goal.includes("negative_path_facts")) {
+          return { success: true, bindings: { Facts: "[]" } };
+        }
+        return {
+          success: true,
+          bindings: {
+            Edges: [
+              "[validates,TEST-two-hop,SCEN-clause]",
+              "[assumes,SCEN-clause,FACT-clause]",
+              "[specified_by,REQ-closed-old,SCEN-clause]",
+              "[specified_by,REQ-closed-live,SCEN-clause]",
+              "[supersedes,REQ-v2,REQ-closed-old]",
+              "[supersedes,REQ-v3,REQ-v2]",
+            ].join(",").replace(/^/, "[").concat("]"),
+          },
+        };
+      },
+    };
+    const hints = await hintsFor(replace, { entities, prolog });
+    expect(hints?.items).toEqual([
+      {
+        id: "REQ-closed-live",
+        title: "Live closed requirement",
+        score: 0.88,
+        via: "TEST-two-hop",
+      },
+      {
+        id: "REQ-v3",
+        title: "Current replacement requirement",
+        score: 0.88,
+        via: "TEST-two-hop",
+      },
+    ]);
   });
 
   test("only the top three governing requirements are left out, and at most 10 hints show", async () => {

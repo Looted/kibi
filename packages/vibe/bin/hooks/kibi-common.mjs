@@ -70,7 +70,11 @@ export function runKibi(workspace, routeArgs, payload) {
     let child;
     try {
       child = spawn(process.execPath, [KIBI_RUNNER, ...routeArgs], {
-        env: { ...process.env, KIBI_WORKSPACE: workspace },
+        env: {
+          ...process.env,
+          KIBI_AUTO_SYNC: process.env.KIBI_AUTO_SYNC ?? "0",
+          KIBI_WORKSPACE: workspace,
+        },
         stdio: ["pipe", "pipe", "inherit"],
       });
     } catch {

@@ -444,6 +444,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2417b5518a40
+  - type: implements
+    from: SYM-content-freshness-confirm-source-newer-reasons
+    to: REQ-kb-query-kb-search-confirm-source
+    created_at: 2026-11-23T10:33:55.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76f827a801ac
+  - type: covered_by
+    from: SYM-content-freshness-confirm-source-newer-reasons
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:55.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bea29124dd0
   - type: verified_by
     from: SCEN-antigravity-session-journal
     to: TEST-antigravity-plugin
