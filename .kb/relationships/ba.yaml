@@ -301,6 +301,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-1fe83d3370cc
   - type: implements
+    from: SYM-session-state-load-session-state
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:19.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a7d2e50b33
+  - type: covered_by
+    from: SYM-session-state-load-session-state
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:19.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b91285dc994f
+  - type: implements
     from: SYM-guard-after-edit-input
     to: REQ-vibe-hooks-firm-edit-notice
     created_at: 2026-11-22T18:29:55.756Z

@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9c4ea984714
+  - type: assumes
+    from: SCEN-NEG-antigravity-hook-lifecycle-off
+    to: FACT-NEG-antigravity-hook-lifecycle-off
+    created_at: 2026-11-24T05:07:07.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de019c300f6c
+  - type: verified_by
+    from: SCEN-NEG-antigravity-hook-lifecycle-off
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:07.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59689466db6

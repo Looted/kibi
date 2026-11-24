@@ -62,7 +62,7 @@ const EXPECTED_SKILL_IDS = [
 
 const HASH_MANIFEST_NAME = ".canon-hash.json";
 
-type Target = "cursor" | "codex" | "zcode" | "claude" | "vibe";
+type Target = "cursor" | "codex" | "zcode" | "claude" | "vibe" | "antigravity";
 
 const ALL_TARGETS: readonly Target[] = [
   "cursor",
@@ -70,6 +70,7 @@ const ALL_TARGETS: readonly Target[] = [
   "zcode",
   "claude",
   "vibe",
+  "antigravity",
 ];
 
 const ZCODE_SKILL_LICENSE = "AGPL-3.0-or-later";
@@ -186,7 +187,7 @@ export function transformVibeSkillFrontmatter(content: Buffer): Buffer {
 
 function rewriteSkillFrontmatter(
   content: Buffer,
-  target: "zcode" | "claude",
+  target: "zcode" | "claude" | "antigravity",
 ): Buffer {
   const text = content.toString("utf8");
   const frontmatter = parseSimpleFrontmatter(text);
@@ -201,10 +202,10 @@ function rewriteSkillFrontmatter(
   const metadataKeys = frontmatter.order.filter(
     (key) => key !== "name" && key !== "description",
   );
-  const skillName =
-    target === "claude"
-      ? (frontmatter.values.id ?? frontmatter.values.name ?? "")
-      : (frontmatter.values.name ?? "");
+  const useIdAsName = target === "claude" || target === "antigravity";
+  const skillName = useIdAsName
+    ? (frontmatter.values.id ?? frontmatter.values.name ?? "")
+    : (frontmatter.values.name ?? "");
 
   const out: string[] = ["---", `name: ${skillName}`];
   if (frontmatter.values.description !== undefined) {
@@ -212,7 +213,7 @@ function rewriteSkillFrontmatter(
   }
   out.push(`license: ${ZCODE_SKILL_LICENSE}`);
   out.push("metadata:");
-  if (target === "claude" && frontmatter.values.name !== undefined) {
+  if (useIdAsName && frontmatter.values.name !== undefined) {
     out.push(`  displayName: ${frontmatter.values.name}`);
   }
   for (const key of metadataKeys) {
@@ -242,6 +243,9 @@ function transformMirrorFile(
   if (target === "zcode") return transformZcodeSkillFrontmatter(content);
   if (target === "claude") return transformClaudeSkillFrontmatter(content);
   if (target === "vibe") return transformVibeSkillFrontmatter(content);
+  if (target === "antigravity") {
+    return rewriteSkillFrontmatter(content, "antigravity");
+  }
   return content;
 }
 
@@ -275,10 +279,11 @@ function parseArgs(argv: string[]): ParsedArgs {
         next !== "codex" &&
         next !== "zcode" &&
         next !== "claude" &&
-        next !== "vibe"
+        next !== "vibe" &&
+        next !== "antigravity"
       ) {
         throw new UsageError(
-          `--target requires one of: cursor, codex, zcode, claude, vibe (got: ${String(next)})`,
+          `--target requires one of: cursor, codex, zcode, claude, vibe, antigravity (got: ${String(next)})`,
         );
       }
       limitTargets ??= [];
@@ -609,7 +614,7 @@ export async function main(argv: string[]): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.stderr.write(
-      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode|claude|vibe]\n",
+      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode|claude|vibe|antigravity]\n",
     );
     process.exit(2);
   }

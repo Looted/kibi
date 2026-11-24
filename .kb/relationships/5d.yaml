@@ -671,3 +671,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23f11f469475
+  - type: executable_for
+    from: SYM-antigravity-mcp-launcher-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:26.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02b503a8a648
