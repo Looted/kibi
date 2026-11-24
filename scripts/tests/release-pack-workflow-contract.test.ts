@@ -189,7 +189,7 @@ describe("the dry run cannot publish", () => {
   const dry = workflow("release-pack.yml");
 
   test("holds no secret, no OIDC token, and no write permission", () => {
-    expect(dry.permissions).toEqual({ contents: "read" });
+    expect(dry.permissions).toEqual({ contents: "read", actions: "read" });
     for (const job of Object.values(dry.jobs)) {
       expect(job.permissions).toBeUndefined();
     }
@@ -235,8 +235,9 @@ describe("the dry run cannot publish", () => {
     expect(dry.jobs["swipl-build"].uses).toBe(
       "./.github/workflows/swipl-build.yml",
     );
-    expect(needs(dry.jobs.pack)).toEqual(["swipl-build"]);
-    expect(needs(dry.jobs.smoke)).toEqual(["pack"]);
+    expect(needs(dry.jobs.pack)).toEqual(["reuse", "swipl-build"]);
+    expect(needs(dry.jobs.smoke)).toEqual(["reuse", "pack"]);
+    expect(needs(dry.jobs.attest)).toEqual(["smoke"]);
     expect(dry.jobs.smoke.uses).toBe("./.github/workflows/release-smoke.yml");
     expect(dry.jobs.smoke.with).toEqual({
       "tarballs-artifact": "release-pack-tarballs",

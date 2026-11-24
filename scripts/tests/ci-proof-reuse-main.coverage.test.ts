@@ -231,7 +231,7 @@ afterEach(() => {
 describe("ci-proof-reuse command line", () => {
   test("rejects an unknown command or a missing output path", async () => {
     const usage =
-      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train <output-path>";
+      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train|decide-member <output-path>";
     await expect(main([])).rejects.toThrow(usage);
     await expect(main(["decide"])).rejects.toThrow(usage);
     await expect(main(["publish", "out"])).rejects.toThrow(usage);
@@ -257,12 +257,17 @@ describe("ci-proof-reuse attest", () => {
     attestEnv(repo);
     const output = path.join(temp("kibi-proof-main-out-"), "nested");
     await main(["attest", output]);
+    const tree = execFileSync("git", ["rev-parse", "HEAD^{tree}"], {
+      cwd: repo.root,
+      encoding: "utf8",
+    }).trim();
     expect(
       JSON.parse(readFileSync(path.join(output, "attestation.json"), "utf8")),
     ).toStrictEqual({
       version: "kibi.ci-proof-attestation.v1",
       outcome: "passed",
       snapshot: { version: SNAPSHOT_VERSION, hash: snapshotHash },
+      tree,
       source: {
         repository,
         branch: "develop",
@@ -286,7 +291,7 @@ describe("ci-proof-reuse attest", () => {
     const repo = makeRepo();
     process.chdir(repo.root);
     const message =
-      "only a successful develop push or merge train pull request may emit a proof attestation";
+      "only a develop push or a same-repository pull request into develop may emit a proof attestation";
     attestEnv(repo, { GITHUB_EVENT_NAME: "pull_request" });
     await expect(main(["attest", "out"])).rejects.toThrow(message);
     attestEnv(repo, {
@@ -775,13 +780,18 @@ describe("merge train proof attestation and develop reuse", () => {
       PR_HEAD_REPOSITORY: repository.toLowerCase(),
       PR_HEAD_SHA: repo.head,
       PR_BASE_SHA: repo.base,
+      PR_BASE_REF: "develop",
     });
     const output = temp("kibi-proof-train-out-");
     await main(["attest", output]);
     const written = JSON.parse(
       readFileSync(path.join(output, "attestation.json"), "utf8"),
     );
-    expect(written).toStrictEqual(trainAttestation(repo));
+    const tree = execFileSync("git", ["rev-parse", "HEAD^{tree}"], {
+      cwd: repo.root,
+      encoding: "utf8",
+    }).trim();
+    expect(written).toStrictEqual({ ...trainAttestation(repo), tree });
     process.env.PR_BASE_SHA = "nope";
     await expect(main(["attest", output])).rejects.toThrow(
       "merge train head or base SHA is invalid",
