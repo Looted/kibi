@@ -5,8 +5,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const MODEL_REPO = "minishlab/potion-base-8M";
-export const MODEL_REVISION = "bf8b056651a2c21b8d2565580b8569da283cab23";
+export const MODEL_REPO = "minishlab/potion-retrieval-32M";
+export const MODEL_REVISION = "6fc8051fab2a1e0ee76689cf08c853792ac285e7";
 
 const packageRoot = resolve(fileURLToPath(new URL("../", import.meta.url)));
 
@@ -61,7 +61,7 @@ if (vocab.length !== rows || vocab.some(([, id], index) => id !== index))
   throw new Error("tokenizer vocabulary does not match the embedding table");
 
 await mkdir(join(packageRoot, "assets"), { recursive: true });
-await writeFile(join(packageRoot, "assets", "potion-base-8M.int8.bin"), out);
+await writeFile(join(packageRoot, "assets", "potion-retrieval-32M.int8.bin"), out);
 await writeFile(
   join(packageRoot, "assets", "vocab.txt"),
   `${vocab.map(([token]) => token).join("\n")}\n`,

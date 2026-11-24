@@ -63,7 +63,7 @@ describe("kibi-plugin-search-hints", () => {
       secrets: [],
     });
     expect(plugin.capabilities.searchHints?.model).toContain(
-      "minishlab/potion-base-8M",
+      "minishlab/potion-retrieval-32M",
     );
   });
 
