@@ -11,9 +11,9 @@ tags:
   - mcp
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-23, approving the implementation plan for #852: "hooks key: remove it from the manifest and supersede REQ-zcode-plugin-package with a version whose manifest sentence names skills, commands and mcpServers."'
+  ref: 'Maintainer decision, 2026-11-23, approving the implementation plan for #852: "hooks key: remove it from the manifest and supersede REQ-zcode-plugin-package with a version whose manifest sentence names skills, commands and mcpServers." Appended 2026-11-24: maintainer signoff on the requirements signoff view of PR #853, asked as "Do you approve requirements 1 and 2 as recorded, including the retirement of REQ-zcode-plugin-package?", answered "Signed off".'
   approved_by: maintainer
-  recorded_at: '2026-11-23T19:00:00Z'
+  recorded_at: '2026-11-24T07:50:54Z'
 semantic_text: The kibi-zcode plugin manifest must declare the skills, commands and mcpServers fields. The kibi-zcode plugin must ship a kibi-bootstrap command. The kibi-zcode plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others. The kibi MCP server in the kibi-zcode manifest must run only the bundled MCP launcher. The kibi-zcode hooks configuration must register the SessionStart, UserPromptSubmit, PreToolUse, PostToolUse and Stop lifecycle hooks.
 semantic_clauses:
   - The kibi-zcode plugin manifest must declare the skills, commands and mcpServers fields.
@@ -92,4 +92,4 @@ Supersedes REQ-zcode-plugin-package. Its first sentence also asked the manifest 
 
 ## Source
 
-> Maintainer decision, 2026-11-23, approving the implementation plan for #852: "hooks key: remove it from the manifest and supersede REQ-zcode-plugin-package with a version whose manifest sentence names skills, commands and mcpServers."
+> Maintainer decision, 2026-11-23, approving the implementation plan for #852: "hooks key: remove it from the manifest and supersede REQ-zcode-plugin-package with a version whose manifest sentence names skills, commands and mcpServers." Appended 2026-11-24: maintainer signoff on the requirements signoff view of PR #853, asked as "Do you approve requirements 1 and 2 as recorded, including the retirement of REQ-zcode-plugin-package?", answered "Signed off".
