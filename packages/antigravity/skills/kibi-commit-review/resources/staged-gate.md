@@ -1,0 +1,176 @@
+# The staged gate
+
+Reference for `kibi-commit-review`: what `kibi check --staged` and
+`kibi check-generated --staged` report, how to fix each finding, and the
+impact-review record. The staged check reads blob content from the Git index,
+not the working tree, so a fix counts only once it is staged.
+
+To get the same verdict before staging, run `kb_check` with `changed: true`
+and the edited `sourceFiles` (CLI: `kibi check --changed <paths>`): it judges
+the index plus the working tree on a scratch copy of the index, and each
+finding's `blocks` says whether it stops the commit (`"commit"`) or is advice
+(`"none"`).
+
+## Reading a finding
+
+```text
+symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of staged source files: src/billing/refund.ts
+  Detail: src/billing/refund.ts — this commit adds or changes 1 of 4 declaration(s); the gaps below are the ones it is judged on.
+      Not in .kb/symbols.yaml: approveRefund (line 42)
+  Suggestion: Author .kb/symbols.yaml entries for the listed declarations (kibi upsert), each with a symbol_role (...); behavioral code also needs implements and covered_by links, ... Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.
+```
+
+- A commit is judged only on what it changes: declarations it adds or
+  changes (title new, or text different once comments and whitespace are
+  dropped), records it removes, and records whose declaration it removes or
+  renames. Detail lines name every such symbol, never a shortened list.
+  `Evidence without a matching symbol:` lists manifest entries whose
+  declaration is gone or renamed: rename the symbol's `title`, or retire the
+  entry.
+- Gaps the commit did not cause print as a non-blocking note, `Symbol
+  records: <file> has N declaration(s) without a .kb/symbols.yaml record that
+  this commit did not add or change ...`. No action is required; do not
+  record them to make the note go away unless the human asks. `kibi check`
+  counts them; `kibi check --symbol-debt` lists them all.
+- A record needs a `symbol_role`. Only behavioral code needs `implements` and
+  `covered_by`: a function, class, method, property, accessor or a variable
+  holding a function always does; a schema constant or type can be recorded
+  as `config` or `type-shape` with no link. Never invent a requirement link to
+  pass the gate.
+- `--format json` carries the same lists in the diagnostic `evidence`
+  (`symbolsManifest[].missing` / `extra`, `uncoveredSymbols[].titles`).
+
+## One block per unowned declaration
+
+A declaration the commit adds or changes that no requirement owns prints
+first, as one `[BLOCKS COMMIT]` block that stands for its
+`symbols_manifest_stale`, `kibi_impact_evidence_missing`,
+`symbol_semantic_review_needed` and `Traceability failed` findings:
+
+```text
+[BLOCKS COMMIT] approveRefund (src/billing/refund.ts:42) is new and no requirement owns it.
+  If one of these already states what it does, link it to that one (never pick one only to pass the gate):
+    REQ-billing-refunds: Refunds are approved by a manager
+      kb_upsert {"type":"req","id":"REQ-billing-refunds",...,"implementedBy":[{"sourceFile":"src/billing/refund.ts","symbol":"approveRefund","coveredBy":["TEST-billing-refunds"]}]}
+  If it is new behavior, record a requirement for it first (template: kb_skills kibi-commit-review), then link it the same way.
+```
+
+The candidates are the requirements the rest of the file implements. Read
+each one and link only one that already states what the declaration does;
+the payload also links it to the tests covering that code (`coveredBy`). If
+none does, record a new requirement first. A type gets a `type-shape` record
+payload instead. `--format json` keeps the underlying findings and lists the
+blocks under `ownerFindings` (`causes` names the ids each one stands for).
+
+## Blocking findings
+
+| Id or message | Cause | Fix |
+| --- | --- | --- |
+| `kibi_impact_evidence_missing` | A staged behavior edit (changed lines in exported or behavior-bearing code, not comments or formatting) has no staged Kibi evidence. Test-only edits do not need it unless they add executable test symbols. | Query the owning knowledge; update it when behavior changed; stage entity Markdown under `.kb/` or authored `.kb/symbols.yaml` entries for the listed symbols. A file where every declaration the commit adds or changes already has a `.kb/symbols.yaml` entry needs nothing more. |
+| `symbols_manifest_stale` | A staged behavior file has a declaration the commit adds or changes with no `.kb/symbols.yaml` entry, the commit removes an entry, or an entry the commit adds, changes or orphans names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
+| `symbol_granularity_violation` | A changed behavioral member is owned only by a coarse class or module symbol while a narrower declaration exists. | Add a symbol for the member itself (`title` = `Class.method` or the exported function) with its own links; use `granularity_reason` (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`) only when it is true. |
+| `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
+| `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage` resource `resources/recording.md`). |
+| `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
+| Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` (core MCP profile: CLI `kibi model --input -`) analyze with the complete prose) or run `kibi migrate` for drift. |
+| `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` is not in the layout sync writes, or `.kb/symbol-coordinates.yaml` is tracked. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`); untrack a tracked coordinates file with `kibi migrate` (or `git rm --cached`). |
+| `Staged impact review failed: impact_review_invalid: ...` | The base commit has `.kibi/impact-policy.json` and the staged `.kibi/impact-review.json` is missing, stale or incomplete. The message names the cause (missing review path, stale fingerprint, ...). | Prepare a fresh record (below). Any later staged change makes the fingerprints stale again, so prepare it last. |
+
+The staged gate does not judge evidence levels: the `evidence-floor` rule
+runs only in a full `kibi check`. A firm requirement staged without an
+end-to-end proof passes the commit and fails that check later (see
+`kibi-decisions` for `required_evidence`).
+
+## Choosing the owner
+
+The gate asks that each listed declaration has a manifest entry; which
+requirement it implements is your judgment, and the next agent reads it as
+the rule for that code.
+
+- `kb_query` the candidate requirement and read its statement. Link the
+  symbol only when its body decides that behavior.
+- A new function that decides something no requirement states is a new
+  behavior: record the requirement and scenario (`kibi-usage`, step
+  3, Record), then link.
+- A helper split out of an owned function serves the same behavior: link it
+  to that function's requirement and say so in the report. If that takes the
+  requirement past 8 implementing symbols, do not move the link to a
+  requirement with room and do not tag the requirement `umbrella`; undo the
+  split when the task did not need it, or report the requirement as broad
+  and propose its split (`kibi-usage/resources/kb-quality.md`).
+- A symbol that would implement a third requirement points at a symbol or a
+  requirement that is too broad; report it instead of adding the link.
+
+## Advisory findings
+
+These warn but do not block. Read them; they are often the real review.
+
+- `requirement_statement_unverified`: quotes each current requirement the
+  changed code implements, with its firmness. Compare the code with the
+  statement yourself.
+- `symbol_semantic_review_needed`: the links exist, but check that the linked
+  requirement, scenario and test still describe the changed behavior. In a
+  file with no linked symbol it says no recorded intent covers the change.
+- `staged_file_ownership_missing` / `staged_file_impact_review_needed`: a
+  staged text file (not TypeScript or JavaScript) has no owning requirement,
+  or has one and no matching evidence changed.
+
+## No waiver line
+
+No declaration line in a note, entity document or commit message waives a
+behavior edit; `kibi_impact_evidence_missing` stays until real evidence is
+staged. A false positive is cleared by authoring `.kb/symbols.yaml` entries
+for the file's declarations.
+
+## Impact-review record
+
+`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) takes
+`scope`: `{"kind":"staged"}`, or
+`{"kind":"diff","baseCommit":"<sha>","headCommit":"<sha>"}` with full
+lowercase 40- or 64-hex commit ids. It returns `status: ready_for_authoring`,
+the `snapshot` identity, `recordHeaders` (policy, evaluator and scope
+fingerprints), `fileCount`, a row per changed file in `files` (status,
+disposition, analysis status, `requirementIds`, `pendingObligations`),
+`requirements` (each scoped requirement once, with its before and after
+fingerprints), `residualReviewObligations` and `authoring`. Rows page within
+the result budget: call again with `offset: truncation.nextOffset`. Pass
+`paths` to get a file's complete evidence and its requirements' statements
+and links in `evidence`; each file's evidence comes on the page that lists
+its row, and the rows still list the whole scope.
+
+For the staged scope, write the record with `kb_author_impact_review` (CLI
+`kibi author-impact-review --input -`): `scope: {"kind":"staged"}`,
+`scopeFingerprint` (`recordHeaders.scope.fingerprint`), `reviewer: {"id":
+"..."}`, optional `reviewedAt`, and `files: [{"path", "decision",
+"analysisReviews"}]`. Kibi captures the evidence itself, keeps an earlier
+decision only for a file whose evidence and requirements are unchanged (it
+reports the decisions it drops), refuses a changed scope or an invalid record
+without touching the file, and never stages it. A diff-scope record is written
+by hand against `resources/impact-review.schema.json`, with the complete
+evidence of every file. Stage the record with
+`git add -f .kibi/impact-review.json`. A file `decision` is one of:
+
+- `{"kind":"impact","requirementIds":[...],"knowledge":{"state":"still_current","rationale":"..."}}`
+- `{"kind":"impact","requirementIds":[...],"knowledge":{"state":"updated","entities":[{"entityId":"...","artifactPath":"...","beforeFingerprint":"<sha256 or null>","afterFingerprint":"<sha256>"}]}}`
+- `{"kind":"no_impact","reason":"...","rationale":"..."}`
+- `{"kind":"not_applicable","policyReason":"...","rationale":"..."}` (only
+  where the policy lists the path as not applicable)
+
+`reviewer.source` is `self-claimed-local`: the record says who reviewed, it
+does not prove it. Put the person's id there only when they reviewed it.
+
+When the person will review and sign the record themselves, draft instead of
+writing: save the author input with `"reviewer": {"id": ""}` to
+`.kibi/impact-review-decisions.json`, and tell them to put their id in it and
+run `npx --no-install kibi author-impact-review --input .kibi/impact-review-decisions.json`,
+then `git add -f .kibi/impact-review.json`. Never fill in their id.
+
+## Commands
+
+```bash
+npx --no-install kibi check --staged                    # the gate
+npx --no-install kibi check --staged --format json      # with full evidence
+npx --no-install kibi check-generated --staged          # manifest drift
+npx --no-install kibi sync --refresh-symbol-coordinates # rebuild local coordinates
+git status --short .kb                                  # what Kibi wrote
+```

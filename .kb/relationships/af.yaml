@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce595018eef1
+  - type: implements
+    from: SYM-hook-runner-run-hook
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:51.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25f0b5081134
+  - type: covered_by
+    from: SYM-hook-runner-run-hook
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:51.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83252af5c35a

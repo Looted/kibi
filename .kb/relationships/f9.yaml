@@ -458,3 +458,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1bea29124dd0
+  - type: verified_by
+    from: SCEN-antigravity-session-journal
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:03:43.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0fee0369f37
+  - type: implements
+    from: SYM-src-session-state-session-state
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:15.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5897ec5b6aae
+  - type: covered_by
+    from: SYM-src-session-state-session-state
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:15.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5b76375126f
+  - type: assumes
+    from: SCEN-antigravity-session-journal
+    to: FACT-antigravity-append-only-journal
+    created_at: 2026-11-22T05:16:11.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca58a3542f11
