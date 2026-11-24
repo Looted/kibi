@@ -582,8 +582,12 @@ function instructingAdverb(sentence: string): string | undefined {
   return undefined;
 }
 
-/** The rule phrase of `prompt`, the request's sentences, and which one holds it. */
-function ruleMatch(
+/**
+ * The rule phrase of `prompt`, the request's sentences, and which one holds
+ * it. With `workspaceRoot`, a sentence that only restates a current
+ * requirement of that workspace holds none.
+ */
+export function ruleMatch(
   prompt: string,
   workspaceRoot?: string,
 ): { phrase: string; sentences: string[]; index: number } | undefined {

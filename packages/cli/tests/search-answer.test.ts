@@ -14,6 +14,7 @@ import {
   adrExcerpt,
   buildSearchAnswer,
   fitSearchAnswer,
+  governingLabel,
   projectVerdict,
   reasonSource,
   requirementReason,
@@ -2273,5 +2274,18 @@ describe("fact calls in a summary answer", () => {
         'kb_query({"predicate":"has_role","args":["bob","admin"]})',
       );
     }
+  });
+});
+
+describe("the digest's name for the governing list", () => {
+  test("close top matches make a non-empty list candidates", () => {
+    expect(governingLabel(true, 2)).toBe(
+      "Candidate requirements, not confirmed to govern",
+    );
+  });
+
+  test("a clear ranking or an empty list keeps the governing name", () => {
+    expect(governingLabel(false, 2)).toBe("Governing");
+    expect(governingLabel(true, 0)).toBe("Governing");
   });
 });

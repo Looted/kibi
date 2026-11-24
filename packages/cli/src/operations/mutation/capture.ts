@@ -451,6 +451,153 @@ function subjectReason(id: string, gaps: readonly ClaimSubjectGap[]): string {
  * with the warnings they replace removed. A step that needs a judgment only
  * the agent can make (a reason, a test case) carries a <placeholder>.
  */
+type FollowUp = Readonly<{
+  action: CaptureNextAction;
+  approvals: CaptureApproval[];
+}>;
+
+function required(
+  operation: string,
+  code: string,
+  input: unknown,
+  reason: string,
+): CaptureNextAction {
+  return { operation, code, input, reason, required: true };
+}
+
+/**
+ * The pair reviews kb_check asks for once the claims name their subjects,
+ * listed with the first write; a verdict on a firm pair is a person's.
+ */
+export function pairReviewFollowUp(
+  id: string,
+  head: Readonly<{ title: string; status: string }>,
+  claims: readonly string[],
+  subjectKeys: readonly string[],
+  partners: readonly Readonly<{ id: string; title: string }>[],
+  firmPartners: readonly string[],
+): FollowUp {
+  return {
+    action: required(
+      "kb_upsert",
+      "related-requirement-unmodeled",
+      {
+        type: "req",
+        id,
+        properties: {
+          ...head,
+          pair_reviews: partners.map((partner) => ({
+            with: partner.id,
+            verdict: VERDICT_PLACEHOLDER,
+            separated_by: SEPARATED_PLACEHOLDER,
+            claims,
+            origin: { kind: "agent" },
+          })),
+        },
+      },
+      `Once its claims name ${subjectKeys.join(", ")}, kb_check pairs ${id} with ${partners.map((partner) => `${partner.id} ("${partner.title}")`).join(", ")} and blocks until each pair is modeled or has a verdict. Model both claims, or send one pair review per partner: no_conflict with separated_by naming what separates them, interacts with resolved_by naming what resolves it, or conflict, which stays blocking until a person decides.${firmPartners.length > 0 ? " A verdict on a firm pair counts only with approved_by from a person, so those pairs are in approvalsNeeded." : ""}`,
+    ),
+    approvals: firmPartners.map((partner) => ({
+      kind: "pair_review",
+      about: `${id} and ${partner}`,
+      ask: `Do ${id} and ${partner} both hold as written, and is the agent's verdict on the pair right? The person's name goes in that review's approved_by.`,
+    })),
+  };
+}
+
+/** A proof floor needs every claim grounded by a fact: kb_model returns them. */
+export function groundingStep(
+  id: string,
+  floor: string | undefined,
+  claims: readonly string[],
+  statement: string,
+): CaptureNextAction {
+  return required(
+    "kb_model",
+    "evidence-floor",
+    { mode: "requirement", requirementId: id, text: statement },
+    `${id} reaches ${floor} only when each claim (${claims.join(", ")}) is grounded by a fact: kb_model returns the facts to upsert. A grounded claim also needs the failure-side scenario below.`,
+  );
+}
+
+/**
+ * A new requirement with a proof floor gets its failure-side scenario in the
+ * first list, so its second wave of gaps is not a second question.
+ */
+export function failureScenarioFollowUp(
+  id: string,
+  scenarioId: string,
+  floor: string | undefined,
+): FollowUp {
+  return {
+    action: required(
+      "kb_upsert",
+      "evidence-floor",
+      {
+        type: "scenario",
+        id: scenarioId,
+        properties: {
+          title: `<a value ${id} forbids is refused>`,
+          status: "active",
+          expects: "rejection",
+        },
+        document: {
+          body: `<given a value or situation ${id} forbids, when ..., then it is refused>\n`,
+        },
+      },
+      `Once its claims are grounded, ${id} is not ${floor} while only its happy path is: this failure-side scenario expects rejection and assumes a value the requirement forbids; the same test verifies it. If ${id} has no input to refuse (it states a capability or an output shape), a person may approve a failure_side_waiver instead, listed in approvalsNeeded.`,
+    ),
+    approvals: [
+      {
+        kind: "failure_side_waiver",
+        about: id,
+        ask: `Only if ${id} has no input to refuse: may its failure side be waived (failure_side_waiver_approved_by)?`,
+        alternative: true,
+      },
+    ],
+  };
+}
+
+/** A workspace with no proof integration is named, with the file it adds. */
+export function proofIntegrationFollowUp(testId: string): FollowUp {
+  return {
+    action: required(
+      "kibi proof inspect",
+      "evidence-floor",
+      { command: "kibi proof run-steps", json: true },
+      `This workspace has no proof integration (.kb/proof/integrations.json), so kibi prove cannot run ${testId} yet. Run kibi proof inspect --command "kibi proof run-steps" --json and apply the plan it returns with kb_apply_plan. It adds .kb/proof/integrations.json, a new tracked file the person approves (listed in approvalsNeeded).`,
+    ),
+    approvals: [
+      {
+        kind: "proof_integration",
+        about: ".kb/proof/integrations.json",
+        ask: "May the change add .kb/proof/integrations.json, which tells kibi prove how to run this repository's tests?",
+      },
+    ],
+  };
+}
+
+/**
+ * The person sees the statement once, with every other approval, in one
+ * question rather than one per check result.
+ */
+export function withSignoff(
+  id: string,
+  statement: string,
+  hasSteps: boolean,
+  approvals: readonly CaptureApproval[],
+): CaptureApproval[] {
+  if (!hasSteps && approvals.length === 0) return [];
+  return [
+    {
+      kind: "signoff",
+      about: id,
+      ask: `Does ${id} say what was decided: "${statement}"?`,
+    },
+    ...approvals,
+  ];
+}
+
 export async function captureFollowUp(
   input: UpsertInput,
   payload: UpsertPayload,
@@ -565,30 +712,16 @@ export async function captureFollowUp(
       )
         firmPartners.push(partner.id);
     }
-    step(
-      "related-requirement-unmodeled",
-      {
-        type: "req",
-        id,
-        properties: {
-          ...head,
-          pair_reviews: partners.map((partner) => ({
-            with: partner.id,
-            verdict: VERDICT_PLACEHOLDER,
-            separated_by: SEPARATED_PLACEHOLDER,
-            claims,
-            origin: { kind: "agent" },
-          })),
-        },
-      },
-      `Once its claims name ${subjectKeys.join(", ")}, kb_check pairs ${id} with ${partners.map((partner) => `${partner.id} ("${partner.title}")`).join(", ")} and blocks until each pair is modeled or has a verdict. Model both claims, or send one pair review per partner: no_conflict with separated_by naming what separates them, interacts with resolved_by naming what resolves it, or conflict, which stays blocking until a person decides.${firmPartners.length > 0 ? " A verdict on a firm pair counts only with approved_by from a person, so those pairs are in approvalsNeeded." : ""}`,
+    const review = pairReviewFollowUp(
+      id,
+      head,
+      claims,
+      subjectKeys,
+      partners,
+      firmPartners,
     );
-    for (const partner of firmPartners)
-      approvals.push({
-        kind: "pair_review",
-        about: `${id} and ${partner}`,
-        ask: `Do ${id} and ${partner} both hold as written, and is the agent's verdict on the pair right? The person's name goes in that review's approved_by.`,
-      });
+    actions.push(review.action);
+    approvals.push(...review.approvals);
   }
 
   const uncovered: string[] = [];
@@ -607,15 +740,13 @@ export async function captureFollowUp(
   // A tested floor needs every claim grounded by a fact; the failure-side
   // scenario below is asked for once one is.
   if (!tested && needsProof && claims.length > 0)
-    step(
-      "evidence-floor",
-      {
-        mode: "requirement",
-        requirementId: id,
-        text: text(entity.semantic_text) || head.title,
-      },
-      `${id} reaches ${floor} only when each claim (${claims.join(", ")}) is grounded by a fact: kb_model returns the facts to upsert. A grounded claim also needs the failure-side scenario below.`,
-      "kb_model",
+    actions.push(
+      groundingStep(
+        id,
+        floor,
+        claims,
+        text(entity.semantic_text) || head.title,
+      ),
     );
   if (!tested && (needsProof || uncovered.length > 0)) {
     const code = needsProof ? "evidence-floor" : "symbol-coverage";
@@ -650,28 +781,9 @@ export async function captureFollowUp(
         `${id} needs a scenario and a test${need}; this records the scenario.`,
       );
     if (failureScenario !== undefined) {
-      step(
-        "evidence-floor",
-        {
-          type: "scenario",
-          id: failureScenario,
-          properties: {
-            title: `<a value ${id} forbids is refused>`,
-            status: "active",
-            expects: "rejection",
-          },
-          document: {
-            body: `<given a value or situation ${id} forbids, when ..., then it is refused>\n`,
-          },
-        },
-        `Once its claims are grounded, ${id} is not ${floor} while only its happy path is: this failure-side scenario expects rejection and assumes a value the requirement forbids; the same test verifies it. If ${id} has no input to refuse (it states a capability or an output shape), a person may approve a failure_side_waiver instead, listed in approvalsNeeded.`,
-      );
-      approvals.push({
-        kind: "failure_side_waiver",
-        about: id,
-        ask: `Only if ${id} has no input to refuse: may its failure side be waived (failure_side_waiver_approved_by)?`,
-        alternative: true,
-      });
+      const failure = failureScenarioFollowUp(id, failureScenario, floor);
+      actions.push(failure.action);
+      approvals.push(...failure.approvals);
     }
     step(
       code,
@@ -729,17 +841,9 @@ export async function captureFollowUp(
     );
   }
   if (!tested && needsProof && !(await reads.proofIntegration())) {
-    step(
-      "evidence-floor",
-      { command: "kibi proof run-steps", json: true },
-      `This workspace has no proof integration (.kb/proof/integrations.json), so kibi prove cannot run ${testId} yet. Run kibi proof inspect --command "kibi proof run-steps" --json and apply the plan it returns with kb_apply_plan. It adds .kb/proof/integrations.json, a new tracked file the person approves (listed in approvalsNeeded).`,
-      "kibi proof inspect",
-    );
-    approvals.push({
-      kind: "proof_integration",
-      about: ".kb/proof/integrations.json",
-      ask: "May the change add .kb/proof/integrations.json, which tells kibi prove how to run this repository's tests?",
-    });
+    const setup = proofIntegrationFollowUp(testId);
+    actions.push(setup.action);
+    approvals.push(...setup.approvals);
   }
   if (!tested && needsProof)
     step(
@@ -748,15 +852,16 @@ export async function captureFollowUp(
       `kb_check blocks ${id} below its evidence floor (${floor}) until ${testId} has a passing proof: give it a proof_contract naming the test code's symbol (executable_for ${testId}) and proof/steps/${testId}.json with the commands that run it, then run kibi prove --test ${testId}. kibi proof explain ${id} lists what is left.`,
       "kibi prove",
     );
-  // The person sees the statement once, with every other approval, in one
-  // question rather than one per check result.
-  if (actions.length > 0 || approvals.length > 0)
-    approvals.unshift({
-      kind: "signoff",
-      about: id,
-      ask: `Does ${id} say what was decided: "${text(entity.semantic_text) || head.title}"?`,
-    });
-  return { warnings, nextActions: actions, approvalsNeeded: approvals };
+  return {
+    warnings,
+    nextActions: actions,
+    approvalsNeeded: withSignoff(
+      id,
+      text(entity.semantic_text) || head.title,
+      actions.length > 0,
+      approvals,
+    ),
+  };
 }
 
 /** At most this many related requirements a write lists. */
