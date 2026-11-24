@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PACKAGE_CATALOG } from "../package-catalog.ts";
+import { swiplArchiveCacheMode } from "../swipl-archive-cache.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
 
@@ -359,6 +360,9 @@ describe("pull requests reuse archives and every release build stays from source
       "archive-cache":
         "${{ github.event_name == 'pull_request' && 'read' || github.event_name == 'push' && 'write' || 'off' }}",
     });
+    expect(swiplArchiveCacheMode("pull_request")).toBe("read");
+    expect(swiplArchiveCacheMode("push")).toBe("write");
+    expect(swiplArchiveCacheMode("workflow_dispatch")).toBe("off");
   });
 
   test("publish omits the cache input so the reusable workflow default stays off", () => {

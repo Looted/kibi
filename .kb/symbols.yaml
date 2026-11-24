@@ -48812,3 +48812,29 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-24T10:14:47.515Z
+  - id: SYM-swipl-archive-cache-mode
+    title: swiplArchiveCacheMode
+    status: active
+    sourceFile: scripts/swipl-archive-cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T15:48:37.857Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-release-pack-pr-archive-cache
+  - id: SYM-swipl-release-archive-cache-inputs
+    title: SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS
+    status: active
+    sourceFile: scripts/swipl-archive-cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T15:48:39.685Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-release-pack-pr-archive-cache
