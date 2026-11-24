@@ -395,7 +395,7 @@
             "type": "boolean"
           },
           "fields": {
-            "description": "Optional result detail: 'summary' (metadata, snippet; id, title, score and reasons only for entities the answer quotes) or 'full' (also bodies, graph paths, fact kb_query calls).",
+            "description": "'summary': metadata, snippet (bare rows for entities the answer quotes); 'full': bodies, graph paths, fact queries.",
             "enum": ["summary", "full"],
             "type": "string"
           },
