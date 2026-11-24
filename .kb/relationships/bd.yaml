@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9559278f5c2a
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-next-step-ABSTENTION-ONLY-IN-TEXT
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:39:01.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd06fd81c79f
+  - type: assumes
+    from: SCEN-NEG-kibi-search-next-step-ABSTENTION-ONLY-IN-TEXT
+    to: FACT-NEG-kibi-search-next-step-ABSTENTION-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:01.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da51ffe0d7a4

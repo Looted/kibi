@@ -354,7 +354,7 @@ export function toKibiResult<T>(
     operation: spec.name as OperationName,
     resultVersion: resultVersion(spec),
     status,
-    data,
+    data: withoutLiftedNextActions(spec, data),
     effects: [
       ...spec.effects.map((effect) => effectStatus(effect, row, outcome)),
       ...extraFailedEffects(spec.effects, row),
@@ -373,6 +373,21 @@ export function toKibiResult<T>(
     ),
     ...(resultError ? { error: resultError } : {}),
   };
+}
+
+/**
+ * A kb_search payload names its next calls in `nextActions`, and the envelope
+ * lifts them to its own top-level field. The copy in the data would show the
+ * same calls twice to a host that reads the whole result, so it is dropped.
+ */
+function withoutLiftedNextActions<T>(
+  spec: { readonly name: string },
+  data: T,
+): T {
+  if (spec.name !== "kb_search" || !record(data) || !("nextActions" in data))
+    return data;
+  const { nextActions: _lifted, ...rest } = data;
+  return rest as T;
 }
 
 export function operationData(value: unknown): unknown {

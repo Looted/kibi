@@ -2,7 +2,17 @@
 
 This package provides the `kibi.search-hints.v1` capability. When `kb_search` gives a weak or abstained lexical answer, Kibi asks it which current entities the question is probably about, and shows up to ten of their requirements under `queryAnalysis.hints` and in one sentence of the text answer. The agent then re-asks in the KB's own words. Hints never change search results, the governing answer, abstention, `kb_check` or proofs.
 
-Activate it in the project's `package.json` and install it as a dev dependency:
+It ships with Kibi and is on by default: a project whose `package.json` `kibi.plugins` names no provider for `kibi.search-hints.v1` gets it as the `replace` provider, with no setup. Turn it off by listing it in `kibi.declinedPlugins`, for example when the knowledge base is not written in English (the model is English-only), when the environment does not allow a bundled model, or when another provider is configured instead:
+
+```json
+{
+  "kibi": {
+    "declinedPlugins": ["kibi-plugin-search-hints"]
+  }
+}
+```
+
+A `kibi.plugins` entry for the capability, from any package and in any mode, takes the place of the default. To pin this plugin at a version of your own, install it as a dev dependency and activate it explicitly:
 
 ```json
 {

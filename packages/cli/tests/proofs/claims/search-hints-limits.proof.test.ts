@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { SEARCH_HINTS_MAX_LIMIT } from "kibi-plugin-sdk";
-import { SEARCH_HINTS_OFFER_REQUIREMENTS } from "../../../src/operations/bootstrap/plugin-offers.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
@@ -50,17 +49,6 @@ export function searchHintsResultLimitCertificate(): CodeCertificate {
   });
 }
 
-/** The bootstrap plan shall offer search hints from 50 requirement documents. */
-export function searchHintsOfferCertificate(): CodeCertificate {
-  return arithmeticCertificate({
-    testId: "TEST-proof-search-hints-offer-requirements",
-    variable: "offer_min_requirements",
-    valueType: "int",
-    assumptions: [{ operator: "eq", value: SEARCH_HINTS_OFFER_REQUIREMENTS }],
-    claim: { operator: "eq", value: 50 },
-  });
-}
-
 describe("search hints limits", () => {
   test("a top score below 0.44 is weak", () => {
     writeCodeCertificate(searchHintWeakScoreCertificate());
@@ -75,10 +63,5 @@ describe("search hints limits", () => {
   test("a provider result holds at most 20 hints", () => {
     writeCodeCertificate(searchHintsResultLimitCertificate());
     expect(SEARCH_HINTS_MAX_LIMIT).toBe(20);
-  });
-
-  test("bootstrap offers search hints from 50 requirement documents", () => {
-    writeCodeCertificate(searchHintsOfferCertificate());
-    expect(SEARCH_HINTS_OFFER_REQUIREMENTS).toBe(50);
   });
 });

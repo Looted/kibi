@@ -447,6 +447,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5382b127d20b
+  - type: constrains
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-subject
+    created_at: 2026-11-24T08:39:04.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db9d9f6bf4a4
+  - type: requires_property
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-titles
+    created_at: 2026-11-24T08:39:04.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e3f33a0c926
+  - type: requires_property
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-abstention
+    created_at: 2026-11-24T08:39:04.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3d53a5ca039
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-kibi-search-abstention-next-step
+    created_at: 2026-11-24T08:39:04.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31c992327bd4
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-NEG-kibi-search-next-step-ABSTAINED-NO-NEXT-ACTION
+    created_at: 2026-11-24T08:39:04.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a64d136480ad
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-NEG-kibi-search-next-step-ABSTENTION-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:04.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c34332c86f3
   - type: specified_by
     from: REQ-antigravity-mcp-workspace-discovery
     to: SCEN-NEG-antigravity-no-local-proxy

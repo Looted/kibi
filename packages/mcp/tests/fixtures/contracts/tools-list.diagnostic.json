@@ -565,6 +565,12 @@
                 "properties": {},
                 "type": "object"
               },
+              "notes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "queryAnalysis": {
                 "additionalProperties": {},
                 "properties": {},
