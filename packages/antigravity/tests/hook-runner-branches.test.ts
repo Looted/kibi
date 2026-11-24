@@ -6,6 +6,13 @@ import path from "node:path";
 
 import { Readable } from "node:stream";
 import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
+import {
   type AntigravityHookOutput,
   isInvokedAsCli,
   main,
@@ -220,6 +227,56 @@ describe("kibi-antigravity shell and edit context", () => {
     expect(out.decision).toBe("force_ask");
     expect(out.reason).toContain("REQ-checkout-rounding");
     expect(injected(await hook.drain())).toContain("REQ-checkout-rounding");
+  });
+
+  test("a keeps receipt recorded after the ask lets the same shell edit through", async () => {
+    const { root, pluginData } = createKibiWorkspace({ firmRequirement: true });
+    const hook = hookRunner(root, pluginData, "conv-shell-receipt");
+    const command = "sed -i 's/round/floor/' src/checkout.ts";
+    expect(
+      (await hook.pre("run_command", { CommandLine: command })).decision,
+    ).toBe("force_ask");
+    const content = fs.readFileSync(
+      path.join(root, "src", "checkout.ts"),
+      "utf8",
+    );
+    const receipt = path.join(
+      root,
+      firmEditReceiptPath(
+        "REQ-checkout-rounding",
+        "src/checkout.ts",
+        "roundTotal",
+      ) as string,
+    );
+    fs.mkdirSync(path.dirname(receipt), { recursive: true });
+    fs.writeFileSync(
+      receipt,
+      serializeFirmEditReceipt({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-checkout-rounding",
+        sourceFile: "src/checkout.ts",
+        symbol: "roundTotal",
+        verdict: "keeps",
+        note: "Still rounds to cents.",
+        statementHash: firmEditStatementHash(
+          "Checkout totals must round half-up to two decimal places.",
+        ),
+        codeHash: firmEditCodeHash(content, 1, 3) as string,
+        startLine: 1,
+        endLine: 3,
+        recordedAt: new Date(Date.now() + 1000).toISOString(),
+      }),
+    );
+    expect(await hook.pre("run_command", { CommandLine: command })).toEqual({
+      decision: "ask",
+    });
+    // An in-place edit of a doc is not a firm edit.
+    fs.writeFileSync(path.join(root, "notes.md"), "a\n");
+    expect(
+      await hook.pre("run_command", {
+        CommandLine: "sed -i 's/a/b/' notes.md",
+      }),
+    ).toEqual({ decision: "ask" });
   });
 
   test("reports files a shell command changed and records CLI KB use", async () => {

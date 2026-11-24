@@ -87,7 +87,7 @@ describe("kibi-antigravity kb-tools edge cases", () => {
 
   test("falls back to flags when a CLI payload cannot be decoded", () => {
     const usage = extractCliKbUsage(
-      "printf '%s\\n' '{bad json' | npx --no-install kibi check --input -",
+      "printf '%s\\n' '{bad json}' | npx --no-install kibi check --input -",
     );
     expect(usage?.operation).toBe("kb_check");
     expect(usage?.checkAll).toBe(true);
