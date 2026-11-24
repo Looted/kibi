@@ -123,9 +123,11 @@ jobs:
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   # The unit suite runs as cost-balanced partitions in parallel jobs (see
-  # partitionShards in scripts/run-unit-coverage.ts). Each partition publishes
-  # its per-shard LCOV; ci-unit-coverage-merge combines them and applies the
-  # repository coverage floor and source-manifest audit once.
+  # partitionShards in scripts/run-unit-coverage.ts). Costs come from the
+  # measured shard wall times in scripts/unit-coverage-costs.json, replaced
+  # by the cache this workflow saves after each green run. Each partition
+  # publishes its per-shard LCOV; ci-unit-coverage-merge combines them and
+  # applies the repository coverage floor and source-manifest audit once.
   ci-unit-coverage:
     name: ci-unit-coverage (${{ matrix.partition }}/4)
     needs: [swipl-bundle]
@@ -174,7 +176,18 @@ jobs:
       - name: Build packages needed by unit coverage
         run: bun run build
 
+      - name: Restore measured shard costs
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/unit-coverage-costs.json
+          # A miss falls through to the committed seed. The next green run
+          # saves a new key under the same prefix.
+          key: unit-coverage-costs-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: unit-coverage-costs-
+
       - name: Run unit tests with coverage
+        env:
+          KIBI_UNIT_COVERAGE_COSTS: ${{ runner.temp }}/unit-coverage-costs.json
         run: bun run test:coverage:unit --partition=${{ matrix.partition }}/4
 
       - name: Upload partition shard coverage
@@ -229,8 +242,23 @@ jobs:
           # per-partition copies alongside the merged report.
           path: ${{ runner.temp }}/unit-coverage-partitions
 
+      - name: Restore measured shard costs
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/unit-coverage-costs.json
+          key: unit-coverage-costs-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: unit-coverage-costs-
+
       - name: Merge unit coverage and enforce repository gates
+        env:
+          KIBI_UNIT_COVERAGE_COSTS: ${{ runner.temp }}/unit-coverage-costs.json
         run: bun run test:coverage:unit --merge="$RUNNER_TEMP/unit-coverage-partitions"
+
+      - name: Save measured shard costs
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: coverage/unit/shard-costs.json
+          key: unit-coverage-costs-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Per-file results bound to this commit. The proof workflow for the same
       # commit reuses clean files instead of running them a second time.
