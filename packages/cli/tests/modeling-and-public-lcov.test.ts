@@ -406,10 +406,10 @@ describe("discovery entities and Prolog JSON helpers", () => {
     expect(() => validateEntityType("nope")).toThrow(/Invalid type/);
     validateEntityType("req");
     expect(buildEntityGoal({ sourceFile: "a.md", type: "req" })).toContain(
-      "kb_entities_by_source",
+      "kb_entities_in_source",
     );
     expect(buildEntityGoal({ sourceFile: "a.md" })).toContain(
-      "kb_entities_by_source",
+      "kb_entities_in_source",
     );
     expect(buildEntityGoal({ id: "REQ-1", type: "req" })).toContain("REQ-1");
     expect(buildEntityGoal({ id: "REQ-1" })).toContain("REQ-1");
