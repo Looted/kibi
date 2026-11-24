@@ -9,6 +9,8 @@ tags:
   - plugins
 origin:
   kind: agent
+  ref: 'Maintainer approval, 2026-11-24: Approved.'
+  approved_by: maintainer
   recorded_at: '2026-11-24T11:27:40.935Z'
 rationale: A provider hit linked to several requirements took one of the ten places for each of them, so a requirement that several lower hits agreed on was cut from the list.
 semantic_text: Search hints must be ordered by summed provider hit score, highest first.
