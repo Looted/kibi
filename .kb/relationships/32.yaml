@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04c815bb804f
+  - type: implements
+    from: SYM-engine-engine-client-stop
+    to: REQ-engine-client-reclaim-dead-unix-socket
+    created_at: 2026-11-23T10:34:30.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7fb708d9ccd
+  - type: covered_by
+    from: SYM-engine-engine-client-stop
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-23T10:34:30.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed5851ef09a8

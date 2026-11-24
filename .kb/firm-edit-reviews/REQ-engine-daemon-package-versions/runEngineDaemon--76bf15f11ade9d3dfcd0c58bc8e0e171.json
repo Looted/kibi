@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-engine-daemon-package-versions",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "runEngineDaemon",
+  "verdict": "keeps",
+  "note": "The handshake still reports the daemon's package versions and rejects mismatched clients; shutdown now only removes its own pid file and socket.",
+  "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
+  "codeHash": "sha256:1f760d21cd54530ba1e9fe4f6e7c530ea19b89681bd1377c8af13d3890db2815",
+  "startLine": 2279,
+  "endLine": 3080,
+  "recordedAt": "2026-11-24T04:37:51.575Z"
+}

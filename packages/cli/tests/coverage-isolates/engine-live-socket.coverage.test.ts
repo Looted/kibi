@@ -3,14 +3,9 @@
  * EPIPE from unix socket teardown into the shared shard after other socket tests.
  */
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import * as net from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -222,7 +217,7 @@ describe("engine live-socket isolate", () => {
     }
   });
 
-  test("replaces a stale socket file and idles out", async () => {
+  test("replaces a dead socket and idles out", async () => {
     restores.push(isolateKibiEnv(), isolateRuntime());
     const exit = spyOn(process, "exit").mockImplementation((() => {
       return undefined as never;
@@ -234,7 +229,18 @@ describe("engine live-socket isolate", () => {
     restores.push(mockPrologForDaemon());
 
     const stalePath = path.join(root, "stale.sock");
-    writeFileSync(stalePath, "leftover");
+    // A listener that exits without closing leaves a socket that refuses
+    // connections: the dead socket a crashed daemon leaves behind.
+    const created = spawnSync(
+      process.execPath,
+      [
+        "-e",
+        "require('node:net').createServer().listen(process.argv[1],()=>process.exit(0));",
+        stalePath,
+      ],
+      { encoding: "utf8" },
+    );
+    expect(created.status).toBe(0);
     process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
     const daemon = runEngineDaemon({
       workspaceRoot: root,

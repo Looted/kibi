@@ -545,3 +545,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4569077ac6be
+  - type: executable_for
+    from: SYM-antigravity-hook-runner-branches-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:13.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9471f073ccf7

@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edb0d63c7db0
+  - type: executable_for
+    from: SYM-antigravity-hook-runner-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:16.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45b130e6ab6f

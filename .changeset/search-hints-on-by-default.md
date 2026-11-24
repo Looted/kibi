@@ -7,6 +7,7 @@
 "kibi-cursor": patch
 "kibi-zcode": patch
 "kibi-vibe": patch
+"kibi-antigravity": patch
 ---
 
 Search hints are now on by default. `kibi-plugin-search-hints` ships with `kibi-cli` and `kibi-runtime` (and so with the MCP server and every agent integration), and a weak or abstained `kb_search` answer suggests which requirements the question may mean, with no setup. A project that names its own `kibi.search-hints.v1` provider in `kibi.plugins` keeps it, in any mode, and `kb_search` with `hints: false` still skips hints for one call.

@@ -759,7 +759,7 @@ describe("Cursor hook runner", () => {
 });
 
 describe("Cursor hook runner workspace stamp", () => {
-  test("preToolUse names the agent's workspace on every Kibi MCP call without a permission", async () => {
+  test("preToolUse names the agent's workspace on a Kibi MCP call that carries none, without a permission", async () => {
     const window = createTempRoot("kibi-cursor-window-");
     const worktree = createTempRoot("kibi-cursor-worktree-");
     const pluginData = createTempRoot("kibi-cursor-data-");
@@ -793,6 +793,43 @@ describe("Cursor hook runner workspace stamp", () => {
       { pluginData },
     );
     expect(fromRoots).toEqual({ updated_input: { workspaceRoot: window } });
+  });
+
+  test("preToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const window = createTempRoot("kibi-cursor-window-");
+    const worktree = createTempRoot("kibi-cursor-worktree-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(window, worktree, pluginData);
+    for (const root of [window, worktree]) {
+      fs.mkdirSync(path.join(root, ".kb"));
+      fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    }
+    // The agent's workspace is not replaced by the window's folder, so the
+    // call still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          cwd: window,
+          workspace_roots: [window],
+          tool_name: "MCP:kb_query",
+          tool_input: { id: "REQ-1", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toStrictEqual({});
+    // With neither a call cwd nor window folders there is no workspace to
+    // name, and the call still passes through instead of failing.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          tool_name: "MCP:kb_query",
+          tool_input: { id: "REQ-1" },
+        },
+        { pluginData },
+      ),
+    ).toStrictEqual({});
   });
 
   test("a non-Kibi tool and a directory outside any Kibi workspace are left alone", async () => {

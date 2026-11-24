@@ -398,3 +398,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-499dd6a2008e
+  - type: assumes
+    from: SCEN-kibi-discovery-stale-read-freshness
+    to: FACT-kibi-discovery-stale-read-freshness
+    created_at: 2026-11-23T10:46:51.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a39baab6613
+  - type: verified_by
+    from: SCEN-kibi-discovery-stale-read-freshness
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:46:51.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1398eee88e9d
+  - type: implements
+    from: SYM-kb-tools-kb-usage
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:05:37.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abdd5b241530
+  - type: covered_by
+    from: SYM-kb-tools-kb-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:37.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b282ef62b13c
