@@ -103,7 +103,7 @@ describe("executeOperation", () => {
     expect(result.stdout?.endsWith("}\n")).toBe(true);
   });
 
-  test("invalid input of an integrated command lists only the errors", async () => {
+  test("invalid input of an integrated command lists the errors and points at its schema", async () => {
     stubSpec({ execute: async () => ({}) });
     const result = await executeOperation(
       "kb_status",
@@ -113,12 +113,12 @@ describe("executeOperation", () => {
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toBe(envelopeErrorLine("VALIDATION_FAILED"));
     expect(json(result.stdout).error.message).toBe(
-      "/ must NOT have additional properties: x; /q must be string: string",
+      "/ must NOT have additional properties: x; /q must be string: string. Run 'kibi status --schema' to print the input fields and allowed values.",
     );
     expect(json(result.stdout).error).toStrictEqual({
       code: "VALIDATION_FAILED",
       message:
-        "/ must NOT have additional properties: x; /q must be string: string",
+        "/ must NOT have additional properties: x; /q must be string: string. Run 'kibi status --schema' to print the input fields and allowed values.",
       retryable: false,
     });
     expect(json(result.stdout).effects).toStrictEqual([

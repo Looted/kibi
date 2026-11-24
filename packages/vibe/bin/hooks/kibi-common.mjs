@@ -7,7 +7,7 @@
 import { spawn } from "node:child_process";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWorkspace } from "../kibi-runtime.mjs";
+import { isKibiWorkspace, resolveWorkspace } from "../kibi-runtime.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KIBI_RUNNER = join(HERE, "..", "kibi.mjs");
@@ -120,4 +120,22 @@ export function clip(text, max) {
     .replace(/\s+/g, " ")
     .trim();
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;
+}
+
+/**
+ * Run one of the kibi-guard.mjs notes for a Kibi workspace. The guard is
+ * advisory: outside a KB, or on any error, it adds nothing.
+ */
+export function guardNote(note, workspace, payload) {
+  try {
+    if (!isKibiWorkspace(workspace)) return undefined;
+    return note(workspace, payload, process.env) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Join the context parts that are set; empty when none is. */
+export function joinParts(parts) {
+  return parts.filter((part) => typeof part === "string" && part).join("\n\n");
 }
