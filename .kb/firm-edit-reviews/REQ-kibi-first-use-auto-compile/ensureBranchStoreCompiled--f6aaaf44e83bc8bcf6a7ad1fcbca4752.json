@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/utils/auto-compile.ts",
   "symbol": "ensureBranchStoreCompiled",
   "verdict": "keeps",
-  "note": "ensureBranchStoreCompiled still compiles a never-compiled branch store on first use without writing any file Git tracks unless auto-sync is turned off.",
+  "note": "A never-compiled store is still compiled on first use for every caller; syncDrift false only skips the drift resync.",
   "statementHash": "sha256:71d220bade6b9c4caea538b2dc084c78c816e55557be0d73da528be5cd2e82ef",
-  "codeHash": "sha256:8d51fe15b9043d0949b9d08fd349ce418dedde41d572b17c433bc44a53206971",
+  "codeHash": "sha256:a2e350a9bf881dafbd630808c8a42256774a26bb85fa6a2cf24b070cb9d85308",
   "startLine": 319,
-  "endLine": 414,
-  "recordedAt": "2026-11-23T10:31:52.381Z"
+  "endLine": 422,
+  "recordedAt": "2026-11-24T05:01:12.100Z"
 }

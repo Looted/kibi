@@ -221,6 +221,13 @@ status: open
           "feature branch should still show develop-only entity (both files exist here)",
         );
 
+        // Commit before switching: staged changes would follow the checkout
+        // to develop, and Kibi compiles the files the checkout holds.
+        await run("git", ["commit", "--no-verify", "-m", "feature commit"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+
         await run("git", ["checkout", "develop"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
@@ -295,6 +302,13 @@ status: open
 
         const { stdout: v2Query } = await kibi(sandbox, ["query", "req"]);
         assert.ok(v2Query.includes("Version 2"));
+
+        // Commit before switching: staged changes would follow the checkout
+        // to develop, and Kibi compiles the files the checkout holds.
+        await run("git", ["commit", "--no-verify", "-m", "v2"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
         await run("git", ["checkout", "develop"], {
           cwd: sandbox.repoDir,
@@ -417,6 +431,12 @@ status: open
           featureQuery.includes("No entities") || featureQuery.includes("[]"),
           "Feature branch should have no requirements",
         );
+
+        // Commit the deletion: an uncommitted one would follow the checkout.
+        await run("git", ["commit", "--no-verify", "-am", "remove shared"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
         await run("git", ["checkout", "develop"], {
           cwd: sandbox.repoDir,

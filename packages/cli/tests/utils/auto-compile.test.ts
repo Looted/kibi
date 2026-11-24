@@ -99,6 +99,30 @@ describe("ensureBranchStoreCompiled invariants", () => {
     expect(syncSpy).not.toHaveBeenCalled();
   });
 
+  test("a staged check leaves a drifted compiled store as it is", async () => {
+    const { root, attachment } = makeRepoWithHealthyStore();
+    writeFileSync(
+      path.join(root, ".kb", "requirements", "REQ-1.md"),
+      "---\nid: REQ-1\ntitle: Changed\nstatus: open\n---\n",
+    );
+    const syncSpy = spyOn(syncModule, "syncCommand").mockResolvedValue({
+      success: true,
+    } as never);
+    restores.push(() => syncSpy.mockRestore());
+
+    expect(
+      await ensureBranchStoreCompiled(root, attachment, {
+        name: "kb_check",
+        syncDrift: false,
+      }),
+    ).toBe("not-needed");
+    expect(syncSpy).not.toHaveBeenCalled();
+    expect(
+      await ensureBranchStoreCompiled(root, attachment, { name: "kb_check" }),
+    ).toBe("compiled");
+    expect(syncSpy).toHaveBeenCalledTimes(1);
+  });
+
   test("shares one single-flight syncCommand call for concurrent drifted reads", async () => {
     const { root, attachment } = makeRepoWithHealthyStore();
     const updated = "---\nid: REQ-1\ntitle: Changed\nstatus: open\n---\n";

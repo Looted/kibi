@@ -962,7 +962,9 @@ function readPidFile(pidPath: string): number {
 
 function hasFreshDrainTouch(pidPath: string): boolean {
   try {
-    return Date.now() - statSync(pidPath).mtimeMs <= ENGINE_DRAIN_TOUCH_FRESH_MS;
+    return (
+      Date.now() - statSync(pidPath).mtimeMs <= ENGINE_DRAIN_TOUCH_FRESH_MS
+    );
   } catch {
     return false;
   }
@@ -1264,10 +1266,16 @@ export class EngineClient {
             try {
               rmSync(pidPath, { force: true });
             } catch {}
-          } else if (probe.kind === "missing") {
-            await this.waitForDrainOrCleanStalePid({
+          } else if (
+            probe.kind === "missing" &&
+            (await this.waitForDrainOrCleanStalePid({
               holdsPublicationLease: false,
-            });
+              giveUpAt: startDeadline,
+            }))
+          ) {
+            // A daemon drained, or a successor took over: connect to that
+            // successor's socket rather than spawning another writer.
+            continue;
           }
           rmSync(engineSidecarPath(socketPath, ".error"), { force: true });
           try {
@@ -1754,12 +1762,21 @@ export class EngineClient {
 
   private async waitForDrainOrCleanStalePid(options: {
     readonly holdsPublicationLease: boolean;
+    /** A starter's own deadline: past it, give up instead of waiting on. */
+    readonly giveUpAt?: number;
   }): Promise<boolean> {
     const pidPath = enginePidPath(this.workspaceRoot, this.branch);
     if (!existsSync(pidPath)) return false;
     const deadline = Date.now() + ENGINE_STOP_WAIT_MS;
     let waited = false;
     while (existsSync(pidPath)) {
+      // A starter stops waiting once a successor listens: the pid file it
+      // sees may already be that successor's.
+      if (
+        options.giveUpAt !== undefined &&
+        existsSync(engineSocketPath(this.workspaceRoot, this.branch))
+      )
+        return true;
       const pid = readPidFile(pidPath);
       if (pid <= 1 || !isProcessAlive(pid)) {
         try {
@@ -1784,6 +1801,14 @@ export class EngineClient {
       }
       if (Date.now() >= deadline) {
         throw new Error("Kibi engine did not stop within 5 seconds");
+      }
+      if (options.giveUpAt !== undefined && Date.now() >= options.giveUpAt) {
+        throw Object.assign(
+          new Error(
+            `Kibi engine at ${engineSocketPath(this.workspaceRoot, this.branch)} is still draining`,
+          ),
+          { code: "ENGINE_CONNECT_TIMEOUT" },
+        );
       }
       waited = true;
       await new Promise((resolve) => setTimeout(resolve, 25));
