@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { WordPieceTokenizer } from "./tokenizer.js";
 
 /** Upstream model and the revision the bundled asset was built from. */
-export const MODEL_ID = "minishlab/potion-base-8M";
-export const MODEL_REVISION = "bf8b056651a2c21b8d2565580b8569da283cab23";
+export const MODEL_ID = "minishlab/potion-retrieval-32M";
+export const MODEL_REVISION = "6fc8051fab2a1e0ee76689cf08c853792ac285e7";
 /** The model a provider stamp discloses. */
 export const MODEL_LABEL = `${MODEL_ID}@${MODEL_REVISION.slice(0, 12)}/int8`;
 /** model2vec truncates each text to this many tokens. */
@@ -31,7 +31,7 @@ export function loadStaticModel(
   assetsDirectory = ASSETS_DIRECTORY,
 ): StaticModel {
   const table = readFileSync(
-    path.join(assetsDirectory, "potion-base-8M.int8.bin"),
+    path.join(assetsDirectory, "potion-retrieval-32M.int8.bin"),
   );
   if (table.toString("ascii", 0, 4) !== "KSHM" || table.readUInt32LE(4) !== 1)
     throw new Error("search hints model asset has an unknown format");

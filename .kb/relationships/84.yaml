@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd86416ea656
+  - type: implements
+    from: SYM-cache-vector-cache-save
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:07.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff3d0b3159e
+  - type: covered_by
+    from: SYM-cache-vector-cache-save
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:07.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c59dcfaeb16d

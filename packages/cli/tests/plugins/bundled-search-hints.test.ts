@@ -96,7 +96,7 @@ describe("the bundled search hints provider", () => {
     }).resolveSearchHints();
     expect(replace?.pluginId).toBe("kibi-plugin-search-hints");
     expect(replace?.external).toBe(false);
-    expect(replace?.stamp.model).toContain("potion-base-8M");
+    expect(replace?.stamp.model).toContain("potion-retrieval-32M");
   });
 
   test("stays off for a project that declined the plugin", async () => {
