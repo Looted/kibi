@@ -913,6 +913,14 @@
               "additionalProperties": true
             },
             "description": "Current requirements on the same terms."
+          },
+          "approvalsNeeded": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "For a requirement below its evidence floor: every decision only a person can make before it reaches the floor, to ask in one question."
           }
         }
       },
@@ -1028,6 +1036,13 @@
         "type": "string"
       },
       "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "approvalsNeeded": {
         "type": "array",
         "items": {
           "type": "object",
