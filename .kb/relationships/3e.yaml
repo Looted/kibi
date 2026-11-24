@@ -433,17 +433,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2be2da2744db
-  - type: specified_by
-    from: REQ-ci-merge-train-member-reuse
-    to: SCEN-ci-merge-train-member-reuse
-    created_at: 2026-11-24T15:25:30.812Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f03bd261dc5e
-  - type: verified_by
-    from: REQ-ci-merge-train-member-reuse
-    to: TEST-ci-merge-train-member-reuse
-    created_at: 2026-11-24T15:25:30.837Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee0fbf54e072
