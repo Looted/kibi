@@ -641,8 +641,10 @@ describe("engine socket auto-reclaim and drain guards", () => {
       } catch {}
     }
 
-    // Stale mtime (> 5s) + alive PID: non-lease caller clears immediately;
-    // holdsPublicationLease=true waits for older daemon to finish draining.
+    // Stale mtime (> 5s) + alive PID: a non-lease caller waits the full stop
+    // window (a daemon from an older release drains without touching its pid
+    // file) and then clears it; holdsPublicationLease=true waits for the
+    // older daemon to finish draining.
     const root2 = tempRoot();
     const sock2 = engineSocketPath(root2, "main");
     const pid2 = enginePidPath(root2, "main");
@@ -662,9 +664,11 @@ describe("engine socket auto-reclaim and drain guards", () => {
         branch: "main",
         timeout: 2_000,
       });
+      const reclaimStarted = performance.now();
       expect(await nonLease.stopOrReclaim({ holdsPublicationLease: false })).toBe(
         false,
       );
+      expect(performance.now() - reclaimStarted).toBeGreaterThanOrEqual(4_900);
       expect(existsSync(pid2)).toBe(false);
 
       // Re-create stale pid file and test holdsPublicationLease=true (5 s wait).
@@ -687,7 +691,7 @@ describe("engine socket auto-reclaim and drain guards", () => {
         helper2.kill("SIGKILL");
       } catch {}
     }
-  });
+  }, 20_000);
 
   unixSocketTest(
     "fails closed on regular files and EACCES sockets without unlinking them",

@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/engine.ts",
   "symbol": "runEngineDaemon",
   "verdict": "keeps",
-  "note": "runEngineDaemon still runs the single-writer Node.js 18+ local framed socket engine per canonical workspace and branch.",
+  "note": "One daemon still serves each workspace and branch; a draining older daemon is no longer raced by a second writer, and shutdown leaves a successor's pid file alone.",
   "statementHash": "sha256:48d405325ca5f561ae5a94b499059dbf6ec52185b7aac5f46476523a3875aab0",
-  "codeHash": "sha256:4ab5be4914494bda06e78e8e481298386b13e6d5c9306a202eb2c93998e3ef9c",
-  "startLine": 2270,
-  "endLine": 3067,
-  "recordedAt": "2026-11-23T10:27:16.485Z"
+  "codeHash": "sha256:1f760d21cd54530ba1e9fe4f6e7c530ea19b89681bd1377c8af13d3890db2815",
+  "startLine": 2279,
+  "endLine": 3080,
+  "recordedAt": "2026-11-24T04:37:51.575Z"
 }

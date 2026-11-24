@@ -6064,6 +6064,16 @@ describe("daemon guards", () => {
     expect(existsSync(enginePidPath(daemon.workspace, "main"))).toBe(false);
   });
 
+  test("leave a successor's pid file in place on shutdown", async () => {
+    const daemon = await startDaemon();
+    await settled(daemon);
+    const pidPath = enginePidPath(daemon.workspace, "main");
+    writeFileSync(pidPath, `${process.pid + 1}\n`);
+    process.emit("SIGTERM" as never);
+    await daemon.run;
+    expect(readFileSync(pidPath, "utf8")).toBe(`${process.pid + 1}\n`);
+  });
+
   test("shut down once for two stops in one frame batch", async () => {
     const daemon = await startDaemon();
     const mark = await settled(daemon);

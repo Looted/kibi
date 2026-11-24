@@ -1767,11 +1767,20 @@ export class EngineClient {
         } catch {}
         return waited;
       }
-      if (!hasFreshDrainTouch(pidPath) && !options.holdsPublicationLease) {
+      // A live pid that never touches its file is a recycled pid or a daemon
+      // that lost its socket. It is reclaimed only after the full stop wait:
+      // a daemon from an older release drains without touching the file, and
+      // starting a second writer while it still saves would race its store.
+      if (
+        Date.now() >= deadline &&
+        !hasFreshDrainTouch(pidPath) &&
+        !options.holdsPublicationLease
+      ) {
         try {
           rmSync(pidPath, { force: true });
         } catch {}
-        return waited;
+        // Nothing was stopped: the pid did not name a daemon that drained.
+        return false;
       }
       if (Date.now() >= deadline) {
         throw new Error("Kibi engine did not stop within 5 seconds");
@@ -2924,12 +2933,16 @@ export async function runEngineDaemon(requestedOptions: {
       drainTouchActive = false;
       clearTimeout(drainTouchTimer);
     }
-    try {
-      rmSync(options.socketPath, { force: true });
-      // Last: a vanished pid file has nothing left to remove.
-      rmSync(pidPath);
-    } catch {
-      // best effort cleanup
+    // A pid file naming another process belongs to a successor daemon that
+    // reclaimed this one; its socket and pid file are not this daemon's.
+    if (readPidFile(pidPath) === process.pid) {
+      try {
+        rmSync(options.socketPath, { force: true });
+        // Last: a vanished pid file has nothing left to remove.
+        rmSync(pidPath);
+      } catch {
+        // best effort cleanup
+      }
     }
     // The daemon is a detached host process. Once the SWI child and socket are
     // gone, force the final event-loop exit rather than retaining a stale
