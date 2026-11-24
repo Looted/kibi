@@ -1,7 +1,10 @@
 name: Release pack (dry run)
 
-# Rehearses the publish workflow's packaging without publishing: builds the
-# SWI-Prolog archives, verifies and extracts them into the platform packages,
+# Rehearses the publish workflow's packaging without publishing. Pull requests
+# restore cached SWI-Prolog archives when the build inputs are unchanged and
+# build from source on a miss. Pushes and manual runs always build from source
+# (a push also saves the archives for the next pull request). The job then
+# verifies and extracts them into the platform packages,
 # packs every publishable package, and installs the tarballs with npm on
 # runners that have no SWI-Prolog, including a literal run of the README quick
 # start. This workflow has no secrets, no
@@ -74,6 +77,10 @@ on:
 jobs:
   swipl-build:
     uses: ./.github/workflows/swipl-build.yml
+    with:
+      # pull_request restores; a develop push rebuilds and primes the cache;
+      # workflow_dispatch stays off, the same as publish.
+      archive-cache: ${{ github.event_name == 'pull_request' && 'read' || github.event_name == 'push' && 'write' || 'off' }}
 
   pack:
     needs: swipl-build
@@ -102,7 +109,23 @@ jobs:
           pattern: swipl-*
           path: ${{ runner.temp }}/swipl-artifacts
       - name: Verify archives and populate the platform packages
-        run: node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          # A restored archive was built by another run. Drop only the commit
+          # and run binding, and only for a pull request that actually restored
+          # one. Publish never takes this branch: it does not run this workflow.
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            shopt -s nullglob
+            for marker in "$RUNNER_TEMP"/swipl-artifacts/swipl-*/cache-status; do
+              if [[ -f "$marker" && "$(cat "$marker")" == "hit" ]]; then
+                unset GITHUB_SHA GITHUB_RUN_ID
+                break
+              fi
+            done
+          fi
+          node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
       - name: Verify publish metadata for npm provenance
         run: bun run scripts/verify-publish-metadata.ts --require-swipl-payload
       - name: Clean stale tarballs
