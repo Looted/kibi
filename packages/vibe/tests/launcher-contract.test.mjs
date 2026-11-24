@@ -31,7 +31,8 @@ const LAUNCHER = join(
   "bin",
   "launch-kibi-mcp.mjs",
 );
-const HOOKS = join(REPO_ROOT, "packages", "vibe", "bin", "hooks");
+const PLUGIN_ROOT = join(REPO_ROOT, "packages", "vibe");
+const HOOKS = join(PLUGIN_ROOT, "bin", "hooks");
 
 // The full tool list is owned by the MCP package's contract fixture, so the
 // launcher test tracks it instead of hardcoding a count that drifts as tools
@@ -128,8 +129,11 @@ function handshake(launcher, cwd, timeoutMs = 120_000) {
   });
 }
 
-/** Run a hook script with a JSON payload on stdin; return {code, stdout, stderr}. */
-function runHook(script, payload, cwd = REPO_ROOT, timeoutMs = 180_000) {
+/**
+ * Run a hook script with a JSON payload on stdin; return {code, stdout, stderr}.
+ * Like Vibe, the process runs in the plugin root, not the session folder.
+ */
+function runHook(script, payload, cwd = PLUGIN_ROOT, timeoutMs = 180_000) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = rpcSpawn([script], cwd);
     let stdout = "";
@@ -298,12 +302,14 @@ test(
 );
 
 test(
-  "post_tool hook emits additional_context for file tools inside a Kibi workspace",
+  "post_tool hook lists the entities linked to a file named by a relative path",
   {
     timeout: 240_000,
     skip: !workspaceReady && "project-local kibi-mcp not built",
   },
   async () => {
+    // The tool ran in the session folder (payload cwd) and named the file
+    // relative to it; the hook itself runs in the plugin root.
     const payload = {
       hook_event_name: "post_tool",
       session_id: "contract-test",
@@ -314,17 +320,18 @@ test(
       tool_status: "success",
       tool_output: { content: "// ..." },
     };
-    const { code, stdout } = await runHook(
+    const { code, stdout, stderr } = await runHook(
       join(HOOKS, "kibi-file-context.mjs"),
       payload,
     );
     assert.equal(code, 0, `hook exited ${code}`);
-    // Fail-open: without parseable kibi output the hook may print nothing, but
-    // when it prints, it must be valid structured JSON.
-    const text = stdout.trim();
-    if (text) {
-      const parsed = JSON.parse(text.split("\n").pop());
-      assert.ok(parsed && typeof parsed === "object");
-    }
+    assert.equal(stderr, "", "a hook never prints to stderr");
+    const parsed = JSON.parse(stdout.trim().split("\n").pop());
+    const ctx = parsed?.hook_specific_output?.additional_context ?? "";
+    assert.match(
+      ctx,
+      /Kibi entities linked to packages\/vibe\/bin\/kibi-runtime\.mjs:/,
+    );
+    assert.match(ctx, /- SYM-vibe-[A-Za-z-]+ \(symbol, /);
   },
 );

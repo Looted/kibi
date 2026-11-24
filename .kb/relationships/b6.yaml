@@ -510,3 +510,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb486b5e66c1
+  - type: covered_by
+    from: SYM-vibe-probeWslNode
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:00:54.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3addd3086b7
+  - type: implements
+    from: SYM-vibe-probeWslNode
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-24T10:00:54.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad8defa9d311

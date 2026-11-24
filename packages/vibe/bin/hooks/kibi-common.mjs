@@ -5,7 +5,7 @@
 // a Vibe structured-response JSON on stdout. Every failure path exits 0 with
 // no output, so a broken hook never blocks the session (fail-open).
 import { spawn } from "node:child_process";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, posix, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isKibiWorkspace, resolveWorkspace } from "../kibi-runtime.mjs";
 
@@ -41,16 +41,24 @@ export function resolveHookWorkspace(payload) {
 }
 
 /**
- * Make `filePath` relative to the workspace root (forward slashes). Returns
- * null when the file lives outside the workspace.
+ * Make `filePath` relative to the workspace root (forward slashes). A
+ * relative `filePath` is resolved against `baseDir` (the payload's `cwd`, the
+ * folder the tool ran in), not against this hook process's own cwd, which is
+ * the plugin directory. Returns null when the file lives outside the
+ * workspace.
  */
-export function toRepoRelative(filePath, workspaceRoot) {
+export function toRepoRelative(filePath, workspaceRoot, baseDir) {
   const norm = (p) => String(p ?? "").replace(/\\/g, "/");
-  const file = norm(filePath);
-  if (!file) return null;
   const root = norm(workspaceRoot).replace(/\/+$/, "");
+  let file = norm(filePath);
+  if (!file) return null;
+  const isAbsolute = file.startsWith("/") || /^[a-zA-Z]:\//.test(file);
+  if (!isAbsolute) {
+    const base = norm(baseDir || workspaceRoot).replace(/\/+$/, "");
+    file = posix.normalize(`${base}/${file}`);
+  }
   if (/^[a-zA-Z]:\//.test(file) || file.startsWith("//")) {
-    // Absolute Windows path: relativize only when it sits inside the root.
+    // Windows path: relativize only when it sits inside the root.
     if (root && file.toLowerCase().startsWith(`${root.toLowerCase()}/`)) {
       return file.slice(root.length + 1);
     }
@@ -64,6 +72,9 @@ export function toRepoRelative(filePath, workspaceRoot) {
 /**
  * Run a kibi CLI route in `workspace` and resolve with { code, stdout }.
  * Exit code 3 means the workspace has no .kb (hooks treat it as "skip").
+ * The child's stderr is dropped, so a failing kibi (no SWI-Prolog, a broken
+ * install) never prints into the session; set KIBI_VIBE_LAUNCHER_DEBUG=1 to
+ * pass it through.
  */
 export function runKibi(workspace, routeArgs, payload) {
   return new Promise((resolvePromise) => {
@@ -75,7 +86,11 @@ export function runKibi(workspace, routeArgs, payload) {
           KIBI_AUTO_SYNC: process.env.KIBI_AUTO_SYNC ?? "0",
           KIBI_WORKSPACE: workspace,
         },
-        stdio: ["pipe", "pipe", "inherit"],
+        stdio: [
+          "pipe",
+          "pipe",
+          process.env.KIBI_VIBE_LAUNCHER_DEBUG === "1" ? "inherit" : "ignore",
+        ],
       });
     } catch {
       resolvePromise({ code: 1, stdout: "" });

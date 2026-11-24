@@ -1,7 +1,7 @@
 // kibi-runtime.mjs — runtime detection and spawn planning for launching Kibi
-// from a host process (the Mistral Vibe MCP server, context hooks, or the
-// kibi.mjs CLI wrapper; other agent hosts can reuse it by setting
-// KIBI_MCP_HOST to their own name).
+// from a Mistral Vibe host process (the MCP server launcher, the context
+// hooks, or the kibi.mjs CLI wrapper). It is part of the kibi-vibe plugin;
+// the other agent hosts ship their own launchers.
 //
 // Kibi needs Node.js 22+ and SWI-Prolog 9+. The bundled SWI-Prolog covers
 // Linux, macOS and Windows x64, so Kibi runs natively by default; a
@@ -12,8 +12,10 @@
 // Security rule: WSL commands are NEVER built as shell strings. The workspace
 // path, the node binary and every CLI argument are passed as literal argv
 // entries to `wsl.exe --exec`, so a path containing $(...), backticks or
-// quotes can never be shell-injected. The only shell string ever executed is
-// a constant probe command with no interpolated values.
+// quotes can never be shell-injected, and that includes the `wslpath`
+// conversion of a drive-letter path. The only shell string ever executed is
+// the constant Node.js probe script run by `bash -lc` (WSL_NODE_PROBE_SCRIPT),
+// which has no interpolated values.
 import { spawn, spawnSync } from "node:child_process";
 import {
   appendFileSync,
@@ -34,6 +36,21 @@ export const KIBI_MIN_NODE_MAJOR = 22;
 export const DEFAULT_MCP_HOST = "vibe";
 /** Exit code meaning "this workspace has no Kibi KB" (hooks skip on it). */
 export const NO_KIBI_EXIT_CODE = 3;
+
+/** The kibi-vibe package version (package.json, then plugin.json). */
+export function packageVersion(packageRoot = join(HERE, "..")) {
+  for (const file of ["package.json", "plugin.json"]) {
+    try {
+      const { version } = JSON.parse(
+        readFileSync(join(packageRoot, file), "utf8"),
+      );
+      if (typeof version === "string" && version) return version;
+    } catch {
+      // try the next manifest
+    }
+  }
+  return "0.0.0";
+}
 
 /** The MCP host name reported to the kibi-mcp server (env-overridable). */
 export function resolveMcpHost(env = process.env) {
@@ -94,15 +111,56 @@ function writeRuntimeCache(patch) {
  * @typedef {{ nodeWslPath: string, major: number }} WslNodeProbe
  */
 
+/**
+ * The constant probe script run by `bash -lc` inside WSL. A login shell puts
+ * nvm-installed Node.js on PATH; when it still finds none, the newest nvm
+ * install is used. Whatever path it settles on is the one asked for its
+ * version. Each result line carries a sentinel prefix, so noise a login
+ * profile prints (banners, motd, nvm messages) cannot be mistaken for it.
+ * No value is ever interpolated into this string.
+ */
+export const WSL_NODE_PROBE_SCRIPT = [
+  "p=$(command -v node 2>/dev/null)",
+  '[ -n "$p" ] || p=$(ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -V | tail -n 1)',
+  '[ -n "$p" ] || exit 0',
+  "printf 'KIBI_PROBE_NODE=%s\\n' \"$p\"",
+  'printf \'KIBI_PROBE_VERSION=%s\\n\' "$("$p" --version 2>/dev/null)"',
+].join("\n");
+
+/**
+ * Read the sentinel-tagged lines of the probe's stdout (the last of each
+ * wins). Returns { nodeWslPath, major } when they name an absolute node path
+ * and a Node.js >= KIBI_MIN_NODE_MAJOR, else null.
+ *
+ * @param {string | null | undefined} stdout
+ * @returns {WslNodeProbe | null}
+ */
+export function parseWslNodeProbe(stdout) {
+  let nodeWslPath = null;
+  let version = "";
+  for (const raw of String(stdout ?? "").split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line.startsWith("KIBI_PROBE_NODE=")) {
+      nodeWslPath = line.slice("KIBI_PROBE_NODE=".length);
+    } else if (line.startsWith("KIBI_PROBE_VERSION=")) {
+      version = line.slice("KIBI_PROBE_VERSION=".length);
+    }
+  }
+  const major = parseMajor(version);
+  return nodeWslPath?.startsWith("/") && major >= KIBI_MIN_NODE_MAJOR
+    ? { nodeWslPath, major }
+    : null;
+}
+
 /** In-process probe cache keyed by distro (or "default"). */
 const probeCache = new Map();
 
 /**
  * Probe the Node.js available inside a WSL distribution (default distro when
- * `distro` is null). One single wsl.exe call; the command string is a
- * constant — no value is ever interpolated into it. Returns
- * { nodeWslPath, major } when Node.js >= KIBI_MIN_NODE_MAJOR, else null.
- * Result is cached in-process and in a per-user cache file (0600).
+ * `distro` is null). One single wsl.exe call running the constant
+ * WSL_NODE_PROBE_SCRIPT. Returns { nodeWslPath, major } when Node.js >=
+ * KIBI_MIN_NODE_MAJOR, else null. Result is cached in-process and in a
+ * per-user cache file (0600).
  *
  * @param {string | null} [distro]
  * @param {{ env?: NodeJS.ProcessEnv, spawnSyncImpl?: typeof spawnSync, platform?: string }} [options]
@@ -128,26 +186,9 @@ export function probeWslNode(
   try {
     const args = [];
     if (distro) args.push("-d", distro);
-    // Login shell so nvm-installed Node.js is on PATH; constant string only.
-    // Falls back to the newest nvm install when the login PATH has no node.
-    args.push(
-      "--exec",
-      "bash",
-      "-lc",
-      'command -v node 2>/dev/null || ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -V | tail -n 1; node --version 2>/dev/null || true',
-    );
+    args.push("--exec", "bash", "-lc", WSL_NODE_PROBE_SCRIPT);
     const out = spawnSyncImpl("wsl.exe", args, { encoding: "utf8" });
-    if (!out.error && out.status === 0) {
-      const lines = String(out.stdout ?? "")
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-      const nodeWslPath = lines[0]?.startsWith("/") ? lines[0] : null;
-      const major = parseMajor(lines[1] ?? "");
-      if (nodeWslPath && major >= KIBI_MIN_NODE_MAJOR) {
-        result = { nodeWslPath, major };
-      }
-    }
+    if (!out.error && out.status === 0) result = parseWslNodeProbe(out.stdout);
   } catch {
     result = null;
   }
@@ -175,25 +216,30 @@ export function parseWslUnc(winPath) {
 
 /**
  * Convert a Windows path to the path WSL sees. WSL UNC paths convert purely;
- * drive-letter paths go through `wsl.exe wslpath` (cached per user). Returns
- * null when conversion is impossible — callers must treat that as a hard
- * error, never silently fall back to another directory.
+ * drive-letter paths go through `wsl.exe --exec wslpath -a` (cached per user),
+ * with the path as one literal argv entry and no shell in between, in the
+ * given distribution (the default one when `distro` is null). Returns null
+ * when conversion is impossible — callers must treat that as a hard error,
+ * never silently fall back to another directory.
+ *
+ * @param {string} winPath
+ * @param {{ spawnSyncImpl?: typeof spawnSync, distro?: string | null }} [options]
+ * @returns {string | null}
  */
-export function toWslPath(winPath, { spawnSyncImpl = spawnSync } = {}) {
+export function toWslPath(
+  winPath,
+  { spawnSyncImpl = spawnSync, distro = null } = {},
+) {
   const unc = parseWslUnc(winPath);
   if (unc) return unc.wslPath;
   const normalized = String(winPath).replace(/\//g, "\\");
   if (!/^[a-zA-Z]:[\\/]/.test(normalized)) return null;
-  const cacheKey = normalized.toLowerCase();
+  const cacheKey = `${distro ?? ""}|${normalized.toLowerCase()}`;
   const cached = readRuntimeCache().wslpath?.[cacheKey];
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.value;
-  const out = spawnSyncImpl(
-    "wsl.exe",
-    ["wslpath", normalized.replace(/\\/g, "/")],
-    {
-      encoding: "utf8",
-    },
-  );
+  const args = distro ? ["-d", distro] : [];
+  args.push("--exec", "wslpath", "-a", normalized.replace(/\\/g, "/"));
+  const out = spawnSyncImpl("wsl.exe", args, { encoding: "utf8" });
   if (out.error || out.status !== 0) return null;
   const converted = out.stdout.trim();
   if (!converted) return null;
@@ -224,11 +270,15 @@ function isWithin(root, target) {
  *   2. the cwd or its nearest ancestor that owns .kb/manifest.json — the walk
  *      stops at a .git boundary so unrelated enclosing repos never leak in;
  *   3. a `kibi-workspace.txt` pointer file next to this launcher (one line:
- *      an absolute path, or a path relative to the launcher directory). It
- *      points a cwd outside any Git repository, or inside the repository that
- *      holds the launcher, at one workspace, which is what makes hosts that
- *      spawn from a foreign cwd work; a cwd inside another repository without
- *      a KB is never redirected;
+ *      an absolute path, or a path relative to the launcher directory). It is
+ *      a single-project, last-resort fallback: it names ONE workspace for
+ *      every session that reaches it, so use it only for a plugin copy
+ *      dedicated to that project. It points a cwd outside any Git
+ *      repository, or inside the repository that holds the launcher, at that
+ *      workspace, which is what makes hosts that spawn from a foreign cwd
+ *      work; a cwd inside another repository without a KB is never
+ *      redirected. To serve several projects from one plugin copy, set
+ *      KIBI_WORKSPACE per project instead;
  *   4. the cwd unchanged.
  * Returns { root, source }.
  */
@@ -313,8 +363,9 @@ export function debugLaunch(event, env = process.env) {
  * runtime), while a \\wsl.localhost\<distro> UNC workspace is served
  * through that distro via WSL. KIBI_FORCE_WSL=1 forces the WSL wrap for
  * drive-letter workspaces; KIBI_FORCE_DIRECT=1 forces a native spawn even
- * for UNC workspaces. Throws when a forced WSL wrap cannot convert the
- * Windows path (never silently cd's elsewhere).
+ * for UNC workspaces. Throws when the WSL wrap is needed but unusable (no
+ * Node.js 22+ in the distribution, or the Windows path cannot be converted):
+ * it never silently runs Windows Node.js or cd's elsewhere.
  *
  * @param {string} workspace
  * @param {NodeJS.ProcessEnv} [env]
@@ -333,23 +384,29 @@ export function planRuntime(workspace, env = process.env, deps = {}) {
   const forceDirect = String(env.KIBI_FORCE_DIRECT ?? "") === "1";
   const forceWsl = String(env.KIBI_FORCE_WSL ?? "") === "1";
   if (platform === "win32" && (unc || forceWsl) && !forceDirect) {
-    const probed = probe(unc ? unc.distro : null);
-    if (probed) {
-      const wslCwd = unc ? unc.wslPath : convert(root);
-      if (!wslCwd) {
-        throw new Error(
-          `cannot convert Windows path "${root}" to a WSL path; fix the workspace path, unset KIBI_FORCE_WSL to run Kibi directly on Windows, or set KIBI_FORCE_DIRECT=1`,
-        );
-      }
-      return {
-        mode: "wsl",
-        workspace: root,
-        wslCwd,
-        distro: unc ? unc.distro : null,
-        wslNode: probed.nodeWslPath,
-        wslNodeMajor: probed.major,
-      };
+    const distro = unc ? unc.distro : null;
+    const probed = probe(distro);
+    if (!probed) {
+      // Never fall back silently: Windows Node.js would run against the
+      // distribution's Linux node_modules, or ignore the requested WSL wrap.
+      throw new Error(
+        `cannot run Kibi in WSL for "${root}": no usable Node.js ${KIBI_MIN_NODE_MAJOR}+ was found in ${distro ? `the WSL distribution "${distro}"` : "the default WSL distribution"} (the wsl.exe probe failed, or the Node.js there is older). Install Node.js ${KIBI_MIN_NODE_MAJOR}+ in that distribution, or set KIBI_FORCE_DIRECT=1 to run Kibi with Windows Node.js`,
+      );
     }
+    const wslCwd = unc ? unc.wslPath : convert(root);
+    if (!wslCwd) {
+      throw new Error(
+        `cannot convert Windows path "${root}" to a WSL path; fix the workspace path, unset KIBI_FORCE_WSL to run Kibi directly on Windows, or set KIBI_FORCE_DIRECT=1`,
+      );
+    }
+    return {
+      mode: "wsl",
+      workspace: root,
+      wslCwd,
+      distro,
+      wslNode: probed.nodeWslPath,
+      wslNodeMajor: probed.major,
+    };
   }
   return { mode: "direct", workspace: root };
 }
@@ -430,6 +487,7 @@ export function spawnKibiMcp(
   if (plan.mode === "wsl") {
     const binWsl = toWslPath(
       resolvePackageBin(plan.workspace, "kibi-mcp", "kibi-mcp"),
+      { distro: plan.distro },
     );
     if (!binWsl)
       throw new Error(
@@ -462,6 +520,7 @@ export function spawnKibiCli(
   if (plan.mode === "wsl") {
     const binWsl = toWslPath(
       resolvePackageBin(plan.workspace, "kibi-cli", "kibi"),
+      { distro: plan.distro },
     );
     if (!binWsl)
       throw new Error(
@@ -499,7 +558,7 @@ export function serveEmptyMcpServer({
   instructions,
 } = {}) {
   return new Promise((resolvePromise) => {
-    const serverInfo = { name: serverName, version: "0.1.0" };
+    const serverInfo = { name: serverName, version: packageVersion() };
     let buf = "";
     const send = (msg) => {
       process.stdout.write(`${JSON.stringify(msg)}\n`);

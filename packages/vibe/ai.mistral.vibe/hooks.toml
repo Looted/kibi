@@ -2,10 +2,11 @@
 #
 # Plugin hooks run in the plugin's read-only copy with PLUGIN_ROOT set; the
 # session folder arrives as `cwd` in the JSON payload on stdin. Each script
-# calls the kibi CLI through bin/kibi.mjs, which detects automatically whether
-# to wrap the call in WSL (Windows hosts whose Node.js 22+ lives in a WSL
-# distribution) or to spawn the project-local kibi directly. All hooks fail
-# open: on any error they exit 0 with no output.
+# calls the kibi CLI through bin/kibi.mjs, which spawns the project-local kibi
+# directly (natively on Windows too, with the bundled SWI-Prolog) and wraps the
+# call in WSL only for a \\wsl.localhost\<distro> workspace or KIBI_FORCE_WSL=1.
+# All hooks fail open: on any error they exit 0 with no output and print
+# nothing to stderr unless KIBI_VIBE_LAUNCHER_DEBUG=1 is set.
 
 [[hooks]]
 name = "kibi-session-context"
@@ -25,7 +26,7 @@ description = "Search the Kibi KB for the prompt and inject governing entities"
 [[hooks]]
 name = "kibi-file-context"
 type = "post_tool"
-match = "re:(file_system\\.)?(read_file|edit|write_file)"
+match = "re:(file_system\\.)?(read_file|edit|write_file|search_replace)"
 command = "node bin/hooks/kibi-file-context.mjs"
 timeout = 30.0
 description = "After reading/editing a file, append the Kibi entities linked to it"

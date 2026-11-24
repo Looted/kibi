@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-wsl-safe-spawn",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "spawnKibiCli",
+  "verdict": "keeps",
+  "note": "WSL spawns still use literal argv with -d, --cd and --exec and no shell string; the drive-letter conversion now also runs as wsl.exe --exec wslpath -a, and an unconvertible path stays a hard error (runtime.test.mjs).",
+  "statementHash": "sha256:d301bbd73cdb0e9561227fc7fbbd7571c2688c696e9f7233af4a16e84651c68c",
+  "codeHash": "sha256:486783d49bd8fc7a5cf67cd52176f43d3fd5c56ff120af8ef9a24c1eb68df5e8",
+  "startLine": 519,
+  "endLine": 545,
+  "recordedAt": "2026-11-24T10:08:14.082Z"
+}

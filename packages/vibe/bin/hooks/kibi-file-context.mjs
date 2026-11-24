@@ -23,20 +23,24 @@ try {
   const file =
     input.file_path ?? input.path ?? input.new_path ?? input.newFilePath;
   const workspace = resolveHookWorkspace(payload);
-  const rel = toRepoRelative(file, workspace);
-  if (!rel) process.exit(0);
   // After an edit: the firm-requirement notice and the rule-capture
-  // template, ahead of the linked entities.
+  // template, ahead of the linked entities. The guard reads the edit's own
+  // paths, so it runs before (and independently of) the entity lookup.
   const guard = guardNote(postEditNote, workspace, payload);
-  const res = await runKibi(workspace, ["query", "--input", "-"], {
-    sourceFile: rel,
-    limit: 10,
-  });
-  const data = res.code === 0 ? parseKibiData(res.stdout) : null;
-  const entities = Array.isArray(data?.entities) ? data.entities : [];
-  const lines = entities
-    .slice(0, 8)
-    .map((e) => `- ${e.id} (${e.type}, ${e.status}): ${clip(e.title, 140)}`);
+  // A relative tool path is relative to the folder the tool ran in.
+  const rel = toRepoRelative(file, workspace, payload?.cwd);
+  let lines = [];
+  if (rel) {
+    const res = await runKibi(workspace, ["query", "--input", "-"], {
+      sourceFile: rel,
+      limit: 10,
+    });
+    const data = res.code === 0 ? parseKibiData(res.stdout) : null;
+    const entities = Array.isArray(data?.entities) ? data.entities : [];
+    lines = entities
+      .slice(0, 8)
+      .map((e) => `- ${e.id} (${e.type}, ${e.status}): ${clip(e.title, 140)}`);
+  }
   emitAdditionalContext(
     joinParts([
       guard,

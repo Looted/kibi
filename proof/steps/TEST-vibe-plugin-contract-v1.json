@@ -5,6 +5,8 @@
       "node",
       "--test",
       "packages/vibe/tests/runtime.test.mjs",
+      "packages/vibe/tests/common.test.mjs",
+      "packages/vibe/tests/hooks.test.mjs",
       "packages/vibe/tests/launcher-contract.test.mjs"
     ]
   ]
