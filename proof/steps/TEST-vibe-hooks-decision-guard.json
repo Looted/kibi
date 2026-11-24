@@ -1,0 +1,4 @@
+{
+  "test_id": "TEST-vibe-hooks-decision-guard",
+  "steps": [["node", "--test", "packages/vibe/tests/guard.test.mjs"]]
+}
