@@ -152,8 +152,8 @@ describe("compactImpactDiagnostics", () => {
       review("stop", "src/b.ts"),
     ]);
     expect(advice).toEqual([
-      sharedAdviceOf(review("run", "src/a.ts").suggestion),
-      sharedAdviceOf(statement.suggestion),
+      sharedAdviceOf(review("run", "src/a.ts").suggestion) as string,
+      sharedAdviceOf(statement.suggestion) as string,
     ]);
     const { suggestion: _first, ...firstRest } = review("run", "src/a.ts");
     const { suggestion: _last, ...lastRest } = review("stop", "src/b.ts");
