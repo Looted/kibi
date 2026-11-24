@@ -1641,6 +1641,23 @@ describe("fresh-clone setup check", () => {
         "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
       remediation: "Run: kibi init (applies the recorded choices)",
     });
+
+    // A word that only starts with "kibi" is no mention of Kibi.
+    rmSync(path.join(cwd, "AGENTS.md"), { recursive: true });
+    writeFileSync(path.join(cwd, "AGENTS.md"), "Sizes are in kibibytes.\n");
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+
+    // An outdated managed section is reported as outdated, even when the file mentions Kibi.
+    writeFileSync(path.join(cwd, "AGENTS.md"), "Kibi\n");
+    s.section.mockReturnValue("outdated" as never);
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      message: "the Kibi section of AGENTS.md is outdated",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
   });
 
   test("ask for no prepare step without package.json or with a hook manager", async () => {
