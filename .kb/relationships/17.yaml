@@ -374,3 +374,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65994843a660
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-hints-default-NOT-WITHOUT-CONFIG
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T08:21:15.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a7544b0a0b8
+  - type: assumes
+    from: SCEN-NEG-kibi-search-hints-default-NOT-WITHOUT-CONFIG
+    to: FACT-NEG-kibi-search-hints-default-NOT-WITHOUT-CONFIG
+    created_at: 2026-11-24T08:21:15.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8f192ca69f1

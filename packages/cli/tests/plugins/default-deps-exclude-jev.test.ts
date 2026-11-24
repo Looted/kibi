@@ -57,6 +57,9 @@ describe("default CLI/MCP dependency trees exclude optional Jev", () => {
       expect(names.has("@typesafe-ai/sdk")).toBe(false);
     }
 
+    // The search hints plugin ships with the runtime that answers searches.
+    for (const names of [cli, runtime])
+      expect(names.has("kibi-plugin-search-hints")).toBe(true);
     expect(cli.has("kibi-plugin-builtin")).toBe(true);
     expect(cli.has("kibi-plugin-sdk")).toBe(true);
   });

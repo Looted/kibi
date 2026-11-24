@@ -452,6 +452,7 @@ const BASE_DATA_SCHEMAS: Readonly<
       truncated: booleanValue,
       queryAnalysis: recordValue,
       answer: recordValue,
+      notes: stringArray,
       branch: { type: ["string", "null"] },
       branchStore: recordValue,
       meta: recordValue,

@@ -17,7 +17,10 @@ its recorded text; a neighbouring requirement's reason is not this one's; when
 offer to record the person's. Pass `sourceLocations` before changing a source
 file, and `rankingMode: "legacy"` for literal identifier lookups. A weak
 answer may add `queryAnalysis.hints` (requirements the question may mean):
-re-ask in their words, never cite a hint as the rule. See
+re-ask in their words, never cite a hint as the rule. Without hints, an
+abstained or weak answer names the next call in `nextActions` (list the
+requirement titles, then search in the KB's own words): an abstention does not
+mean nothing is recorded. See
 `resources/workflows.md` for the mode recipe.
 
 ## Typed results and recovery
