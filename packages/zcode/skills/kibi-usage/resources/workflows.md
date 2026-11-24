@@ -78,8 +78,9 @@ no-answer, so widen the query or drop to lexical search rather than treating it
 as "nothing exists". A literal identifier lookup is still best served
 lexically.
 
-When the project activates a `kibi.search-hints.v1` plugin (for example
-`kibi-plugin-search-hints`), a weak or abstained intent answer also carries
+Search hints are on by default (the bundled `kibi-plugin-search-hints`, unless
+the project configured another `kibi.search-hints.v1` provider or listed the
+package in `kibi.declinedPlugins`), so a weak or abstained intent answer also carries
 `queryAnalysis.hints`: up to ten current requirements the question may mean,
 found by meaning rather than shared words, each with a `score` and, when it
 was reached through a scenario, test or fact, that entity as `via`. Hints are
@@ -87,6 +88,13 @@ suggestions, never governing requirements, and they never change the results
 or the answer layer. Re-ask `kb_search` in the words of a hint that fits, or
 pass them as `semanticFacets.aliases`, then read the requirement with
 `kb_query`; never cite a hint as the rule. `hints: false` turns them off.
+
+When an abstained or weak answer shows no hint, its `nextActions` names the
+`kb_query` that lists the requirement titles, and an abstained answer carries
+`notes`. An abstention is not evidence that nothing is recorded: list the titles
+to find the words the KB uses, then search again in those words. A path written
+in the question and a question about contradictions add their own next action
+(`kb_search` with `sourceLocations`, `kb_check` with `domain-contradictions`).
 
 On the first page, intent mode also returns an answer layer in `data.answer`
 (`kibi.search-answer.v1`; turn it off with `answer: false`):

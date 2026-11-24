@@ -264,16 +264,18 @@ jobs:
           npm install ${{ github.workspace }}/packages/plugin-sdk/kibi-plugin-sdk-*.tgz
           npm install ${{ github.workspace }}/packages/agent-core/kibi-agent-core-*.tgz
           npm install ${{ github.workspace }}/packages/plugin-builtin/kibi-plugin-builtin-*.tgz
+          npm install ${{ github.workspace }}/packages/plugin-search-hints/kibi-plugin-search-hints-*.tgz
           npm install ${{ github.workspace }}/packages/swipl/kibi-swipl-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
-          # Assert optional Jev/TypeSafe stay out of the default tree.
+          # Assert optional Jev/TypeSafe stay out of the default tree and the
+          # bundled search hints plugin is in it.
           test ! -d ./node_modules/kibi-plugin-jev
           test ! -d ./node_modules/kibi-plugin-ui
-          test ! -d ./node_modules/kibi-plugin-search-hints
+          test -d ./node_modules/kibi-plugin-search-hints
           test ! -d ./node_modules/@typesafe-ai
           # /tmp/kibi-smoke-test is intentionally not a git repository;
           # standalone workspaces must declare their branch identity.

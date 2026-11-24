@@ -90,6 +90,7 @@
         "kibi-core": "^0.34.0",
         "kibi-plugin-builtin": "^0.7.0",
         "kibi-plugin-sdk": "^0.8.0",
+        "kibi-plugin-search-hints": "^1.0.1",
         "kibi-swipl": "^1.0.2",
         "saxes": "^6.0.0",
         "yaml": "^2.9.1",
@@ -346,6 +347,7 @@
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.34.0",
         "kibi-plugin-builtin": "^0.7.0",
+        "kibi-plugin-search-hints": "^1.0.1",
         "kibi-swipl": "^1.0.2",
       },
       "devDependencies": {

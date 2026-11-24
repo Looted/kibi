@@ -59,11 +59,11 @@ export function writePackedInstallManifest(
     // out unless a consumer explicitly needs the complete packed inventory.
     "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
     "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+    "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
     ...(options.includeCompleteInventory
       ? {
           "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
           "kibi-plugin-ui": `file:${tarballs["plugin-ui"]}`,
-          "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
           "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
           ...Object.fromEntries(
             languagePackDirs.map((pack) => [

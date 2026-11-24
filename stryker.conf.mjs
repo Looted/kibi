@@ -675,6 +675,7 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/plugins/registry.ts": [
     "packages/cli/tests/plugins/registry-mutation.test.ts",
+    "packages/cli/tests/plugins/bundled-search-hints.test.ts",
   ],
   "packages/cli/src/plugins/source-analysis-service.ts": [
     "packages/cli/tests/plugins/source-analysis-service-units.test.ts",
