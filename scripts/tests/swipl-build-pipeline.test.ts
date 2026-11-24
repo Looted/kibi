@@ -687,7 +687,15 @@ describe("release archive cache", () => {
       expect(save?.["continue-on-error"]).toBe(
         "${{ inputs.archive-cache == 'read' }}",
       );
-      expect(save?.with?.path ?? "").not.toContain("cache-status");
+      expect(save?.with?.path).toBe(
+        "${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}",
+      );
+      expect(restore?.with?.path).toBe(save?.with?.path);
+      const stage = steps.find((step) => step.name === "Stage the archive cache");
+      expect(stage?.run).toContain('swipl-*.tar.gz.sha256');
+      expect(stage?.run).toContain('test "${#sidecars[@]}" -eq 1');
+      const restored = steps.find((step) => step.name === "Use the restored archive");
+      expect(restored?.run).toContain('test "${#sidecars[@]}" -eq 1');
       const build = steps.find((step) => step.run?.includes(" build-archive "));
       expect(build?.if).toBe(
         "success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')",
