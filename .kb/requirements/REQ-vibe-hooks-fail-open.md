@@ -28,15 +28,20 @@ logic_claims:
   - CLAIM-3DDF8BFFB218AF44
 origin:
   kind: agent
-  ref: 'Maintainer review of PR #818, 2026-11-19: the five kibi-vibe requirements state the intended behavior and are approved as written.'
+  ref: 'Maintainer approval, 2026-11-24: Approved (claim texts as listed).'
   approved_by: maintainer
   recorded_at: '2026-11-19T20:09:49.089Z'
 id: REQ-vibe-hooks-fail-open
 type: req
 firmness: firm
 ---
+
 ## Context
 
 Requested by the maintainer (2026-11-19) for the Mistral Vibe hooks in packages/vibe/bin/hooks/: Vibe fires them at startup, before each agent turn and after each tool call, so they must stay cheap, resolve the Kibi workspace from the hook payload rather than the process cwd (a Vibe session may start in a subdirectory), and always fail open — any error, or a directory with no Kibi workspace, exits 0 with no stack trace. Source: packages/vibe/bin/hooks/, packages/vibe/ai.mistral.vibe/hooks.toml.
 
 See the linked scenarios for the executable behavior.
+
+## Source
+
+> Maintainer approval, 2026-11-24: Approved (claim texts as listed).
