@@ -685,3 +685,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5238f9872986
+  - type: implements
+    from: SYM-swipl-archive-cache-mode
+    to: REQ-prolog-release-pack-pr-archive-cache
+    created_at: 2026-11-24T15:48:38.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a43ef5a2aa96
+  - type: covered_by
+    from: SYM-swipl-archive-cache-mode
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:48:38.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6eeca685a6a

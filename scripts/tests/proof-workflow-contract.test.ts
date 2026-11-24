@@ -237,7 +237,7 @@ describe("strict proof workflow contract", () => {
     // A PR may reuse an attested develop push; a develop push that merged a
     // merge train may reuse the train's proof. Either one skips the run.
     expect(reuse.outputs?.execute).toBe(
-      "${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}",
+      "${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') && (steps.member.outcome != 'success' || steps.member.outputs.reuse != 'true') }}",
     );
     const train = reuse.steps.find((step) => step.id === "train");
     expect(train?.name).toBe(
@@ -308,9 +308,17 @@ describe("strict proof workflow contract", () => {
         String(
           workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
         ),
-      ).toContain(
-        "startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository",
-      );
+      ).toContain("github.event.pull_request.head.repo.full_name == github.repository");
+      expect(
+        String(
+          workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
+        ),
+      ).toContain("startsWith(github.head_ref, 'merge-train/')");
+      expect(
+        String(
+          workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
+        ),
+      ).toContain("github.base_ref == 'develop'");
     }
     const download = workflow.jobs.proof.steps.find(
       (step) => step.name === "Download the reused train's proof report",

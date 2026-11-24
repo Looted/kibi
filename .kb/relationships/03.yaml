@@ -496,3 +496,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1697e374198e
+  - type: assumes
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: FACT-NEG-prolog-release-pack-publish-drops-binding
+    created_at: 2026-11-24T15:41:37.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eedb1af14536
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-11-24T15:41:37.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f976cbb55e6
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:41:37.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a87c98b2c58
