@@ -220,7 +220,7 @@ describe("ci.yml CI workflow contract", () => {
     for (const job of coverageGatedJobs) {
       const block = extractJobBlock(workflowContent, job);
       expect(block).toContain(
-        "needs: [ci-package-contract, prolog-unit-coverage]",
+        "needs: [reuse, ci-package-contract, prolog-unit-coverage]",
       );
       expect(block).not.toContain(
         "needs: [build-and-test, prolog-unit-coverage]",
@@ -230,11 +230,14 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).toContain("ci-unit-coverage:");
     expect(workflowContent).toContain("ci-integration:");
     expect(extractJobBlock(workflowContent, "ci-unit-coverage")).toContain(
-      "needs: [swipl-bundle]",
+      "needs: [reuse, swipl-bundle]",
+    );
+    expect(extractJobBlock(workflowContent, "ci-package-contract")).toContain(
+      "needs: [reuse]",
     );
     expect(
       extractJobBlock(workflowContent, "ci-package-contract"),
-    ).not.toContain("needs:");
+    ).not.toContain("swipl-bundle");
   });
 
   test("CI defers native Windows ZCode builds", () => {
@@ -293,11 +296,19 @@ describe("ci.yml CI workflow contract", () => {
     test("rejects downstream jobs that bypass prolog coverage", () => {
       const block = extractJobBlock(workflowContent, coverageGatedJobs[0]);
       const mutated = block.replace(
-        "needs: [ci-package-contract, prolog-unit-coverage]",
-        "needs: ci-package-contract",
+        "needs: [reuse, ci-package-contract, prolog-unit-coverage]",
+        "needs: [reuse, ci-package-contract]",
       );
-      expect(mutated).toContain("needs: ci-package-contract");
-      expect(mutated).not.toContain("prolog-unit-coverage");
+      expect(mutated).toContain("needs: [reuse, ci-package-contract]");
+      expect(
+        mutated
+          .split("\n")
+          .some(
+            (line) =>
+              line.trimStart().startsWith("needs:") &&
+              line.includes("prolog-unit-coverage"),
+          ),
+      ).toBe(false);
     });
   });
 });
@@ -339,7 +350,7 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       "./.github/workflows/swipl-ci-bundle.yml",
     );
     for (const job of ["ci-unit-coverage", "prolog-unit-coverage"]) {
-      expect(workflow.jobs[job]?.needs).toEqual(["swipl-bundle"]);
+      expect(workflow.jobs[job]?.needs).toEqual(["reuse", "swipl-bundle"]);
     }
     // The packed jobs wait for prolog-unit-coverage, so the artifact exists.
     for (const job of [
@@ -437,20 +448,33 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       jobs: {
         proof: { needs: string[]; steps: Array<Record<string, unknown>> };
         prove: { needs: string[]; steps: Array<Record<string, unknown>> };
+        "search-gates": {
+          needs: string[];
+          steps: Array<Record<string, unknown>>;
+        };
         "swipl-bundle": { uses: string };
       };
     };
     expect(workflow.jobs["swipl-bundle"].uses).toBe(
       "./.github/workflows/swipl-ci-bundle.yml",
     );
-    // The proof shards and the job that joins them both run on the bundle.
+    // The proof shards, the search gates and the job that joins them all run
+    // on the bundle.
     expect(workflow.jobs.prove.needs).toEqual(["swipl-bundle", "reuse"]);
+    expect(workflow.jobs["search-gates"].needs).toEqual([
+      "swipl-bundle",
+      "reuse",
+    ]);
     expect(workflow.jobs.proof.needs).toEqual([
       "swipl-bundle",
       "reuse",
       "prove",
     ]);
-    for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
+    for (const job of [
+      workflow.jobs.prove,
+      workflow.jobs["search-gates"],
+      workflow.jobs.proof,
+    ]) {
       const install = job.steps.find(
         (step) => step.name === "Install SWI-Prolog",
       );
@@ -507,7 +531,7 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     expect(action).toContain('resolved.source !== "bundled"');
   });
 
-  test("a release never trusts the CI cache or drops its commit binding", () => {
+  test("a release never trusts the CI bundle cache or the cached-build flag", () => {
     for (const name of [
       "publish.yml",
       "release-pack.yml",
@@ -519,5 +543,11 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       expect(content, name).not.toContain("swipl-ci-bundle");
       expect(content, name).not.toContain("use-bundled-swipl");
     }
+    // Publish builds in its own run. It has no archive cache and cannot drop
+    // the commit binding the way a pull-request dry run can.
+    const publish = read(".github", "workflows", "publish.yml");
+    expect(publish).not.toContain("actions/cache");
+    expect(publish).not.toContain("unset GITHUB_SHA");
+    expect(publish).not.toContain("archive-cache");
   });
 });

@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbc9f413731e
+  - type: implements
+    from: SYM-swipl-release-archive-cache-inputs
+    to: REQ-prolog-release-pack-pr-archive-cache
+    created_at: 2026-11-24T15:48:40.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d763ce35a16
+  - type: covered_by
+    from: SYM-swipl-release-archive-cache-inputs
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-24T15:48:40.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4debefd8ff3

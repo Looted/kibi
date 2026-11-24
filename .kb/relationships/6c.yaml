@@ -405,3 +405,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b59689466db6
+  - type: verified_by
+    from: SCEN-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:07:23.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050947bfce94
+  - type: verified_by
+    from: SCEN-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-24T15:07:23.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0472ec5f40a
+  - type: verified_by
+    from: SCEN-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-11-24T15:07:23.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd87b8972915

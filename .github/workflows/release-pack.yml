@@ -1,7 +1,10 @@
 name: Release pack (dry run)
 
-# Rehearses the publish workflow's packaging without publishing: builds the
-# SWI-Prolog archives, verifies and extracts them into the platform packages,
+# Rehearses the publish workflow's packaging without publishing. Pull requests
+# restore cached SWI-Prolog archives when the build inputs are unchanged and
+# build from source on a miss. Pushes and manual runs always build from source
+# (a push also saves the archives for the next pull request). The job then
+# verifies and extracts them into the platform packages,
 # packs every publishable package, and installs the tarballs with npm on
 # runners that have no SWI-Prolog, including a literal run of the README quick
 # start. This workflow has no secrets, no
@@ -19,6 +22,9 @@ env:
 
 permissions:
   contents: read
+  # A single-PR train reads the member run's attestation before deciding
+  # whether this pack already passed on the same tree.
+  actions: read
 
 on:
   push:
@@ -72,11 +78,47 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Same rule as ci.yml: a train of one pull request reuses this pack when
+  # the member's passing run attested the same git tree. Otherwise the pack
+  # runs, including when the member never ran it.
+  reuse:
+    name: Decide whether this train can reuse its member's pack
+    if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      execute: ${{ steps.decide.outcome == 'success' && steps.decide.outputs.reuse == 'true' && 'false' || 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.4'
+      - name: Decide whether the member's pack covers this tree
+        id: decide
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KIBI_REUSE_WORKFLOW: .github/workflows/release-pack.yml
+          KIBI_REUSE_ARTIFACT: kibi-release-pack-attestation
+        run: bun scripts/ci-check-reuse.ts decide "$RUNNER_TEMP/kibi-check-decision.json"
+
   swipl-build:
+    needs: [reuse]
+    if: ${{ always() && (needs.reuse.result == 'skipped' || needs.reuse.outputs.execute != 'false') }}
     uses: ./.github/workflows/swipl-build.yml
+    with:
+      # pull_request restores; a develop push rebuilds and primes the cache;
+      # workflow_dispatch stays off, the same as publish.
+      archive-cache: ${{ github.event_name == 'pull_request' && 'read' || github.event_name == 'push' && 'write' || 'off' }}
 
   pack:
-    needs: swipl-build
+    needs: [reuse, swipl-build]
+    if: ${{ always() && (needs.reuse.result == 'skipped' || needs.reuse.outputs.execute != 'false') && needs.swipl-build.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -102,7 +144,23 @@ jobs:
           pattern: swipl-*
           path: ${{ runner.temp }}/swipl-artifacts
       - name: Verify archives and populate the platform packages
-        run: node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          # A restored archive was built by another run. Drop only the commit
+          # and run binding, and only for a pull request that actually restored
+          # one. Publish never takes this branch: it does not run this workflow.
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            shopt -s nullglob
+            for marker in "$RUNNER_TEMP"/swipl-artifacts/swipl-*/cache-status; do
+              if [[ -f "$marker" && "$(cat "$marker")" == "hit" ]]; then
+                unset GITHUB_SHA GITHUB_RUN_ID
+                break
+              fi
+            done
+          fi
+          node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
       - name: Verify publish metadata for npm provenance
         run: bun run scripts/verify-publish-metadata.ts --require-swipl-payload
       - name: Clean stale tarballs
@@ -136,8 +194,40 @@ jobs:
           retention-days: 7
 
   smoke:
-    needs: pack
+    needs: [reuse, pack]
+    if: ${{ always() && (needs.reuse.result == 'skipped' || needs.reuse.outputs.execute != 'false') && needs.pack.result == 'success' }}
     uses: ./.github/workflows/release-smoke.yml
     with:
       tarballs-artifact: release-pack-tarballs
       e2e-artifact: release-pack-e2e-compiled
+
+  attest:
+    name: Attest the tested tree
+    needs: [smoke]
+    if: ${{ success() && (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.4'
+      - name: Attest the tested tree
+        env:
+          PR_HEAD_REPOSITORY: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+          PR_HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
+          PR_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          KIBI_REUSE_WORKFLOW: .github/workflows/release-pack.yml
+          KIBI_REUSE_ARTIFACT: kibi-release-pack-attestation
+        run: bun scripts/ci-check-reuse.ts attest "$RUNNER_TEMP/kibi-release-pack-attestation"
+      - name: Upload the tested-tree attestation
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-release-pack-attestation
+          path: ${{ runner.temp }}/kibi-release-pack-attestation/attestation.json
+          if-no-files-found: error
+          retention-days: 7
