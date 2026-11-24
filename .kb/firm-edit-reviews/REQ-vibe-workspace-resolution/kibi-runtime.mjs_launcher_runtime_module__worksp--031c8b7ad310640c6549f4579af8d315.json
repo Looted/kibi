@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-workspace-resolution",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
+  "verdict": "keeps",
+  "note": "resolveWorkspace now ignores the pointer for a cwd inside another Git repository, as the updated requirement says.",
+  "statementHash": "sha256:b515f7bf2bd79f72baadc41626536e57d96cfd399e3d04750ac04af16c4afe92",
+  "codeHash": "sha256:8542059be3f2e46af3526731fe22698edc6752bbe879d959bb7f0660b20ca1f8",
+  "startLine": 1,
+  "endLine": 561,
+  "recordedAt": "2026-11-23T04:01:16.095Z"
+}

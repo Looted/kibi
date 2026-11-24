@@ -347,24 +347,72 @@ describe("kibi init", () => {
     expect(doctor.stdout).toContain("AGENTS.md has no Kibi section");
   }, 120_000);
 
-  test("doctor names hand-written Kibi instructions and how to keep them", () => {
+  test("doctor explains missing markers when AGENTS.md mentions Kibi and honors --no-agent-instructions", () => {
     gitRepo();
     write("package.json", '{"name":"demo"}\n');
     expect(kibi(["init"]).status).toBe(0);
-    const handWritten =
-      "# Agents\n\nThis repo uses Kibi: run kb_search before changing behavior.\n";
-    write("AGENTS.md", handWritten);
-    const doctor = kibi(["doctor"]);
-    expect(doctor.stdout).toContain(
-      "AGENTS.md mentions Kibi but has no kibi-managed section",
-    );
-    expect(doctor.stdout).not.toContain("AGENTS.md has no Kibi section");
-    expect(doctor.stdout).toContain("kibi init --no-agent-instructions");
 
+    // Without Kibi mentions, keep the standard missing-section message.
+    write("AGENTS.md", "# Agents\nRun bun test before committing.\n");
+    const withoutMention = kibi(["doctor", "--format", "json"]);
+    const withoutCheck = (
+      JSON.parse(withoutMention.stdout) as {
+        checks: Array<{
+          name: string;
+          passed: boolean;
+          warning?: boolean;
+          message: string;
+          remediation?: string;
+        }>;
+      }
+    ).checks.find((entry) => entry.name === "Fresh-clone setup");
+    expect(withoutCheck).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+
+    // When AGENTS.md mentions Kibi without markers, say so and offer both fixes.
+    const customAgents = "# Agents\nUse Kibi before changing behavior.\n";
+    write("AGENTS.md", customAgents);
+    const withMention = kibi(["doctor", "--format", "json"]);
+    const withCheck = (
+      JSON.parse(withMention.stdout) as {
+        checks: Array<{
+          name: string;
+          passed: boolean;
+          warning?: boolean;
+          message: string;
+          remediation?: string;
+        }>;
+      }
+    ).checks.find((entry) => entry.name === "Fresh-clone setup");
+    expect(withCheck).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+      remediation:
+        "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text",
+    });
+
+    // Opting out silences the warning and preserves the team's own AGENTS.md text.
     expect(kibi(["init", "--no-agent-instructions"]).status).toBe(0);
-    expect(read("AGENTS.md")).toBe(handWritten);
-    const after = kibi(["doctor"]);
-    expect(after.stdout).not.toContain("AGENTS.md mentions Kibi");
-    expect(after.stdout).not.toContain("kibi init --no-agent-instructions");
+    expect(read("AGENTS.md")).toBe(customAgents);
+    const afterOptOut = kibi(["doctor", "--format", "json"]);
+    const optOutCheck = (
+      JSON.parse(afterOptOut.stdout) as {
+        checks: Array<{
+          name: string;
+          passed: boolean;
+          warning?: boolean;
+          message: string;
+        }>;
+      }
+    ).checks.find((entry) => entry.name === "Fresh-clone setup");
+    expect(optOutCheck?.passed).toBe(true);
+    expect(optOutCheck?.warning).toBeUndefined();
   }, 120_000);
 });

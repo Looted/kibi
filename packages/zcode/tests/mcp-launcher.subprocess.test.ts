@@ -213,11 +213,11 @@ describe("zcode MCP launcher subprocess integration", () => {
 
     const hookRunnerPath = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
-      "../dist/hook-runner.js",
+      "../bin/hook-runner.mjs",
     );
     if (!fs.existsSync(hookRunnerPath)) {
       throw new Error(
-        "dist/hook-runner.js missing — run `bun run build:zcode` before testing",
+        "bin/hook-runner.mjs missing — run `bun run build:zcode` before testing",
       );
     }
 

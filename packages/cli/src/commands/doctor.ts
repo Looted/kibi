@@ -92,6 +92,7 @@ import {
 import { hasKibiPrepareScript } from "./hooks-install.js";
 import {
   KIBI_HOOK_BEGIN,
+  MANAGED_HOOK_NAMES,
   type ManagedHookName,
   hasManagedHooks,
   outdatedManagedHooks,
@@ -1158,6 +1159,16 @@ function checkBranchStore(): DoctorCheckResult {
   };
 }
 
+function fileMentionsKibi(filePath: string): boolean {
+  try {
+    return (
+      existsSync(filePath) && /\bkibi\b/i.test(readFileSync(filePath, "utf-8"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * What a fresh clone of this repository gets without anyone running
  * `kibi init`, against the setup choices the project recorded: the agent
@@ -1171,21 +1182,24 @@ function checkFreshCloneSetup(): DoctorCheckResult {
   }
   const choices = readSetupChoices(root);
   const gaps: string[] = [];
-  let handWrittenInstructions = false;
+  let customAgentsMentionsKibi = false;
   if (choices.agentInstructions) {
     const agentsPath = path.join(root, AGENTS_FILE);
     const state = managedSectionState(agentsPath, KIBI_AGENT_INSTRUCTIONS);
-    handWrittenInstructions = state === "missing" && mentionsKibi(agentsPath);
-    if (handWrittenInstructions)
-      gaps.push(
-        "AGENTS.md mentions Kibi but has no kibi-managed section, so kibi init does not keep those instructions current",
-      );
-    else if (state !== "current")
-      gaps.push(
-        state === "missing"
-          ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
-          : "the Kibi section of AGENTS.md is outdated",
-      );
+    if (state !== "current") {
+      if (state === "missing" && fileMentionsKibi(agentsPath)) {
+        customAgentsMentionsKibi = true;
+        gaps.push(
+          "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+        );
+      } else {
+        gaps.push(
+          state === "missing"
+            ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
+            : "the Kibi section of AGENTS.md is outdated",
+        );
+      }
+    }
   }
   if (
     choices.prepareHooks &&
@@ -1223,21 +1237,11 @@ function checkFreshCloneSetup(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `${gaps.join("; ")}`,
-    remediation: handWrittenInstructions
-      ? "Run: kibi init (applies the recorded choices and adds the managed AGENTS.md section), or kibi init --no-agent-instructions to keep your own AGENTS.md instructions"
+    remediation: customAgentsMentionsKibi
+      ? "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text"
       : "Run: kibi init (applies the recorded choices)",
     details,
   };
-}
-
-/**
- * Hand-written agent instructions name Kibi without the managed markers.
- * Doctor names them so the user can keep them (opt out of managed
- * instructions) instead of being told the KB goes unmentioned.
- */
-function mentionsKibi(file: string): boolean {
-  if (!existsSync(file)) return false;
-  return /\bkibi\b/i.test(readFileSync(file, "utf8"));
 }
 
 // Hook health must be diagnosed against the hooks directory Git actually
@@ -1349,18 +1353,55 @@ function checkHookManagerDelegation(
   };
 }
 
+function installedManagedHooks(hooksDir: string): ManagedHookName[] {
+  return MANAGED_HOOK_NAMES.filter((hook) => {
+    const hookPath = path.join(hooksDir, hook);
+    return (
+      existsSync(hookPath) &&
+      readFileSync(hookPath, "utf-8").includes(KIBI_HOOK_BEGIN)
+    );
+  });
+}
+
 /**
  * Kibi-managed hook sections must match what this CLI installs. A section
  * written by an older CLI keeps running while silently lacking newer gates
  * (the pre-commit `check-generated` step, for example), and the other hook
- * checks only confirm that kibi is invoked at all.
+ * checks only confirm that kibi is invoked at all. When a third-party hook
+ * manager owns Git hooks, `kibi init` leaves hook files alone, so leftover
+ * kibi-managed sections are reported as a warning to remove rather than a
+ * failure asking the user to run `kibi init`.
  */
-function checkManagedHookSections(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkManagedHookSections(): DoctorCheckResult {
+  const detected = doctorHookManager();
   const hooksDir = effectiveHooksDir();
+  if (detected) {
+    const { manager } = detected;
+    const owner = `Managed by ${manager.name} (${manager.configPath})`;
+    let leftover: ManagedHookName[];
+    let outdated: string[];
+    try {
+      leftover = installedManagedHooks(hooksDir);
+      if (leftover.length === 0) {
+        return { passed: true, message: owner };
+      }
+      outdated = outdatedManagedHooks(hooksDir);
+    } catch {
+      return {
+        passed: false,
+        message: `${owner}; unable to read hook content`,
+        remediation: `Check permissions in ${hooksDir}, remove any leftover '# BEGIN kibi-managed' ... '# END kibi-managed' sections, and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+      };
+    }
+    const outdatedNote =
+      outdated.length > 0 ? ` (outdated: ${outdated.join(", ")})` : "";
+    return {
+      passed: true,
+      warning: true,
+      message: `${owner}; leftover kibi-managed hook sections remain in ${leftover.join(", ")}${outdatedNote}${hooksPathSuffix()}`,
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from ${leftover.join(", ")} in ${hooksDir} and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+    };
+  }
   let outdated: string[];
   try {
     if (!hasManagedHooks(hooksDir)) {

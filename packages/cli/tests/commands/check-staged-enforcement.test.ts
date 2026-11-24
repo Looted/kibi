@@ -1093,6 +1093,140 @@ Calls the covered function through its public export and asserts the value it re
     TEST_TIMEOUT_MS,
   );
 
+  test(
+    "passes staged edits to a file whose symbols are all documented coarse records",
+    async () => {
+      writeFiles(tmpDir, {
+        ".kb/requirements/REQ-CONFIG-001.md": `---
+id: REQ-CONFIG-001
+title: Config artifact settings
+status: open
+firmness: default
+---
+
+# Config artifact settings
+`,
+        ...coveringTest("TEST-CONFIG-001", "REQ-CONFIG-001"),
+        ".kb/symbols.yaml": `symbols:
+  - id: SYM-CONFIG-VALUES
+    title: defaultConfig
+    sourceFile: src/config.ts
+    granularity_reason: config-artifact
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-CONFIG-001
+      - type: covered_by
+        target: TEST-CONFIG-001
+  - id: SYM-CONFIG-RESOLVE
+    title: resolveConfig
+    sourceFile: src/config.ts
+    granularity_reason: config-artifact
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-CONFIG-001
+      - type: covered_by
+        target: TEST-CONFIG-001
+`,
+        "src/config.ts": `export const defaultConfig = {
+  retries: 1,
+};
+
+export function resolveConfig() {
+  return defaultConfig.retries;
+}
+`,
+      });
+      commitAll(tmpDir, "initial");
+      commitRefreshedManifest(kibiBin, tmpDir);
+
+      writeFiles(tmpDir, {
+        "src/config.ts": `export const defaultConfig = {
+  retries: 2,
+};
+
+export function resolveConfig() {
+  return defaultConfig.retries + 1;
+}
+`,
+      });
+      execSync("git add src/config.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(output).not.toContain("kibi_impact_evidence_missing");
+      expect(output).not.toContain("symbols_manifest_stale");
+      expect(status).toBe(0);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "still blocks uncovered declarations when a file only has a legacy-link record",
+    async () => {
+      writeFiles(tmpDir, {
+        ".kb/requirements/REQ-LEGACY-LINK-001.md": `---
+id: REQ-LEGACY-LINK-001
+title: Legacy link behavior
+status: open
+firmness: default
+---
+
+# Legacy link behavior
+`,
+        ...coveringTest("TEST-LEGACY-LINK-001", "REQ-LEGACY-LINK-001"),
+        ".kb/symbols.yaml": `symbols:
+  - id: SYM-LEGACY-LINK-KEEP
+    title: keepLegacy
+    sourceFile: src/legacy-link.ts
+    granularity_reason: legacy-link
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-LEGACY-LINK-001
+      - type: covered_by
+        target: TEST-LEGACY-LINK-001
+`,
+        "src/legacy-link.ts": `export function keepLegacy() {
+  return 1;
+}
+`,
+      });
+      commitAll(tmpDir, "initial");
+      commitRefreshedManifest(kibiBin, tmpDir);
+
+      writeFiles(tmpDir, {
+        "src/legacy-link.ts": `export function keepLegacy() {
+  return 1;
+}
+
+export function addedLegacy() {
+  return 2;
+}
+`,
+      });
+      execSync("git add src/legacy-link.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("addedLegacy");
+      expect(output).toContain("[BLOCKS COMMIT] addedLegacy");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
   describe("a commit that moves a legacy symbols manifest into .kb/", () => {
     const legacyRecord = (id: string, title: string, extra = "") =>
       `  - id: ${id}

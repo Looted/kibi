@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-missing-hooks-notice",
+  "sourceFile": "packages/vibe/src/guard.ts",
+  "symbol": "sessionStartNote",
+  "verdict": "keeps",
+  "note": "sessionStartNote returns the shared missingHooksNote at Vibe session start, so the Vibe plugin now tells the agent when Kibi git hooks are missing.",
+  "statementHash": "sha256:2eadf81ab1530efe37105d238aee0eaf701c1629cb63101cfaa9eb7fffaf7c37",
+  "codeHash": "sha256:8eb6a1314a58bf4270b6ca6d7434d7d5e3aae7b386124645ac47ed2dc62cfb1d",
+  "startLine": 102,
+  "endLine": 110,
+  "recordedAt": "2026-11-22T18:31:53.875Z"
+}

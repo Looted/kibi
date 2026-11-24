@@ -179,4 +179,43 @@ describe("registerMaintenanceCommands", () => {
       branchRestoreCommand: [[{ branch: "b" }]],
     });
   });
+
+  test("--json resolves to format: json across maintenance commands", async () => {
+    const lock = stub(deps, "depsLockCommand", { exitCode: 0 });
+    const fetch = stub(deps, "depsFetchCommand", { exitCode: 0 });
+    const status = stub(deps, "depsStatusCommand", { exitCode: 0 });
+    const janitor = stub(engine, "engineJanitorCommand");
+    const doc = stub(doctor, "doctorCommand", { exitCode: 0 });
+    const metrics = stub(usageMetrics, "usageMetricsCommand", { exitCode: 0 });
+    const remediation = stub(usageRemediation, "usageRemediationCommand", {
+      exitCode: 0,
+    });
+    const tel = stub(telemetry, "telemetryCommand", { exitCode: 0 });
+
+    await run("deps", "lock", "--json");
+    await run("deps", "fetch", "--json");
+    await run("deps", "status", "--json");
+    await run("engine", "janitor", "--json");
+    await run("doctor", "--json");
+    await run("usage-metrics", "--json");
+    await run("usage-remediation", "--json");
+    await run("telemetry", "status", "--json");
+
+    expect(plainCalls(lock)).toStrictEqual([
+      [[], { update: false, format: "json" }],
+    ]);
+    expect(plainCalls(fetch)).toStrictEqual([[{ format: "json" }]]);
+    expect(plainCalls(status)).toStrictEqual([[{ format: "json" }]]);
+    expect(plainCalls(janitor)).toStrictEqual([
+      [{ all: false, apply: false, format: "json" }],
+    ]);
+    expect(plainCalls(doc)).toStrictEqual([[{ format: "json" }]]);
+    expect(plainCalls(metrics)).toStrictEqual([
+      [{ format: "json", limit: "10" }],
+    ]);
+    expect(plainCalls(remediation)).toStrictEqual([
+      [{ format: "json", limit: "50" }],
+    ]);
+    expect(plainCalls(tel)).toStrictEqual([["status", { format: "json" }]]);
+  });
 });

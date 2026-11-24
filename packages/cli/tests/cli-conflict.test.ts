@@ -37,6 +37,25 @@ describe("CLI JSON input conflicts", () => {
     expect(result.stderr).toContain("--format");
   });
 
+  test("rejects --json together with a --format that is not json", () => {
+    const { cwd } = createInput();
+    const result = runCli(["status", "--json", "--format", "table"], cwd);
+
+    expect(result.status).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain(
+      "--json conflicts with --format table; pass only one of them",
+    );
+  });
+
+  test("rejects explicitly supplied --json before reading --input", () => {
+    const result = runCli(["status", "--input", "{}", "--json"], process.cwd());
+
+    expect(result.status).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("--json");
+  });
+
   test("rejects a legacy positional together with --input", () => {
     const fixture = createInput();
     const result = runCli(

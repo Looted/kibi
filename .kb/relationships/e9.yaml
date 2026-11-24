@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9eb09c454b1
+  - type: executable_for
+    from: SYM-test-vibe-hooks-decision-guard
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:15.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d05a3fb1df09

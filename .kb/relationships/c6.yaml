@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-980052c3c325
+  - type: assumes
+    from: SCEN-cli-json-format-alias
+    to: FACT-cli-json-format-alias
+    created_at: 2026-11-22T17:45:49.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-751742b9d901
+  - type: verified_by
+    from: SCEN-cli-json-format-alias
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:45:49.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d2f1950709

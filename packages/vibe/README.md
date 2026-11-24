@@ -96,9 +96,11 @@ cwd. `resolveWorkspace()` resolves the workspace in this order:
    the walk stops at a `.git` boundary so unrelated enclosing repositories
    never leak in;
 3. a `kibi-workspace.txt` pointer file next to the launcher (one line, absolute
-   or launcher-relative). The pointer is **global**: it points every
-   non-Kibi cwd at one workspace, which is what makes hosts that spawn from a
-   foreign directory work. Write e.g.
+   or launcher-relative). It points a cwd that is outside any Git repository,
+   or inside the repository that holds the launcher, at one workspace, which
+   is what makes hosts that spawn from a foreign directory work. A cwd inside
+   another Git repository without a KB is never redirected, so hooks in other
+   projects keep their own folder. Write e.g.
    `\\wsl.localhost\Ubuntu-22.04\home\you\kibi` into
    `kibi-workspace.txt` beside your copied `bin/launch-kibi-mcp.mjs`;
 4. the cwd unchanged.
@@ -127,6 +129,18 @@ root, so sessions started in a subdirectory still match):
 | `kibi-prompt-context` | `pre_agent` | searches the KB for the prompt and injects the top entities as context |
 | `kibi-file-context` | `post_tool` (`read_file`/`edit`/`write_file`) | appends the Kibi entities linked to the file just read or written |
 
+The hooks also run the decision guard the other Kibi adapters share
+(`src/guard.ts`, bundled with kibi-agent-core into `bin/hooks/kibi-guard.mjs`):
+the session start names missing Kibi git hooks; a prompt that states a rule
+gets the rule note, with the person's reason when the prompt gives one; and
+after an edit of code that implements a firm requirement, the context names
+that requirement once per session and asks the agent to undo an edit that
+breaks it unless the person agrees (Vibe has no pre-tool hook, so the notice
+follows the edit; `KIBI_CONFIRM_FIRM_EDITS=0` turns it off). The first source
+edit after a rule prompt gets the rule-capture template. Session markers live
+in a per-user directory in the OS temp dir (`KIBI_VIBE_STATE_DIR` overrides
+it).
+
 Hook scripts call the CLI through `bin/kibi.mjs`, so they use the same
 automatic runtime detection. They need a host `node` (>= 18) on `PATH`; the
 Kibi processes themselves may still run inside WSL. Any failure exits 0 with
@@ -135,11 +149,12 @@ no output — a broken hook never blocks the session.
 ## Development
 
 ```bash
-bun run build:vibe        # syntax-checks bin/ and regenerates the skills mirror
+bun run build:vibe        # bundles bin/hooks/kibi-guard.mjs, syntax-checks bin/ and regenerates the skills mirror
 bun run typecheck:vibe    # tsc --noEmit over bin/ and tests/ (checkJs)
 bun test ./packages/vibe/tests/runtime.test.mjs   # fast unit tests (root test batch)
 node --test packages/vibe/tests/                  # all tests incl. the MCP handshake contract
 bun run --filter kibi-vibe check:skills            # CI drift check for the skills mirror
+bun run --filter kibi-vibe check:hook-bundle       # CI drift check for the bundled guard
 ```
 
 The long-running MCP handshake contract
