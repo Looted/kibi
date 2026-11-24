@@ -437,20 +437,33 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       jobs: {
         proof: { needs: string[]; steps: Array<Record<string, unknown>> };
         prove: { needs: string[]; steps: Array<Record<string, unknown>> };
+        "search-gates": {
+          needs: string[];
+          steps: Array<Record<string, unknown>>;
+        };
         "swipl-bundle": { uses: string };
       };
     };
     expect(workflow.jobs["swipl-bundle"].uses).toBe(
       "./.github/workflows/swipl-ci-bundle.yml",
     );
-    // The proof shards and the job that joins them both run on the bundle.
+    // The proof shards, the search gates and the job that joins them all run
+    // on the bundle.
     expect(workflow.jobs.prove.needs).toEqual(["swipl-bundle", "reuse"]);
+    expect(workflow.jobs["search-gates"].needs).toEqual([
+      "swipl-bundle",
+      "reuse",
+    ]);
     expect(workflow.jobs.proof.needs).toEqual([
       "swipl-bundle",
       "reuse",
       "prove",
     ]);
-    for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
+    for (const job of [
+      workflow.jobs.prove,
+      workflow.jobs["search-gates"],
+      workflow.jobs.proof,
+    ]) {
       const install = job.steps.find(
         (step) => step.name === "Install SWI-Prolog",
       );
