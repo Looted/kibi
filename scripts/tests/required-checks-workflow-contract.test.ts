@@ -36,17 +36,25 @@ describe("one required check per workflow", () => {
       expect([...(job?.needs ?? [])].sort()).toEqual(others.sort());
       const step = job?.steps?.[0];
       expect(step?.env?.RESULTS).toBe("${{ toJSON(needs) }}");
-      expect(step?.run).toContain('select(.value.result != "success")');
       expect(step?.run).toContain("exit 1");
+      // A skip is a failure unless this run recorded that the same git tree
+      // already passed. The exception is explicit so a renamed job cannot
+      // turn every skip into a pass.
+      expect(step?.run).toContain('r == "skipped"');
+      expect(step?.run).toContain('reuse_result == "success"');
     });
   }
 
   test("the aggregate fails on a skipped, failed or cancelled job and passes when all succeed", () => {
     const run = String(workflow("ci.yml").jobs["ci-required"]?.steps?.[0]?.run);
-    const check = (results: Record<string, string>) =>
+    const check = (
+      results: Record<string, string>,
+      extra: Record<string, string> = {},
+    ) =>
       Bun.spawnSync(["bash", "-c", run], {
         env: {
           ...process.env,
+          ...extra,
           RESULTS: JSON.stringify(
             Object.fromEntries(
               Object.entries(results).map(([id, result]) => [id, { result }]),
@@ -55,8 +63,35 @@ describe("one required check per workflow", () => {
         },
       }).exitCode;
     expect(check({ a: "success", b: "success" })).toBe(0);
+    expect(check({ reuse: "skipped", a: "success" })).toBe(0);
     for (const bad of ["failure", "skipped", "cancelled"])
       expect(check({ a: "success", b: bad })).toBe(1);
+    // A recorded reuse may skip the jobs that would have retested the tree.
+    // It may not turn a failure, a cancellation, or a failed reuse into a pass.
+    expect(
+      check(
+        { reuse: "success", a: "skipped", b: "skipped" },
+        { EXECUTE: "false", REUSE_RESULT: "success" },
+      ),
+    ).toBe(0);
+    expect(
+      check(
+        { reuse: "success", a: "failure" },
+        { EXECUTE: "false", REUSE_RESULT: "success" },
+      ),
+    ).toBe(1);
+    expect(
+      check(
+        { reuse: "failure", a: "skipped" },
+        { EXECUTE: "false", REUSE_RESULT: "failure" },
+      ),
+    ).toBe(1);
+    expect(
+      check(
+        { reuse: "success", a: "skipped" },
+        { EXECUTE: "true", REUSE_RESULT: "success" },
+      ),
+    ).toBe(1);
   });
 });
 
