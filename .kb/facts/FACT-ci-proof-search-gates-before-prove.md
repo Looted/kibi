@@ -19,4 +19,4 @@ claim_text: The proof workflow runs the kb_search gold-set gates before the full
 id: FACT-ci-proof-search-gates-before-prove
 type: fact
 ---
-True when both kb_search gold-set gate steps of the proof job come after the KB sync and before kibi prove --all, so no proof step runs beside them.
+True when both kb_search gold-set gates run on their own job after that job's KB sync, with no prove step on the runner, and a failure cancels the proof run so it is reported without waiting for kibi prove --all.

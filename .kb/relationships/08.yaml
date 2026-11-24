@@ -321,3 +321,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd731b7d0d15
+  - type: constrains
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-archive-cache-subject
+    created_at: 2026-11-24T15:07:24.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0710e62fde27
+  - type: specified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: SCEN-prolog-release-pack-pr-archive-cache
+    created_at: 2026-11-24T15:07:24.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61d1fe5e0563
+  - type: verified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:07:24.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5dfb341642f
+  - type: verified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-24T15:07:24.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6547cac16b8
+  - type: verified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-11-24T15:07:24.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68e1947b0e64
+  - type: relates_to
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: REQ-prolog-bundled-ci
+    created_at: 2026-11-24T15:07:24.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-209b65460b28
+  - type: requires_property
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-pr-cache-hit-or-source
+    created_at: 2026-11-24T15:07:24.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5671b5eddf63
+  - type: requires_property
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-cache-key-exact
+    created_at: 2026-11-24T15:07:24.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eff04b8c76d
+  - type: requires_property
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-binding-only-on-hit
+    created_at: 2026-11-24T15:07:24.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0abb7ed91cee
+  - type: requires_property
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-publish-keeps-binding
+    created_at: 2026-11-24T15:07:24.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c768c1869e15
+  - type: requires_property
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: FACT-prolog-release-pack-non-pr-from-source
+    created_at: 2026-11-24T15:48:09.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b58a091f9c3d
+  - type: specified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    created_at: 2026-11-24T15:48:09.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29f7a1863e79
+  - type: specified_by
+    from: REQ-prolog-release-pack-pr-archive-cache
+    to: SCEN-NEG-prolog-release-pack-foreign-target
+    created_at: 2026-11-24T15:49:04.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cea7756b8858

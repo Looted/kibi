@@ -1,15 +1,15 @@
 ---
-title: The search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23
+title: The search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7
 status: active
 fact_kind: property_value
 subject_key: kibi.search_hints.model
-claim_key: CLAIM-1B88D98CB3D0A5CB
-claim_text: The search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23
+claim_key: CLAIM-906A2E255020711F
+claim_text: The search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7
 text_ref: REQ-search-hints-model-pin
 property_key: model_revision
 operator: eq
 value_type: string
-value_string: bf8b056651a2c21b8d2565580b8569da283cab23
+value_string: 6fc8051fab2a1e0ee76689cf08c853792ac285e7
 origin:
   kind: agent
   recorded_at: '2026-10-30T19:40:13.539Z'

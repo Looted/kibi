@@ -48897,3 +48897,111 @@ symbols:
         target: TEST-kibi-compact-results
       - type: implements
         target: REQ-kb-search-answered-results-identity-only
+  - id: SYM-build-model-asset-model-repo
+    title: MODEL_REPO
+    status: active
+    sourceFile: packages/plugin-search-hints/scripts/build-model-asset.mjs
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:13:43.056Z
+  - id: SYM-build-model-asset-model-revision
+    title: MODEL_REVISION
+    status: active
+    sourceFile: packages/plugin-search-hints/scripts/build-model-asset.mjs
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:13:46.166Z
+  - id: SYM-index-create-search-hints
+    title: createSearchHints
+    sourceFile: packages/plugin-search-hints/src/index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:15:02.657Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-cache-vector-cache-open
+    title: VectorCache.open
+    sourceFile: packages/plugin-search-hints/src/cache.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:15:04.563Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-cache-vector-cache-save
+    title: VectorCache.save
+    sourceFile: packages/plugin-search-hints/src/cache.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:15:06.084Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-cache-read-vector-file
+    title: readVectorFile
+    sourceFile: packages/plugin-search-hints/src/cache.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:19:32.513Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-plugin-search-hints-vector-cache
+    title: VectorCache
+    status: active
+    sourceFile: packages/plugin-search-hints/src/cache.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T18:21:08.260Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-swipl-archive-cache-mode
+    title: swiplArchiveCacheMode
+    status: active
+    sourceFile: scripts/swipl-archive-cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T15:48:37.857Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-release-pack-pr-archive-cache
+  - id: SYM-swipl-release-archive-cache-inputs
+    title: SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS
+    status: active
+    sourceFile: scripts/swipl-archive-cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T15:48:39.685Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-release-pack-pr-archive-cache

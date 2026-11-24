@@ -28,6 +28,13 @@ import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
 import { mergeLcovContentsWithDiagnostics } from "./merge-lcov";
 import {
+  type ShardCostSeconds,
+  combineShardCosts,
+  formatShardCostFile,
+  loadShardCosts,
+  measuredShardCosts,
+} from "./unit-coverage-costs";
+import {
   type FileTestResult,
   type ShardTestResults,
   gitIdentity,
@@ -202,9 +209,10 @@ export const COVERAGE_SHARDS: readonly {
   /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
   readonly mergeLcov?: boolean;
   /**
-   * Approximate CI wall time of the shard, used only to balance `--partition`
-   * runs across parallel jobs. Unlisted shards count as a few seconds; a stale
-   * estimate can only unbalance the partitions, never drop a shard.
+   * Fallback CI wall time of the shard when `scripts/unit-coverage-costs.json`
+   * (or the CI cost cache) has no measurement yet. Used only to balance
+   * `--partition` runs. A stale estimate can only unbalance the partitions,
+   * never drop a shard.
    */
   readonly costSeconds?: number;
   /**
@@ -216,7 +224,7 @@ export const COVERAGE_SHARDS: readonly {
 }[] = [
   {
     label: "cli.commands",
-    costSeconds: 185,
+    costSeconds: 290,
     // Process-per-file: Bun 1.4 + coverage can hang a shared commands process
     // (dangling engine / spawnSync ETIMEDOUT cascade). Isolation replaces the
     // former 25-minute shared-process bound.
@@ -274,7 +282,7 @@ export const COVERAGE_SHARDS: readonly {
     // until the 15-minute bound and dropped its LCOV, so every file runs in
     // its own process like the other fixture-heavy CLI shards.
     label: "cli.operations",
-    costSeconds: 30,
+    costSeconds: 69,
     paths: CLI_OPERATIONS_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
@@ -321,7 +329,7 @@ export const COVERAGE_SHARDS: readonly {
     // after such a child exited and the shard hit its 15-minute bound, so
     // every support test runs in its own process like cli.operations.
     label: "cli.support",
-    costSeconds: 35,
+    costSeconds: 72,
     paths: CLI_SUPPORT_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
@@ -361,7 +369,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.engine",
-    costSeconds: 60,
+    costSeconds: 101,
     paths: CLI_ROOT_TESTS.filter((path) => {
       const name = path.split("/").pop() ?? "";
       return (
@@ -385,7 +393,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.root",
-    costSeconds: 8,
+    costSeconds: 39,
     paths: CLI_ROOT_TESTS.filter((path) => {
       const name = path.split("/").pop() ?? "";
       return (
@@ -428,7 +436,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.parity",
-    costSeconds: 60,
+    costSeconds: 97,
     paths: ["./packages/cli/tests/parity"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -447,7 +455,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "mcp",
-    costSeconds: 90,
+    costSeconds: 206,
     paths: ["./packages/mcp"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -466,7 +474,7 @@ export const COVERAGE_SHARDS: readonly {
   { label: "antigravity", paths: ["./packages/antigravity/tests"] },
   {
     label: "skillopt",
-    costSeconds: 60,
+    costSeconds: 337,
     paths: ["./scripts/skillopt-eval/tests"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -508,7 +516,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "scripts",
-    costSeconds: 55,
+    costSeconds: 99,
     // CI saw unrelated shell and Node subprocess tests hit the same 15s Bun
     // timeout with empty output after earlier files ran in this coverage VM.
     // A process per file keeps each child-process test's Bun state private.
@@ -602,6 +610,12 @@ type UnitCoverageOptions = Readonly<{
    * the published shard LCOV and applies the repository gates once.
    */
   readonly partition?: CoveragePartition;
+  /**
+   * Measured shard seconds. When omitted, `runUnitCoverageIfMain` loads the
+   * cost cache or the committed seed; a direct caller that omits it balances
+   * on `costSeconds`.
+   */
+  readonly costs?: ShardCostSeconds;
 }>;
 
 /**
@@ -691,14 +705,34 @@ export function partitionFromArgv(
   return { index, count };
 }
 
+/** Committed seed, overridden by `KIBI_UNIT_COVERAGE_COSTS` when that file exists. */
+export const COMMITTED_SHARD_COSTS = join(
+  import.meta.dir,
+  "unit-coverage-costs.json",
+);
+
+export function activeShardCosts(
+  env: NodeJS.ProcessEnv = process.env,
+): ShardCostSeconds | undefined {
+  // The committed seed fills shards a restored cache has not measured yet
+  // (a shard added since that cache was saved). The cache wins where both
+  // have a number, so a fresh measurement is not stuck behind the seed.
+  const seed = loadShardCosts([COMMITTED_SHARD_COSTS]);
+  const fresh = loadShardCosts([env.KIBI_UNIT_COVERAGE_COSTS]);
+  if (seed === undefined && fresh === undefined) return undefined;
+  return combineShardCosts(seed ?? {}, fresh ?? {});
+}
+
 /**
  * Deterministically split the shard list into `count` partitions balanced by
- * `costSeconds` (longest-processing-time first) and return partition `index`
- * in shard order. Every shard lands in exactly one partition.
+ * measured shard seconds, then `costSeconds` (longest-processing-time first).
+ * Returns partition `index` in shard order. Every shard lands in exactly one
+ * partition.
  */
 export function partitionShards(
   partition: CoveragePartition,
   shards: typeof COVERAGE_SHARDS = COVERAGE_SHARDS,
+  costs?: ShardCostSeconds,
 ): typeof COVERAGE_SHARDS {
   if (partition.count > shards.length) {
     throw new Error(
@@ -711,7 +745,8 @@ export function partitionShards(
     .map((shard, order) => ({
       shard,
       order,
-      cost: shard.costSeconds ?? DEFAULT_SHARD_COST_SECONDS,
+      cost:
+        costs?.[shard.label] ?? shard.costSeconds ?? DEFAULT_SHARD_COST_SECONDS,
     }))
     .sort((a, b) => b.cost - a.cost || a.order - b.order);
   for (const { shard, cost } of byCost) {
@@ -1083,7 +1118,20 @@ export async function runUnitCoverage(
   const shards =
     options.partition === undefined
       ? selected
-      : partitionShards(options.partition, selected);
+      : partitionShards(options.partition, selected, options.costs);
+  if (options.partition !== undefined) {
+    const predicted = shards.reduce(
+      (total, shard) =>
+        total +
+        (options.costs?.[shard.label] ??
+          shard.costSeconds ??
+          DEFAULT_SHARD_COST_SECONDS),
+      0,
+    );
+    console.info(
+      `Unit coverage partition ${options.partition.index}/${options.partition.count}: ${shards.map((shard) => shard.label).join(", ")} (~${Math.round(predicted)}s)`,
+    );
+  }
   const coverageLcovPath = join(coverageDir, "lcov.info");
   rmSync(coverageDir, { recursive: true, force: true });
   mkdirSync(coverageDir, { recursive: true });
@@ -1099,6 +1147,7 @@ export async function runUnitCoverage(
     const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
     const failedShards: string[] = [];
     for (const shard of shards) {
+      const shardStarted = Date.now();
       const shardCoverageDir = join(
         runShardDir,
         shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),
@@ -1141,8 +1190,17 @@ export async function runUnitCoverage(
         }
         shardFiles.push(parserLcov);
         shardArtifacts.push({ label: shard.label, path: parserLcov });
+        const parserDurationMs = Date.now() - shardStarted;
+        shardResults.push(
+          shardTestResults(
+            shard.label,
+            identityBefore,
+            new Map(),
+            parserDurationMs,
+          ),
+        );
         console.info(
-          `Finished unit coverage ${shard.label} (exit 0, ${Date.now() - started}ms).`,
+          `Finished unit coverage ${shard.label} (exit 0, ${parserDurationMs}ms).`,
         );
         continue;
       }
@@ -1251,7 +1309,12 @@ export async function runUnitCoverage(
         }
       }
       shardResults.push(
-        shardTestResults(shard.label, identityBefore, fileResults),
+        shardTestResults(
+          shard.label,
+          identityBefore,
+          fileResults,
+          Date.now() - shardStarted,
+        ),
       );
       if (unitLcovs.length === 0) continue;
       const shardPath = join(shardCoverageDir, "lcov.info");
@@ -1407,6 +1470,20 @@ export function mergeUnitCoveragePartitions(
     `${JSON.stringify(mergeShardTestResults(shardResults), null, 2)}\n`,
     "utf8",
   );
+  // The next CI run restores this file and rebalances the partitions from
+  // the wall time each shard just spent. Shards that did not report a clean
+  // duration keep the previous cost.
+  writeFileSync(
+    join(coverageDir, "shard-costs.json"),
+    formatShardCostFile(
+      combineShardCosts(
+        activeShardCosts() ?? {},
+        measuredShardCosts(shardResults),
+      ),
+      "measured by ci-unit-coverage",
+    ),
+    "utf8",
+  );
   publishUnitCoverage({
     coverageDir,
     mergedShardPaths,
@@ -1435,6 +1512,7 @@ export async function runUnitCoverageIfMain(
     const argvLabels = shardLabelsFromArgv(argv);
     const shardLabels = options.shardLabels ?? argvLabels;
     const partition = options.partition ?? partitionFromArgv(argv);
+    const costs = options.costs ?? activeShardCosts();
     // A partial CLI run (--shards or --partition) leaves the repository gates
     // to the full run or to the --merge step that combines every partition.
     const skipRepoGates =
@@ -1446,6 +1524,7 @@ export async function runUnitCoverageIfMain(
       shardLabels,
       skipRepoGates,
       partition,
+      costs,
     });
   } catch (error) {
     if (error instanceof UnitCoverageFailure) {
