@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
+import { resolveJsonFormat } from "./cli-json-alias.js";
 import type { usageMetricsCommand } from "./commands/usage-metrics.js";
 import type { usageRemediationCommand } from "./commands/usage-remediation.js";
 
@@ -16,13 +17,17 @@ export function registerMaintenanceCommands(program: Command): void {
     )
     .option("--update", "Re-resolve every dependency's ref", false)
     .option("--format <format>", "Output format: json|text", "text")
+    .option("--json", "Alias for --format json")
     .action(
       withExitCode(
         async (
           names: string[],
-          options: { update?: boolean; format?: string },
+          options: { update?: boolean; format?: string; json?: boolean },
         ) =>
-          (await import("./commands/deps.js")).depsLockCommand(names, options),
+          (await import("./commands/deps.js")).depsLockCommand(
+            names,
+            resolveJsonFormat(options),
+          ),
       ),
     );
   deps
@@ -31,9 +36,12 @@ export function registerMaintenanceCommands(program: Command): void {
       "Fetch every pinned KB dependency into the shared cache (for CI and offline use)",
     )
     .option("--format <format>", "Output format: json|text", "text")
+    .option("--json", "Alias for --format json")
     .action(
-      withExitCode(async (options: { format?: string }) =>
-        (await import("./commands/deps.js")).depsFetchCommand(options),
+      withExitCode(async (options: { format?: string; json?: boolean }) =>
+        (await import("./commands/deps.js")).depsFetchCommand(
+          resolveJsonFormat(options),
+        ),
       ),
     );
   deps
@@ -42,9 +50,12 @@ export function registerMaintenanceCommands(program: Command): void {
       "List declared KB dependencies with their pinned commits, KB schema and cache state",
     )
     .option("--format <format>", "Output format: json|text", "text")
+    .option("--json", "Alias for --format json")
     .action(
-      withExitCode(async (options: { format?: string }) =>
-        (await import("./commands/deps.js")).depsStatusCommand(options),
+      withExitCode(async (options: { format?: string; json?: boolean }) =>
+        (await import("./commands/deps.js")).depsStatusCommand(
+          resolveJsonFormat(options),
+        ),
       ),
     );
 
@@ -75,9 +86,17 @@ export function registerMaintenanceCommands(program: Command): void {
     )
     .option("--apply", "Execute cleanups (default: report only)", false)
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .action(
-      async (options: { all?: boolean; apply?: boolean; format?: string }) =>
-        (await import("./commands/engine.js")).engineJanitorCommand(options),
+      async (options: {
+        all?: boolean;
+        apply?: boolean;
+        format?: string;
+        json?: boolean;
+      }) =>
+        (await import("./commands/engine.js")).engineJanitorCommand(
+          resolveJsonFormat(options),
+        ),
     );
 
   const storage = program
@@ -123,9 +142,13 @@ export function registerMaintenanceCommands(program: Command): void {
     .command("doctor")
     .description("Diagnose KB setup and configuration")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .action(
-      withExitCode(async (options: { format?: "json" | "table" }) =>
-        (await import("./commands/doctor.js")).doctorCommand(options),
+      withExitCode(
+        async (options: { format?: "json" | "table"; json?: boolean }) =>
+          (await import("./commands/doctor.js")).doctorCommand(
+            resolveJsonFormat(options),
+          ),
       ),
     );
 
@@ -133,16 +156,22 @@ export function registerMaintenanceCommands(program: Command): void {
     .command("usage-metrics")
     .description("Report usage and quality metrics from .kb/usage.log")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--limit <n>", "Limit top zero-result source files", "10")
     .option(
       "--require-acceptance",
       "Exit non-zero unless the telemetry acceptance report passes",
     )
     .action(
-      withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) =>
-        (await import("./commands/usage-metrics.js")).usageMetricsCommand(
-          options,
-        ),
+      withExitCode(
+        async (
+          options: Parameters<typeof usageMetricsCommand>[0] & {
+            json?: boolean;
+          },
+        ) =>
+          (await import("./commands/usage-metrics.js")).usageMetricsCommand(
+            resolveJsonFormat(options),
+          ),
       ),
     );
 
@@ -152,13 +181,18 @@ export function registerMaintenanceCommands(program: Command): void {
       "Enumerate exact diagnostic events and report-level evidence gaps requiring repair",
     )
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--json", "Alias for --format json")
     .option("--limit <n>", "Limit rendered table rows", "50")
     .action(
       withExitCode(
-        async (options: Parameters<typeof usageRemediationCommand>[0]) =>
+        async (
+          options: Parameters<typeof usageRemediationCommand>[0] & {
+            json?: boolean;
+          },
+        ) =>
           (
             await import("./commands/usage-remediation.js")
-          ).usageRemediationCommand(options),
+          ).usageRemediationCommand(resolveJsonFormat(options)),
       ),
     );
 
@@ -168,15 +202,16 @@ export function registerMaintenanceCommands(program: Command): void {
       "Show, enable or disable anonymous usage telemetry (status|enable|disable)",
     )
     .option("--format <format>", "Output format: json|text", "text")
+    .option("--json", "Alias for --format json")
     .action(
       withExitCode(
         async (
           action: string | undefined,
-          options: { format?: "json" | "text" },
+          options: { format?: "json" | "text"; json?: boolean },
         ) =>
           (await import("./commands/telemetry.js")).telemetryCommand(
             action,
-            options,
+            resolveJsonFormat(options),
           ),
       ),
     );

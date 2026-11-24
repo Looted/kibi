@@ -14089,10 +14089,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-zcode-unowned-workspace-silence
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-zcode-hooks-invoke-hook-runner
+      - type: implements
+        target: REQ-zcode-unowned-workspace-silence
   - id: SYM-zcode-packageName
     title: packageName
     sourceFile: packages/zcode/src/index.ts
@@ -47602,3 +47604,240 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-20T16:11:19.609Z
+  - id: SYM-cli-json-alias-resolve-json-format
+    title: resolveJsonFormat
+    sourceFile: packages/cli/src/cli-json-alias.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:43:11.846Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-json-format-alias
+      - type: implements
+        target: REQ-cli-json-format-alias
+  - id: SYM-cli-json-alias-register-json-alias-guard
+    title: registerJsonAliasGuard
+    sourceFile: packages/cli/src/cli-json-alias.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:43:13.448Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-json-format-alias
+      - type: implements
+        target: REQ-cli-json-format-alias
+  - id: SYM-test-cli-json-format-alias
+    title: kibi CLI --json alias suite
+    status: active
+    sourceFile: packages/cli/tests/cli-json-alias.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:45:42.534Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-json-format-alias
+  - id: SYM-test-cli-engine-janitor-workspace-sockets
+    title: kibi engine janitor suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/janitor.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:11.736Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-engine-janitor-workspace-sockets
+  - id: SYM-cli-janitor-sweep-runtime-sockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T15:54:47.194Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
+  - id: SYM-engine-socket-key-engine-socket-key
+    title: engineSocketKey
+    sourceFile: packages/cli/src/utils/engine-socket-key.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T17:51:24.071Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-engine-janitor-workspace-sockets
+      - type: implements
+        target: REQ-cli-engine-janitor-workspace-sockets
+  - id: SYM-zcode-case-tracked-hook-targets
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/hooks.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Hooks point at hook files a source checkout contains
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:22.857Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-copied-install-runtime-files
+    granularity_reason: test-suite
+    sourceFile: packages/zcode/tests/install-artifact.test.ts
+    status: active
+    symbol_role: behavioral
+    title: Copied marketplace install contains declared runtime files
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:18:24.666Z
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-run-zcode-proof-zcode-native-cases
+    sourceFile: scripts/run-zcode-proof.mjs
+    status: active
+    symbol_role: type-shape
+    title: ZCODE_NATIVE_CASES
+    origin:
+      kind: agent
+      recorded_at: 2026-11-20T15:43:00.119Z
+  - id: SYM-test-vibe-hooks-decision-guard
+    title: kibi-vibe decision guard suite
+    status: active
+    sourceFile: packages/vibe/tests/guard.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:24:15.193Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-hooks-decision-guard
+  - id: SYM-guard-post-edit-note
+    title: postEditNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:24:20.328Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-firm-edit-after-notice
+    title: firmEditAfterNotice
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:52.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-session-state-dir
+    title: sessionStateDir
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:53.688Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-after-edit-input
+    title: afterEditInput
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:29:55.072Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-prompt-note
+    title: promptNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:30:07.342Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-guard-session-start-note
+    title: sessionStartNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:30:12.366Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-kibi-missing-hooks-notice
+  - id: SYM-guard-is-edit-tool
+    title: isEditTool
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:47.789Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-kibi-common-guard-note
+    title: guardNote
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:49.665Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-kibi-common-join-parts
+    title: joinParts
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-22T18:31:51.117Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-hooks-decision-guard
+      - type: implements
+        target: REQ-vibe-hooks-firm-edit-notice

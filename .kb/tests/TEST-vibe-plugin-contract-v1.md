@@ -34,17 +34,17 @@ id: TEST-vibe-plugin-contract-v1
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b61b44f74122727e9f7e3bc3
+    receipt_id: PR-8a4ce26bcbcd4108559b6a3a
     test_id: TEST-vibe-plugin-contract-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 8f0c70d0f46d6c7ad39f09b586b6382be59750b7e9f19d317fa6cbc82a8a352e
-    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-21T19:31:43.891Z'
-    finished_at: '2026-11-21T19:31:48.682Z'
-    artifact_digest: bba32b6dd7d5278d7de3df36cc8492f794e2c6ad01bba58c8097452f2cd3a91a
+    code_snapshot: 54f0c83a3d3db71803d7d86b90049bd8c29ebbba550cb579fdc49aed12069173
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-23T05:13:37.353Z'
+    finished_at: '2026-11-23T05:13:42.957Z'
+    artifact_digest: 242804567995225a8f33e16bc7e8a478d8c8bf5d59083200f626f4835c052377
     contract_hash: d66ebf1e83c402ba89ac3a88ac6045a2a8c452821ba7cf85b865cda31151dcdd
-    binding_hash: 37136a0110dda25fe8a7384520942a6b235d133d7c4202d6e7906ed66f4e7c89
+    binding_hash: c65d42e19898db1e7a6808486d8131bd77223e9b24fee56c6ec67e0302087199
     fingerprint: e9ad321199c3400c2220dcacebb4377c0e1158b0503e00222aefaddbb9c35a76
     fingerprint_components:
       contract: d66ebf1e83c402ba89ac3a88ac6045a2a8c452821ba7cf85b865cda31151dcdd

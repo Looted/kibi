@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b00550f482a
+  - type: implements
+    from: SYM-cli-json-alias-resolve-json-format
+    to: REQ-cli-json-format-alias
+    created_at: 2026-11-22T17:43:12.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c75ea55f81b
+  - type: covered_by
+    from: SYM-cli-json-alias-resolve-json-format
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:43:12.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b11bf5ba99e3

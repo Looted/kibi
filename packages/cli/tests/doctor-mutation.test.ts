@@ -1604,46 +1604,60 @@ describe("fresh-clone setup check", () => {
     );
   });
 
-  test("name hand-written Kibi instructions and how to keep them", async () => {
+  test("distinguish AGENTS.md that mentions Kibi without markers", async () => {
     initialize();
     s.choices.mockReturnValue(choices({ agentInstructions: true }) as never);
     s.section.mockReturnValue("missing" as never);
-    const agents = path.join(cwd, agentInstructions.AGENTS_FILE);
-    writeFileSync(
-      agents,
-      "# Agents\n\nThis repo uses KIBI: run kb_search first.\n",
-    );
-    expect(await check("Fresh-clone setup")).toStrictEqual({
-      name: "Fresh-clone setup",
+
+    writeFileSync(path.join(cwd, "AGENTS.md"), "# Agents\nRun tests.\n");
+    expect(await check("Fresh-clone setup")).toMatchObject({
       passed: true,
       warning: true,
       message:
-        "AGENTS.md mentions Kibi but has no kibi-managed section, so kibi init does not keep those instructions current",
-      remediation:
-        "Run: kibi init (applies the recorded choices and adds the managed AGENTS.md section), or kibi init --no-agent-instructions to keep your own AGENTS.md instructions",
-      details: {
-        choices: {
-          autoSync: true,
-          prepareHooks: false,
-          agentInstructions: true,
-          ciGate: false,
-        },
-        source: "defaults",
-      },
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
     });
+
+    writeFileSync(
+      path.join(cwd, "AGENTS.md"),
+      "# Agents\nConsult kibi before editing.\n",
+    );
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+      remediation:
+        "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text",
+    });
+
+    // Unreadable AGENTS.md path falls back to the standard missing-section message.
+    rmSync(path.join(cwd, "AGENTS.md"));
+    mkdirSync(path.join(cwd, "AGENTS.md"));
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      passed: true,
+      warning: true,
+      message:
+        "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
+
     // A word that only starts with "kibi" is no mention of Kibi.
-    writeFileSync(agents, "Sizes are in kibibytes.\n");
+    rmSync(path.join(cwd, "AGENTS.md"), { recursive: true });
+    writeFileSync(path.join(cwd, "AGENTS.md"), "Sizes are in kibibytes.\n");
     expect(await check("Fresh-clone setup")).toMatchObject({
       message:
         "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists",
       remediation: "Run: kibi init (applies the recorded choices)",
     });
-    // An outdated managed section is reported as outdated.
-    writeFileSync(agents, "Kibi\n");
+
+    // An outdated managed section is reported as outdated, even when the file mentions Kibi.
+    writeFileSync(path.join(cwd, "AGENTS.md"), "Kibi\n");
     s.section.mockReturnValue("outdated" as never);
-    expect((await check("Fresh-clone setup"))?.message).toBe(
-      "the Kibi section of AGENTS.md is outdated",
-    );
+    expect(await check("Fresh-clone setup")).toMatchObject({
+      message: "the Kibi section of AGENTS.md is outdated",
+      remediation: "Run: kibi init (applies the recorded choices)",
+    });
   });
 
   test("ask for no prepare step without package.json or with a hook manager", async () => {
@@ -2226,6 +2240,60 @@ describe("managed hook sections check", () => {
       passed: false,
       message: "Unable to read hook content",
       remediation: "Run: kibi init",
+    });
+  });
+
+  test("reconcile managed hook sections when a hook manager owns Git hooks", async () => {
+    s.manager.mockReturnValue({
+      name: "pre-commit",
+      configPath: ".pre-commit-config.yaml",
+    } as never);
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      message: "Managed by pre-commit (.pre-commit-config.yaml)",
+    });
+
+    hook("post-merge", MANAGED_REWRITE);
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      warning: true,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); leftover kibi-managed hook sections remain in post-merge",
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-merge in ${hooksDir} and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+    });
+
+    hook("pre-commit", MANAGED_PRE);
+    s.outdated.mockReturnValue(["pre-commit"]);
+    s.git.mockImplementation(
+      () =>
+        ({
+          status: "ok",
+          context: context({
+            hooksPathConfig: ".githooks",
+            hooksPathOrigin: "file:.git/config",
+          }),
+        }) as never,
+    );
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: true,
+      warning: true,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); leftover kibi-managed hook sections remain in post-merge, pre-commit (outdated: pre-commit) (core.hooksPath=.githooks from file:.git/config)",
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from post-merge, pre-commit in ${hooksDir} and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
+    });
+
+    s.outdated.mockImplementation(() => {
+      throw new Error("EACCES");
+    });
+    expect(await check("Kibi-managed hook sections")).toStrictEqual({
+      name: "Kibi-managed hook sections",
+      passed: false,
+      message:
+        "Managed by pre-commit (.pre-commit-config.yaml); unable to read hook content",
+      remediation: `Check permissions in ${hooksDir}, remove any leftover '# BEGIN kibi-managed' ... '# END kibi-managed' sections, and keep Kibi's commands in .pre-commit-config.yaml (print them with: kibi init --print-hook all --format pre-commit)`,
     });
   });
 });

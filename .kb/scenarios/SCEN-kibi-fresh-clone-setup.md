@@ -31,7 +31,7 @@ Steps:
    "Fresh-clone setup" check warns and points at `kibi init`.
 7. Replace the managed AGENTS.md section with hand-written instructions that
    mention Kibi and run `kibi doctor`: the check says AGENTS.md mentions Kibi
-   but has no kibi-managed section, instead of saying agents are not told the
-   KB exists, and points at `kibi init --no-agent-instructions` to keep the
-   hand-written text. After that opt-out, the text is unchanged and doctor no
+   but has no kibi-managed markers, instead of saying agents are not told the
+   KB exists, and points at `kibi init` to add the managed section or
+   `kibi init --no-agent-instructions` to keep the hand-written text. After that opt-out, the text is unchanged and doctor no
    longer warns about it.
