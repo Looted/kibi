@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "node",
+      "args": ["./bin/mcp-launcher.cjs"]
+    }
+  }
+}

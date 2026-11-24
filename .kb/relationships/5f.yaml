@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-707ef5aa04ff
+  - type: assumes
+    from: SCEN-NEG-antigravity-no-roots-discovery
+    to: FACT-NEG-antigravity-no-roots-discovery
+    created_at: 2026-11-24T05:07:25.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51b305f30fd9
+  - type: verified_by
+    from: SCEN-NEG-antigravity-no-roots-discovery
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:25.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a8633d866b1

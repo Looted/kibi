@@ -230,3 +230,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba7647e71c05
+  - type: constrains
+    from: REQ-antigravity-hook-usage-telemetry
+    to: FACT-SUBJECT-antigravity-plugin
+    created_at: 2026-11-22T05:07:21.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d90710e8dba
+  - type: specified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: SCEN-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:21.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d7a54b5992f
+  - type: verified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:21.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b3916df073d
+  - type: requires_property
+    from: REQ-antigravity-hook-usage-telemetry
+    to: FACT-antigravity-diagnostic-telemetry-optin
+    created_at: 2026-11-22T05:15:13.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb17b153ae11
+  - type: requires_property
+    from: REQ-antigravity-hook-usage-telemetry
+    to: FACT-antigravity-default-no-telemetry
+    created_at: 2026-11-22T05:15:13.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66677daa8691
+  - type: specified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: SCEN-NEG-antigravity-default-writes-usage-log
+    created_at: 2026-11-24T05:07:41.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d62007de728a
+  - type: specified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: SCEN-NEG-antigravity-diagnostic-skips-usage-log
+    created_at: 2026-11-24T05:07:41.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbc8e31f7ce5
