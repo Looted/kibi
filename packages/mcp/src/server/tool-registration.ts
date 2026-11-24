@@ -20,6 +20,7 @@ import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
 import type { FindGapsArgs } from "../tools/find-gaps.js";
 import type { GraphArgs } from "../tools/graph.js";
+import type { MapArgs } from "../tools/map.js";
 import type { ModelRequirementArgs } from "../tools/model-requirement.js";
 import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { QueryArgs } from "../tools/query.js";
@@ -193,6 +194,15 @@ export function registerConfiguredTools<TProlog>(
       runtime.handleKbSearch(
         prologFor(context),
         args as unknown as SearchArgs,
+        context,
+      ),
+  });
+  register({
+    name: "kb_map",
+    execute: async (context, args) =>
+      runtime.handleKbMap(
+        prologFor(context),
+        args as unknown as MapArgs,
         context,
       ),
   });

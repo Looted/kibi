@@ -215,6 +215,7 @@ const KIBI_CLI_ROUTES: Readonly<Record<string, string>> = {
   query: "kb_query",
   "kb-query": "kb_query",
   search: "kb_search",
+  map: "kb_map",
   status: "kb_status",
   graph: "kb_graph",
   coverage: "kb_coverage",

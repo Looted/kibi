@@ -216,6 +216,11 @@ export const RESULT_BUDGETS: Readonly<
     reason:
       "Stale reasons and snapshot changes are capped lists with their own counts.",
   },
+  kb_map: {
+    kind: "fitted",
+    reason:
+      "kb_map deterministically trims samples, code roots, excerpts, and areas to fit maxBytes while keeping gaps and stats intact.",
+  },
   kb_skills_list: {
     kind: "bounded",
     reason: "One short entry per bundled or project skill.",

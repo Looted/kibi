@@ -46,6 +46,7 @@ interface ToolConfig {
 const MCP_TOOL_ORDER = [
   "kb_query",
   "kb_search",
+  "kb_map",
   "kb_status",
   "kb_skills",
   "kb_find_gaps",
@@ -73,6 +74,7 @@ const MCP_TOOL_ORDER = [
  */
 export const DEFAULT_PROFILE_TOOLS = [
   "kb_search",
+  "kb_map",
   "kb_query",
   "kb_record",
   "kb_upsert",
@@ -181,7 +183,7 @@ export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
 
 /**
  * The catalog tools a session lists: every one in the `full` profile; the
- * core eight in the `core` profile, plus the bootstrap tools while the
+ * core nine in the `core` profile, plus the bootstrap tools while the
  * knowledge base is empty.
  */
 export function profileToolNames(
@@ -227,6 +229,7 @@ const TOOL_TITLES: Readonly<
 > = {
   kb_query: "Query Kibi entities",
   kb_search: "Search Kibi knowledge base",
+  kb_map: "Map Kibi repository governance",
   kb_status: "Inspect Kibi branch status",
   kb_skills: "Read bundled Kibi skills",
   kb_model: "Model Kibi requirement prose",

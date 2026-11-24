@@ -3,6 +3,7 @@ export type { OperationContext };
 export type OperationName =
   | "kb_query"
   | "kb_search"
+  | "kb_map"
   | "kb_status"
   | "kb_skills_list"
   | "kb_skills_load"

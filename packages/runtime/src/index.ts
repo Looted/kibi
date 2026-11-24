@@ -59,6 +59,7 @@ export {
   executeFindGaps,
   executeGraph,
   executeIntentSearch,
+  executeMap,
   executeQuery,
   executeSearch,
   executeSemanticAdvisor,
@@ -70,6 +71,7 @@ export {
   ingestProofSpec,
   loadEntities,
   listSpecs,
+  mapSpec,
   modelRequirementSpec,
   nodeFilesystem,
   nodeGit,
@@ -113,6 +115,8 @@ export type {
   EntityQueryInput,
 } from "kibi-cli/operations";
 export type {
+  MapInput,
+  MapPayload,
   QueryInput,
   QueryPayload,
   SearchInput,

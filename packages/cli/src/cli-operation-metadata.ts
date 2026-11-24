@@ -46,6 +46,12 @@ export const CLI_OPERATION_METADATA = [
       "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   },
   {
+    name: "kb_map",
+    cliName: "map",
+    description:
+      "Orient on the repository's governance knowledge: project overview (when recorded), accepted ADRs, domain subjects (stripping a dominant root prefix), firm rule counts, owning code directories, and ungoverned gaps. Fits a compact byte budget (default 8192 bytes); pass domain to zoom into one area, then follow up with kb_search or kb_query. Read-only.",
+  },
+  {
     name: "kb_status",
     cliName: "status",
     description:

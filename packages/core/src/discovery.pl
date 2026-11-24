@@ -21,7 +21,8 @@
     ask_predicate_json/9,
     ask_property_json/6,
     ask_schemas_json/5,
-    ask_fact_kind_json/4
+    ask_fact_kind_json/4,
+    kb_map_json/3
 ]).
 
 % Source contains non-ASCII text; do not depend on the host locale.
@@ -34,6 +35,7 @@
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
+:- use_module('domain_subjects.pl', [subject_defined/2, requirement_subject/3]).
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, requirement_review_row/4, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
 :- use_module('logic_ir.pl', [logic_rule_conflict/4]).
@@ -1783,6 +1785,302 @@ paginate_rows(Rows, Offset, _Limit, PaginatedRows) :-
     append(Prefix, PaginatedRows, Rows),
     !.
 paginate_rows(_, _, _, []).
+
+%% kb_map_json(+DomainFilter, +IncludeAdrs, -JsonString)
+% Single-pass governance orientation payload over the attached KB store.
+% Collects project overview facts, accepted ADRs, domain subjects with requirement/ADR/code
+% counts, unanchored/unlinked gaps, summary stats, and snapshot scope without reading bodies.
+kb_map_json(DomainFilter0, IncludeAdrs0, JsonString) :-
+    normalize_map_domain_filter(DomainFilter0, DomainFilter),
+    normalize_map_include_adrs(IncludeAdrs0, IncludeAdrs),
+    map_overview_entries(OverviewEntries),
+    map_accepted_adrs(Adrs, AdrIds),
+    (   IncludeAdrs == true
+    ->  VisibleAdrs = Adrs
+    ;   VisibleAdrs = []
+    ),
+    map_subjects(DomainFilter, AdrIds, Subjects, DefinedCount),
+    map_gaps(Adrs, LinkedSourceFiles, Gaps),
+    map_stats(Adrs, DefinedCount, LinkedSourceFiles, Stats),
+    status_scope_dict(Scope),
+    Response = _{
+        overview: OverviewEntries,
+        adrs: VisibleAdrs,
+        subjects: Subjects,
+        gaps: Gaps,
+        stats: Stats,
+        scope: Scope
+    },
+    dict_json_string(Response, JsonString).
+
+normalize_map_domain_filter(none, none) :- !.
+normalize_map_domain_filter('', none) :- !.
+normalize_map_domain_filter(Raw, Filter) :-
+    source_value_atom(Raw, Atom),
+    (   Atom == ''
+    ->  Filter = none
+    ;   Filter = Atom
+    ).
+
+normalize_map_include_adrs(false, false) :- !.
+normalize_map_include_adrs(_, true).
+
+map_entity_title(Props, Title) :-
+    (   memberchk(title=Raw, Props)
+    ->  source_value_atom(Raw, Title)
+    ;   Title = ''
+    ).
+
+map_entity_status(Props, Status) :-
+    (   memberchk(status=Raw, Props)
+    ->  source_value_atom(Raw, Status0),
+        downcase_atom(Status0, Status)
+    ;   Status = ''
+    ).
+
+map_entity_source(Props, Source) :-
+    (   memberchk(source=Raw, Props)
+    ->  source_value_atom(Raw, Source)
+    ;   Source = ''
+    ).
+
+map_entity_tags(Props, Tags) :-
+    (   memberchk(tags=RawTags, Props),
+        is_list(RawTags)
+    ->  maplist(source_value_atom, RawTags, Tags0),
+        sort(Tags0, Tags)
+    ;   Tags = []
+    ).
+
+map_entity_firmness(Props, Firmness) :-
+    (   memberchk(firmness=Raw, Props),
+        source_value_atom(Raw, Explicit0),
+        downcase_atom(Explicit0, Explicit),
+        memberchk(Explicit, [firm, default, exploratory])
+    ->  Firmness = Explicit
+    ;   map_origin_kind(Props, agent)
+    ->  Firmness = default
+    ;   Firmness = firm
+    ).
+
+map_origin_kind(Props, Kind) :-
+    memberchk(origin=Raw, Props),
+    (   is_dict(Raw)
+    ->  get_dict(kind, Raw, KindRaw),
+        source_value_atom(KindRaw, Kind)
+    ;   source_value_atom(Raw, JsonAtom),
+        catch(atom_json_dict(JsonAtom, Dict, [value_string_as(atom)]), _, fail),
+        is_dict(Dict),
+        get_dict(kind, Dict, KindRaw),
+        source_value_atom(KindRaw, Kind)
+    ).
+
+map_inactive_fact_status(Status) :-
+    memberchk(Status, [superseded, deprecated, closed, removed, retired, inactive, archived]).
+
+map_inactive_adr_status(Status) :-
+    memberchk(Status, [superseded, deprecated, rejected, retired, obsolete, archived]).
+
+map_overview_entries(Entries) :-
+    findall(Id-Entry,
+        (   kb_entity(Id, fact, Props),
+            map_entity_status(Props, Status),
+            \+ map_inactive_fact_status(Status),
+            memberchk(fact_kind=KindRaw, Props),
+            kb:normalize_term_atom(KindRaw, Kind),
+            memberchk(Kind, [observation, meta]),
+            map_entity_tags(Props, Tags),
+            memberchk('kb:project-overview', Tags),
+            map_entity_title(Props, Title),
+            map_entity_source(Props, Source),
+            (   memberchk(updated_at=UpdRaw, Props)
+            ->  source_value_atom(UpdRaw, UpdatedAt)
+            ;   UpdatedAt = null
+            ),
+            Entry = _{
+                id: Id,
+                title: Title,
+                source: Source,
+                updatedAt: UpdatedAt
+            }
+        ),
+        Pairs0),
+    keysort(Pairs0, Pairs),
+    pairs_values(Pairs, Entries).
+
+map_adr_linked_req(AdrId, ReqId) :-
+    (   kb_relationship(relates_to, AdrId, ReqId)
+    ;   kb_relationship(relates_to, ReqId, AdrId)
+    ;   kb_relationship(decides, AdrId, ReqId)
+    ),
+    kb:current_req(ReqId).
+
+map_accepted_adrs(Adrs, AdrIds) :-
+    findall(Id-Row,
+        (   kb_entity(Id, adr, Props),
+            map_entity_status(Props, Status),
+            \+ map_inactive_adr_status(Status),
+            \+ kb_relationship(supersedes, _, Id),
+            map_entity_title(Props, Title),
+            map_entity_source(Props, Source),
+            map_entity_tags(Props, Tags),
+            map_entity_firmness(Props, Firmness),
+            findall(ReqId, map_adr_linked_req(Id, ReqId), Linked0),
+            sort(Linked0, LinkedReqIds),
+            Row = _{
+                id: Id,
+                title: Title,
+                status: Status,
+                firmness: Firmness,
+                source: Source,
+                tags: Tags,
+                linkedReqIds: LinkedReqIds
+            }
+        ),
+        Pairs0),
+    keysort(Pairs0, Pairs),
+    pairs_keys_values(Pairs, AdrIds, Adrs).
+
+map_subject_key_matches(none, _Key) :- !.
+map_subject_key_matches(Filter, Filter) :- !.
+map_subject_key_matches(Filter, Key) :-
+    atom_concat(Filter, '.', PrefixDot),
+    sub_atom(Key, 0, _, _, PrefixDot).
+
+map_subjects(DomainFilter, AcceptedAdrIds, Subjects, DefinedCount) :-
+    findall(DefKey, subject_defined(DefKey, _), DefKeys0),
+    sort(DefKeys0, DefKeys),
+    length(DefKeys, DefinedCount),
+    findall(ReqKey, requirement_subject(_, ReqKey, _), ReqKeys0),
+    append(DefKeys, ReqKeys0, AllKeys0),
+    sort(AllKeys0, AllKeys),
+    include(map_subject_key_matches(DomainFilter), AllKeys, FilteredKeys),
+    maplist(map_subject_row(AcceptedAdrIds), FilteredKeys, Subjects).
+
+map_subject_row(AcceptedAdrIds, Key, Row) :-
+    findall(SubjId, subject_defined(Key, SubjId), SubjIds0),
+    sort(SubjIds0, SubjIds),
+    (   SubjIds = [FirstSubjId|_],
+        kb_entity(FirstSubjId, fact, SubjProps)
+    ->  Defined = true,
+        map_entity_title(SubjProps, Title),
+        map_entity_source(SubjProps, Source)
+    ;   Defined = false,
+        Title = '',
+        Source = ''
+    ),
+    findall(ReqId, requirement_subject(ReqId, Key, _), ReqIds0),
+    sort(ReqIds0, ReqIds),
+    findall(ReqId-ReqSummary,
+        (   member(ReqId, ReqIds),
+            kb_entity(ReqId, req, ReqProps),
+            map_entity_firmness(ReqProps, firm),
+            map_entity_title(ReqProps, ReqTitle),
+            ReqSummary = _{id: ReqId, title: ReqTitle}
+        ),
+        FirmPairs0),
+    keysort(FirmPairs0, FirmPairs),
+    pairs_keys_values(FirmPairs, FirmReqIds, FirmReqs),
+    findall(MustId,
+        (   member(MustId, ReqIds),
+            kb:must_requirement(MustId)
+        ),
+        MustReqIds0),
+    sort(MustReqIds0, MustReqIds),
+    findall(AdrId,
+        (   member(ReqId, ReqIds),
+            map_adr_linked_req(AdrId, ReqId),
+            memberchk(AdrId, AcceptedAdrIds)
+        ),
+        AdrIds0),
+    sort(AdrIds0, AdrIds),
+    findall(File,
+        (   member(ReqId, ReqIds),
+            kb_relationship(implements, SymId, ReqId),
+            kb_entity(SymId, symbol, SymProps),
+            memberchk(sourceFile=RawSource, SymProps),
+            source_value_atom(RawSource, File),
+            File \== ''
+        ),
+        CodeFiles0),
+    sort(CodeFiles0, CodeFiles),
+    Row = _{
+        key: Key,
+        defined: Defined,
+        title: Title,
+        source: Source,
+        requirementIds: ReqIds,
+        firmReqIds: FirmReqIds,
+        firmReqs: FirmReqs,
+        mustReqIds: MustReqIds,
+        adrIds: AdrIds,
+        codeFiles: CodeFiles
+    }.
+
+map_gaps(Adrs, LinkedSourceFileCount, Gaps) :-
+    findall(ReqId,
+        (   kb:current_req(ReqId),
+            \+ requirement_subject(ReqId, _, _)
+        ),
+        Unanchored0),
+    sort(Unanchored0, Unanchored),
+    length(Unanchored, UnanchoredCount),
+    paginate_rows(Unanchored, 0, 10, UnanchoredSampleIds),
+    findall(AdrId,
+        (   member(Adr, Adrs),
+            Adr.linkedReqIds == [],
+            AdrId = Adr.id
+        ),
+        UnlinkedAdrs0),
+    sort(UnlinkedAdrs0, UnlinkedAdrIds),
+    length(UnlinkedAdrIds, UnlinkedAdrCount),
+    findall(File,
+        (   (   kb_relationship(implements, SymId, _)
+            ;   kb_relationship(executable_for, SymId, _)
+            ),
+            kb_entity(SymId, symbol, SymProps),
+            memberchk(sourceFile=RawSource, SymProps),
+            source_value_atom(RawSource, File),
+            File \== ''
+        ),
+        LinkedFiles0),
+    sort(LinkedFiles0, LinkedFiles),
+    length(LinkedFiles, LinkedSourceFileCount),
+    Gaps = _{
+        unanchoredCurrentReqs: UnanchoredCount,
+        unanchoredSampleIds: UnanchoredSampleIds,
+        unlinkedAcceptedAdrs: UnlinkedAdrCount,
+        unlinkedAdrIds: UnlinkedAdrIds,
+        linkedSourceFiles: LinkedSourceFileCount
+    }.
+
+map_stats(Adrs, DefinedCount, LinkedSourceFiles, Stats) :-
+    findall(ReqId, kb:current_req(ReqId), CurrentReqs0),
+    sort(CurrentReqs0, CurrentReqs),
+    length(CurrentReqs, CurrentCount),
+    findall(FirmReqId,
+        (   member(FirmReqId, CurrentReqs),
+            kb_entity(FirmReqId, req, Props),
+            map_entity_firmness(Props, firm)
+        ),
+        FirmReqs0),
+    length(FirmReqs0, FirmCount),
+    length(Adrs, AdrCount),
+    findall(ScenId, kb_entity(ScenId, scenario, _), Scens0),
+    sort(Scens0, Scens),
+    length(Scens, ScenarioCount),
+    findall(TestId, kb_entity(TestId, test, _), Tests0),
+    sort(Tests0, Tests),
+    length(Tests, TestCount),
+    Stats = _{
+        currentRequirements: CurrentCount,
+        firmRequirements: FirmCount,
+        acceptedAdrs: AdrCount,
+        definedSubjects: DefinedCount,
+        scenarios: ScenarioCount,
+        tests: TestCount,
+        linkedSourceFiles: LinkedSourceFiles
+    }.
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).

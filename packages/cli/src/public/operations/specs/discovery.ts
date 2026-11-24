@@ -1,11 +1,14 @@
 import { KB_DEPENDENCY_INPUT_SCHEMA } from "../../../dependencies/kb-dependency-scope.js";
 import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import {
+  executeMap,
   executeQuery,
   executeSearch,
   executeStatus,
 } from "../discovery-executors.js";
 import type {
+  MapInput,
+  MapPayload,
   QueryInput,
   QueryPayload,
   SearchInput,
@@ -302,6 +305,51 @@ export const searchSpec = {
   agentVisibleStructuredData: true,
   execute: executeSearch,
 } as const satisfies OperationSpec<SearchInput, SearchPayload>;
+
+export const mapSpec = {
+  name: "kb_map",
+  cliName: "map",
+  description:
+    "Orient on the repository's governance knowledge: project overview (when recorded), accepted ADRs, domain subjects (stripping a dominant root prefix), firm rule counts, owning code directories, and ungoverned gaps. Fits a compact byte budget (default 8192 bytes); pass domain to zoom into one area, then follow up with kb_search or kb_query. Read-only.",
+  businessInputSchema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
+      domain: {
+        type: "string",
+        description:
+          "Optional domain or subject prefix to zoom into (for example 'discovery' or 'kibi.engine'). Omit for repository-wide orientation.",
+      },
+      depth: {
+        type: "integer",
+        minimum: 1,
+        maximum: 4,
+        default: 1,
+        description:
+          "Optional subject grouping depth (1-4). Default: 1 (after dominant-root stripping when applicable).",
+      },
+      includeAdrs: {
+        type: "boolean",
+        default: true,
+        description:
+          "Whether to include accepted ADRs in decisions[]. Default: true.",
+      },
+      maxBytes: {
+        type: "integer",
+        minimum: 1024,
+        maximum: 32768,
+        default: 8192,
+        description:
+          "Deterministic UTF-8 JSON size budget in bytes (1024-32768). Default: 8192.",
+      },
+    },
+  },
+  requiresProlog: true,
+  effects: ["kb-read"],
+  agentVisibleStructuredData: true,
+  execute: executeMap,
+} as const satisfies OperationSpec<MapInput, MapPayload>;
 
 export const statusSpec = {
   name: "kb_status",

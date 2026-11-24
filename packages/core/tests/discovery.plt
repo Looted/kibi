@@ -2042,3 +2042,29 @@ test(a_negative_depth_stops_at_an_empty_frontier) :-
     )).
 
 :- end_tests(discovery_binding_and_limits).
+
+:- begin_tests(discovery_kb_map).
+
+test(kb_map_json_handles_empty_store_and_filters) :-
+    dsc_kb((
+        once(discovery:kb_map_json(none, true, EmptyJson)),
+        atom_json_dict(EmptyJson, Empty, [value_string_as(atom)]),
+        Empty.overview == [],
+        Empty.adrs == [],
+        Empty.subjects == [],
+        Empty.stats.currentRequirements == 0,
+        pf_entity(fact, 'F-SUBJ', [fact_kind=subject, subject_key="alpha.beta", title="Beta"]),
+        pf_entity(req, 'REQ-A', [status=open, priority=must, title="Alpha rule"]),
+        pf_entity(adr, 'ADR-1', [status=accepted, title="Keep alpha", tags=[arch]]),
+        pf_raw_rel(constrains, 'REQ-A', 'F-SUBJ'),
+        pf_raw_rel(relates_to, 'ADR-1', 'REQ-A'),
+        once(discovery:kb_map_json('alpha', false, FilteredJson)),
+        atom_json_dict(FilteredJson, Filtered, [value_string_as(atom)]),
+        Filtered.adrs == [],
+        [Subject] = Filtered.subjects,
+        Subject.key == 'alpha.beta',
+        Subject.requirementIds == ['REQ-A'],
+        Subject.adrIds == ['ADR-1']
+    )).
+
+:- end_tests(discovery_kb_map).

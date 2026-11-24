@@ -32,6 +32,9 @@ export async function loadOperationSpec(
       spec = (await import("./public/operations/specs/discovery.js"))
         .searchSpec;
       break;
+    case "kb_map":
+      spec = (await import("./public/operations/specs/discovery.js")).mapSpec;
+      break;
     case "kb_status":
       spec = (await import("./public/operations/specs/discovery.js"))
         .statusSpec;

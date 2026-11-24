@@ -19,6 +19,12 @@ import {
 } from "../../intent-search.js";
 import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
+import {
+  type MapInput,
+  type MapPayload,
+  buildMapPayload,
+  formatMapText,
+} from "../../map-orientation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
 import {
@@ -254,6 +260,25 @@ function uncompiledSearchNotice(
     path: store.path,
     detail: String(reason.detail),
     remediation: reason.remediation as Readonly<Record<string, unknown>>,
+  };
+}
+
+export type { MapInput, MapPayload };
+
+export async function executeMap(
+  input: MapInput,
+  context: OperationContext,
+): Promise<OperationResult<MapPayload>> {
+  const prolog = requireProlog(context);
+  const branch = context.branchAttachment?.kbBranch ?? null;
+  const storeNotice = uncompiledSearchNotice(context);
+  const payload = await buildMapPayload(prolog, context.workspaceRoot, input, {
+    branch,
+    ...(storeNotice ? { branchStore: storeNotice } : {}),
+  });
+  return {
+    content: [{ type: "text", text: formatMapText(payload) }],
+    structuredContent: payload,
   };
 }
 
@@ -1215,6 +1240,11 @@ export async function executeSearch(
               prolog,
             })
           : undefined;
+      const orientationPointer =
+        intentResult.matches.length === 0 ||
+        searchHintsTrigger(intentResult.analysis) !== null
+          ? ' Call kb_map for this repository\'s accepted ADRs, firm rules, subject vocabulary and gaps, or kb_query({"type":"adr"}) to list all ADRs.'
+          : "";
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -1224,7 +1254,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+      }${searchHintsNote(hints)}${orientationPointer}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {

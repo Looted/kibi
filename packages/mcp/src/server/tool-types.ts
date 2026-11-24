@@ -13,6 +13,7 @@ import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
 import type { FindGapsArgs } from "../tools/find-gaps.js";
 import type { GraphArgs } from "../tools/graph.js";
+import type { MapArgs } from "../tools/map.js";
 import type { ModelRequirementArgs } from "../tools/model-requirement.js";
 import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { QueryArgs } from "../tools/query.js";
@@ -82,6 +83,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbSearch: (
     prolog: TProlog,
     args: SearchArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
+  handleKbMap: (
+    prolog: TProlog,
+    args: MapArgs,
     context?: OperationContext,
   ) => Promise<unknown>;
   handleKbStatus: (

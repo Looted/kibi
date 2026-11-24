@@ -11,6 +11,7 @@ export const INTEGRATED_OPERATIONS: ReadonlySet<string> =
   new Set<OperationName>([
     "kb_query",
     "kb_search",
+    "kb_map",
     "kb_status",
     "kb_find_gaps",
     "kb_coverage",

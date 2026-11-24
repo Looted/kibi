@@ -4,6 +4,7 @@
 :- use_module(library(semweb/rdf_db), []).
 :- use_module('../src/kb.pl').
 :- use_module('../src/domain_subjects.pl').
+:- use_module('../src/discovery.pl', [kb_map_json/3]).
 :- use_module(kb_fixture).
 
 % The domain subject layer: which subjects are defined, how they nest, which
@@ -1101,5 +1102,118 @@ test(kind_suggestions_are_one_each, Counts == [1, 1, 1, 1]) :-
                 length(Ss, N)
             ),
             Counts).
+
+test(kb_map_json_empty_kb) :-
+    ds_kb((
+        kb_map_json(none, true, Json),
+        ds_json(Json, Dict),
+        Dict = _{
+            overview: [],
+            adrs: [],
+            subjects: [],
+            gaps: _{
+                unanchoredCurrentReqs: 0,
+                unanchoredSampleIds: [],
+                unlinkedAcceptedAdrs: 0,
+                unlinkedAdrIds: [],
+                linkedSourceFiles: 0
+            },
+            stats: _{
+                currentRequirements: 0,
+                firmRequirements: 0,
+                acceptedAdrs: 0,
+                definedSubjects: 0,
+                scenarios: 0,
+                tests: 0,
+                linkedSourceFiles: 0
+            },
+            scope: _
+        }
+    )).
+
+test(kb_map_json_collects_overview_adrs_subjects_and_gaps) :-
+    ds_kb((
+        ds_raw(fact, 'FACT-OVW', [
+            title="Overview note", status=active, fact_kind=observation,
+            tags=['kb:project-overview'], source=".kb/facts/FACT-OVW.md",
+            updated_at="2026-11-23T00:00:00Z"
+        ]),
+        ds_subject('F-ENG', "kibi.engine"),
+        ds_subject('F-DISC', "kibi.discovery"),
+        ds_raw(req, 'REQ-ENG-1', [
+            title="Engine tx", status=open, priority=must,
+            source=".kb/requirements/REQ-ENG-1.md", origin="{\"kind\":\"human\"}"
+        ]),
+        ds_raw(req, 'REQ-UNANCHORED', [
+            title="Unanchored", status=open, source=".kb/requirements/REQ-UNANCHORED.md",
+            origin="{\"kind\":\"agent\"}"
+        ]),
+        ds_raw(adr, 'ADR-1', [
+            title="Single writer", status=accepted, source=".kb/adr/ADR-1.md",
+            tags=[architecture], origin="{\"kind\":\"human\"}"
+        ]),
+        ds_raw(adr, 'ADR-2', [
+            title="Unlinked ADR", status=accepted, source=".kb/adr/ADR-2.md"
+        ]),
+        ds_raw(adr, 'ADR-OLD', [
+            title="Superseded ADR", status=superseded, source=".kb/adr/ADR-OLD.md"
+        ]),
+        ds_raw(symbol, 'SYM-ENG', [sourceFile="packages/core/src/kb.pl"]),
+        ds_raw(scenario, 'SCEN-1', []),
+        ds_raw(test, 'TEST-1', [status=passing]),
+        fixture_rel(constrains, 'REQ-ENG-1', 'F-ENG'),
+        fixture_rel(relates_to, 'ADR-1', 'REQ-ENG-1'),
+        fixture_rel(implements, 'SYM-ENG', 'REQ-ENG-1'),
+        kb_map_json(none, true, Json),
+        ds_json(Json, Dict),
+        Dict = _{
+            overview: [Overview],
+            adrs: Adrs,
+            subjects: _,
+            gaps: _{
+                unanchoredCurrentReqs: 1,
+                unanchoredSampleIds: ['REQ-UNANCHORED'],
+                unlinkedAcceptedAdrs: 1,
+                unlinkedAdrIds: ['ADR-2'],
+                linkedSourceFiles: 1
+            },
+            stats: _{
+                currentRequirements: 2,
+                firmRequirements: 1,
+                acceptedAdrs: 2,
+                definedSubjects: 2,
+                scenarios: 1,
+                tests: 1,
+                linkedSourceFiles: 1
+            },
+            scope: _
+        },
+        get_dict(id, Overview, 'FACT-OVW'),
+        get_dict(updatedAt, Overview, '2026-11-23T00:00:00Z'),
+        findall(AdrId, (member(AdrRow, Adrs), get_dict(id, AdrRow, AdrId)), AdrIds),
+        AdrIds == ['ADR-1', 'ADR-2'],
+        kb_map_json('kibi.engine', false, FilteredJson),
+        ds_json(FilteredJson, Filtered),
+        Filtered = _{
+            overview: _,
+            adrs: [],
+            subjects: [EngSubject],
+            gaps: _,
+            stats: _,
+            scope: _
+        },
+        EngSubject = _{
+            key: 'kibi.engine',
+            defined: true,
+            title: _,
+            source: _,
+            requirementIds: ['REQ-ENG-1'],
+            firmReqIds: ['REQ-ENG-1'],
+            firmReqs: [_],
+            mustReqIds: ['REQ-ENG-1'],
+            adrIds: ['ADR-1'],
+            codeFiles: ['packages/core/src/kb.pl']
+        }
+    )).
 
 :- end_tests(domain_subjects).

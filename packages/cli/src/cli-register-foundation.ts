@@ -218,6 +218,32 @@ export function registerFoundationCommands(program: Command): void {
     });
 
   program
+    .command("map [domain]")
+    .description(getCliOperationMetadata("kb_map").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_map").description))
+    .option("--input <path>", "JSON input file (use - for stdin)")
+    .option("--depth <n>", "Subject grouping depth (1-4)")
+    .option("--no-adrs", "Omit accepted ADRs from decisions")
+    .option("--max-bytes <n>", "Maximum UTF-8 JSON size in bytes (1024-32768)")
+    .option("--format <format>", "Output format: json|table", "table")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
+    .action(
+      withExitCode(async (domain, options, command: Command) => {
+        if (!applyKbOption(options)) return;
+        if (options.input !== undefined) {
+          await runJsonInvocation({
+            operationName: "kb_map",
+            inputPath: options.input,
+            command,
+            positionals: [{ name: "domain", value: domain }],
+          });
+          return;
+        }
+        await (await import("./commands/map.js")).mapCommand(domain, options);
+      }),
+    );
+
+  program
     .command("status")
     .description(getCliOperationMetadata("kb_status").description)
     .summary(commandSummary(getCliOperationMetadata("kb_status").description))

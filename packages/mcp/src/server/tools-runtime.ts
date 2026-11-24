@@ -16,6 +16,7 @@ import { handleKbCoverage } from "../tools/coverage.js";
 import { handleKbDelete } from "../tools/delete.js";
 import { handleKbFindGaps } from "../tools/find-gaps.js";
 import { handleKbGraph } from "../tools/graph.js";
+import { handleKbMap } from "../tools/map.js";
 import { handleKbModelRequirement } from "../tools/model-requirement.js";
 import { handleKbPlanBootstrap } from "../tools/plan-bootstrap.js";
 import { handleKbQuery } from "../tools/query.js";
@@ -196,6 +197,7 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
     getSpec("kb_sparql_remote").execute(args, context),
   handleKbQuery,
   handleKbSearch,
+  handleKbMap,
   handleKbStatus,
   handleKbSemanticAdvisor,
   handleKbSkillsList,

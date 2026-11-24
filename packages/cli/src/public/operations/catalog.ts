@@ -6,7 +6,12 @@ import {
 import { planBootstrapSpec } from "./specs/bootstrap.js";
 import { checkSpec } from "./specs/check.js";
 import { modelSpec, skillsSpec } from "./specs/composite.js";
-import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
+import {
+  mapSpec,
+  querySpec,
+  searchSpec,
+  statusSpec,
+} from "./specs/discovery.js";
 import { reviewFirmEditSpec } from "./specs/firm-edit-review.js";
 import { authorImpactReviewSpec } from "./specs/impact-review-authoring.js";
 import { prepareImpactReviewSpec } from "./specs/impact-review-preparation.js";
@@ -43,6 +48,7 @@ export const OPERATION_CATALOG = [
   skillsSpec,
   querySpec,
   searchSpec,
+  mapSpec,
   statusSpec,
   findGapsSpec,
   coverageSpec,
