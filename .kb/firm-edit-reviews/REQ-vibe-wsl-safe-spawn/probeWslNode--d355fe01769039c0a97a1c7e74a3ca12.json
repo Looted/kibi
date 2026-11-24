@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
   "symbol": "probeWslNode",
   "verdict": "keeps",
-  "note": "WSL spawns still use literal argv with -d, --cd and --exec and no shell string; the drive-letter conversion now also runs as wsl.exe --exec wslpath -a, and an unconvertible path stays a hard error (runtime.test.mjs).",
-  "statementHash": "sha256:d301bbd73cdb0e9561227fc7fbbd7571c2688c696e9f7233af4a16e84651c68c",
+  "note": "Maintainer-approved reword (2026-11-24) of the first claim: every wsl.exe call, including wslpath and the distribution probe, uses --exec with literal argv and never a shell string. This code already does: buildWslArgs, toWslPath (wslpath -a) and probeWslNode (bash -lc with a constant script) all pass --exec. No code change.",
+  "statementHash": "sha256:0d03d2dbf38e0376a711e82ecbae23f065c08f89dc077207b1f3a184d639b119",
   "codeHash": "sha256:b9fb738cbd2aa66af44c4a2dcaf1bfa60bfcbdb1a69b5e55d92ca20e391c82c5",
-  "startLine": 174,
-  "endLine": 208,
-  "recordedAt": "2026-11-24T10:08:14.082Z"
+  "startLine": 169,
+  "endLine": 203,
+  "recordedAt": "2026-11-24T15:41:43.829Z"
 }
