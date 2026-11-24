@@ -34,7 +34,9 @@ semantic_inventory:
     reason: Grounded by the linked fact with this claim key.
 origin:
   kind: agent
-  recorded_at: '2026-11-24T08:39:05.953Z'
+  approved_by: maintainer
+  ref: 'Maintainer decision, 2026-11-24, on the question "Approve the two new kb_search next-step requirements as worded?": "Approve both as worded".'
+  recorded_at: '2026-11-24T09:08:52.464Z'
 rationale: These two pieces of advice existed only in the text.
 id: REQ-kibi-search-question-next-steps
 type: req
