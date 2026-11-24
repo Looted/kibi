@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-515D5A82192BFC40
 id: REQ-antigravity-hook-lifecycle-and-scoping
 type: req
+required_evidence: tested
 ---
 In an opted-in Kibi workspace, kibi-antigravity hooks must parse Antigravity protojson payloads, inject the session brief and queued progressive-disclosure file snippets on PreInvocation, ask before editing code that implements a firm requirement, and remind once at stop about unchecked source edits. Outside a Kibi workspace, kibi-antigravity hooks must remain silent and must not auto-approve mutating or shell tool calls.
 

@@ -32,9 +32,16 @@ describe("coverage manifest", () => {
     }
   });
 
-  test("includes the importable vibe bin module when it exists", () => {
+  test("includes the importable antigravity and vibe bin modules when they exist", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
     try {
+      mkdirSync(join(root, "packages", "antigravity", "bin"), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(root, "packages", "antigravity", "bin", "mcp-launcher.cjs"),
+        "",
+      );
       mkdirSync(join(root, "packages", "vibe", "bin"), { recursive: true });
       writeFileSync(
         join(root, "packages", "vibe", "bin", "kibi-runtime.mjs"),
@@ -43,6 +50,7 @@ describe("coverage manifest", () => {
       // Script entrypoints that run on import stay out of the manifest.
       writeFileSync(join(root, "packages", "vibe", "bin", "kibi.mjs"), "");
       expect(collectProductionSourceFiles(root)).toEqual([
+        "packages/antigravity/bin/mcp-launcher.cjs",
         "packages/vibe/bin/kibi-runtime.mjs",
       ]);
     } finally {

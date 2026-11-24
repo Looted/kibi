@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "kibi": {
-      "command": "./bin/run-node.sh",
+      "command": "node",
       "args": ["./bin/mcp-launcher.cjs"]
     }
   }

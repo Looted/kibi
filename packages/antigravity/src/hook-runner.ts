@@ -153,6 +153,14 @@ function toolPath(toolArgs: unknown): string | undefined {
     : undefined;
 }
 
+function searchPath(toolArgs: unknown): string | undefined {
+  const fields = fieldsOf(toolArgs);
+  const candidate = fields.SearchPath ?? fields.SearchDirectory;
+  return typeof candidate === "string" && candidate.trim().length > 0
+    ? candidate
+    : undefined;
+}
+
 function shellCommand(toolArgs: unknown): string {
   const fields = fieldsOf(toolArgs);
   const candidate = fields.CommandLine ?? fields.command ?? "";
@@ -356,36 +364,52 @@ function withFirmConfirmation(
   };
 }
 
+/** Whether `target` resolves inside one of `roots`. */
+function insideAnyRoot(
+  roots: readonly string[],
+  target: string,
+  cwd: string | undefined,
+): boolean {
+  return roots.some((root) => {
+    if (root.trim().length === 0) return false;
+    const resolvedRoot = path.resolve(root);
+    return (
+      path.resolve(cwd ?? resolvedRoot, target) === resolvedRoot ||
+      toWorkspacePath(root, target, cwd) !== undefined
+    );
+  });
+}
+
+/**
+ * The permission decision Kibi returns when it has no firm requirement to
+ * confirm. Kibi never grants a permission the user has not granted: every
+ * edit, command and MCP call gets "ask", which applies the user's own
+ * Antigravity permissions and "Always Allow" choices. Only reads and searches
+ * of files inside the opened workspace (or the Kibi workspace) are allowed,
+ * so the plugin does not add prompts to ordinary exploration.
+ */
 function passthroughPreToolDecision(
   input: AntigravityHookInput,
   workspaceRoot?: string,
 ): AntigravityHookOutput {
-  // Read-only tools are always safe to allow.
-  if (readTools.has(input.toolName) || searchTools.has(input.toolName)) {
+  const isRead = readTools.has(input.toolName);
+  if (!isRead && !searchTools.has(input.toolName)) {
+    return { decision: "ask" };
+  }
+  const roots = [...input.workspacePaths];
+  if (workspaceRoot) roots.push(workspaceRoot);
+  const rawPath = toolPath(input.toolArgs) ?? searchPath(input.toolArgs);
+  if (rawPath) {
+    return insideAnyRoot(roots, rawPath, input.cwd)
+      ? { decision: "allow" }
+      : { decision: "ask" };
+  }
+  // A read names its file; one without a path is not something Kibi can vouch
+  // for. A search without a path runs in the current directory.
+  if (!isRead && input.cwd && insideAnyRoot(roots, input.cwd, input.cwd)) {
     return { decision: "allow" };
   }
-  // Outside an opted-in Kibi workspace (or when no workspace root is known),
-  // never auto-approve mutating, shell, or MCP calls: use "ask" so Antigravity
-  // applies the user's normal permissions and "Always Allow" cache.
-  if (!workspaceRoot) {
-    return { decision: "ask" };
-  }
-  const args = fieldsOf(input.toolArgs);
-  // Never bypass Antigravity's permission prompts for unsandboxed commands or
-  // MCP calls (uses "ask", which still respects the user's "Always Allow" cache).
-  if (input.toolName === "call_mcp_tool") {
-    return { decision: "ask" };
-  }
-  if (shellTools.has(input.toolName) && args.BypassSandbox === true) {
-    return { decision: "ask" };
-  }
-  if (editTools.has(input.toolName)) {
-    const rawPath = toolPath(input.toolArgs);
-    if (!rawPath || !toWorkspacePath(workspaceRoot, rawPath, input.cwd)) {
-      return { decision: "ask" };
-    }
-  }
-  return { decision: "allow" };
+  return { decision: "ask" };
 }
 
 function preToolUse(
@@ -1177,10 +1201,10 @@ function dispatchHook(
   }
 }
 
-export async function main(): Promise<void> {
+export async function main(run: typeof runHook = runHook): Promise<void> {
   const raw = parseStdinJson(await readStdin());
   try {
-    const result = await runHook(raw);
+    const result = await run(raw);
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
