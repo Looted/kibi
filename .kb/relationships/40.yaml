@@ -262,3 +262,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce6fc5f9fc1d
+  - type: implements
+    from: SYM-requirement-lifting-query-typed-edges
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-23T10:35:10.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87d7c7db3c0b
+  - type: covered_by
+    from: SYM-requirement-lifting-query-typed-edges
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-23T10:35:10.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1a636cd9700

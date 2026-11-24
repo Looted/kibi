@@ -419,3 +419,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6047b4632510
+  - type: verified_by
+    from: REQ-search-answers-search-hints-lift-two
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-23T10:35:03.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20a4c79a2f0e
+  - type: constrains
+    from: REQ-search-answers-search-hints-lift-two
+    to: FACT-SUBJ-kibi-search-multi-hop-lifting
+    created_at: 2026-11-23T10:47:14.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4be6d466ba56
+  - type: requires_property
+    from: REQ-search-answers-search-hints-lift-two
+    to: FACT-kibi-search-multi-hop-lifting
+    created_at: 2026-11-23T10:47:14.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbeb8a25d8d4
+  - type: specified_by
+    from: REQ-search-answers-search-hints-lift-two
+    to: SCEN-kibi-search-multi-hop-lifting
+    created_at: 2026-11-23T10:47:14.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-680d8589a9e6
+  - type: specified_by
+    from: REQ-search-answers-search-hints-lift-two
+    to: SCEN-NEG-kibi-search-multi-hop-lifting-LEAKED
+    created_at: 2026-11-23T10:47:14.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-400386823075

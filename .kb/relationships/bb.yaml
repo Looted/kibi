@@ -566,3 +566,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9917ffd35d5a
+  - type: implements
+    from: SYM-engine-engine-client-get-pid
+    to: REQ-engine-client-reclaim-dead-unix-socket
+    created_at: 2026-11-23T10:34:29.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e14757f5585d
+  - type: covered_by
+    from: SYM-engine-engine-client-get-pid
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-23T10:34:29.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1838ff08c09

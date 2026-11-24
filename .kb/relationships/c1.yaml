@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89031b765bc0
+  - type: implements
+    from: SYM-cache-compiler-fingerprint-reason
+    to: REQ-kb-query-kb-search-confirm-source
+    created_at: 2026-11-23T10:33:52.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-275e07d98eef
+  - type: covered_by
+    from: SYM-cache-compiler-fingerprint-reason
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:52.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb871f0d5fa

@@ -1,6 +1,6 @@
 ---
 title: Plan apply migrates an attached legacy branch store only under its approved preview
-status: pending
+status: passing
 priority: must
 tags:
   - branching

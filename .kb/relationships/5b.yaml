@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e15782b72148
+  - type: implements
+    from: SYM-content-freshness-read-sync-cache-record
+    to: REQ-kibi-persist-stat-hash-freshness-memo
+    created_at: 2026-11-23T10:33:19.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbfbfd70527f
+  - type: covered_by
+    from: SYM-content-freshness-read-sync-cache-record
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:19.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72a1b2a453b2

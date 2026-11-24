@@ -683,3 +683,78 @@ describe("intent-v1 search snippets", () => {
     }
   });
 });
+
+describe("broad rationale ADR sort-key rerank", () => {
+  test("promotes a current ADR on unfiltered rationale queries without changing scores or analysis", async () => {
+    const candidates = [
+      entity(
+        "TEST-RELEASE",
+        "Automated release management changesets pipeline",
+        {
+          type: "test",
+          status: "passing",
+        },
+      ),
+      entity("ADR-RELEASE", "Adopt changesets for release management", {
+        type: "adr",
+        status: "accepted",
+        semantic_text: "release pipeline",
+      }),
+      entity("ADR-OLD", "Adopt changesets for release management pipeline", {
+        type: "adr",
+        status: "superseded",
+      }),
+      entity("REQ-UNRELATED-A", "Customer billing invoice retention policy"),
+      entity("REQ-UNRELATED-B", "Webhook signature verification timeout"),
+    ];
+    const nonBroad = await rankIntentEntities(
+      candidates,
+      { query: "changesets release management pipeline" },
+      "/workspace",
+      [],
+    );
+    expect(nonBroad.matches[0]?.entity.id).toBe("TEST-RELEASE");
+
+    const broad = await rankIntentEntities(
+      candidates,
+      {
+        query: "why did we choose changesets for release management pipeline?",
+        minScore: 0.05,
+      },
+      "/workspace",
+      [],
+    );
+    expect(broad.matches[0]?.entity.id).toBe("ADR-RELEASE");
+    // Superseded ADR is never boosted ahead of TEST-RELEASE.
+    expect(broad.matches.map((m) => m.entity.id)).toEqual([
+      "ADR-RELEASE",
+      "TEST-RELEASE",
+      "ADR-OLD",
+    ]);
+    // Pure sort key: topScore and match scores remain untouched.
+    const testScore = broad.matches.find(
+      (m) => m.entity.id === "TEST-RELEASE",
+    )?.score;
+    const adrScore = broad.matches.find(
+      (m) => m.entity.id === "ADR-RELEASE",
+    )?.score;
+    expect(adrScore).toBeLessThan(testScore as number);
+    expect(broad.analysis.topScore).toBe(testScore as number);
+    expect(broad.analysis.topTwoMargin).toBeCloseTo(
+      (testScore as number) - (adrScore as number),
+      10,
+    );
+
+    // Filtered queries (type or sourceLocations) do not apply broad ADR rerank.
+    const filtered = await rankIntentEntities(
+      candidates,
+      {
+        query: "why did we choose changesets for release management pipeline?",
+        sourceLocations: [{ path: "src/release.ts" }],
+      },
+      "/workspace",
+      [],
+    );
+    expect(filtered.matches[0]?.entity.id).toBe("TEST-RELEASE");
+  });
+});
