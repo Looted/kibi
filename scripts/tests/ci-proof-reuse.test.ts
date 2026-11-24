@@ -12,9 +12,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { nodeGit } from "../../packages/cli/src/public/operations/node-ports.js";
+import type { CheckReuseDecision } from "../ci-check-reuse.js";
 import {
   assessProofReuse,
   pendingDevelopProofRuns,
+  proofAgreesWithMember,
 } from "../ci-proof-reuse.js";
 
 const repository = "Looted/kibi";
@@ -499,5 +501,50 @@ if (args[0] === "api") {
     const failedLookup = runGate(masterBase, mergedSha);
     expect(failedLookup.mode).toBe("execute");
     expect(failedLookup.reason).toContain("reuse lookup failed");
+  });
+});
+
+describe("proofAgreesWithMember", () => {
+  const reused: CheckReuseDecision = {
+    version: "kibi.ci-check-decision.v1",
+    mode: "reused",
+    reason: "same tree",
+    tree: "e".repeat(40),
+    sourceRun: "https://github.com/Looted/kibi/actions/runs/9",
+    sourceRunId: 9,
+  };
+  const snapshot = {
+    version: "kibi.workspace-snapshot.v2",
+    hash: "d".repeat(64),
+    dirty: false,
+  };
+
+  test("keeps a tree reuse only when the canonical snapshot matches", () => {
+    expect(
+      proofAgreesWithMember(reused, snapshot, {
+        snapshot: { version: snapshot.version, hash: snapshot.hash },
+      }),
+    ).toMatchObject({ mode: "reused", sourceRun: reused.sourceRun });
+    expect(
+      proofAgreesWithMember(reused, snapshot, {
+        snapshot: { version: snapshot.version, hash: "a".repeat(64) },
+      }).mode,
+    ).toBe("execute");
+    expect(
+      proofAgreesWithMember(
+        reused,
+        { ...snapshot, dirty: true },
+        {
+          snapshot: { version: snapshot.version, hash: snapshot.hash },
+        },
+      ).mode,
+    ).toBe("execute");
+    expect(
+      proofAgreesWithMember(
+        { ...reused, mode: "execute", reason: "trees differ" },
+        snapshot,
+        {},
+      ).reason,
+    ).toBe("trees differ");
   });
 });

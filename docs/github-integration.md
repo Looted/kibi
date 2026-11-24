@@ -427,6 +427,40 @@ Otherwise the push runs the full proof. A push that reuses the train's proof
 publishes the train's report and attests it, naming the train run it came
 from, so a later pull request can reuse it in turn.
 
+### A train of one pull request that is already up to date
+
+Most trains hold a single pull request whose head already contains the
+current tip of the default branch, so the merge commit the train creates has
+the same git tree the pull request's checks just tested. Kibi's own CI, proof
+and release-pack workflows reuse those results instead of spending another
+twenty minutes on them. The train pull request still opens, and its required
+checks still report, but they finish in about two minutes.
+
+Reuse happens only when every one of these holds. Anything else runs the
+workflow in full:
+
+- the train body and the merge commit agree that the train holds exactly one
+  pull request, and the commit is that pull request merged into the base the
+  train recorded;
+- the train commit's tree, the member commit's tree, and the tree the
+  workflow would actually test (the pull request's merge with the current
+  base) are the same git tree. A rebase onto a newer base, or any other
+  change of content, makes the trees differ and the checks run;
+- the member's latest run of that same workflow, on that exact commit, from
+  this repository and not from another train, completed successfully, and its
+  attestation names that commit and that tree;
+- for CI and proof, the aggregate check (`ci-required`, `proof-required`) is
+  a completed success on that commit;
+- for proof, the canonical workspace snapshot matches as well. The train then
+  attests that snapshot and names the member run, so the push to the default
+  branch can still reuse the proof. A snapshot that does not match is proved
+  again. There is no path that reports a proof without one of those two.
+
+A failed lookup, a missing attestation, or an ambiguous run listing is a full
+run, never a pass. Pull requests merged by this change start attesting the
+tree they tested; a train whose member was proved before that attestation
+existed runs the proof.
+
 ### Set it up
 
 1. Copy [docs/examples/github/kibi-merge-train.yml](examples/github/kibi-merge-train.yml)
