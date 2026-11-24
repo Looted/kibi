@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/engine.ts",
   "symbol": "runEngineDaemon",
   "verdict": "keeps",
-  "note": "runEngineDaemon still reports built package versions in handshake and rejects non-handshake/stop requests from mismatched versions.",
+  "note": "The handshake still reports the daemon's package versions and rejects mismatched clients; shutdown now only removes its own pid file and socket.",
   "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
-  "codeHash": "sha256:4ab5be4914494bda06e78e8e481298386b13e6d5c9306a202eb2c93998e3ef9c",
-  "startLine": 2270,
-  "endLine": 3067,
-  "recordedAt": "2026-11-23T10:27:16.485Z"
+  "codeHash": "sha256:1f760d21cd54530ba1e9fe4f6e7c530ea19b89681bd1377c8af13d3890db2815",
+  "startLine": 2279,
+  "endLine": 3080,
+  "recordedAt": "2026-11-24T04:37:51.575Z"
 }
