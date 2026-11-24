@@ -96,11 +96,9 @@ describe("one required check per workflow", () => {
 });
 
 describe("proof fails fast on KB-only gates", () => {
-  test("the kb_search gold-set gates run after the KB sync and before the long proof run", () => {
-    // The first proof shard runs them; the other shards prove meanwhile.
-    const steps = (workflow("proof.yml").jobs.prove?.steps ?? []).map(
-      (step) => step.name,
-    );
+  test("the kb_search gold-set gates run on their own job, after the KB sync and off the prove shards", () => {
+    const jobs = workflow("proof.yml").jobs;
+    const steps = (jobs["search-gates"]?.steps ?? []).map((step) => step.name);
     const at = (name: string) => {
       const index = steps.indexOf(name);
       expect(index, name).toBeGreaterThanOrEqual(0);
@@ -109,9 +107,28 @@ describe("proof fails fast on KB-only gates", () => {
     const sync = at("Sync and validate integrity of the proof snapshot");
     const answers = at("Gate kb_search answers on the repository gold set");
     const hints = at("Gate kb_search hints on reworded questions");
-    const prove = at("Prove this shard's part of the contracted tests");
+    const floor = at("Reject evidence-floor regressions before executing contracts");
     expect(answers).toBeGreaterThan(sync);
     expect(hints).toBeGreaterThan(answers);
-    expect(prove).toBeGreaterThan(hints);
+    expect(floor).toBeGreaterThan(hints);
+    // A prove shard must not run them: they used to sit in front of shard 1.
+    const shardSteps = (jobs.prove?.steps ?? []).map((step) => step.name);
+    expect(shardSteps).not.toContain(
+      "Gate kb_search answers on the repository gold set",
+    );
+    expect(shardSteps).not.toContain(
+      "Gate kb_search hints on reworded questions",
+    );
+    expect(jobs["search-gates"]?.needs).toEqual(["swipl-bundle", "reuse"]);
+    expect(jobs["proof-required"]?.needs).toContain("search-gates");
+    // No prove step shares the runner, so the latency thresholds measure search.
+    expect(steps.some((name) => name?.includes("Prove"))).toBe(false);
+    const cancel = jobs["search-gates"]?.steps?.find(
+      (step) => step.name === "Cancel the proof run after a failed gate",
+    );
+    expect(cancel?.run).toContain('gh run cancel "${GITHUB_RUN_ID}"');
+    expect(cancel?.if).toContain("failure()");
+    expect(cancel?.["continue-on-error"]).toBe(true);
+    expect(floor).toBeLessThan(steps.indexOf(cancel?.name));
   });
 });
