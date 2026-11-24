@@ -230,8 +230,8 @@ jobs:
           documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
 
-      # Reworded questions the lexical ranker misses: with the repository's
-      # search-hints plugin active, the expected requirement must be in the
+      # Reworded questions the lexical ranker misses: with the bundled
+      # search-hints plugin active by default, the expected requirement must be in the
       # top three or among the hints.
       - name: Gate kb_search hints on reworded questions
         if: ${{ env.KIBI_PROOF_EXECUTE == 'true' && matrix.shard == 1 }}

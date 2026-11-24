@@ -92,8 +92,8 @@ export const PACKAGE_CATALOG = [
     npmName: "kibi-plugin-search-hints",
     publishable: true,
     packInCi: true,
-    includedInDefaultInstall: false,
-    optional: true,
+    includedInDefaultInstall: true,
+    optional: false,
     packAll: true,
   },
   // Platform packages carry the SWI-Prolog binaries, which are populated from

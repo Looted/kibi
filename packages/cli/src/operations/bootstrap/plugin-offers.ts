@@ -11,7 +11,6 @@ import {
   workspacePackRelevance,
 } from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { KB_PATHS } from "../../utils/kb-paths.js";
 import {
   PLUGIN_LANGUAGE_PACKS,
   pluginReferenceLanguage,
@@ -38,13 +37,6 @@ const UI_SOURCE = /(?:\.(?:tsx|jsx)|\.component\.ts)$/i;
 const NOT_PRODUCTION =
   /(?:^|\/)(?:node_modules|dist|build|coverage|tests?|__tests__|e2e)\/|\.(?:test|spec|stories)\.[^/]+$/i;
 const EVIDENCE_LIMIT = 5;
-const HINTS_PLUGIN = "kibi-plugin-search-hints";
-const HINTS_CAPABILITY = "kibi.search-hints.v1";
-/**
- * Below this many requirements a reader can scan the list, and a question
- * worded unlike the KB rarely misses; above it hints start to pay.
- */
-export const SEARCH_HINTS_OFFER_REQUIREMENTS = 50;
 
 /**
  * The project's kibi block as written, for offers that look at capabilities.
@@ -104,33 +96,11 @@ async function readManifest(context: OperationContext): Promise<unknown> {
   return undefined;
 }
 
-/** Requirement documents already in the KB lane. */
-async function requirementFiles(
-  context: OperationContext,
-): Promise<readonly string[]> {
-  try {
-    // A context without file access or glob throws here and lists none.
-    return [
-      ...(await (
-        context.fs as Required<NonNullable<OperationContext["fs"]>>
-      ).glob([`${KB_PATHS.lanes.requirements}/**/*.md`], {
-        cwd: context.workspaceRoot,
-      })),
-    ].sort();
-  } catch {
-    // rationale: a failed listing and a one-entry placeholder both stay below
-    // SEARCH_HINTS_OFFER_REQUIREMENTS, so no offer can tell them apart.
-    // Stryker disable next-line ArrayDeclaration
-    return [];
-  }
-}
-
 /**
  * Optional plugins worth offering for this workspace. kibi-plugin-ui is
- * offered when production React or Angular component files exist, and
- * kibi-plugin-search-hints once the KB holds enough requirements that a
- * question worded differently from them is likely to miss; neither is
- * offered once the project activated or declined it. kibi-plugin-treesitter
+ * offered when production React or Angular component files exist, unless the
+ * project activated or declined it. kibi-plugin-search-hints is never offered:
+ * it is bundled and active unless the project declines it. kibi-plugin-treesitter
  * is offered for sources in any language it reads until it is listed, and
  * for Go, Java, C#, Rust, PHP, C, Bash and Terraform sources until it is active
  * for source proofs.
@@ -142,15 +112,13 @@ export async function pluginOffers(
   const uiFiles = files.filter(
     (file) => UI_SOURCE.test(file) && !NOT_PRODUCTION.test(file),
   );
-  const requirements = await requirementFiles(context);
-  const wantsHints = requirements.length >= SEARCH_HINTS_OFFER_REQUIREMENTS;
   // Any language the plugin reads (for symbols, or for proofs too).
   const wantsReferences = files.some(
     (file) =>
       pluginReferenceLanguage(file) !== null ||
       PLUGIN_LANGUAGE_PACKS.some((language) => language.pattern.test(file)),
   );
-  if (uiFiles.length === 0 && !wantsHints && !wantsReferences) return [];
+  if (uiFiles.length === 0 && !wantsReferences) return [];
   const manifest = await readManifest(context);
   // Scalar manifests have no fields, so only null needs care.
   const kibi = (manifest as { kibi?: unknown } | null | undefined)?.kibi;
@@ -209,15 +177,6 @@ export async function pluginOffers(
       reason: `${uiFiles.length} UI component file(s) found`,
       fileCount: uiFiles.length,
       evidence: uiFiles.slice(0, EVIDENCE_LIMIT),
-    });
-  if (wantsHints && !configured.has(HINTS_PLUGIN))
-    offers.push({
-      package: HINTS_PLUGIN,
-      capability: HINTS_CAPABILITY,
-      mode: "replace",
-      reason: `${requirements.length} requirements in the KB; kb_search can suggest which ones a weakly answered question means`,
-      fileCount: requirements.length,
-      evidence: requirements.slice(0, EVIDENCE_LIMIT),
     });
   return offers;
 }
