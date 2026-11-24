@@ -3,6 +3,7 @@ import {
   CHECK_ATTESTATION_VERSION,
   type CheckReuseInput,
   assessMemberCheckReuse,
+  metaFromBody,
 } from "../ci-check-reuse";
 
 const REPO = "Looted/kibi";
@@ -208,5 +209,66 @@ describe("assessMemberCheckReuse", () => {
     expect(assessMemberCheckReuse(input({ event: "push" })).mode).toBe(
       "execute",
     );
+  });
+});
+
+describe("train meta comment", () => {
+  const comment = (meta: Record<string, unknown>) =>
+    `Merge train (new train): #7.\n\n<!-- kibi-merge-train ${JSON.stringify(meta)} -->`;
+
+  test("reads the comment the merge-train action writes", () => {
+    expect(
+      metaFromBody(
+        comment({
+          version: "kibi.merge-train.v1",
+          prs: [7],
+          base: BASE,
+          head: TRAIN,
+          rerun: false,
+        }),
+      ),
+    ).toEqual({
+      version: "kibi.merge-train.v1",
+      prs: [7],
+      base: BASE,
+      head: TRAIN,
+    });
+  });
+
+  test("rejects a comment that is not a current single-train meta", () => {
+    expect(metaFromBody(null)).toBeNull();
+    expect(metaFromBody("no comment")).toBeNull();
+    expect(
+      metaFromBody(
+        comment({
+          version: "kibi.merge-train.v1",
+          prs: [7],
+          base: BASE,
+          head: TRAIN,
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      metaFromBody(
+        comment({
+          version: "other",
+          prs: [7],
+          base: BASE,
+          head: TRAIN,
+          rerun: false,
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      metaFromBody(
+        comment({
+          version: "kibi.merge-train.v1",
+          prs: [7.5],
+          base: BASE,
+          head: TRAIN,
+          rerun: true,
+        }),
+      ),
+    ).toBeNull();
   });
 });

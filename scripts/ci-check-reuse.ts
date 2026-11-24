@@ -21,8 +21,6 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { readMeta } from "../actions/merge-train/merge-train.mts";
-
 const execFileAsync = promisify(execFile);
 
 /** Attestation a workflow writes after it has actually tested a tree. */
@@ -401,10 +399,31 @@ async function eventPayload(): Promise<Record<string, unknown>> {
   return isRecord(parsed) ? parsed : {};
 }
 
-function metaFromBody(body: unknown): TrainReuseMeta | null {
+/** Same comment the merge-train action writes. Parsed here so scripts typecheck without importing the action's .mts entry. */
+const TRAIN_META = /<!-- kibi-merge-train (\{.*?\}) -->/s;
+
+export function metaFromBody(body: unknown): TrainReuseMeta | null {
   if (typeof body !== "string") return null;
-  const meta = readMeta(body);
-  if (meta === null) return null;
+  const match = TRAIN_META.exec(body);
+  if (match === null) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(match[1] ?? "");
+  } catch {
+    return null;
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return null;
+  const meta = value as Partial<TrainReuseMeta> & { rerun?: unknown };
+  if (
+    meta.version !== "kibi.merge-train.v1" ||
+    !Array.isArray(meta.prs) ||
+    !meta.prs.every((pr) => Number.isSafeInteger(pr)) ||
+    typeof meta.base !== "string" ||
+    typeof meta.head !== "string" ||
+    typeof meta.rerun !== "boolean"
+  )
+    return null;
   return {
     version: meta.version,
     prs: meta.prs,
