@@ -36,15 +36,20 @@ jobs:
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   # Decides once, before any runner provisions, whether this run can reuse a
-  # proof of the same snapshot: a PR reuses develop's, and a develop push that
-  # merged a merge train reuses the train's. Every proof job below reads it.
+  # proof of the same snapshot: a PR reuses develop's, a develop push that
+  # merged a merge train reuses the train's, and a train of one pull request
+  # reuses that pull request's proof when the git tree is identical. Every
+  # proof job below reads it.
   reuse:
     name: Decide whether the PR can reuse develop proof
     runs-on: ubuntu-latest
     outputs:
-      execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}
+      execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') && (steps.member.outcome != 'success' || steps.member.outputs.reuse != 'true') }}
       train-run-id: ${{ steps.train.outputs.source_run_id }}
       train-run-url: ${{ steps.train.outputs.source_run_url }}
+      member: ${{ steps.member.outputs.reuse }}
+      member-run-id: ${{ steps.member.outputs.source_run_id }}
+      member-run-url: ${{ steps.member.outputs.source_run_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -94,8 +99,34 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bun scripts/ci-proof-reuse.ts decide-train "$RUNNER_TEMP/kibi-proof-decision.json"
 
+      # A train of one pull request, whose merge did not change the member's
+      # tree, reuses the proof that already passed on that tree. The
+      # attestation uploaded below is what the develop push reuses in turn.
+      # It does not run when the step above already reused develop's proof.
+      - name: Check whether a single-pull-request train can reuse its member's proof
+        id: member
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && steps.reuse.outputs.reuse != 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BASE_REF: ${{ github.base_ref }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: bun scripts/ci-proof-reuse.ts decide-member "$RUNNER_TEMP/kibi-proof-decision.json"
+
+      - name: Upload the attestation of the reused member proof
+        if: ${{ steps.member.outputs.reuse == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-proof-attestation
+          path: ${{ runner.temp }}/kibi-proof-attestation/attestation.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload proof reuse decision
-        if: ${{ steps.reuse.outcome == 'success' || steps.train.outcome == 'success' }}
+        if: ${{ steps.reuse.outcome == 'success' || steps.train.outcome == 'success' || steps.member.outcome == 'success' }}
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -111,6 +142,9 @@ jobs:
   prove:
     name: Prove shard ${{ matrix.shard }} of 3
     needs: [swipl-bundle, reuse]
+    # A reused proof has nothing to shard. The job is skipped, not passed
+    # through, and proof-required allows that skip only for a recorded reuse.
+    if: ${{ needs.reuse.outputs.execute == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -319,7 +353,9 @@ jobs:
     name: Contracted proof and health report
     needs: [swipl-bundle, reuse, prove]
     # Runs after a failed shard too, so the report still shows the KB state.
-    if: ${{ !cancelled() && needs.reuse.result == 'success' }}
+    # A single-PR train that reused its member's proof attests from the reuse
+    # job instead, and skips this one.
+    if: ${{ always() && !cancelled() && needs.reuse.result == 'success' && needs.reuse.outputs.member != 'true' }}
     runs-on: ubuntu-latest
     env:
       KIBI_PROOF_EXECUTE: ${{ needs.reuse.outputs.execute }}
@@ -530,17 +566,19 @@ jobs:
       # merge train pull request attests its own, so the develop push that
       # merges it can reuse it.
       - name: Attest successful develop proof
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && (startsWith(github.head_ref, 'merge-train/') || needs.reuse.outputs.execute == 'true')) }}
         env:
+          PR_BASE_REF: ${{ github.base_ref }}
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           KIBI_PROOF_DERIVED_FROM: ${{ needs.reuse.outputs.train-run-url }}
+          KIBI_PROOF_EXECUTE: ${{ needs.reuse.outputs.execute }}
         run: bun scripts/ci-proof-reuse.ts attest "$RUNNER_TEMP/kibi-proof-attestation"
 
       - name: Upload develop proof attestation
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && (startsWith(github.head_ref, 'merge-train/') || needs.reuse.outputs.execute == 'true')) }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kibi-proof-attestation
@@ -612,8 +650,27 @@ jobs:
       - name: Require every proof job to succeed
         env:
           RESULTS: ${{ toJSON(needs) }}
+          EXECUTE: ${{ needs.reuse.outputs.execute }}
+          MEMBER: ${{ needs.reuse.outputs.member }}
+          REUSE_RESULT: ${{ needs.reuse.result }}
         run: |
-          failed="$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"' <<<"$RESULTS")"
+          # A skipped job is a failure, except a prove shard skipped because a
+          # recorded reuse said this tree was already proved, and the proof
+          # job skipped because that reuse was the member's own proof. Any
+          # other skip, and every failure or cancellation, fails the check.
+          execute="${EXECUTE:-true}"
+          member="${MEMBER:-}"
+          reuse_result="${REUSE_RESULT:-}"
+          failed="$(jq -r --arg execute "$execute" --arg member "$member" --arg reuse_result "$reuse_result" '
+            to_entries[]
+            | .key as $k
+            | .value.result as $r
+            | if $r == "success" then empty
+              elif $reuse_result == "success" and $execute == "false" and $k == "prove" and $r == "skipped" then empty
+              elif $reuse_result == "success" and $member == "true" and $k == "proof" and $r == "skipped" then empty
+              else "\($k): \($r)"
+              end
+          ' <<<"$RESULTS")"
           if [ -n "$failed" ]; then
             echo "::error::These proof jobs did not succeed:"
             echo "$failed"

@@ -220,7 +220,7 @@ describe("ci.yml CI workflow contract", () => {
     for (const job of coverageGatedJobs) {
       const block = extractJobBlock(workflowContent, job);
       expect(block).toContain(
-        "needs: [ci-package-contract, prolog-unit-coverage]",
+        "needs: [reuse, ci-package-contract, prolog-unit-coverage]",
       );
       expect(block).not.toContain(
         "needs: [build-and-test, prolog-unit-coverage]",
@@ -230,11 +230,14 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).toContain("ci-unit-coverage:");
     expect(workflowContent).toContain("ci-integration:");
     expect(extractJobBlock(workflowContent, "ci-unit-coverage")).toContain(
-      "needs: [swipl-bundle]",
+      "needs: [reuse, swipl-bundle]",
+    );
+    expect(extractJobBlock(workflowContent, "ci-package-contract")).toContain(
+      "needs: [reuse]",
     );
     expect(
       extractJobBlock(workflowContent, "ci-package-contract"),
-    ).not.toContain("needs:");
+    ).not.toContain("swipl-bundle");
   });
 
   test("CI defers native Windows ZCode builds", () => {
@@ -293,11 +296,19 @@ describe("ci.yml CI workflow contract", () => {
     test("rejects downstream jobs that bypass prolog coverage", () => {
       const block = extractJobBlock(workflowContent, coverageGatedJobs[0]);
       const mutated = block.replace(
-        "needs: [ci-package-contract, prolog-unit-coverage]",
-        "needs: ci-package-contract",
+        "needs: [reuse, ci-package-contract, prolog-unit-coverage]",
+        "needs: [reuse, ci-package-contract]",
       );
-      expect(mutated).toContain("needs: ci-package-contract");
-      expect(mutated).not.toContain("prolog-unit-coverage");
+      expect(mutated).toContain("needs: [reuse, ci-package-contract]");
+      expect(
+        mutated
+          .split("\n")
+          .some(
+            (line) =>
+              line.trimStart().startsWith("needs:") &&
+              line.includes("prolog-unit-coverage"),
+          ),
+      ).toBe(false);
     });
   });
 });
@@ -339,7 +350,7 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       "./.github/workflows/swipl-ci-bundle.yml",
     );
     for (const job of ["ci-unit-coverage", "prolog-unit-coverage"]) {
-      expect(workflow.jobs[job]?.needs).toEqual(["swipl-bundle"]);
+      expect(workflow.jobs[job]?.needs).toEqual(["reuse", "swipl-bundle"]);
     }
     // The packed jobs wait for prolog-unit-coverage, so the artifact exists.
     for (const job of [
