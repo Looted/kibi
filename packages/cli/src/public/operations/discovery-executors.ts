@@ -21,7 +21,11 @@ import {
 import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
-import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
+import {
+  type SearchAnswer,
+  buildSearchAnswer,
+  governingLabel,
+} from "../../search-answer.js";
 import {
   type SearchHintsAnalysis,
   buildSearchHints,
@@ -1669,7 +1673,7 @@ export async function executeSearch(
               .map((match) => topMatchLabel(match))
               .join(
                 ", ",
-              )}${answerLayer ? `. ${intentResult.analysis.ambiguous && answerLayer.governing.length > 0 ? "Candidate requirements, not confirmed to govern" : "Governing"}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
+              )}${answerLayer ? `. ${governingLabel(intentResult.analysis.ambiguous, answerLayer.governing.length)}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
       }${searchHintsNote(hints)}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${weakAdrNote}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],

@@ -1552,6 +1552,19 @@ export async function buildSearchAnswer(
 }
 
 /**
+ * The digest's name for the governing list: when the top matches are close,
+ * the requirements in it are candidates, not confirmed to govern.
+ */
+export function governingLabel(
+  ambiguous: boolean,
+  governingCount: number,
+): string {
+  return ambiguous && governingCount > 0
+    ? "Candidate requirements, not confirmed to govern"
+    : "Governing";
+}
+
+/**
  * How to read the layer. When the top-ranked match is owned by no
  * requirement, the note says so first: the governing list, if any, came from
  * lower-ranked matches and is not the top match's requirement.
