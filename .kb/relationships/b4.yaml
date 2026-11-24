@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1109322f3b6c
+  - type: specified_by
+    from: REQ-antigravity-kb-tool-recognition
+    to: SCEN-NEG-antigravity-no-workspace-root-stamp
+    created_at: 2026-11-24T05:07:44.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db3f22baee69
+  - type: specified_by
+    from: REQ-antigravity-kb-tool-recognition
+    to: SCEN-NEG-antigravity-kb-calls-unrecognized
+    created_at: 2026-11-24T05:07:44.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d381ba682a93

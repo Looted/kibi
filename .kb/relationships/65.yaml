@@ -419,3 +419,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bb3d767db7e
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-skills-missing-usage
+    created_at: 2026-11-24T05:07:52.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46e4db86d923
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-skills-outside-set
+    created_at: 2026-11-24T05:07:52.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-981c9f85ad12
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-parts-missing-rules
+    created_at: 2026-11-24T05:07:52.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b56ec2a3bb

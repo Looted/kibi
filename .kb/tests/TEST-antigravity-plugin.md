@@ -20,8 +20,6 @@ proof_contract:
   required_proofs:
     - symbol_id: SYM-antigravity-mcp-launcher
       target: default
-    - symbol_id: SYM-hook-input-antigravity-hook-input
-      target: default
     - symbol_id: SYM-hook-input-parse-hook-input
       target: default
     - symbol_id: SYM-hook-runner-run-hook
@@ -37,8 +35,6 @@ proof_contract:
     - symbol_id: SYM-kb-tools-extract-mcp-kb-usage
       target: default
     - symbol_id: SYM-kb-tools-is-verified-git-commit
-      target: default
-    - symbol_id: SYM-kb-tools-kb-usage
       target: default
     - symbol_id: SYM-kb-tools-unwrap-kibi-mcp-call
       target: default
@@ -62,10 +58,6 @@ proof_contract:
       target: default
     - symbol_id: SYM-snippets-stop-reminder
       target: default
-    - symbol_id: SYM-src-session-state-session-event
-      target: default
-    - symbol_id: SYM-src-session-state-session-state
-      target: default
     - symbol_id: SYM-usage-log-append-hook-usage
       target: default
     - symbol_id: SYM-usage-log-flush-hook-telemetry
@@ -73,20 +65,20 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-8a7a0c616588c2e0be7e1389
+    receipt_id: PR-5021733cb2b0433d0a08c2c5
     test_id: TEST-antigravity-plugin
     scope: end_to_end
     outcome: passed
-    code_snapshot: a4d217e19fc25c8c8f5dfe52759e42162f9499a99b8371c5769e3d7fb7e220c9
+    code_snapshot: a714e864d950e725b1003751fd1b15eed25dd0ef7c7fc16444c72ab926a52161
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-24T04:44:53.552Z'
-    finished_at: '2026-11-24T04:44:54.578Z'
-    artifact_digest: 3f5519b70643b61e5e756ad0c78b9b3ed5942b841585a81d85c6574ed009e114
-    contract_hash: 9ab942663746a2b27e68e209e66998ee44ec49402638bb5d4e8c9e1d63310555
-    binding_hash: bf6be7153ba2e980ec2a565232d1d11ef96ada6f51630a194fb07c24d0121625
-    fingerprint: 0144d8169b0f9052874b182a29e24aefa8d414469314d46155d1e6f7d2b7931c
+    started_at: '2026-11-24T05:08:58.332Z'
+    finished_at: '2026-11-24T05:08:59.344Z'
+    artifact_digest: cb9d9e3dd63b8f8ec038edfaa8a3a371b5612248e36ed5f0efc5e0f34f2d6486
+    contract_hash: 6c3f93b0b51388695936feec5ef4dc067f987e91f8ec079e78f61f596d44bc91
+    binding_hash: 37453984d93dba1bfaa76841bb964d5a10b46a453a37765f4a63943e990d1420
+    fingerprint: a3198cd8a8ac3cbc27eb16e24df8cd153c14da7cddcff5373974b7485279afa3
     fingerprint_components:
-      contract: 9ab942663746a2b27e68e209e66998ee44ec49402638bb5d4e8c9e1d63310555
+      contract: 6c3f93b0b51388695936feec5ef4dc067f987e91f8ec079e78f61f596d44bc91
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -100,12 +92,6 @@ proof_receipts:
     run_outcome: passed
     proof_results:
       - symbol_id: SYM-antigravity-mcp-launcher
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-hook-input-antigravity-hook-input
         target: default
         outcome: passed
         binding: aggregate_run
@@ -154,12 +140,6 @@ proof_receipts:
         attempts:
           status: unavailable
       - symbol_id: SYM-kb-tools-is-verified-git-commit
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-kb-tools-kb-usage
         target: default
         outcome: passed
         binding: aggregate_run
@@ -226,18 +206,6 @@ proof_receipts:
         attempts:
           status: unavailable
       - symbol_id: SYM-snippets-stop-reminder
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-src-session-state-session-event
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-src-session-state-session-state
         target: default
         outcome: passed
         binding: aggregate_run
