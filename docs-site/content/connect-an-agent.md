@@ -68,8 +68,8 @@ mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
 
 The plugin brings the `kibi` MCP server, the bundled skills, and fail-open
 hooks (KB status at session start, KB hits for each prompt, entities linked to
-a file after reads/edits). On Windows the launcher runs Kibi inside WSL
-automatically — see [Vibe plugin](install.md#optional-vibe-plugin).
+a file after reads/edits). On Windows the launcher runs Kibi natively with the bundled SWI-Prolog, and
+inside WSL only for a `\\wsl.localhost\<distro>` workspace — see [Vibe plugin](install.md#optional-vibe-plugin).
 
 Without the plugin, register the server in `~/.vibe/config.toml`:
 

@@ -205,7 +205,7 @@ Install the optional `kibi-vibe` plugin (Agent Plugins 1.0 format) from a local 
 mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
 ```
 
-On Windows the launcher detects automatically that Kibi must run inside WSL and wraps the call in `wsl.exe --exec` (never a shell string); on Linux/macOS it spawns the project-local `kibi-mcp` directly. See the [Vibe plugin guide](https://looted.github.io/kibi/guide/install.html#optional-vibe-plugin).
+On Windows the launcher runs the project-local `kibi-mcp` natively with the bundled SWI-Prolog, and wraps the call in `wsl.exe --exec` (never a shell string) only for a `\\wsl.localhost\<distro>` workspace or with `KIBI_FORCE_WSL=1`; on Linux/macOS it spawns the project-local `kibi-mcp` directly. See the [Vibe plugin guide](https://looted.github.io/kibi/guide/install.html#optional-vibe-plugin).
 
 Without the plugin, register the server in `~/.vibe/config.toml`:
 

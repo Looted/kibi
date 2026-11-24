@@ -46901,12 +46901,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-vibe-plugin-contract-v1
-      - type: implements
-        target: REQ-vibe-mcp-launcher-contract
-      - type: implements
-        target: REQ-vibe-workspace-resolution
-      - type: implements
-        target: REQ-vibe-wsl-safe-spawn
   - id: SYM-vibe-launch-kibi-mcp
     title: Vibe MCP stdio launcher entrypoint
     status: active
@@ -46949,8 +46943,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-vibe-plugin-contract-v1
-      - type: implements
-        target: REQ-vibe-hooks-fail-open
   - id: SYM-vibe-hook-file-context
     title: Vibe post_tool file-context hook
     status: active
@@ -48708,3 +48700,102 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-antigravity-plugin
+  - id: SYM-vibe-toRepoRelative
+    title: toRepoRelative
+    status: active
+    sourceFile: packages/vibe/bin/hooks/kibi-common.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:00:50.685Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-hooks-fail-open
+  - id: SYM-vibe-probeWslNode
+    title: probeWslNode
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:00:53.395Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-spawnKibiCli
+    title: spawnKibiCli
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:00:56.001Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-hooks-test
+    title: Vibe shipped hook scripts tests
+    status: active
+    sourceFile: packages/vibe/tests/hooks.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:00:58.396Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-hooks-decision-guard
+      - type: executable_for
+        target: TEST-vibe-plugin-contract-v1
+  - id: SYM-vibe-common-test
+    title: Vibe hooks shared plumbing tests
+    status: active
+    sourceFile: packages/vibe/tests/common.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:01:00.863Z
+    relationships:
+      - type: executable_for
+        target: TEST-vibe-plugin-contract-v1
+  - id: SYM-vibe-packageVersion
+    title: packageVersion
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:14:42.411Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-vibe-parseWslNodeProbe
+    title: parseWslNodeProbe
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:14:45.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-wsl-safe-spawn
+  - id: SYM-vibe-WSL_NODE_PROBE_SCRIPT
+    title: WSL_NODE_PROBE_SCRIPT
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T10:14:47.515Z

@@ -3,7 +3,7 @@ title: Outside a Kibi workspace the launcher still connects the real MCP server
 status: active
 fact_kind: property_value
 subject_key: kibi.vibe.mcp_launcher
-property_key: the-kibi-vibe-mcp-launcher-must
+property_key: outside-kibi-workspaces-the-launcher-must
 operator: eq
 value_type: bool
 value_bool: false
@@ -13,4 +13,4 @@ origin:
 id: FACT-NEG-VIBE-MCP-LAUNCHER-CONNECT-OUTSIDE
 type: fact
 ---
-Opposing assumption for the negative scenario of REQ-vibe-mcp-launcher-contract: assumes kibi.vibe.mcp_launcher.the-kibi-vibe-mcp-launcher-must is false, which REQ-vibe-mcp-launcher-contract forbids.
+Opposing assumption for the negative scenario of REQ-vibe-mcp-launcher-contract: assumes kibi.vibe.mcp_launcher.outside-kibi-workspaces-the-launcher-must is false, which REQ-vibe-mcp-launcher-contract forbids.

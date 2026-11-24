@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-wsl-safe-spawn",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "parseWslNodeProbe",
+  "verdict": "keeps",
+  "note": "WSL spawns still use literal argv with -d, --cd and --exec and no shell string; the drive-letter conversion now also runs as wsl.exe --exec wslpath -a, the Node.js probe is one constant script with sentinel-tagged output, and an unconvertible path stays a hard error (runtime.test.mjs).",
+  "statementHash": "sha256:d301bbd73cdb0e9561227fc7fbbd7571c2688c696e9f7233af4a16e84651c68c",
+  "codeHash": "sha256:bd4909971e178aa1574314b96abfb954e7161d24c74d59de2871e2e777d72775",
+  "startLine": 138,
+  "endLine": 153,
+  "recordedAt": "2026-11-24T10:17:52.127Z"
+}

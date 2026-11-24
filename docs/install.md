@@ -788,15 +788,20 @@ natively on Windows by default. A workspace opened as a
 `KIBI_FORCE_WSL=1`) runs inside that WSL distribution instead:
 `wsl.exe [-d <distro>] --cd <wsl-path> --exec <node> <kibi-bin> [args...]`,
 with paths and arguments passed as literal argv entries, never a shell string.
-`KIBI_FORCE_DIRECT=1` forces a native spawn. The same launcher works for other
-agent harnesses; they set `KIBI_MCP_HOST` to their own name for correct
-attribution (Vibe's `mcp.json` sets `vibe`).
+`KIBI_FORCE_DIRECT=1` forces a native spawn. If a WSL workspace needs the
+wrap but the distribution has no usable Node.js 22+, the launch fails with a
+message saying so instead of falling back to Windows Node.js.
 
 Because Vibe spawns stdio servers with the plugin directory as cwd, not the
 session folder, the launcher resolves the workspace from
 `KIBI_WORKSPACE`/`KIBI_PROJECT_ROOT`/`KIBI_ROOT`, a `.git`-bounded upward walk
 for `.kb/manifest.json`, or a `kibi-workspace.txt` pointer next to the
-launcher (ignored when the cwd is inside another Git repository). When registering the server manually instead of via the plugin:
+launcher (ignored when the cwd is inside another Git repository). The pointer
+names one workspace, so treat it as a single-project fallback: use
+`KIBI_WORKSPACE` to serve several projects. In a direct (non-WSL) launch,
+`kibi-mcp` still answers each call from the Kibi workspace under the MCP
+roots the client declares. When registering the server manually instead of via
+the plugin:
 
 ```toml
 [[mcp_servers]]
@@ -812,7 +817,9 @@ tool_timeout_sec = 300
 In workspaces without `.kb/manifest.json` the launcher serves a silent
 zero-tool MCP server (exit 0) instead of failing the handshake, and the hooks
 exit quietly — Kibi stays out of non-Kibi projects. Set
-`KIBI_VIBE_LAUNCHER_DEBUG=1` for a per-user launcher log in the OS temp dir.
+`KIBI_VIBE_LAUNCHER_DEBUG=1` for a per-user launcher log
+(`kibi-vibe-launcher.log-<user>`) in the OS temp dir; it also lets the hooks'
+child processes print to stderr, which they otherwise keep silent.
 See `packages/vibe/README.md` for the full contract and the executable tests
 (`packages/vibe/tests/`).
 

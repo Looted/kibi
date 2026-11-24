@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "planRuntime",
+  "verdict": "keeps",
+  "note": "The launcher still serves the full tool list inside a Kibi workspace, a silent zero-tool server outside, and kibi.mjs still exits 3 before spawning; changes are the WSL planning error, the version in serverInfo and the debug-log name (launcher-contract.test.mjs, runtime.test.mjs).",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:d3349ec3287341b44cef993bc11869fca0d1987fa7f09f7050e2f77d9274e95d",
+  "startLine": 379,
+  "endLine": 417,
+  "recordedAt": "2026-11-24T10:07:01.482Z"
+}

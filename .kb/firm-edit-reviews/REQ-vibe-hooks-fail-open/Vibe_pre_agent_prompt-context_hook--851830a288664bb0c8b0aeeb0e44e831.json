@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/hooks/kibi-prompt-context.mjs",
   "symbol": "Vibe pre_agent prompt-context hook",
   "verdict": "keeps",
-  "note": "The hooks still resolve the workspace from the payload cwd and exit 0 with no output on any error or outside a KB; guardNote returns nothing on error or outside a KB.",
+  "note": "Hooks still anchor at the workspace root resolved from the payload cwd, and relative tool paths now resolve against that cwd; every failure path still exits 0, and the failing kibi call's stderr is dropped, so a hook prints nothing on error or outside a Kibi workspace (hooks.test.mjs, launcher-contract.test.mjs).",
   "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
-  "codeHash": "sha256:37876f903b9600ed49a88ab4b7a1b170b4ac3855dc749b9f8401cf113b371b25",
+  "codeHash": "sha256:2fc2ab850fd05e19949dd05efc2ce21187c6dcff66c39864ea507c7869e06901",
   "startLine": 1,
-  "endLine": 50,
-  "recordedAt": "2026-11-22T18:31:53.875Z"
+  "endLine": 57,
+  "recordedAt": "2026-11-24T10:06:23.889Z"
 }
