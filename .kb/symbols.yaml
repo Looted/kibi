@@ -36370,10 +36370,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-29T19:22:26.032Z
     relationships:
-      - type: implements
-        target: REQ-kibi-search-hints-shown
       - type: covered_by
         target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-shown
+      - type: implements
+        target: REQ-kibi-search-hints-summed-order
   - id: SYM-compose-search-hints
     title: composeSearchHints
     status: active
