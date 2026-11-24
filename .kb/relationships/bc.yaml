@@ -286,3 +286,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33f74eb157fe
+  - type: constrains
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-24T20:04:31.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f0e7777dd6d
+  - type: requires_property
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:04:31.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10f633179c25
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:04:31.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-470fcbabb3ff
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    created_at: 2026-11-24T20:04:31.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79631009d34a
+  - type: implements
+    from: SYM-claude-fileKnowledgeSnippet
+    to: REQ-edit-snippet-names-hidden-requirements
+    created_at: 2026-11-24T20:05:05.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0246ea6ff74a
+  - type: covered_by
+    from: SYM-claude-fileKnowledgeSnippet
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-24T20:13:14.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21a74cad9394

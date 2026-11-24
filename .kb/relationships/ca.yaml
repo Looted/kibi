@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6193fdf0d0ce
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: REQ-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:02:23.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9ee032a57be
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: SCEN-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:02:23.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed8a4f6e2c9
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: SCEN-NEG-agent-hosts-restated-rule-quiet-NAGGED
+    created_at: 2026-11-24T20:02:23.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c47a583d441

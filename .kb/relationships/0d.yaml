@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c1a15eab2af
+  - type: implements
+    from: SYM-service-build-entity-query-goal
+    to: REQ-kb-query-source-file-requirements
+    created_at: 2026-11-24T19:59:56.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c63f963725cf
+  - type: covered_by
+    from: SYM-service-build-entity-query-goal
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T19:59:56.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34998f83e801

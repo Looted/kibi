@@ -412,3 +412,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-833832589834
+  - type: assumes
+    from: SCEN-edit-snippet-names-hidden-requirements
+    to: FACT-edit-snippet-names-hidden-requirements
+    created_at: 2026-11-24T20:02:10.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51e727fee26e
+  - type: verified_by
+    from: SCEN-edit-snippet-names-hidden-requirements
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-24T20:02:10.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cad8b56fa4df
+  - type: constrains
+    from: REQ-agent-hosts-capture-ask-once
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-24T20:04:51.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-418b62ee82c2
+  - type: requires_property
+    from: REQ-agent-hosts-capture-ask-once
+    to: FACT-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:04:51.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e958f70787a
+  - type: specified_by
+    from: REQ-agent-hosts-capture-ask-once
+    to: SCEN-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:04:51.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68804d2e6f95
+  - type: specified_by
+    from: REQ-agent-hosts-capture-ask-once
+    to: SCEN-NEG-agent-hosts-capture-ask-once-PER-RESULT
+    created_at: 2026-11-24T20:04:51.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1064cb4a494
