@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS } from "../swipl-archive-cache.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const TARGETS = [
@@ -634,15 +635,6 @@ describe("SWI build pipeline workflow contract", () => {
   });
 });
 
-const ARCHIVE_CACHE_INPUTS = [
-  "scripts/swipl-version.json",
-  "scripts/swipl-spike.py",
-  "scripts/swipl-spike.sh",
-  "scripts/swipl-windows-repack.py",
-  "scripts/patches/swipl-*.patch",
-  ".github/workflows/swipl-build.yml",
-];
-
 type CacheStep = {
   name?: string;
   uses?: string;
@@ -688,7 +680,7 @@ describe("release archive cache", () => {
       expect(key.startsWith("swipl-release-archive-${{ matrix.target }}-")).toBe(
         true,
       );
-      for (const input of ARCHIVE_CACHE_INPUTS) {
+      for (const input of SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS) {
         expect(key, input).toContain(`'${input}'`);
       }
       expect(save?.if).toContain("steps.cache.outputs.cache-hit != 'true'");

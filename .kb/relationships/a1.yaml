@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80bebf44d446
+  - type: assumes
+    from: SCEN-NEG-prolog-release-pack-foreign-target
+    to: FACT-NEG-prolog-release-pack-foreign-target
+    created_at: 2026-11-24T15:49:03.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ace4123bd21
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-foreign-target
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-24T15:49:03.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eade06f837d3

@@ -70,7 +70,7 @@ semantic_inventory:
     payload_hash: feb44dfab03f9b0a703ec10f420249c4c50fa5f20911bff81abcf38e28b35f3d
     reason: Grounded by FACT-prolog-release-pack-publish-keeps-binding via requires_property.
 firmness: firm
-required_evidence: asserted
+required_evidence: tested
 rationale: Pull-request runs of release-pack were rebuilding SWI-Prolog from source for five platforms, about fifteen minutes each. The user asked for those runs to reuse cached archives, invalidated by a version or config change, while publish and other release runs keep building from source so a released package never ships a cached build.
 origin:
   kind: human
