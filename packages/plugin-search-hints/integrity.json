@@ -51,23 +51,23 @@
     },
     {
       "path": "dist/cache.d.ts",
-      "bytes": 1103,
-      "sha256": "adeca3b210197f3f1039eb82024d800e806744a2e248b0d193de3ac4e0faf749"
+      "bytes": 1449,
+      "sha256": "d1ad9a92822deda4bc3befc8201edc9c6a90a08e93e1ec08a85217bcb5510584"
     },
     {
       "path": "dist/cache.d.ts.map",
-      "bytes": 723,
-      "sha256": "0921f8f03026427b99a90d3f97b7db1a2e320d23ec5cb2e4423f135700d73e3d"
+      "bytes": 916,
+      "sha256": "9df33115d67e597c6a20d37813bb1cc0dc8f1156aac355e8584a9d3d3a242e26"
     },
     {
       "path": "dist/cache.js",
-      "bytes": 4722,
-      "sha256": "7f70333f0b5083a5b3b588280d046514e674ce7d89b95584620848b3b540fd6a"
+      "bytes": 4824,
+      "sha256": "87b1ed6cb11a167970ae09227612f684d015a8b24bf5d5938af3289a587e4349"
     },
     {
       "path": "dist/index.d.ts",
-      "bytes": 1288,
-      "sha256": "73eb11ee7415166394fd4df7cee6c53b9e12f0e149b2681721a28a36053c33ec"
+      "bytes": 1294,
+      "sha256": "5539ed94400c2787081bf99c23c69de688d9d7b440371731fee02f15f083617e"
     },
     {
       "path": "dist/index.d.ts.map",
@@ -76,8 +76,8 @@
     },
     {
       "path": "dist/index.js",
-      "bytes": 2904,
-      "sha256": "6b01b18be48a3e9b96018aed2c9370da4724bc6848fdc996a70a450aaffd480f"
+      "bytes": 2916,
+      "sha256": "c2ae116f3389fd005bcced01a5c8508b27dfd6bf33d106a5229bbd7bd14da522"
     },
     {
       "path": "dist/model.d.ts",
@@ -96,8 +96,8 @@
     },
     {
       "path": "dist/tokenizer.d.ts",
-      "bytes": 704,
-      "sha256": "d949a9244fae4f6a29d53d3a75c554d517c3b3fe684028d52ef26d3b0981ab21"
+      "bytes": 710,
+      "sha256": "af96a3002d034769244ac1c1ae6932f8e85c0f0e4a2590a4d62ed95b1d0b9187"
     },
     {
       "path": "dist/tokenizer.d.ts.map",
@@ -106,8 +106,8 @@
     },
     {
       "path": "dist/tokenizer.js",
-      "bytes": 4599,
-      "sha256": "4f020f316e3f57ef312dd9fe9aff7390acd05534fce619ba6ebe63b4dc947e2d"
+      "bytes": 4605,
+      "sha256": "16913af626660c810aa6984c74a08765f3c4de1a81bd1b6907f8523c3afed459"
     },
     {
       "path": "licenses/bge-base-en-v1.5-vocabulary-MIT.txt",
