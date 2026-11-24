@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-60DC86D3C7A20F0D
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d8cda81be7eb4cbb51c9c3a5
+    receipt_id: PR-e1463953f387db0c3f4d5871
     test_id: TEST-proof-zcode-manifest-fields
     scope: unit
     outcome: passed
-    code_snapshot: 9386eaa53daa10f81157166c388a39229b4b1a7e1a8c41b588be3f34652fcf8e
+    code_snapshot: 1ea225fe1793c41f69514dffbd58f69dedded4fb9d335ab36f64898ca34b26b9
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-23T18:35:06.505Z'
-    finished_at: '2026-11-23T18:35:06.777Z'
-    artifact_digest: 75c419c60640d309a3f5a9c56d3496f2a445295f88d05c4d86106d5ce16e132d
+    started_at: '2026-11-24T04:16:33.749Z'
+    finished_at: '2026-11-24T04:16:34.011Z'
+    artifact_digest: 3de296dd4ce7ae85356c6b131ae68f003731d2a29b553c4258ed725fe4baafba
     contract_hash: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
-    binding_hash: 771f8cf8c9f378d11aaa85a9155c761388e66fad5b10f6e4abb4e4e4bb5b40af
+    binding_hash: a1361471a6e563059788d341f929c481df0f02f6abf6843c350f14ff4426e7eb
     fingerprint: 6883c50b356e80dc070e14919f67e3ac5a9a89956b691574f809d6942985f98d
     fingerprint_components:
       contract: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
@@ -97,4 +97,4 @@ proof_receipts:
             - skills
           operator: includes
 ---
-Proves that the kibi-zcode plugin manifest declares skills, commands, hooks and mcpServers: Kibi reads the manifest fields itself.
+Proves that the kibi-zcode plugin manifest declares skills, commands and mcpServers: Kibi reads the manifest fields itself.
