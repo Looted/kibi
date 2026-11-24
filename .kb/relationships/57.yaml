@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3da3bb23b0fc
+  - type: assumes
+    from: SCEN-NEG-antigravity-parts-missing-rules
+    to: FACT-NEG-antigravity-parts-missing-rules
+    created_at: 2026-11-24T05:07:37.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-436a919e9b85
+  - type: verified_by
+    from: SCEN-NEG-antigravity-parts-missing-rules
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:37.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a44935c2530e
+  - type: assumes
+    from: SCEN-NEG-antigravity-parts-outside-set
+    to: FACT-NEG-antigravity-parts-outside-set
+    created_at: 2026-11-24T07:46:12.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807e5e731c12
+  - type: verified_by
+    from: SCEN-NEG-antigravity-parts-outside-set
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T07:46:12.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2d4b4a022d6

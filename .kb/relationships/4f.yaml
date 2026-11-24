@@ -382,6 +382,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2b178b265253
   - type: implements
+    from: SYM-sync-agent-skills-parseArgs
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:40.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43455348a33
+  - type: covered_by
+    from: SYM-sync-agent-skills-parseArgs
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:08:40.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f637fcfcdd0
+  - type: implements
     from: SYM-vibe-runKibi
     to: REQ-vibe-hooks-fail-open
     created_at: 2026-11-19T21:37:16.702Z

@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false,
+    "types": ["bun-types"]
+  },
+  "include": ["./**/*.ts", "../src/**/*.ts", "../package.json"]
+}

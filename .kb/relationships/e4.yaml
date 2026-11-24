@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d24f19d1f3f
+  - type: implements
+    from: SYM-snippets-session-start-context
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:54.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bc6a84c8fa6
+  - type: covered_by
+    from: SYM-snippets-session-start-context
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:54.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e0232dd4ca7

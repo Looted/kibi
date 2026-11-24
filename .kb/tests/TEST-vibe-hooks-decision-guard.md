@@ -20,15 +20,15 @@ id: TEST-vibe-hooks-decision-guard
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-7e779924170d5af7822f2b82
+    receipt_id: PR-4ff84fcdc8efbcf0fcd7b4ed
     test_id: TEST-vibe-hooks-decision-guard
     scope: end_to_end
     outcome: passed
-    code_snapshot: 54f0c83a3d3db71803d7d86b90049bd8c29ebbba550cb579fdc49aed12069173
-    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-23T05:13:45.859Z'
-    finished_at: '2026-11-23T05:13:46.109Z'
-    artifact_digest: 9d458efeb3be543c93ece76b02796f028d35b84a65c1d774d8f33fbe4b05a4c9
+    code_snapshot: 2957dd153b7c3ac878d465d66b09d5b9ebe77d619bf90923c72da1511a1fc89e
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T10:16:25.349Z'
+    finished_at: '2026-11-23T10:16:25.559Z'
+    artifact_digest: 22427ffbaa604c0cc629d5e4e0fffff17acf0f1ff3bd960af937860950886a76
     contract_hash: 0f50b01b3a29263c9e5ac59ea29f4a9460681e20badcad92c9eb5773c5daf5f6
     binding_hash: 47237287f1919df997f371fd93d70a400cbd8b66429d984d705007ea05e4186a
     fingerprint: 44990e429548ef12ec0a06ceb3153b76a563b17dd294c427000182f8455de464

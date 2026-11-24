@@ -458,3 +458,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3814e1c19968
+  - type: implements
+    from: SYM-snippets-direct-kb-access-note
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:53.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d13bba8a94c6
+  - type: covered_by
+    from: SYM-snippets-direct-kb-access-note
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:53.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67b2135abf61
+  - type: implements
+    from: SYM-antigravity-mcp-launcher
+    to: REQ-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:07:48.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4e2a7964f21
+  - type: covered_by
+    from: SYM-antigravity-mcp-launcher
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:48.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-609b48053420

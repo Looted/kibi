@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fa7d78d8729
+  - type: executable_for
+    from: SYM-antigravity-plugin-contract-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:29.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a838b21c8dd3

@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8daf9375ce22
+  - type: implements
+    from: SYM-package-catalog-PACKAGE_CATALOG
+    to: REQ-kibi-distribution-parity-matrix
+    created_at: 2026-11-22T05:08:00.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b754f4e095d
+  - type: covered_by
+    from: SYM-package-catalog-PACKAGE_CATALOG
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-11-22T05:08:00.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3017509bbf5
