@@ -90,7 +90,11 @@ describe("stampKibiWorkspace", () => {
       ),
     ).toBeUndefined();
     expect(
-      stampKibiWorkspace("MCP:kb_check", { workspaceRoot: " /worktree " }, "/w"),
+      stampKibiWorkspace(
+        "MCP:kb_check",
+        { workspaceRoot: " /worktree " },
+        "/w",
+      ),
     ).toBeUndefined();
   });
 
