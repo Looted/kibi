@@ -3,6 +3,7 @@
 
 :- module(status, [
     kb_status_json/1,
+    kb_query_freshness_json/2,
     status_meta_dict/1,
     status_scope_dict/1,
     entity_source_file_missing/2
@@ -14,6 +15,30 @@
 kb_status_json(JsonString) :-
     status_meta_dict(StatusDict),
     dict_json_string(StatusDict, JsonString).
+
+%% kb_query_freshness_json(+ScopePaths, -JsonString)
+% Query-scoped freshness check for kb_query / kb_search reads: ignores
+% unrequested non-.kb/ production files while checking .kb/ lanes,
+% relationships, .kb/symbols.yaml, documentation/, and indexed sources in
+% ScopePaths. Skips building entity_source_id_index when fresh.
+kb_query_freshness_json(ScopePaths, JsonString) :-
+    query_freshness_dict(ScopePaths, Dict),
+    dict_json_string(Dict, JsonString).
+
+query_freshness_dict(_ScopePaths, _{syncState: unknown, staleReasons: []}) :-
+    journal_before_first_commit,
+    !.
+query_freshness_dict(ScopePaths, Dict) :-
+    attached_kb_info(_Branch, _KbPath, DataFile),
+    exists_file(DataFile),
+    !,
+    time_file(DataFile, SnapshotTime),
+    (   query_workspace_state_changed(SnapshotTime, ScopePaths)
+    ->  query_stale_reasons(ScopePaths, StaleReasons),
+        Dict = _{syncState: stale, staleReasons: StaleReasons}
+    ;   Dict = _{syncState: fresh, staleReasons: []}
+    ).
+query_freshness_dict(_ScopePaths, _{syncState: unknown, staleReasons: []}).
 
 status_meta_dict(StatusDict) :-
     attached_kb_info(Branch, KbPath, DataFile),
@@ -61,9 +86,9 @@ status_meta_dict(StatusDict) :-
 
 %% status_scope_dict(-Scope)
 % The snapshot an answer is computed from: the attached snapshot id and when
-% it was synced. Unlike status_meta_dict/1 it skips the freshness scan, so a
-% discovery answer can name its snapshot at no extra cost; kb_status remains
-% the place to ask whether that snapshot is stale.
+% it was synced. Unlike status_meta_dict/1 it skips the raw mtime scan in
+% Prolog; callers confirm freshness alongside kb_status before trusting an
+% answer without staleness diagnostics.
 status_scope_dict(_{snapshotId: SnapshotId, syncedAt: SyncedAt}) :-
     attached_kb_info(_Branch, _KbPath, DataFile),
     !,
@@ -132,9 +157,11 @@ stale_reasons(Reasons, Count, Truncated) :-
     entity_source_id_index(Index),
     findall(Reason, stale_indexed_source_reason(Index, Reason), IndexedReasons),
     findall(Reason, stale_knowledge_lane_reason(Index, Reason), KnowledgeReasons),
+    findall(Reason, stale_relationship_reason(Reason), RelationshipReasons),
     findall(Reason, stale_documentation_reason(Index, Reason), DocumentationReasons),
     append(IndexedReasons, KnowledgeReasons, IndexedAndKnowledge),
-    append(IndexedAndKnowledge, DocumentationReasons, Reasons0),
+    append(IndexedAndKnowledge, RelationshipReasons, IndexedKnowledgeAndRels),
+    append(IndexedKnowledgeAndRels, DocumentationReasons, Reasons0),
     sort(Reasons0, Sorted),
     length(Sorted, Count),
     (   Count > 200
@@ -192,6 +219,61 @@ stale_documentation_reason(Index, Reason) :-
     workspace_relative_path(WorkspaceRoot, Path, RelativePath),
     entity_ids_for_source(Index, RelativePath, EntityIds),
     Reason = stale_reason{code: documentation_source_newer, path: RelativePath, entityIds: EntityIds}.
+
+stale_relationship_reason(Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, '.kb/relationships', RelRoot),
+    kb_snapshot_time(SnapshotTime),
+    relationship_tree_newer_path(RelRoot, SnapshotTime, Path),
+    workspace_relative_path(WorkspaceRoot, Path, RelativePath),
+    Reason = stale_reason{code: relationship_source_newer, path: RelativePath, entityIds: []}.
+
+query_stale_reasons(ScopePaths, Reasons) :-
+    entity_source_id_index(Index),
+    findall(Reason, stale_scoped_indexed_source_reason(Index, ScopePaths, Reason), IndexedReasons),
+    findall(Reason, stale_symbols_manifest_reason(Index, Reason), SymbolReasons),
+    findall(Reason, stale_knowledge_lane_reason(Index, Reason), KnowledgeReasons),
+    findall(Reason, stale_relationship_reason(Reason), RelationshipReasons),
+    findall(Reason, stale_documentation_reason(Index, Reason), DocumentationReasons),
+    append(IndexedReasons, SymbolReasons, IndexedAndSymbols),
+    append(IndexedAndSymbols, KnowledgeReasons, WithKnowledge),
+    append(WithKnowledge, RelationshipReasons, WithRels),
+    append(WithRels, DocumentationReasons, Reasons0),
+    sort(Reasons0, Sorted),
+    length(Sorted, Count),
+    (   Count > 200
+    ->  length(Reasons, 200), append(Reasons, _, Sorted)
+    ;   Reasons = Sorted
+    ).
+
+stale_scoped_indexed_source_reason(Index, ScopePaths, Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    kb:kb_indexed_sources(Sources),
+    kb_snapshot_time(SnapshotTime),
+    member(SourceAtom, Sources),
+    repo_relative_source(SourceAtom, RelativeSource),
+    source_in_query_scope(RelativeSource, ScopePaths),
+    directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
+    (   exists_file(SourcePath)
+    ->  time_file(SourcePath, FileTime),
+        FileTime > SnapshotTime,
+        Code = indexed_source_newer
+    ;   exists_directory(SourcePath)
+    ->  fail
+    ;   Code = indexed_source_missing
+    ),
+    entity_ids_for_source(Index, RelativeSource, EntityIds),
+    Reason = stale_reason{code: Code, path: RelativeSource, entityIds: EntityIds}.
+
+stale_symbols_manifest_reason(Index, Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, '.kb/symbols.yaml', SymbolsPath),
+    kb_snapshot_time(SnapshotTime),
+    exists_file(SymbolsPath),
+    time_file(SymbolsPath, FileTime),
+    FileTime > SnapshotTime,
+    entity_ids_for_source(Index, '.kb/symbols.yaml', EntityIds),
+    Reason = stale_reason{code: indexed_source_newer, path: '.kb/symbols.yaml', entityIds: EntityIds}.
 
 kb_snapshot_time(SnapshotTime) :-
     kb:kb_attached(KbPath),
@@ -257,7 +339,66 @@ entity_source_property(Props, RawSource) :-
 workspace_state_changed(SnapshotTime) :-
     (   workspace_source_changed(SnapshotTime)
     ;   knowledge_lane_tree_changed(SnapshotTime)
+    ;   relationship_tree_changed(SnapshotTime)
     ;   documentation_tree_changed(SnapshotTime)
+    ).
+
+query_workspace_state_changed(SnapshotTime, ScopePaths) :-
+    (   knowledge_lane_tree_changed(SnapshotTime)
+    ;   relationship_tree_changed(SnapshotTime)
+    ;   documentation_tree_changed(SnapshotTime)
+    ;   symbols_manifest_changed(SnapshotTime)
+    ;   scoped_indexed_source_changed(SnapshotTime, ScopePaths)
+    ).
+
+symbols_manifest_changed(SnapshotTime) :-
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, '.kb/symbols.yaml', SymbolsPath),
+    exists_file(SymbolsPath),
+    time_file(SymbolsPath, FileTime),
+    FileTime > SnapshotTime.
+
+scoped_indexed_source_changed(SnapshotTime, ScopePaths) :-
+    attached_workspace_root(WorkspaceRoot),
+    kb:kb_indexed_sources(Sources),
+    member(SourceAtom, Sources),
+    repo_relative_source(SourceAtom, RelativeSource),
+    source_in_query_scope(RelativeSource, ScopePaths),
+    directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
+    (   exists_file(SourcePath)
+    ->  time_file(SourcePath, FileTime),
+        FileTime > SnapshotTime
+    ;   \+ exists_directory(SourcePath)
+    ).
+
+source_in_query_scope(RelativeSource, _ScopePaths) :-
+    (   RelativeSource == '.kb'
+    ;   sub_atom(RelativeSource, 0, 4, _, '.kb/')
+    ),
+    !.
+source_in_query_scope(RelativeSource, ScopePaths) :-
+    member(ScopePath, ScopePaths),
+    query_scope_paths_overlap(ScopePath, RelativeSource),
+    !.
+
+normalized_scope_atom(RawScope, ScopeAtom) :-
+    source_value_atom(RawScope, ScopeAtom0),
+    (   sub_atom(ScopeAtom0, 0, 2, _, './')
+    ->  sub_atom(ScopeAtom0, 2, _, 0, ScopeAtom)
+    ;   ScopeAtom = ScopeAtom0
+    ).
+
+query_scope_paths_overlap(RawScope, RelativeSource) :-
+    normalized_scope_atom(RawScope, ScopeAtom),
+    (   (ScopeAtom == '' ; ScopeAtom == '.')
+    ->  true
+    ;   ScopeAtom == RelativeSource
+    ->  true
+    ;   atom_concat(ScopeAtom, '/', ScopePrefix),
+        atom_concat(ScopePrefix, _, RelativeSource)
+    ->  true
+    ;   atom_concat(RelativeSource, '/', SourcePrefix),
+        atom_concat(SourcePrefix, _, ScopeAtom)
     ).
 
 workspace_source_changed(SnapshotTime) :-
@@ -283,6 +424,34 @@ documentation_tree_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
     directory_tree_newer_path(DocumentationRoot, SnapshotTime, _).
+
+relationship_tree_changed(SnapshotTime) :-
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, '.kb/relationships', RelRoot),
+    relationship_tree_newer_path(RelRoot, SnapshotTime, _).
+
+%% relationship_tree_newer_path(+Path, +SnapshotTime, -NewerPath) is nondet.
+% NewerPath is Path, or a .yaml/.yml file under it, newer than the snapshot.
+relationship_tree_newer_path(Path, SnapshotTime, NewerPath) :-
+    (   newer_relationship_file(Path, SnapshotTime)
+    ->  NewerPath = Path
+    ;   exists_directory(Path),
+        directory_files(Path, Entries),
+        member(Entry, Entries),
+        Entry \= '.',
+        Entry \= '..',
+        directory_file_path(Path, Entry, Candidate),
+        relationship_tree_newer_path(Candidate, SnapshotTime, NewerPath)
+    ).
+
+newer_relationship_file(Path, SnapshotTime) :-
+    exists_file(Path),
+    file_name_extension(_, Extension, Path),
+    (   Extension == yaml
+    ;   Extension == yml
+    ),
+    time_file(Path, EntryTime),
+    EntryTime > SnapshotTime.
 
 %% directory_tree_newer_path(+Path, +SnapshotTime, -NewerPath) is nondet.
 % NewerPath is Path, or a file under it, that is an entity document newer

@@ -800,7 +800,10 @@ export function requireActiveProlog<E, P>(
  * Resolve the branch a check reads, refreshing a detached snapshot and
  * compiling a store nothing compiled yet, and return its KB branch.
  */
-async function attachReadBranch(workspaceRoot: string): Promise<string> {
+async function attachReadBranch(
+  workspaceRoot: string,
+  staged: boolean,
+): Promise<string> {
   const attachment = resolveReadBranchAttachment(workspaceRoot);
   if ("error" in attachment) throw new Error(attachment.error);
   if (attachment.readOnly !== undefined) {
@@ -816,6 +819,7 @@ async function attachReadBranch(workspaceRoot: string): Promise<string> {
   // A fresh clone's first commit must not fail on a store nothing compiled.
   await ensureBranchStoreCompiled(workspaceRoot, attachment, {
     name: "kb_check",
+    syncDrift: !staged,
   });
   return attachment.kbBranch;
 }
@@ -829,7 +833,12 @@ export async function checkCommand(
     // An explicit store is read as given; otherwise the attached branch.
     const store: { kbPath: string } | { branch: string } = options.kbPath
       ? { kbPath: options.kbPath }
-      : { branch: await attachReadBranch(process.cwd()) };
+      : {
+          branch: await attachReadBranch(
+            process.cwd(),
+            options.staged === true,
+          ),
+        };
 
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;

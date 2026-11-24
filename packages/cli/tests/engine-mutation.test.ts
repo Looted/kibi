@@ -849,11 +849,11 @@ describe("publication lease", () => {
       [false, false],
     );
     expect([
-      attempt(`${DEAD_PID}:${Date.now()}`, 6000),
+      attempt(`${DEAD_PID}:${Date.now() - 6000}`, 1000),
       existsSync(startPath),
     ]).toStrictEqual([false, true]);
     expect([
-      attempt(`${DEAD_PID}:${Date.now() - 6000}`, 0),
+      attempt(`${DEAD_PID}:${Date.now()}`, 6000),
       existsSync(startPath),
     ]).toStrictEqual([false, false]);
     expect([
@@ -861,11 +861,11 @@ describe("publication lease", () => {
       existsSync(startPath),
     ]).toStrictEqual([false, true]);
     expect([
-      attempt(`0:${Date.now() - 6000}`, 0),
+      attempt(`0:${Date.now()}`, 6000),
       existsSync(startPath),
     ]).toStrictEqual([false, false]);
     expect([
-      attempt(`-5:${Date.now() - 6000}`, 0),
+      attempt(`-5:${Date.now()}`, 6000),
       existsSync(startPath),
     ]).toStrictEqual([false, false]);
     expect(closed.length).toBeGreaterThan(0);
@@ -3089,6 +3089,23 @@ describe("engine lifecycle", () => {
     expect(result(await daemon.request({ method: "handshake" }))).toBeDefined();
   });
 
+  function createDeadUnixSocket(socketPath: string): void {
+    mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+    rmSync(socketPath, { force: true });
+    const res = childProcess.spawnSync(
+      process.execPath,
+      [
+        "-e",
+        "const net=require('node:net');net.createServer().listen(process.argv[1],()=>process.exit(0));",
+        socketPath,
+      ],
+      { encoding: "utf8" },
+    );
+    if (res.status !== 0) {
+      throw new Error(`Failed to create dead unix socket: ${res.stderr}`);
+    }
+  }
+
   test("treat a broken pipe from the probe as a live engine", async () => {
     for (const failure of [
       Object.assign(new Error("x"), { code: "EPIPE" }),
@@ -3101,7 +3118,7 @@ describe("engine lifecycle", () => {
       const workspace = tempDir();
       stubProlog();
       const socketPath = engineSocketPath(workspace, "main");
-      writeFileSync(socketPath, "");
+      createDeadUnixSocket(socketPath);
       spyOn(net, "createConnection").mockImplementation((() => {
         const fake = new EventEmitter() as EventEmitter & {
           destroy: () => void;
@@ -3124,45 +3141,62 @@ describe("engine lifecycle", () => {
   test("replace a stale socket file", async () => {
     const workspace = tempDir();
     const socketPath = engineSocketPath(workspace, "main");
-    writeFileSync(socketPath, "");
-    for (const failure of [
-      Object.assign(new Error("refused"), {
-        code: "ECONNREFUSED",
-        errno: -111,
+    createDeadUnixSocket(socketPath);
+    const daemon = await startDaemon(undefined, { workspace });
+    await settled(daemon);
+    expect(
+      result(await daemon.request({ method: "handshake" })),
+    ).toBeDefined();
+    await daemon.stop();
+    mock.restore();
+
+    // Non-socket regular file and unknown probe error fail closed without unlinking.
+    const wsFile = tempDir();
+    const filePath = engineSocketPath(wsFile, "main");
+    mkdirSync(path.dirname(filePath), { recursive: true, mode: 0o700 });
+    writeFileSync(filePath, "not a socket");
+    stubProlog();
+    await expect(
+      runEngineDaemon({
+        workspaceRoot: wsFile,
+        branch: "main",
+        socketPath: filePath,
       }),
-      "plain",
-    ]) {
-      writeFileSync(socketPath, "");
-      const real = net.createConnection;
-      let calls = 0;
-      spyOn(net, "createConnection").mockImplementation(((
-        ...args: unknown[]
-      ) => {
-        calls += 1;
-        if (calls > 1)
-          return (real as (...a: unknown[]) => net.Socket)(...args);
-        const fake = new EventEmitter() as EventEmitter & {
-          destroy: () => void;
-        };
-        fake.destroy = () => undefined;
-        queueMicrotask(() => fake.emit("error", failure));
-        return fake;
-      }) as never);
-      const daemon = await startDaemon(undefined, { workspace });
-      await settled(daemon);
-      expect(
-        result(await daemon.request({ method: "handshake" })),
-      ).toBeDefined();
-      await daemon.stop();
-      mock.restore();
-    }
+    ).rejects.toThrow(
+      `Kibi engine socket remains present but is not reachable: ${filePath}`,
+    );
+    expect(existsSync(filePath)).toBe(true);
+    mock.restore();
+
+    const wsUnknown = tempDir();
+    const unknownSock = engineSocketPath(wsUnknown, "main");
+    createDeadUnixSocket(unknownSock);
+    stubProlog();
+    spyOn(net, "createConnection").mockImplementation((() => {
+      const fake = new EventEmitter() as EventEmitter & {
+        destroy: () => void;
+      };
+      fake.destroy = () => undefined;
+      queueMicrotask(() => fake.emit("error", "plain"));
+      return fake;
+    }) as never);
+    await expect(
+      runEngineDaemon({
+        workspaceRoot: wsUnknown,
+        branch: "main",
+        socketPath: unknownSock,
+      }),
+    ).rejects.toThrow(
+      `Kibi engine socket remains present but is not reachable: ${unknownSock}`,
+    );
+    expect(existsSync(unknownSock)).toBe(true);
+    mock.restore();
   });
 
   test("keep going when a stale socket cannot be removed", async () => {
     const workspace = tempDir();
     const socketPath = engineSocketPath(workspace, "main");
-    mkdirSync(socketPath);
-    writeFileSync(path.join(socketPath, "x"), "");
+    createDeadUnixSocket(socketPath);
     stubProlog();
     process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS = "100";
     const exit = spyOn(process, "exit").mockImplementation(
@@ -3173,13 +3207,13 @@ describe("engine lifecycle", () => {
       file: string,
       ...rest: unknown[]
     ) => {
-      if (file === socketPath) throw new Error("EISDIR");
+      if (file === socketPath) throw new Error("EACCES");
       (rm as (...a: unknown[]) => void)(file, ...rest);
     }) as never);
     await expect(
       runEngineDaemon({ workspaceRoot: workspace, branch: "main", socketPath }),
     ).rejects.toThrow();
-    expect(existsSync(path.join(socketPath, "x"))).toBe(true);
+    expect(existsSync(socketPath)).toBe(true);
     // The daemon never listened, so losing the workspace afterwards must not
     // run a shutdown that exits the hosting process.
     const errors = spyOn(console, "error").mockImplementation(() => undefined);
@@ -4594,7 +4628,6 @@ describe("engine client start", () => {
     const workspace = tempDir();
     prepareStore(workspace);
     const socketPath = engineSocketPath(workspace, "main");
-    writeFileSync(socketPath, "");
     const destroyed: number[] = [];
     spyOn(net, "createConnection").mockImplementation((() => {
       const fake = Object.assign(new EventEmitter(), {
@@ -4606,7 +4639,7 @@ describe("engine client start", () => {
       return fake;
     }) as never);
     onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
-    fakeSpawn();
+    fakeSpawn(() => writeFileSync(socketPath, ""));
     expect(
       await client(workspace, { timeout: 300 })
         .start()
@@ -5511,18 +5544,27 @@ describe("lock guards", () => {
     expect(locks()).toStrictEqual([lockPath]);
   });
 
-  test("judge a start lock stale only past five seconds", () => {
+  test("judge a start lock stale only past five seconds by mtime", () => {
     const workspace = tempDir();
     const startPath = engineStartLockPath(workspace, "main");
     mkdirSync(path.dirname(startPath), { recursive: true });
     spyOn(Date, "now").mockReturnValue(100_000);
     const refusal = `Kibi engine publication cannot acquire the engine start lease: ${startPath}`;
-    writeFileSync(startPath, `${DEAD_PID}:95000`);
+    writeFileSync(startPath, `${DEAD_PID}:1`);
+    utimesSync(startPath, 95, 95);
     expect(() => acquireEnginePublicationLease(workspace, "main")).toThrow(
       refusal,
     );
     expect(existsSync(startPath)).toBe(true);
-    writeFileSync(startPath, `${DEAD_PID}:94999`);
+    // Still uncollected if text timestamp looks old (>5s) while mtime was touched (<5s).
+    writeFileSync(startPath, `${DEAD_PID}:1000`);
+    utimesSync(startPath, 96, 96);
+    expect(() => acquireEnginePublicationLease(workspace, "main")).toThrow(
+      refusal,
+    );
+    expect(existsSync(startPath)).toBe(true);
+    // Past 5 s mtime age + dead PID -> broken and unlinked.
+    utimesSync(startPath, 94.999, 94.999);
     expect(() => acquireEnginePublicationLease(workspace, "main")).toThrow(
       refusal,
     );
@@ -6020,6 +6062,16 @@ describe("daemon guards", () => {
     process.emit("SIGTERM" as never);
     await daemon.run;
     expect(existsSync(enginePidPath(daemon.workspace, "main"))).toBe(false);
+  });
+
+  test("leave a successor's pid file in place on shutdown", async () => {
+    const daemon = await startDaemon();
+    await settled(daemon);
+    const pidPath = enginePidPath(daemon.workspace, "main");
+    writeFileSync(pidPath, `${process.pid + 1}\n`);
+    process.emit("SIGTERM" as never);
+    await daemon.run;
+    expect(readFileSync(pidPath, "utf8")).toBe(`${process.pid + 1}\n`);
   });
 
   test("shut down once for two stops in one frame batch", async () => {

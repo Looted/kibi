@@ -4,7 +4,14 @@
 */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { hashManifestWithCoordinates } from "../commands/sync/cache.js";
@@ -14,8 +21,27 @@ import { KB_PATHS, isSymbolsManifestPath } from "./kb-paths.js";
 export const MTIME_SOURCE_REASON_CODES: ReadonlySet<string> = new Set([
   "indexed_source_newer",
   "knowledge_source_newer",
+  "relationship_source_newer",
   "documentation_source_newer",
 ]);
+
+/** Diagnostic and reason code for a read answered from a stale compiled store. */
+export const BRANCH_STORE_STALE = "branch_store_stale";
+
+/** Human-readable warning appended to read results answered from a stale store. */
+export function staleStoreWarningNote(
+  staleReasonCount: number,
+  paths: readonly string[] = [],
+): string {
+  const uniquePaths = [...new Set(paths.filter(Boolean))].slice(0, 3);
+  const more =
+    staleReasonCount > uniquePaths.length && uniquePaths.length > 0
+      ? ` (+${staleReasonCount - uniquePaths.length} more)`
+      : "";
+  const where =
+    uniquePaths.length > 0 ? ` (${uniquePaths.join(", ")}${more})` : "";
+  return `Note: KB store is stale (${staleReasonCount} uncompiled change${staleReasonCount === 1 ? "" : "s"}${where}). Run \`kibi sync\` before relying on these results.`;
+}
 
 type Reason = Readonly<Record<string, unknown>>;
 
@@ -28,6 +54,178 @@ function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown> | null)
     : null;
+}
+
+export function stringHashMap(value: unknown): Record<string, string> {
+  const rec = record(value);
+  if (rec === null) return {};
+  return Object.fromEntries(
+    Object.entries(rec).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
+
+export function readSyncCacheRecord(
+  storePath: string,
+): Record<string, unknown> | null {
+  try {
+    return record(
+      JSON.parse(readFileSync(path.join(storePath, "sync-cache.json"), "utf8")),
+    );
+  } catch {
+    return null;
+  }
+}
+
+const FRESHNESS_MEMO_FILENAME = "freshness-memo.json";
+const FRESHNESS_MEMO_VERSION = 1;
+const MAX_MEMO_ENTRIES = 50_000;
+
+type MemoFileEntry = {
+  mtimeMs: number;
+  ctimeMs: number;
+  size: number;
+  ino: number;
+  sha256: string;
+};
+
+type MemoStoreData = {
+  version: number;
+  files: Record<string, MemoFileEntry>;
+};
+
+function isValidMemoEntry(value: unknown): value is MemoFileEntry {
+  const row = record(value);
+  return (
+    row !== null &&
+    typeof row.mtimeMs === "number" &&
+    Number.isFinite(row.mtimeMs) &&
+    typeof row.ctimeMs === "number" &&
+    Number.isFinite(row.ctimeMs) &&
+    typeof row.size === "number" &&
+    Number.isFinite(row.size) &&
+    typeof row.ino === "number" &&
+    Number.isFinite(row.ino) &&
+    typeof row.sha256 === "string"
+  );
+}
+
+export type FreshnessMemo = Readonly<{
+  fileSha256(workspaceRoot: string, relative: string): string | null;
+  save(): void;
+}>;
+
+/**
+ * Persisted stat-to-content-hash memo stored in a gitignored branch store.
+ * Keyed by `(mtimeMs, ctimeMs, size, ino)` with Git's racy-tick guard
+ * (`max(mtimeMs, ctimeMs) < memoMtimeMs`) so a cross-process `git checkout` or
+ * repeated CLI discovery avoids re-hashing unchanged files while catching
+ * same-tick overwrites that preserve size or backdate mtime.
+ */
+export function createFreshnessMemo(storePath: string): FreshnessMemo {
+  const memoPath = path.join(storePath, FRESHNESS_MEMO_FILENAME);
+  let data: MemoStoreData | null = null;
+  let memoMtimeMs = -1;
+  let dirty = false;
+  const inMemory = new Map<string, string | null>();
+
+  const load = (): MemoStoreData => {
+    if (data !== null) return data;
+    const files: Record<string, MemoFileEntry> = {};
+    try {
+      const memoStat = statSync(memoPath);
+      const parsed = record(JSON.parse(readFileSync(memoPath, "utf8")));
+      if (parsed?.version === FRESHNESS_MEMO_VERSION) {
+        const rawFiles = record(parsed.files) ?? {};
+        for (const [key, entry] of Object.entries(rawFiles)) {
+          if (isValidMemoEntry(entry)) files[key] = entry;
+        }
+        memoMtimeMs = memoStat.mtimeMs;
+      }
+    } catch {
+      // Missing, unreadable, or corrupt memo starts empty.
+    }
+    data = { version: FRESHNESS_MEMO_VERSION, files };
+    return data;
+  };
+
+  return {
+    fileSha256(workspaceRoot: string, relative: string): string | null {
+      const key = relative.replaceAll("\\", "/");
+      if (inMemory.has(key)) return inMemory.get(key) as string | null;
+      const absolute = path.resolve(workspaceRoot, key);
+      let st;
+      try {
+        st = statSync(absolute);
+      } catch {
+        inMemory.set(key, null);
+        return null;
+      }
+      if (!st.isFile()) {
+        inMemory.set(key, null);
+        return null;
+      }
+      const loaded = load();
+      const cached = loaded.files[key];
+      if (
+        cached !== undefined &&
+        memoMtimeMs >= 0 &&
+        Math.max(st.mtimeMs, st.ctimeMs) < memoMtimeMs &&
+        cached.mtimeMs === st.mtimeMs &&
+        cached.ctimeMs === st.ctimeMs &&
+        cached.size === st.size &&
+        cached.ino === st.ino
+      ) {
+        inMemory.set(key, cached.sha256);
+        return cached.sha256;
+      }
+      try {
+        const digest = sha256(readFileSync(absolute));
+        loaded.files[key] = {
+          mtimeMs: st.mtimeMs,
+          ctimeMs: st.ctimeMs,
+          size: st.size,
+          ino: st.ino,
+          sha256: digest,
+        };
+        dirty = true;
+        inMemory.set(key, digest);
+        return digest;
+      } catch {
+        inMemory.set(key, null);
+        return null;
+      }
+    },
+
+    save(): void {
+      if (!dirty || data === null || !existsSync(storePath)) return;
+      const keys = Object.keys(data.files);
+      if (keys.length > MAX_MEMO_ENTRIES) {
+        const trimmed: Record<string, MemoFileEntry> = {};
+        for (const key of keys.slice(keys.length - MAX_MEMO_ENTRIES)) {
+          trimmed[key] = data.files[key] as MemoFileEntry;
+        }
+        data = { version: FRESHNESS_MEMO_VERSION, files: trimmed };
+      }
+      const tmp = path.join(
+        storePath,
+        `${FRESHNESS_MEMO_FILENAME}.${process.pid}.${Date.now()}.tmp`,
+      );
+      try {
+        writeFileSync(tmp, JSON.stringify(data));
+        renameSync(tmp, memoPath);
+        memoMtimeMs = statSync(memoPath).mtimeMs;
+        dirty = false;
+      } catch {
+        try {
+          rmSync(tmp, { force: true });
+        } catch {
+          // Best-effort cleanup on read-only or vanished stores.
+        }
+      }
+    },
+  };
 }
 
 type ManifestState = { matches: boolean; sources: Set<string> };
@@ -55,38 +253,34 @@ function referencedSources(parsed: unknown): Set<string> {
  */
 class CompiledContentEvidence {
   private readonly hashes: Record<string, string>;
-  private readonly coordinateHashes: Map<unknown, Set<string>>;
+  private readonly relationshipHashes: Record<string, string>;
+  private readonly memo: FreshnessMemo;
+  private coordinateHashesCache: Map<unknown, Set<string>> | null = null;
   private readonly manifestState = new Map<string, ManifestState>();
 
   constructor(
     private readonly workspaceRoot: string,
     storePath: string,
+    syncCache?: Record<string, unknown> | null,
   ) {
-    let cache: Record<string, unknown> | null = null;
-    try {
-      cache = record(
-        JSON.parse(
-          readFileSync(path.join(storePath, "sync-cache.json")).toString(),
-        ),
-      );
-    } catch {
-      // No readable cache: no recorded hashes.
-    }
-    const hashes = record(cache?.hashes) ?? {};
-    this.hashes = Object.fromEntries(
-      Object.entries(hashes).filter(
-        (entry): entry is [string, string] => typeof entry[1] === "string",
-      ),
-    );
-    this.coordinateHashes = this.readCoordinates();
+    const cache =
+      syncCache === undefined ? readSyncCacheRecord(storePath) : syncCache;
+    this.hashes = stringHashMap(cache?.hashes);
+    this.relationshipHashes = stringHashMap(cache?.relationshipHashes);
+    this.memo = createFreshnessMemo(storePath);
+  }
+
+  private getCoordinateHashes(): Map<unknown, Set<string>> {
+    this.coordinateHashesCache ??= this.readCoordinates();
+    return this.coordinateHashesCache;
   }
 
   private fileHash(relative: string): string | null {
-    try {
-      return sha256(readFileSync(path.resolve(this.workspaceRoot, relative)));
-    } catch {
-      return null;
-    }
+    return this.memo.fileSha256(this.workspaceRoot, relative);
+  }
+
+  saveMemo(): void {
+    this.memo.save();
   }
 
   private manifest(key: string): ManifestState {
@@ -157,10 +351,10 @@ class CompiledContentEvidence {
       return this.manifest(key).matches;
     const current = this.fileHash(key);
     if (current === null) return false;
-    const cached = this.hashes[key];
+    const cached = this.hashes[key] ?? this.relationshipHashes[key];
     if (cached !== undefined) return cached === current;
     // A recorded file always has at least one hash.
-    const coordinate = this.coordinateHashes.get(key);
+    const coordinate = this.getCoordinateHashes().get(key);
     if (coordinate !== undefined)
       return [...coordinate].every((hash) => hash === current);
     // A code file that is only referenced from a symbol manifest is covered
@@ -175,6 +369,39 @@ class CompiledContentEvidence {
 }
 
 /**
+ * Detect cached relationship shards that were deleted from disk after the
+ * store compiled. Prolog `kb_indexed_sources` already tracks missing entity
+ * and manifest files, whereas relationship shards do not emit indexed sources.
+ */
+export function missingCachedKbSourceReasons(
+  workspaceRoot: string,
+  storePath: string,
+  existingPaths: ReadonlySet<string> = new Set(),
+  syncCache?: Record<string, unknown> | null,
+): Reason[] {
+  const cache =
+    syncCache === undefined ? readSyncCacheRecord(storePath) : syncCache;
+  if (cache === null) return [];
+  const relationshipHashes = stringHashMap(cache.relationshipHashes);
+  const reasons: Reason[] = [];
+
+  for (const key of Object.keys(relationshipHashes)) {
+    const posix = key.replaceAll("\\", "/");
+    if (existingPaths.has(posix)) continue;
+    if (existsSync(path.resolve(workspaceRoot, posix))) continue;
+    reasons.push({
+      code: "relationship_source_missing",
+      path: posix,
+      entityIds: [],
+    });
+  }
+
+  return reasons.sort((a, b) =>
+    String(a.path).localeCompare(String(b.path)),
+  );
+}
+
+/**
  * Drop mtime-only stale reasons whose file content provably matches what the
  * store compiled. Reasons without such evidence are kept.
  */
@@ -182,6 +409,7 @@ export function confirmSourceNewerReasons(
   workspaceRoot: string,
   storePath: string,
   reasons: readonly Reason[],
+  syncCache?: Record<string, unknown> | null,
 ): { kept: Reason[]; dropped: Reason[] } {
   const kept: Reason[] = [];
   const dropped: Reason[] = [];
@@ -194,10 +422,15 @@ export function confirmSourceNewerReasons(
       kept.push(reason);
       continue;
     }
-    evidence ??= new CompiledContentEvidence(workspaceRoot, storePath);
+    evidence ??= new CompiledContentEvidence(
+      workspaceRoot,
+      storePath,
+      syncCache,
+    );
     if (evidence.unchanged(reason.path)) dropped.push(reason);
     else kept.push(reason);
   }
+  evidence?.saveMemo();
   return { kept, dropped };
 }
 

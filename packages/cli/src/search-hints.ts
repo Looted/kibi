@@ -13,7 +13,7 @@ import {
   type IntentSearchAnalysis,
   type MarkdownBodyCache,
   NON_GOVERNING_STATUSES,
-  queryGraphEdges,
+  isClosedRequirement,
 } from "./intent-search.js";
 import {
   type NegativePathFacts,
@@ -29,6 +29,15 @@ import {
 import type { CapabilityModeResolution } from "./plugins/registry.js";
 import { isProvenanceStub } from "./provenance-stub.js";
 import type { PrologPort } from "./public/operations/runtime-types.js";
+import {
+  LIFT_RELATIONSHIPS,
+  assumedScenarioIds,
+  liftAssumedFact,
+  liftTestTargets,
+  owningRequirements,
+  queryTypedEdges,
+  resolveSupersedesTarget,
+} from "./requirement-lifting.js";
 import { loadMarkdownBodySync } from "./search-ranking.js";
 import { tokenSourceHash } from "./search-token-cache.js";
 
@@ -85,11 +94,15 @@ export function searchHintsTrigger(
   return analysis.topScore < SEARCH_HINT_WEAK_SCORE ? "weak" : null;
 }
 
-function isCurrent(entity: Record<string, unknown>): boolean {
+function isCurrent(
+  entity: Record<string, unknown>,
+  supersededIds: ReadonlySet<string> = new Set(),
+): boolean {
+  const id = String(entity.id ?? "");
   const status = String(entity.status).trim().toLowerCase();
   return (
     !NON_GOVERNING_STATUSES.has(status) &&
-    status !== "closed" &&
+    !supersededIds.has(id) &&
     !isProvenanceStub(entity)
   );
 }
@@ -128,12 +141,14 @@ export function searchHintsEntities(
   entities: readonly Record<string, unknown>[],
   bodies: MarkdownBodyCache,
   workspaceRoot: string,
+  supersededIds: ReadonlySet<string> = new Set(),
 ): SearchHintsEntity[] {
   const seen = new Set<string>();
   const rows: SearchHintsEntity[] = [];
   for (const entity of entities) {
     const id = String(entity.id ?? "");
-    if (id === "" || seen.has(id) || !isCurrent(entity)) continue;
+    if (id === "" || seen.has(id) || !isCurrent(entity, supersededIds))
+      continue;
     seen.add(id);
     const text = entityText(entity, bodies, workspaceRoot);
     rows.push({
@@ -158,22 +173,27 @@ function cacheDirectory(workspaceRoot: string): string {
 }
 
 /**
- * A hint on a scenario, test, fact or ADR is shown as the current
- * requirement it belongs to, so the agent re-asks about what governs; an
- * entity no current requirement links to is shown as itself. A negative-path
- * fact is linked to no requirement directly: it is shown as the requirements
- * whose rejecting scenarios assume it, and, when none is current, as itself
- * marked as a situation that must not happen.
+ * A hint on a scenario, test, symbol or fact is shown as the governing
+ * requirement it belongs to (including 2-hop test -> scenario -> requirement,
+ * 2-hop fact <- assumes <- scenario <- specified_by <- requirement, and up to
+ * 3-hop supersedes chains, excluding relates_to), so the agent re-asks about
+ * what governs; a current ADR or an entity no current requirement links to is
+ * shown as itself. A negative-path fact with no current governing requirement
+ * is shown as itself marked as a situation that must not happen.
  */
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
   hints: readonly { readonly id: string; readonly score: number }[],
   byId: ReadonlyMap<string, SearchHintsEntity>,
+  initialSupersededBy: ReadonlyMap<string, string> = new Map(),
+  supersededCandidateIds: ReadonlySet<string> = new Set(),
 ): Promise<SearchHintItem[]> {
   const isRequirement = (id: string) => byId.get(id)?.type === "req";
-  const seeds = new Set(
-    hints.map((hint) => hint.id).filter((id) => !isRequirement(id)),
-  );
+  const isLiftSeed = (id: string) => {
+    const type = byId.get(id)?.type ?? "";
+    return type !== "req" && type !== "adr";
+  };
+  const seeds = new Set(hints.map((hint) => hint.id).filter(isLiftSeed));
   const negativePath: NegativePathFacts = await queryNegativePathFacts(
     prolog,
     [...seeds].filter(
@@ -181,20 +201,122 @@ async function liftToRequirements(
     ),
   );
   const requirementsOf = new Map<string, Set<string>>();
-  for (const [fact, guards] of negativePath) {
-    const shown = guards.filter(isRequirement);
-    if (shown.length > 0) requirementsOf.set(fact, new Set(shown));
+  if (seeds.size > 0) {
+    const hop1Edges = await queryTypedEdges(prolog, LIFT_RELATIONSHIPS, [
+      ...seeds,
+    ]);
+    const rawOwnersOf = new Map<string, Set<string>>();
+    const addRawOwner = (seed: string, owner: string) => {
+      if (owner.length === 0) return;
+      rawOwnersOf.set(seed, (rawOwnersOf.get(seed) ?? new Set()).add(owner));
+    };
+    const testTargets: { id: string; targets: string[] }[] = [];
+    const assumedFacts: { id: string; scenarios: string[] }[] = [];
+    for (const seed of seeds) {
+      const type = byId.get(seed)?.type ?? "";
+      const direct = owningRequirements(seed, type, hop1Edges);
+      if (type === "test") {
+        testTargets.push({ id: seed, targets: direct });
+        continue;
+      }
+      for (const owner of direct) addRawOwner(seed, owner);
+      if (type === "fact" && direct.length === 0) {
+        const scenarios = assumedScenarioIds(seed, hop1Edges);
+        if (scenarios.length > 0) {
+          assumedFacts.push({ id: seed, scenarios });
+          continue;
+        }
+        for (const guard of negativePath.get(seed) ?? [])
+          addRawOwner(seed, guard);
+      }
+    }
+
+    const targetIds = [
+      ...new Set([
+        ...testTargets.flatMap((test) => test.targets),
+        ...assumedFacts.flatMap((fact) => fact.scenarios),
+      ]),
+    ];
+    const unfetchedTargets = targetIds.filter((id) => !seeds.has(id));
+    const hop2Edges =
+      unfetchedTargets.length > 0
+        ? await queryTypedEdges(
+            prolog,
+            ["specified_by", "supersedes"],
+            unfetchedTargets,
+          )
+        : [];
+    const allEdges = [...hop1Edges, ...hop2Edges];
+
+    for (const test of testTargets) {
+      for (const lifted of liftTestTargets(test.id, test.targets, allEdges)) {
+        addRawOwner(test.id, lifted.owner);
+      }
+    }
+    for (const fact of assumedFacts) {
+      const lifted = liftAssumedFact(fact.id, fact.scenarios, allEdges);
+      if (lifted.length > 0) {
+        for (const { owner } of lifted) addRawOwner(fact.id, owner);
+      } else {
+        for (const guard of negativePath.get(fact.id) ?? [])
+          addRawOwner(fact.id, guard);
+      }
+    }
+
+    const supersededBy = new Map<string, string>(initialSupersededBy);
+    for (const edge of allEdges) {
+      if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
+    }
+
+    const queriedSupersedes = new Set<string>([
+      ...seeds,
+      ...unfetchedTargets,
+      ...initialSupersededBy.keys(),
+    ]);
+    let frontier = [
+      ...new Set(
+        [...rawOwnersOf.values()].flatMap((owners) => [...owners]),
+      ),
+    ]
+      .map((id) => resolveSupersedesTarget(id, supersededBy, 3) ?? id)
+      .filter(
+        (id) =>
+          !isRequirement(id) &&
+          supersededCandidateIds.has(id) &&
+          !queriedSupersedes.has(id),
+      );
+    for (let hop = 0; hop < 3 && frontier.length > 0; hop += 1) {
+      for (const id of frontier) queriedSupersedes.add(id);
+      const edges = await queryTypedEdges(prolog, ["supersedes"], frontier);
+      for (const edge of edges) {
+        if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
+      }
+      const next: string[] = [];
+      for (const id of frontier) {
+        const replacement = supersededBy.get(id);
+        if (
+          replacement !== undefined &&
+          !isRequirement(replacement) &&
+          supersededCandidateIds.has(replacement) &&
+          !queriedSupersedes.has(replacement)
+        ) {
+          next.push(replacement);
+        }
+      }
+      frontier = [...new Set(next)];
+    }
+
+    for (const [seed, rawOwners] of rawOwnersOf) {
+      const resolvedOwners = new Set<string>();
+      for (const rawOwner of rawOwners) {
+        const resolved = resolveSupersedesTarget(rawOwner, supersededBy, 3);
+        if (resolved !== null && isRequirement(resolved)) {
+          resolvedOwners.add(resolved);
+        }
+      }
+      if (resolvedOwners.size > 0) requirementsOf.set(seed, resolvedOwners);
+    }
   }
-  for (const edge of await queryGraphEdges(prolog, [...seeds]))
-    for (const [seed, other] of [
-      [edge.from, edge.to],
-      [edge.to, edge.from],
-    ] as const)
-      if (seeds.has(seed) && isRequirement(other))
-        requirementsOf.set(
-          seed,
-          (requirementsOf.get(seed) ?? new Set()).add(other),
-        );
   const items: SearchHintItem[] = [];
   const shown = new Set<string>();
   for (const hint of hints) {
@@ -242,10 +364,29 @@ export async function buildSearchHints(
   const { resolution } = options;
   if (resolution.replace === null && resolution.shadow.length === 0)
     return undefined;
+  const closedReqIds = options.entities
+    .filter((entity) => isClosedRequirement(entity))
+    .map((entity) => String(entity.id ?? ""))
+    .filter((id) => id.length > 0);
+  const supersededIds = new Set<string>();
+  const initialSupersededBy = new Map<string, string>();
+  if (closedReqIds.length > 0) {
+    for (const edge of await queryTypedEdges(
+      options.prolog,
+      ["supersedes"],
+      closedReqIds,
+    )) {
+      if (edge.rel === "supersedes") {
+        supersededIds.add(edge.to);
+        initialSupersededBy.set(edge.to, edge.from);
+      }
+    }
+  }
   const entities = searchHintsEntities(
     options.entities,
     options.bodies,
     options.workspaceRoot,
+    supersededIds,
   );
   if (entities.length === 0) return undefined;
   const composed = await composeSearchHints(
@@ -267,8 +408,22 @@ export async function buildSearchHints(
   for (const binding of [resolution.replace, ...resolution.shadow])
     if (binding) warmedProviders.add(binding.capability);
   const byId = new Map(entities.map((entity) => [entity.id, entity]));
+  const supersededCandidateIds = new Set(
+    options.entities
+      .filter((entity) => entity.type === "req")
+      .map((entity) => String(entity.id ?? ""))
+      .filter((id) => id.length > 0 && !byId.has(id)),
+  );
   const answered = new Set(options.governingIds.slice(0, 3));
-  const items = (await liftToRequirements(options.prolog, composed.hints, byId))
+  const items = (
+    await liftToRequirements(
+      options.prolog,
+      composed.hints,
+      byId,
+      initialSupersededBy,
+      supersededCandidateIds,
+    )
+  )
     .filter((item) => !answered.has(item.id))
     .slice(0, SEARCH_HINT_LIMIT);
   const shadow = composed.shadowComparisons.map((comparison) => ({
