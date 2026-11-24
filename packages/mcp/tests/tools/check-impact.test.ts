@@ -188,6 +188,22 @@ describe("MCP kb_check impact diagnostics", () => {
       maxDiagnostics: 10,
     });
 
+    expect(result.structuredContent?.impactAdvice).toContainEqual(
+      expect.stringContaining("kb_query"),
+    );
+    // Each shared advice is listed once, and each diagnostic that shares one
+    // points at it instead of carrying its own copy.
+    const advice = result.structuredContent?.impactAdvice ?? [];
+    expect(new Set(advice).size).toBe(advice.length);
+    for (const diagnostic of result.structuredContent?.impactDiagnostics ??
+      []) {
+      if (diagnostic.advice === undefined) continue;
+      expect(diagnostic.suggestion).toBeUndefined();
+      expect(advice[diagnostic.advice]).toBeString();
+    }
+    // Changed symbols leave their links to linkedEntities.
+    for (const symbol of result.structuredContent?.extractedSymbols ?? [])
+      expect("linkedEntityIds" in symbol).toBe(false);
     expect(result.structuredContent?.sourceFiles).toEqual([UPLOAD_SOURCE_FILE]);
     expect(result.structuredContent?.extractedSymbols).toContainEqual(
       expect.objectContaining({
@@ -212,7 +228,7 @@ describe("MCP kb_check impact diagnostics", () => {
         expect.objectContaining({
           id: "symbol_semantic_review_needed",
           severity: "warning",
-          suggestion: expect.stringContaining("kb_query"),
+          advice: expect.any(Number),
         }),
       ]),
     );
@@ -293,7 +309,6 @@ describe("MCP kb_check impact diagnostics", () => {
       includeImpactDiagnostics: true,
     });
     const impactDiagnostics = result.structuredContent?.impactDiagnostics ?? [];
-
     expect(
       impactDiagnostics.some(
         (diagnostic) => diagnostic.id === "symbol_granularity_violation",
@@ -303,10 +318,10 @@ describe("MCP kb_check impact diagnostics", () => {
       expect.objectContaining({
         id: "symbol_semantic_review_needed",
         severity: "warning",
-        message: expect.stringContaining(
-          "UploadPageComponent.processingProgressLabel",
+        message: expect.stringMatching(
+          /UploadPageComponent\.processingProgressLabel .*REQ-VIDEO-UPLOAD-PROGRESS/,
         ),
-        suggestion: expect.stringContaining("REQ-VIDEO-UPLOAD-PROGRESS"),
+        advice: expect.any(Number),
       }),
     );
   }, 30000);
@@ -327,8 +342,11 @@ describe("MCP kb_check impact diagnostics", () => {
         message: expect.stringContaining(
           "UploadPageComponent.processingProgressLabel is in a file no requirement owns",
         ),
-        suggestion: expect.stringContaining("kb_upsert a requirement"),
+        advice: expect.any(Number),
       }),
+    );
+    expect(result.structuredContent?.impactAdvice).toContainEqual(
+      expect.stringContaining("kb_upsert a requirement"),
     );
   }, 30000);
 });

@@ -538,3 +538,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84fb4be7d848
+  - type: implements
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: REQ-kb-check-impact-advice-once
+    created_at: 2026-11-24T19:21:22.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0226e7a5e682
+  - type: covered_by
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:22.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6673c1963a5
+  - type: implements
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: REQ-kb-check-impact-statement-quoted-once
+    created_at: 2026-11-24T19:21:33.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e3b67858ae

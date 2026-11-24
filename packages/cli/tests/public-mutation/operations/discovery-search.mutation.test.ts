@@ -104,7 +104,10 @@ function intentFakes(options: IntentOptions = {}) {
     ),
     answer: spy(answers, "buildSearchAnswer").mockResolvedValue(
       options.answer ?? {
-        governing: [{ id: "REQ-g1" }, { id: "REQ-g2" }],
+        governing: [
+          { id: "REQ-g1", facts: [] },
+          { id: "REQ-g2", facts: [] },
+        ],
         ungoverned: [],
       },
     ),
@@ -307,7 +310,10 @@ describe("executeSearch intent ranking", () => {
       matches,
       ambiguous: true,
       answer: {
-        governing: [{ id: "REQ-g1" }, { id: "REQ-g2" }],
+        governing: [
+          { id: "REQ-g1", facts: [] },
+          { id: "REQ-g2", facts: [] },
+        ],
         ungoverned: [
           { id: "REQ-2", rank: 2 },
           { id: "REQ-1", rank: 1 },
@@ -604,9 +610,7 @@ describe("executeSearch intent ranking", () => {
 
     const weakCalls = intentFakes({ matches: [] });
     weakCalls.trigger.mockReturnValue("abstained");
-    expect(
-      await tail({ query: "why did we choose this architecture?" }),
-    ).toBe(
+    expect(await tail({ query: "why did we choose this architecture?" })).toBe(
       ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).',
     );
     // Filtered or strong rationale searches do not add the weak ADR note.
@@ -617,9 +621,9 @@ describe("executeSearch intent ranking", () => {
       }),
     ).toBe("");
     weakCalls.trigger.mockReturnValue(null);
-    expect(
-      await tail({ query: "why did we choose this architecture?" }),
-    ).toBe("");
+    expect(await tail({ query: "why did we choose this architecture?" })).toBe(
+      "",
+    );
   });
 
   test("uses intent ranking for facets or locations in legacy mode", async () => {
