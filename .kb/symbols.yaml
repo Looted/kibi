@@ -18936,6 +18936,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: covered_by
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
@@ -18943,6 +18945,8 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
+      - type: implements
+        target: REQ-edit-snippet-names-hidden-requirements
   - id: SYM-claude-unownedSourceNote
     title: unownedSourceNote
     status: active
@@ -26682,14 +26686,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:51.004Z
     relationships:
-      - type: implements
-        target: REQ-agent-hosts-rule-prompt-note
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
   - id: SYM-agent-core-decision-guard-requestwords
     title: requestWords
     status: active
@@ -41867,7 +41871,11 @@ symbols:
       recorded_at: 2026-11-16T10:30:25.660Z
     relationships:
       - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
         target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-kb-search-close-matches-candidates
       - type: implements
         target: REQ-search-answer-marks-missing-reason
   - id: SYM-cli-search-answer-reason-type
@@ -48840,3 +48848,145 @@ symbols:
         target: TEST-prolog-build-pipeline-validation
       - type: implements
         target: REQ-prolog-release-pack-pr-archive-cache
+  - id: SYM-discovery-entities-build-entity-goal
+    title: buildEntityGoal
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:59:53.729Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kb-query-source-file-requirements
+  - id: SYM-service-build-entity-query-goal
+    title: buildEntityQueryGoal
+    sourceFile: packages/cli/src/query/service.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:59:55.231Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kb-query-source-file-requirements
+  - id: SYM-requirement-candidates-restated-requirement
+    title: restatedRequirement
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:00:24.151Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-hosts-restated-rule-quiet
+  - id: SYM-capture-pair-review-follow-up
+    title: pairReviewFollowUp
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:33.891Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-every-step-up-front
+  - id: SYM-capture-grounding-step
+    title: groundingStep
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:35.625Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-every-step-up-front
+  - id: SYM-capture-failure-scenario-follow-up
+    title: failureScenarioFollowUp
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:36.784Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-every-step-up-front
+  - id: SYM-capture-proof-integration-follow-up
+    title: proofIntegrationFollowUp
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:42.095Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-proof-setup-named
+  - id: SYM-capture-with-signoff
+    title: withSignoff
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:47.542Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-approvals-needed
+  - id: SYM-decision-guard-record-follow-up-line
+    title: RECORD_FOLLOW_UP_LINE
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:53.253Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-capture-ask-once
+  - id: SYM-decision-guard-rule-match
+    title: ruleMatch
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:12:59.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-hosts-restated-rule-quiet
+  - id: SYM-search-answer-governing-label
+    title: governingLabel
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T20:13:05.097Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-kb-search-close-matches-candidates

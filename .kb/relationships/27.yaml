@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45b130e6ab6f
+  - type: implements
+    from: SYM-capture-failure-scenario-follow-up
+    to: REQ-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:12:37.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cf8d2bba340
+  - type: covered_by
+    from: SYM-capture-failure-scenario-follow-up
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:12:37.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d45fcb706f09
+  - type: implements
+    from: SYM-decision-guard-record-follow-up-line
+    to: REQ-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:12:54.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8da08653351f
+  - type: covered_by
+    from: SYM-decision-guard-record-follow-up-line
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-24T20:12:54.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097e9307166c
