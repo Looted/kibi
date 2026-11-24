@@ -54,17 +54,17 @@ proof_contract:
   version: kibi.proof-contract.v1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-978271abb2d7017c37dc47e2
+    receipt_id: PR-2e60a5981a770c1551d2a95d
     test_id: TEST-zcode-kibi-plugin-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 9386eaa53daa10f81157166c388a39229b4b1a7e1a8c41b588be3f34652fcf8e
+    code_snapshot: 1ea225fe1793c41f69514dffbd58f69dedded4fb9d335ab36f64898ca34b26b9
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-11-23T18:35:30.750Z'
-    finished_at: '2026-11-23T18:37:08.476Z'
-    artifact_digest: 557d6b4ab6f9373050d9181585c55de0b1088ba6b0ea2fb2daffb032b7a9a707
+    started_at: '2026-11-24T04:26:07.757Z'
+    finished_at: '2026-11-24T04:27:35.954Z'
+    artifact_digest: 63c91b9d3930072ada04a4675b3a62bbfb2272c48cd3917dc9c13c9468492c05
     contract_hash: 1fd5caba9b52d20ca0ea38ddac95f539e151d42f079957a95332e0af30fae592
-    binding_hash: 27022bdd00dd02e95bafb76dacbdb78d632ab7600d65418169de3aaedb986ee0
+    binding_hash: 15c11d4829281645c19138c3ff36d66d62a498af6fbb40535bd525e9f98913e5
     fingerprint: 8c87a38e1d24a3250944d7eefef5c7d41082c2250bb8cd58a3f2fd3796941002
     fingerprint_components:
       contract: 1fd5caba9b52d20ca0ea38ddac95f539e151d42f079957a95332e0af30fae592
@@ -90,7 +90,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 7
+              duration_ms: 9
       - symbol_id: SYM-zcode-case-canonicalize-check-source-files
         target: default
         outcome: passed
@@ -100,7 +100,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 7
+              duration_ms: 5
       - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
         target: default
         outcome: passed
@@ -110,7 +110,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 1
+              duration_ms: 4
       - symbol_id: SYM-zcode-case-session-state-isolation
         target: default
         outcome: passed
@@ -120,7 +120,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 306
+              duration_ms: 215
       - symbol_id: SYM-zcode-case-canonicalize-workspace-path
         target: default
         outcome: passed
@@ -140,7 +140,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 86516
+              duration_ms: 77605
       - symbol_id: SYM-zcode-case-optional-package-contract
         target: default
         outcome: passed
@@ -160,7 +160,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 1
+              duration_ms: 0
       - symbol_id: SYM-zcode-case-manual-mcp-fallback
         target: default
         outcome: passed
@@ -170,7 +170,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 7
+              duration_ms: 0
       - symbol_id: SYM-zcode-case-advisory-hooks
         target: default
         outcome: passed
@@ -180,7 +180,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 9
+              duration_ms: 7
       - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
         target: default
         outcome: passed
@@ -190,7 +190,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 14
+              duration_ms: 10
       - symbol_id: SYM-zcode-case-shipped-plugin-payload
         target: default
         outcome: passed
@@ -200,7 +200,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 5287
+              duration_ms: 4741
       - symbol_id: SYM-zcode-case-tracked-hook-targets
         target: default
         outcome: passed
@@ -210,7 +210,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 1
+              duration_ms: 0
       - symbol_id: SYM-zcode-case-copied-install-runtime-files
         target: default
         outcome: passed
@@ -220,7 +220,7 @@ proof_receipts:
           status: complete
           entries:
             - outcome: passed
-              duration_ms: 80
+              duration_ms: 83
       - symbol_id: SYM-zcode-case-kb-call-without-workspace
         target: default
         outcome: passed
