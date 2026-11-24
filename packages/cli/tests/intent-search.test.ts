@@ -687,10 +687,14 @@ describe("intent-v1 search snippets", () => {
 describe("broad rationale ADR sort-key rerank", () => {
   test("promotes a current ADR on unfiltered rationale queries without changing scores or analysis", async () => {
     const candidates = [
-      entity("TEST-RELEASE", "Automated release management changesets pipeline", {
-        type: "test",
-        status: "passing",
-      }),
+      entity(
+        "TEST-RELEASE",
+        "Automated release management changesets pipeline",
+        {
+          type: "test",
+          status: "passing",
+        },
+      ),
       entity("ADR-RELEASE", "Adopt changesets for release management", {
         type: "adr",
         status: "accepted",
@@ -735,7 +739,7 @@ describe("broad rationale ADR sort-key rerank", () => {
       (m) => m.entity.id === "ADR-RELEASE",
     )?.score;
     expect(adrScore).toBeLessThan(testScore as number);
-    expect(broad.analysis.topScore).toBe(testScore);
+    expect(broad.analysis.topScore).toBe(testScore as number);
     expect(broad.analysis.topTwoMargin).toBeCloseTo(
       (testScore as number) - (adrScore as number),
       10,

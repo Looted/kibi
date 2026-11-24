@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/engine.ts",
   "symbol": "EngineClient",
   "verdict": "keeps",
-  "note": "The client still replaces a daemon with other package versions through reconcileRuntime; the change only waits the full stop window before reclaiming an untouched live pid.",
+  "note": "Only the starter's wait for a draining daemon changed; handshake versions and replacement of mismatched daemons are untouched.",
   "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
-  "codeHash": "sha256:e3f7b94b7ce4f76f4a6d7e325a8e5d15499581cf99779c0729c316af55394cbc",
-  "startLine": 1137,
-  "endLine": 1920,
-  "recordedAt": "2026-11-24T04:37:51.575Z"
+  "codeHash": "sha256:b01f0acfdfd434ebf0fec37a98cdb266705bc860ad853f21e0700d2b9690b035",
+  "startLine": 1139,
+  "endLine": 1945,
+  "recordedAt": "2026-11-24T05:01:12.100Z"
 }

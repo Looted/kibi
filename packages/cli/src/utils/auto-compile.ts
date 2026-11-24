@@ -169,7 +169,9 @@ function hasCompiledSyncableDrift(
   const getSyncCacheMtime = (): number => {
     if (syncCacheMtime === undefined) {
       try {
-        syncCacheMtime = statSync(path.join(storePath, "sync-cache.json")).mtimeMs;
+        syncCacheMtime = statSync(
+          path.join(storePath, "sync-cache.json"),
+        ).mtimeMs;
       } catch {
         syncCacheMtime = 0;
       }
@@ -182,9 +184,7 @@ function hasCompiledSyncableDrift(
     if (cacheTime <= 0 || snap <= cacheTime) return false;
     try {
       const st = statSync(path.resolve(workspaceRoot, key));
-      return (
-        st.mtimeMs > cacheTime && Math.max(st.mtimeMs, st.ctimeMs) <= snap
-      );
+      return st.mtimeMs > cacheTime && Math.max(st.mtimeMs, st.ctimeMs) <= snap;
     } catch {
       return false;
     }
@@ -319,7 +319,15 @@ function hasCompiledSyncableDrift(
 export async function ensureBranchStoreCompiled(
   workspaceRoot: string,
   attachment: BranchAttachment,
-  spec: { readonly name: string },
+  spec: {
+    readonly name: string;
+    /**
+     * False compiles only a store nothing compiled yet: a staged check judges
+     * the commit against HEAD, and syncing the working tree into the store
+     * first would count the staged change as already there.
+     */
+    readonly syncDrift?: boolean;
+  },
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<AutoCompileOutcome> {
   if (NO_AUTO_COMPILE.has(spec.name)) return "not-needed";
@@ -345,7 +353,7 @@ export async function ensureBranchStoreCompiled(
       kind: "uncompiled",
       authoredSources: uncompiled.authoredSources,
     };
-  } else if (store.state === "healthy") {
+  } else if (store.state === "healthy" && spec.syncDrift !== false) {
     const driftDetail = hasCompiledSyncableDrift(workspaceRoot, store.path);
     if (driftDetail !== null) {
       trigger = { kind: "drift", kindLabel: driftDetail };
