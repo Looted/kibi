@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Reads ci.yml and proof.yml: each aggregate job needs every other job, always runs and its script fails on a failed, skipped or cancelled result and passes when all succeed; the two kb_search gold-set gates sit between the KB sync and kibi prove --all.
+Reads ci.yml and proof.yml: each aggregate job needs every other job, always runs and its script fails on a failed, skipped or cancelled result and passes when all succeed. The two kb_search gold-set gates and the pre-proof evidence floor run on the search-gates job after its KB sync, with no prove step on that runner, and a failed gate cancels the proof run.
