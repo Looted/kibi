@@ -1206,10 +1206,17 @@ export async function executeQuery(
               return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
             })
             .join(", ")}`;
+    const staleText =
+      freshness?.state === "stale" ? `${baseText} ${freshness.note}` : baseText;
+    // An id lookup returns metadata only; say that the authored body is one
+    // flag away so the reader does not have to know the parameter exists.
     const text =
-      freshness?.state === "stale"
-        ? `${baseText} ${freshness.note}`
-        : baseText;
+      id !== undefined &&
+      id !== "" &&
+      indexedPage.count > 0 &&
+      input.includeBody !== true
+        ? `${staleText} Pass includeBody: true to read its authored body.`
+        : staleText;
     const body =
       input.includeBody === true
         ? await readQueryBody(
