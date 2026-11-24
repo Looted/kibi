@@ -108,11 +108,17 @@ second, and the latency ceilings are the 3 s budget for p95 and 2.5 s for p50. T
 baseline. Misses, superseded results and false abstentions are listed in the
 output so a failure says which question regressed.
 
-`repo-search-hints-gold.v2.jsonl` holds the 20 reworded questions of `v1` plus five about the kibi-vibe plugin (launcher contract, WSL spawn, workspace resolution, hooks, skill mirror), each naming the `REQ-vibe-*` requirement that governs it. `v1` held 20 reworded questions: each names a
+`repo-search-hints-gold.v1.jsonl` holds 20 reworded questions: each names a
 current requirement in words it does not use (for example "the cleanup
 command" for `kibi gc`). Kibi's repository activates `kibi-plugin-search-hints`,
 so the same runner measures what an agent sees in one call. Lexical ranking
-alone finds 2 of the 20 in its top three; with hints 14 of 20 show the expected
+alone finds 2 of the 20 in its top three; with hints 12 of 20 show the expected
 requirement. `repo-search-hints-thresholds.json` gates `recallWithHints` at
-0.6, two cases under that baseline; the `proof` workflow runs it after the
-gold-set gate.
+0.6, which is that baseline, so one more missed question fails it; the `proof`
+workflow runs it after the gold-set gate.
+
+The questions are about Kibi's behaviour, not about one agent host: a gold set
+has no question that only one host's plugin can answer. When a gate fails, the
+fix is in the search or in the knowledge base it reads; the questions, the
+expected ids and the thresholds change only with the maintainer's explicit
+approval.
