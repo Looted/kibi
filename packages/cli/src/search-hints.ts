@@ -180,6 +180,12 @@ function cacheDirectory(workspaceRoot: string): string {
  * what governs; a current ADR or an entity no current requirement links to is
  * shown as itself. A negative-path fact with no current governing requirement
  * is shown as itself marked as a situation that must not happen.
+ *
+ * The shown entities are ordered by the summed score of every provider hit
+ * that led to them, so a requirement several hits agree on comes before one
+ * that a single hit shares with others, and one hit linked to many
+ * requirements cannot fill the list alone. Each carries the score and `via`
+ * of its best hit.
  */
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
@@ -274,9 +280,7 @@ async function liftToRequirements(
       ...initialSupersededBy.keys(),
     ]);
     let frontier = [
-      ...new Set(
-        [...rawOwnersOf.values()].flatMap((owners) => [...owners]),
-      ),
+      ...new Set([...rawOwnersOf.values()].flatMap((owners) => [...owners])),
     ]
       .map((id) => resolveSupersedesTarget(id, supersededBy, 3) ?? id)
       .filter(
@@ -317,17 +321,27 @@ async function liftToRequirements(
       if (resolvedOwners.size > 0) requirementsOf.set(seed, resolvedOwners);
     }
   }
-  const items: SearchHintItem[] = [];
-  const shown = new Set<string>();
+  // Hits arrive best first, so a requirement's first hit is its best one.
+  const support = new Map<
+    string,
+    { hint: (typeof hints)[number]; total: number }
+  >();
   for (const hint of hints) {
     const linked = requirementsOf.get(hint.id);
     for (const target of linked ? [...linked].sort() : [hint.id]) {
-      if (shown.has(target)) continue;
-      shown.add(target);
+      const entry = support.get(target);
+      if (entry === undefined) support.set(target, { hint, total: hint.score });
+      else entry.total += hint.score;
+    }
+  }
+  // The sort is stable: equal totals keep the order of their best hits.
+  return [...support]
+    .sort(([, left], [, right]) => right.total - left.total)
+    .map(([target, { hint }]) => {
       const title = (byId.get(target) as SearchHintsEntity).title;
       // Only seeds are asked about, and a lifted target is a requirement.
       const guards = negativePath.get(target);
-      items.push({
+      return {
         id: target,
         title: guards !== undefined ? negativePathTitle(title) : title,
         score: hint.score,
@@ -335,10 +349,8 @@ async function liftToRequirements(
         ...(guards !== undefined
           ? { negativePath: negativePathMarker(guards) }
           : {}),
-      });
-    }
-  }
-  return items;
+      };
+    });
 }
 
 /**
