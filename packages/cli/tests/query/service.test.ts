@@ -73,7 +73,7 @@ describe("query service", () => {
       });
 
       expect(goal).toBe(
-        "findall([Id,'req''s',Props], (kb_entities_by_source('src/o''hare.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, 'req''s', Props)), Results)",
+        "findall([Id,'req''s',Props], (kb_entities_in_source('src/o''hare.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, 'req''s', Props)), Results)",
       );
       expect(escapeAtomMock).toHaveBeenCalledTimes(2);
     });
@@ -82,7 +82,7 @@ describe("query service", () => {
       expect(
         service.buildEntityQueryGoal({ sourceFile: "src/query/service.ts" }),
       ).toBe(
-        "findall([Id,Type,Props], (kb_entities_by_source('src/query/service.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
+        "findall([Id,Type,Props], (kb_entities_in_source('src/query/service.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
       );
     });
 
