@@ -28,15 +28,20 @@ logic_claims:
   - CLAIM-F08FBAD7C628995B
 origin:
   kind: agent
-  ref: 'Maintainer review of PR #818, 2026-11-19: the five kibi-vibe requirements state the intended behavior and are approved as written.'
+  ref: 'Maintainer approval, 2026-11-24: Approved (claim texts as listed).'
   approved_by: maintainer
   recorded_at: '2026-11-19T20:09:51.173Z'
 id: REQ-vibe-skills-mirror
 type: req
 firmness: firm
 ---
+
 ## Context
 
 Requested by the maintainer (2026-11-19): like the other host plugin bundles, kibi-vibe mirrors the canonical skills into packages/vibe/skills via sync-agent-skills --target vibe, with the frontmatter name set to the skill id because Vibe requires name to match the skill directory, and CI drift-checks the mirror. Source: scripts/sync-agent-skills.ts, .github/workflows/ci.yml.
 
 See the linked scenarios for the executable behavior.
+
+## Source
+
+> Maintainer approval, 2026-11-24: Approved (claim texts as listed).
