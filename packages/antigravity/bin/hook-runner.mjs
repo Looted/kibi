@@ -3825,6 +3825,11 @@ function toolPath(toolArgs) {
   const candidate = fields.Path ?? fields.AbsolutePath ?? fields.TargetFile ?? fields.file_path ?? fields.path;
   return typeof candidate === "string" && candidate.trim().length > 0 ? candidate : undefined;
 }
+function searchPath(toolArgs) {
+  const fields = fieldsOf(toolArgs);
+  const candidate = fields.SearchPath ?? fields.SearchDirectory;
+  return typeof candidate === "string" && candidate.trim().length > 0 ? candidate : undefined;
+}
 function shellCommand(toolArgs) {
   const fields = fieldsOf(toolArgs);
   const candidate = fields.CommandLine ?? fields.command ?? "";
@@ -3955,27 +3960,30 @@ function withFirmConfirmation(firm, workspace, trace) {
     reason: firmEditConfirmation(firm.where, firm.ids.map(describe))
   };
 }
+function insideAnyRoot(roots, target, cwd) {
+  return roots.some((root) => {
+    if (root.trim().length === 0)
+      return false;
+    const resolvedRoot = path14.resolve(root);
+    return path14.resolve(cwd ?? resolvedRoot, target) === resolvedRoot || toWorkspacePath(root, target, cwd) !== undefined;
+  });
+}
 function passthroughPreToolDecision(input, workspaceRoot) {
-  if (readTools.has(input.toolName) || searchTools.has(input.toolName)) {
+  const isRead = readTools.has(input.toolName);
+  if (!isRead && !searchTools.has(input.toolName)) {
+    return { decision: "ask" };
+  }
+  const roots = [...input.workspacePaths];
+  if (workspaceRoot)
+    roots.push(workspaceRoot);
+  const rawPath = toolPath(input.toolArgs) ?? searchPath(input.toolArgs);
+  if (rawPath) {
+    return insideAnyRoot(roots, rawPath, input.cwd) ? { decision: "allow" } : { decision: "ask" };
+  }
+  if (!isRead && input.cwd && insideAnyRoot(roots, input.cwd, input.cwd)) {
     return { decision: "allow" };
   }
-  if (!workspaceRoot) {
-    return { decision: "ask" };
-  }
-  const args = fieldsOf(input.toolArgs);
-  if (input.toolName === "call_mcp_tool") {
-    return { decision: "ask" };
-  }
-  if (shellTools.has(input.toolName) && args.BypassSandbox === true) {
-    return { decision: "ask" };
-  }
-  if (editTools.has(input.toolName)) {
-    const rawPath = toolPath(input.toolArgs);
-    if (!rawPath || !toWorkspacePath(workspaceRoot, rawPath, input.cwd)) {
-      return { decision: "ask" };
-    }
-  }
-  return { decision: "allow" };
+  return { decision: "ask" };
 }
 function preToolUse(input, workspace, trace = {}) {
   const passthrough = passthroughPreToolDecision(input, workspace.root);
@@ -4503,10 +4511,10 @@ function dispatchHook(input, workspace, trace) {
       return {};
   }
 }
-async function main() {
+async function main(run = runHook) {
   const raw = parseStdinJson(await readStdin());
   try {
-    const result = await runHook(raw);
+    const result = await run(raw);
     process.stdout.write(`${JSON.stringify(result)}
 `);
   } catch (error) {

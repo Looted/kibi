@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-5A5372AD9E4DF0D9
 id: REQ-antigravity-mcp-workspace-discovery
 type: req
+required_evidence: tested
 ---
 When the resolved workspace root owns .kb/manifest.json, the kibi-antigravity MCP launcher must proxy the project-local kibi-mcp server. When launched outside a Kibi workspace, the kibi-antigravity MCP launcher must discover an opted-in Kibi repository via MCP roots/list or an explicit workspaceRoot and otherwise expose no tools.
 

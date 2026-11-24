@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-4E49BD1A4203271B
 id: REQ-antigravity-kb-tool-recognition
 type: req
+required_evidence: tested
 ---
 kibi-antigravity must recognize Kibi operations invoked directly, through Antigravity's call_mcp_tool wrapper, or through the project-local CLI and extract explored paths, entity IDs, and verified git commits. Before a Kibi MCP call runs in an opted-in workspace, kibi-antigravity must stamp workspaceRoot onto calls that omit it.
 

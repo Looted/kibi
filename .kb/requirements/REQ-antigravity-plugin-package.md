@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-04AD5F15DC53AF27
 id: REQ-antigravity-plugin-package
 type: req
+required_evidence: tested
 ---
 The kibi-antigravity package must ship its root plugin.json manifest, hooks.json lifecycle hooks configuration, mcp_config.json MCP server configuration, rules/AGENTS.md, and self-contained bin scripts. The kibi-antigravity plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others.
 

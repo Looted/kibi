@@ -31,7 +31,7 @@ rm -rf ~/.gemini/config/plugins/kibi
 cp -R "$(npm root)/kibi-antigravity" ~/.gemini/config/plugins/kibi
 ```
 
-No `node_modules` are needed in the copied plugin directory: `bin/hook-runner.mjs` is a self-contained bundle with `kibi-agent-core` inlined, `bin/mcp-launcher.cjs` uses only Node built-ins (and automatically discovers the opened Kibi workspace via MCP `roots/list` when installed globally), `bin/run-node.cmd` is a cross-platform POSIX/Windows hook launcher, and `bin/run-node.sh` resolves Node even when Antigravity's Language Server launches with a minimal non-login `PATH` (for example under `nvm`, `volta`, `fnm`, `mise`, or `asdf`).
+No `node_modules` are needed in the copied plugin directory: `bin/hook-runner.mjs` is a self-contained bundle with `kibi-agent-core` inlined, `bin/mcp-launcher.cjs` uses only Node built-ins (and automatically discovers the opened Kibi workspace via MCP `roots/list` when installed globally), `bin/run-node.cmd` is a cross-platform POSIX/Windows hook launcher, and `bin/run-node.sh` lets hooks find Node even when Antigravity's Language Server launches with a minimal non-login `PATH` (for example under `nvm`, `volta`, `fnm`, `mise`, or `asdf`).
 
 Validate or install with the Antigravity CLI:
 
@@ -53,7 +53,7 @@ agy plugin install ./packages/antigravity
 ## Layout
 
 - `plugin.json`: Antigravity plugin manifest (`name: "kibi"`).
-- `mcp_config.json`: workspace-gated stdio `kibi` MCP server via `bin/run-node.sh` + `bin/mcp-launcher.cjs`.
+- `mcp_config.json`: workspace-gated stdio `kibi` MCP server, `node bin/mcp-launcher.cjs` (like the other Kibi plugins, it needs `node` on the `PATH` Antigravity starts with, on Linux, macOS and Windows).
 - `hooks.json`: Antigravity lifecycle hooks (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) placed at the plugin root.
 - `rules/AGENTS.md`: always-on Kibi workflow guidance (plain Markdown, no frontmatter).
 - `skills/`: generated mirror of the canonical Kibi skills (`scripts/sync-agent-skills.ts --target antigravity`).

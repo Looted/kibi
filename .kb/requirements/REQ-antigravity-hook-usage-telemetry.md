@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-0F735F866C2494AB
 id: REQ-antigravity-hook-usage-telemetry
 type: req
+required_evidence: tested
 ---
 When KIBI_DIAGNOSTIC_MODE is enabled in an opted-in Kibi workspace, kibi-antigravity hooks must append Antigravity host usage records to .kb/usage.log through kibi-agent-core and flush them before exiting. When KIBI_DIAGNOSTIC_MODE is disabled, kibi-antigravity hooks must write no usage telemetry.
 

@@ -101,7 +101,9 @@ describe("kibi-antigravity plugin contract", () => {
       fs.readFileSync(path.join(packageRoot, "mcp_config.json"), "utf8"),
     ) as { mcpServers: Record<string, { command: string; args: string[] }> };
     expect(mcp.mcpServers.kibi).toBeDefined();
-    expect(mcp.mcpServers.kibi.command).toBe("./bin/run-node.sh");
+    // `node` runs on every platform; a `.sh` command cannot start on native
+    // Windows, where Antigravity spawns MCP servers without a shell.
+    expect(mcp.mcpServers.kibi.command).toBe("node");
     expect(mcp.mcpServers.kibi.args.join(" ")).toContain("mcp-launcher.cjs");
 
     const rulesPath = path.join(packageRoot, "rules", "AGENTS.md");

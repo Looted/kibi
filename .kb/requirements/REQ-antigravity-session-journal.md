@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-4C96FA3C35B54E63
 id: REQ-antigravity-session-journal
 type: req
+required_evidence: tested
 ---
 kibi-antigravity must persist per-conversation hook state in an append-only JSONL session journal under a workspace-and-session scoped directory so parallel tool calls retain dedupe, pending-edit, firm-confirmation, and queued-context events.
 

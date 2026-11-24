@@ -27,7 +27,7 @@
     "SECURITY.md"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "license": "AGPL-3.0-or-later",
   "homepage": "https://looted.github.io/kibi/",
