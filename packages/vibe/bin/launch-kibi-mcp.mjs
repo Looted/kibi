@@ -4,8 +4,13 @@
 // Hosts do not always spawn the server with the session folder as cwd (Vibe
 // Desktop on Windows spawns it from its own directory), so resolveWorkspace
 // honors KIBI_WORKSPACE/KIBI_PROJECT_ROOT/KIBI_ROOT, the cwd walk bounded by
-// .git, and a kibi-workspace.txt pointer next to this file. The runtime plan
-// picks a direct spawn or a WSL wrap automatically (see kibi-runtime.mjs).
+// .git, and a kibi-workspace.txt pointer next to this file. The pointer names
+// one workspace for every session that reaches it, so it is a single-project
+// last resort. This launcher does not read the client's MCP roots/list: it
+// starts kibi-mcp as a child that owns stdio, so the workspace is fixed here,
+// at spawn time (a direct-mode kibi-mcp still answers each call from the Kibi
+// workspace under the roots the client declares). The runtime plan picks a
+// direct spawn or a WSL wrap automatically (see kibi-runtime.mjs).
 //
 // Outside Kibi workspaces this serves a silent zero-tool MCP server and exits
 // 0, so the host never reports "MCP failed to connect". The same silent

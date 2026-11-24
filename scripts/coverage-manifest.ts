@@ -33,6 +33,7 @@ function walkSourceDirectory(root: string, directory: string): string[] {
 const EXTRA_PRODUCTION_SOURCES = [
   "packages/antigravity/bin/mcp-launcher.cjs",
   "packages/vibe/bin/kibi-runtime.mjs",
+  "packages/vibe/bin/hooks/kibi-common.mjs",
 ];
 
 export function collectProductionSourceFiles(workspaceRoot: string): string[] {

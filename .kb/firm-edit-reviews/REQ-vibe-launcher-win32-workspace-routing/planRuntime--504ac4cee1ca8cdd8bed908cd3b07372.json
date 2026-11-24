@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-launcher-win32-workspace-routing",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "planRuntime",
+  "verdict": "keeps",
+  "note": "Drive-letter workspaces still run natively, UNC workspaces still wrap through the named distro, the force flags behave as before and an unconvertible forced path is still a hard error; a WSL workspace with no usable Node.js 22+ is now an error too instead of a silent native spawn (runtime.test.mjs).",
+  "statementHash": "sha256:30313b675da3c49cbb60f99a2227468cbaf584fe83287fa1fbfbc787286a9388",
+  "codeHash": "sha256:d3349ec3287341b44cef993bc11869fca0d1987fa7f09f7050e2f77d9274e95d",
+  "startLine": 379,
+  "endLine": 417,
+  "recordedAt": "2026-11-24T10:07:00.249Z"
+}
