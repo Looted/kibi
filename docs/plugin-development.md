@@ -109,7 +109,7 @@ comparison metadata only.
 | Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
 | Symbol extractor v1 | Builtin first for supported files under `augment` | Legacy replacement and fallback behavior |
 | Symbol extractor v2 | Builtin first for supported files under `augment` | First claiming provider owns the result; partial, failed, or unsupported output never becomes a successful fallback |
-| Search hints | None; the builtin gives no hints | `replace` or `shadow` only; `augment` is rejected. Runs only from `kb_search`, and only when the intent answer abstained or its top score is below 0.44. A provider may name only the entities it was given, at most 20, scored in [0, 1] in score then id order; a failing, late (3 s first call, 0.5 s after) or invalid answer gives no hints and a diagnostic. Hints never change results, the answer layer or abstention |
+| Search hints | None from the builtin; the bundled `kibi-plugin-search-hints` is the default `replace` provider unless the project configures a provider or declines it | `replace` or `shadow` only; `augment` is rejected. Runs only from `kb_search`, and only when the intent answer abstained or its top score is below 0.44. A provider may name only the entities it was given, at most 20, scored in [0, 1] in score then id order; a failing, late (3 s first call, 0.5 s after) or invalid answer gives no hints and a diagnostic. Hints never change results, the answer layer or abstention |
 | Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from requirement modeling (`kb_model` mode `requirement`, CLI `model-requirement`). `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
@@ -372,22 +372,27 @@ on the missing pack. A generated file whose pack is missing gets the same
 review. A pack declined in the same commit as a source change in its language
 takes effect from the next commit, like other analyzer settings.
 
-## Optional search hints plugin
+## Search hints plugin
 
 `kibi-plugin-search-hints` implements `kibi.search-hints.v1` with the bundled,
 MIT-licensed potion-base-8M static embedding (int8, about 7.7 MB) and a pure
 JavaScript tokenizer checked against the upstream one. It needs no network,
-native code or model download. Activate it in `replace` mode:
+native code or model download. It ships with Kibi and is on by default: a
+project that names no `kibi.search-hints.v1` provider in `kibi.plugins` and has
+not declined the plugin gets it as the `replace` provider, loaded from Kibi's
+own install. Its provider stamp shows `external: false`; a provider the project
+configured shows `external: true`. A `kibi.plugins` entry for the capability, in
+any mode and from any package, takes the place of the default.
+
+The embedding is English-only. Turn the default off when the knowledge base is
+not written in English, when the environment does not allow a bundled model, or
+when another provider is configured instead, by listing the package in
+`kibi.declinedPlugins`:
 
 ```json
 {
   "kibi": {
-    "plugins": [
-      {
-        "package": "kibi-plugin-search-hints",
-        "capabilities": { "kibi.search-hints.v1": { "mode": "replace" } }
-      }
-    ]
+    "declinedPlugins": ["kibi-plugin-search-hints"]
   }
 }
 ```
@@ -397,8 +402,7 @@ entities (title, statement and body, up to 2000 characters each) and shows the
 closest ones as `queryAnalysis.hints`. Entity vectors are cached under Kibi's
 runtime directory and rebuilt only for entities whose text changed; on a KB of
 about 3,000 entities the first weak search builds them in under a second.
-`/kibi-bootstrap` offers the plugin once the KB holds 50 or more requirement
-documents. See [packages/plugin-search-hints/README.md](../packages/plugin-search-hints/README.md).
+Bootstrap does not offer it: it is already active. See [packages/plugin-search-hints/README.md](../packages/plugin-search-hints/README.md).
 
 ## Optional Jev provider
 

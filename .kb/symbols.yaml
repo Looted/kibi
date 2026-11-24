@@ -3513,6 +3513,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
+        target: TEST-kibi-search-next-steps
+      - type: covered_by
         target: TEST-mcp-search-discovery
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -36528,35 +36530,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-hints-result-limit
-  - id: SYM-search-hints-offer-requirements
-    title: SEARCH_HINTS_OFFER_REQUIREMENTS
-    status: active
-    sourceFile: packages/cli/src/operations/bootstrap/plugin-offers.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:28:28.679Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-plugin-search-hints
-      - type: covered_by
-        target: TEST-proof-search-hints-offer-requirements
-      - type: implements
-        target: REQ-kibi-search-hints-limits
-  - id: SYM-proof-search-hints-offer-requirements
-    title: searchHintsOfferCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:28:35.387Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-search-hints-offer-requirements
   - id: SYM-core-dimension-stage
     title: dimension_stage
     status: active
@@ -48570,6 +48543,46 @@ symbols:
         target: TEST-vibe-hooks-decision-guard
       - type: implements
         target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-search-hints-default-resolution
+    title: CapabilityRegistry.resolveSearchHints
+    status: active
+    sourceFile: packages/cli/src/plugins/registry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T08:22:44.622Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-search-hints-default
+  - id: SYM-test-kibi-search-next-steps
+    title: discovery-search.mutation.test.ts
+    status: active
+    sourceFile: packages/cli/tests/public-mutation/operations/discovery-search.mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T08:39:28.473Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-search-next-steps
+  - id: SYM-search-next-actions
+    title: searchNextActions
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T09:01:16.447Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-next-steps
+      - type: implements
+        target: REQ-kibi-search-abstention-next-step
+      - type: implements
+        target: REQ-kibi-search-question-next-steps
   - id: SYM-zcode-case-kb-call-without-workspace
     title: ZCode names the session workspace on a Kibi MCP call that carries none
     status: active

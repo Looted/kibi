@@ -109,6 +109,12 @@
         "type": "object",
         "additionalProperties": true
       },
+      "notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
       "branch": {
         "type": ["string", "null"]
       },

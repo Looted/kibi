@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import {
-  SEARCH_HINTS_OFFER_REQUIREMENTS,
-  pluginOffers,
-} from "../../../src/operations/bootstrap/plugin-offers.js";
+import { pluginOffers } from "../../../src/operations/bootstrap/plugin-offers.js";
 import * as suggestion from "../../../src/plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../../src/public/operations/runtime-types.js";
 
@@ -79,6 +76,15 @@ function context(
 }
 
 const UI = ["src/App.tsx", "src/b.jsx", "src/c.component.ts"];
+
+describe("search hints", () => {
+  test("are never offered: the bundled plugin is already active", async () => {
+    for (const requirements of [0, 1, 60])
+      expect(await pluginOffers(context({}, requirements), [])).toStrictEqual(
+        [],
+      );
+  });
+});
 
 describe("UI plugin offer", () => {
   test("offers kibi-plugin-ui for production component files", async () => {
@@ -160,55 +166,6 @@ describe("UI plugin offer", () => {
   test("offers nothing into a malformed kibi block", async () => {
     for (const kibi of [null, "x", 5, ["a"]])
       expect(await pluginOffers(context({ kibi }), UI)).toStrictEqual([]);
-  });
-});
-
-describe("search hints offer", () => {
-  test("is offered once the KB holds enough requirements", async () => {
-    expect(SEARCH_HINTS_OFFER_REQUIREMENTS).toBe(50);
-    expect(await pluginOffers(context({}, 49), [])).toStrictEqual([]);
-    const ctx = context({}, 50);
-    expect(await pluginOffers(ctx, [])).toStrictEqual([
-      {
-        package: "kibi-plugin-search-hints",
-        capability: "kibi.search-hints.v1",
-        mode: "replace",
-        reason:
-          "50 requirements in the KB; kb_search can suggest which ones a weakly answered question means",
-        fileCount: 50,
-        evidence: [
-          ".kb/requirements/R001.md",
-          ".kb/requirements/R002.md",
-          ".kb/requirements/R003.md",
-          ".kb/requirements/R004.md",
-          ".kb/requirements/R005.md",
-        ],
-      },
-    ]);
-    expect((ctx as unknown as { reads: string[] }).reads).toStrictEqual([
-      "/ws/package.json",
-    ]);
-  });
-
-  test("is not offered once configured, or when requirements cannot be listed", async () => {
-    expect(
-      await pluginOffers(
-        context(
-          { kibi: { declinedPlugins: ["kibi-plugin-search-hints"] } },
-          60,
-        ),
-        [],
-      ),
-    ).toStrictEqual([]);
-    expect(
-      await pluginOffers(context({}, new Error("glob")), []),
-    ).toStrictEqual([]);
-    expect(
-      await pluginOffers(context({}, 60, { glob: false }), []),
-    ).toStrictEqual([]);
-    expect(
-      await pluginOffers(context({}, 60, { fs: false }), []),
-    ).toStrictEqual([]);
   });
 });
 
