@@ -1663,7 +1663,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toContain(
       "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
-    expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
+    expect(context).toMatch(/\n- Also linked \([345] more\): REQ-/);
     expect(context).toContain("\nWhy: ");
     expect(context).toContain("\nNext layer: ");
     expect(context).toEndWith("gives the commit gate's verdict on the edit.");
