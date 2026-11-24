@@ -301,6 +301,9 @@ function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   if (!workspaceRoot || !isKibiMcpToolName(toolName))
     return;
   const base = isRecord(toolInput) ? toolInput : {};
+  const named = base[KIBI_WORKSPACE_ARGUMENT];
+  if (typeof named === "string" && named.trim().length > 0)
+    return;
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 function effectiveKbOperation(operation, payload) {
@@ -3939,9 +3942,9 @@ async function runHook(rawInput, environment = {}) {
           };
         }
       case "preToolUse": {
-        const stamped = stampKibiWorkspace(input.toolName, input.toolInput, kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]));
-        if (stamped) {
-          return { updated_input: stamped };
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(input.toolName, input.toolInput, kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]));
+          return stamped === undefined ? emptyResult() : { updated_input: stamped };
         }
         const explicitPaths = extractExplicitPathFields2(input.toolInput);
         const hasDirectKbEdit = kibiReady && isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);

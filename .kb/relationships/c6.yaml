@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82d2f1950709
+  - type: executable_for
+    from: SYM-test-agent-hosts-kb-call-workspace-stamp
+    to: TEST-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:56:33.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e49d8db57d3
