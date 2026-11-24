@@ -507,7 +507,7 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     expect(action).toContain('resolved.source !== "bundled"');
   });
 
-  test("a release never trusts the CI cache or drops its commit binding", () => {
+  test("a release never trusts the CI bundle cache or the cached-build flag", () => {
     for (const name of [
       "publish.yml",
       "release-pack.yml",
@@ -519,5 +519,11 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
       expect(content, name).not.toContain("swipl-ci-bundle");
       expect(content, name).not.toContain("use-bundled-swipl");
     }
+    // Publish builds in its own run. It has no archive cache and cannot drop
+    // the commit binding the way a pull-request dry run can.
+    const publish = read(".github", "workflows", "publish.yml");
+    expect(publish).not.toContain("actions/cache");
+    expect(publish).not.toContain("unset GITHUB_SHA");
+    expect(publish).not.toContain("archive-cache");
   });
 });
