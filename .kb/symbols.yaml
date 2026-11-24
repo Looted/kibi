@@ -162,10 +162,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-check-symbols-without-links
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
   - id: SYM-kibi-check-build-summary
     title: buildSummary
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -48814,3 +48818,82 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-24T10:14:47.515Z
+  - id: SYM-test-kibi-compact-results
+    title: Result compaction suite
+    status: active
+    sourceFile: packages/cli/tests/public/impact/shared-advice.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:19:12.643Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-compact-results
+  - id: SYM-shared-advice-shared-advice-of
+    title: sharedAdviceOf
+    sourceFile: packages/cli/src/public/impact/shared-advice.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:21:20.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-check-impact-advice-once
+  - id: SYM-check-format-shared-compact-impact-diagnostics
+    title: compactImpactDiagnostics
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:21:21.816Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-check-impact-advice-once
+      - type: implements
+        target: REQ-kb-check-impact-statement-quoted-once
+  - id: SYM-requirement-statements-without-quoted-statement
+    title: withoutQuotedStatement
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:21:30.271Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-check-impact-statement-quoted-once
+  - id: SYM-discovery-executors-slim-answered-matches
+    title: slimAnsweredMatches
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:21:49.834Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-search-answered-results-identity-only
+  - id: SYM-search-answer-answer-quoted-ids
+    title: answerQuotedIds
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T19:21:51.840Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-compact-results
+      - type: implements
+        target: REQ-kb-search-answered-results-identity-only

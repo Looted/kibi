@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-kibi-compact-results",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/search-answered-results.test.ts",
+      "./packages/cli/tests/operations/discovery.test.ts",
+      "./packages/cli/tests/public/impact/shared-advice.test.ts",
+      "./packages/cli/tests/public/check-format-shared.coverage.test.ts",
+      "./packages/cli/tests/consumer/check-compact-impact.test.ts",
+      "./packages/cli/tests/consumer/search-answer-layer.test.ts",
+      "./packages/mcp/tests/tools/check-impact.test.ts"
+    ]
+  ]
+}
