@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-825a6b9ef24b
+  - type: implements
+    from: SYM-requirement-statements-without-quoted-statement
+    to: REQ-kb-check-impact-statement-quoted-once
+    created_at: 2026-11-24T19:21:31.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7adbf540c14f
+  - type: covered_by
+    from: SYM-requirement-statements-without-quoted-statement
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:31.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8445a3c525db

@@ -496,3 +496,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51da1e3c8289
+  - type: implements
+    from: SYM-discovery-executors-slim-answered-matches
+    to: REQ-kb-search-answered-results-identity-only
+    created_at: 2026-11-24T19:21:51.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-222007f75b9b
+  - type: covered_by
+    from: SYM-discovery-executors-slim-answered-matches
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:51.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dec4ab9d7cb

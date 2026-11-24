@@ -286,3 +286,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da77632772f0
+  - type: constrains
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: FACT-SUBJECT-KIBI-CHECK-REQUIREMENT-STATEMENTS
+    created_at: 2026-11-24T19:21:28.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceb6c106a221
+  - type: requires_property
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: FACT-check-impact-statement-quoted-once
+    created_at: 2026-11-24T19:21:29.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dc1d5c97b90
+  - type: specified_by
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: SCEN-kb-check-impact-statement-quoted-once
+    created_at: 2026-11-24T19:21:29.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09c75e0add47
+  - type: relates_to
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: REQ-kb-check-unverified-requirement-statements
+    created_at: 2026-11-24T19:21:29.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6eaf75ca947b
+  - type: relates_to
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-24T19:21:29.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baede5e6ff7a
+  - type: specified_by
+    from: REQ-kb-check-impact-statement-quoted-once
+    to: SCEN-CASE-kb-check-impact-statement-quoted-once-CHECK-STATEMENT-IN-MESSAGE
+    created_at: 2026-11-24T19:26:48.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb9c9be2bc85

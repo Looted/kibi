@@ -54,9 +54,16 @@ export interface CheckResult {
       readonly suggestion?: string;
     }[];
     readonly qualityDiagnostics?: readonly QualityDiagnostic[];
-    impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
+    impactDiagnostics?: readonly (Omit<
+      ChangedFileImpactResult["impactDiagnostics"][number],
+      "suggestion"
+    > & { readonly suggestion?: string; readonly advice?: number })[];
+    impactAdvice?: readonly string[];
     sourceFiles?: ChangedFileImpactResult["sourceFiles"];
-    extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
+    extractedSymbols?: readonly Omit<
+      ChangedFileImpactResult["extractedSymbols"][number],
+      "linkedEntityIds"
+    >[];
     linkedEntities?: ChangedFileImpactResult["linkedEntities"];
     nextActions?: ChangedFileImpactResult["nextActions"];
     migrationPlan?: MigrationPlan;

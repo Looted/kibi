@@ -1195,6 +1195,13 @@
               "additionalProperties": true
             }
           },
+          "impactAdvice": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Advice that impact diagnostics share, once each. An impact diagnostic whose advice is an index into this list carries no suggestion of its own."
+          },
           "sourceFiles": {
             "type": "array",
             "items": {

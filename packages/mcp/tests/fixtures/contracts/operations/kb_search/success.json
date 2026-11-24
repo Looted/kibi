@@ -31,7 +31,7 @@
         },
         "fields": {
           "default": "summary",
-          "description": "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
+          "description": "'summary': metadata, snippet (bare rows for entities the answer quotes); 'full': bodies, graph paths, fact queries.",
           "enum": ["summary", "full"],
           "type": "string"
         },
