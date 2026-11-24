@@ -1,5 +1,5 @@
 ---
-title: The package ships without rules/AGENTS.md
+title: The package ships without its rules directory
 status: active
 fact_kind: property_value
 subject_key: antigravity.kibi_plugin
@@ -8,12 +8,19 @@ operator: eq
 value_type: set
 origin:
   kind: agent
-  recorded_at: '2026-11-24T05:07:35.294Z'
+  recorded_at: '2026-11-24T07:46:07.264Z'
 value_set:
-  - bin
+  - plugin.json
   - hooks.json
   - mcp_config.json
-  - plugin.json
+  - skills
+  - assets
+  - dist
+  - bin
+  - README.md
+  - CHANGELOG.md
+  - LICENSE
+  - SECURITY.md
 id: FACT-NEG-antigravity-parts-missing-rules
 type: fact
 ---

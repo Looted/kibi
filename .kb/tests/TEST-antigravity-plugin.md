@@ -65,15 +65,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-5021733cb2b0433d0a08c2c5
+    receipt_id: PR-6b79e2e039c7c1a524ffb72d
     test_id: TEST-antigravity-plugin
     scope: end_to_end
     outcome: passed
-    code_snapshot: a714e864d950e725b1003751fd1b15eed25dd0ef7c7fc16444c72ab926a52161
+    code_snapshot: bafc5f0287214228b10155657995da9865162b1902b3dc78578a8195b20271e9
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-24T05:08:58.332Z'
-    finished_at: '2026-11-24T05:08:59.344Z'
-    artifact_digest: cb9d9e3dd63b8f8ec038edfaa8a3a371b5612248e36ed5f0efc5e0f34f2d6486
+    started_at: '2026-11-24T07:46:20.181Z'
+    finished_at: '2026-11-24T07:46:21.269Z'
+    artifact_digest: e6087cbdf55632a00cea65201200a7bd6137e21a95323a3d5964ff79b514eb0b
     contract_hash: 6c3f93b0b51388695936feec5ef4dc067f987e91f8ec079e78f61f596d44bc91
     binding_hash: 37453984d93dba1bfaa76841bb964d5a10b46a453a37765f4a63943e990d1420
     fingerprint: a3198cd8a8ac3cbc27eb16e24df8cd153c14da7cddcff5373974b7485279afa3

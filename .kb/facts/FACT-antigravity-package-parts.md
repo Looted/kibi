@@ -1,6 +1,6 @@
 ---
-claim_key: CLAIM-EF37722DCB8CDA3D
-claim_text: The kibi-antigravity package must ship its root plugin.json manifest, hooks.json lifecycle hooks configuration, mcp_config.json MCP server configuration, rules/AGENTS.md, and self-contained bin scripts
+claim_key: CLAIM-35D0A196585C24D0
+claim_text: The kibi-antigravity package must ship its root plugin.json manifest, hooks.json lifecycle hooks configuration, mcp_config.json MCP server configuration, rules, skills, assets, dist build output, self-contained bin scripts, README.md, CHANGELOG.md, LICENSE and SECURITY.md, and no other files
 fact_kind: property_value
 operator: eq
 origin:
@@ -10,13 +10,20 @@ property_key: shipped_parts
 status: active
 subject_key: antigravity.kibi_plugin
 text_ref: REQ-antigravity-plugin-package
-title: The kibi-antigravity package ships its required plugin parts
+title: The kibi-antigravity package ships exactly its plugin parts
 value_set:
   - plugin.json
   - hooks.json
   - mcp_config.json
-  - rules/AGENTS.md
+  - rules
+  - skills
+  - assets
+  - dist
   - bin
+  - README.md
+  - CHANGELOG.md
+  - LICENSE
+  - SECURITY.md
 value_type: set
 id: FACT-antigravity-package-parts
 type: fact

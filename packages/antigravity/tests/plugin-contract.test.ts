@@ -126,6 +126,35 @@ describe("kibi-antigravity plugin contract", () => {
     ).toBe(true);
   });
 
+  test("package.json files lists exactly the shipped plugin parts", () => {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"),
+    ) as { files: string[] };
+    const shippedParts = [
+      "CHANGELOG.md",
+      "LICENSE",
+      "README.md",
+      "SECURITY.md",
+      "assets",
+      "bin",
+      "dist",
+      "hooks.json",
+      "mcp_config.json",
+      "plugin.json",
+      "rules",
+      "skills",
+    ];
+    // A part outside this set (src, tests, tsconfig) or a missing one fails.
+    expect([...pkg.files].sort()).toEqual(shippedParts);
+    expect(new Set(pkg.files).size).toBe(pkg.files.length);
+    // Every part except the build output and the changelog (written by the
+    // first release) is committed to the package.
+    const generated = new Set(["dist", "CHANGELOG.md"]);
+    for (const part of shippedParts.filter((p) => !generated.has(p))) {
+      expect(fs.existsSync(path.join(packageRoot, part))).toBe(true);
+    }
+  });
+
   test("skills mirror matches canonical runtime skills with zero drift", () => {
     const result = syncAgentSkillsUnlocked(repoRoot, {
       mode: "check",

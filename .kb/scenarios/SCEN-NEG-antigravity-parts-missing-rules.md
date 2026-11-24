@@ -1,5 +1,5 @@
 ---
-title: The package ships without rules/AGENTS.md is rejected
+title: The package ships without its rules directory is rejected
 status: active
 expects: rejection
 tags:
@@ -7,8 +7,8 @@ tags:
   - antigravity
 origin:
   kind: agent
-  recorded_at: '2026-11-24T05:07:37.371Z'
+  recorded_at: '2026-11-24T07:46:09.579Z'
 id: SCEN-NEG-antigravity-parts-missing-rules
 type: scenario
 ---
-Given a package without rules/AGENTS.md, when the plugin contract test checks the shipped parts, then the missing rules file fails it; a package missing a required part is rejected. packages/antigravity/tests/plugin-contract.test.ts covers the manifest, hooks, MCP config, rules and bin scripts.
+Given a package.json files list without rules, when the plugin contract test checks it, then the list no longer equals the shipped parts and the test fails; a package missing a required part is rejected. packages/antigravity/tests/plugin-contract.test.ts pins the package.json files list and checks that rules/AGENTS.md exists.
