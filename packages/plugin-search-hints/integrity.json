@@ -21,33 +21,33 @@
     },
     {
       "path": "README.md",
-      "bytes": 2120,
-      "sha256": "c8375dcb9f7739731be9c6f7e8571e86809618cda41380ced09d99de8c7f95be"
+      "bytes": 2164,
+      "sha256": "8e709f784463122e5b7ca557a1a17008734477d82397129308d51237a884f4c6"
     },
     {
       "path": "SBOM.spdx.json",
-      "bytes": 2353,
-      "sha256": "69cb853dd24f886fc7f4c466bb0965a868d701053373b534b0e2cc01af522c95"
+      "bytes": 2464,
+      "sha256": "51ab0713dc12c7d9aed892dfb047d19d2b54f700f9ce405a635de6890e2f2218"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "bytes": 993,
-      "sha256": "3b0b169c9173957364e4b03aeab1ebe87efd488fb3b465c022027ce7adc8c331"
+      "bytes": 1098,
+      "sha256": "7c24f8ec72b9c4169a880665b4908fbcbca56d5f11b97efa34390de55a6584bb"
     },
     {
-      "path": "assets/potion-base-8M.int8.bin",
-      "bytes": 7677296,
-      "sha256": "02eb3b486a152a01c49055e109cce3e483fc3b49761f5343b5518c0cfc76f54f"
+      "path": "assets/potion-retrieval-32M.int8.bin",
+      "bytes": 32554972,
+      "sha256": "8e15738797a07a51bd4388abdc4e86f8aa5b47f66179739f3a19e65fa0e52d01"
     },
     {
       "path": "assets/vocab.txt",
-      "bytes": 219690,
-      "sha256": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c"
+      "bytes": 492156,
+      "sha256": "4b3452e69455f96c6cfc1cdb212d3b7b1a3e9d2505ab6f61a50022f61467a6a3"
     },
     {
       "path": "catalog.json",
-      "bytes": 900,
-      "sha256": "d370f8529bd6ceb852c58823b0bb956fdc3f62a657a2fb2fc3b7627fa9336003"
+      "bytes": 983,
+      "sha256": "80aca0cf479b5b23331e97502342bc8c77949a7a0ce2a3d784d9b2b3f62ec0fd"
     },
     {
       "path": "dist/cache.d.ts",
@@ -57,12 +57,12 @@
     {
       "path": "dist/cache.d.ts.map",
       "bytes": 723,
-      "sha256": "b4961ecf967c867aa963ff0aced7348aeab8fe45fd88171c9225bf48dd807fb7"
+      "sha256": "0921f8f03026427b99a90d3f97b7db1a2e320d23ec5cb2e4423f135700d73e3d"
     },
     {
       "path": "dist/cache.js",
-      "bytes": 4283,
-      "sha256": "114aa58ffff06ff3b50d806191c15123ce589d76c9d79d2257c104715d9da0a6"
+      "bytes": 4722,
+      "sha256": "7f70333f0b5083a5b3b588280d046514e674ce7d89b95584620848b3b540fd6a"
     },
     {
       "path": "dist/index.d.ts",
@@ -76,23 +76,23 @@
     },
     {
       "path": "dist/index.js",
-      "bytes": 2849,
-      "sha256": "ef0a57ef29c12ba2df3bf5a8a2e13249a406bd5450d0b8810e31525707d0c407"
+      "bytes": 2904,
+      "sha256": "6b01b18be48a3e9b96018aed2c9370da4724bc6848fdc996a70a450aaffd480f"
     },
     {
       "path": "dist/model.d.ts",
-      "bytes": 831,
-      "sha256": "a9bc35f94df9392d8bb7d3167ee6bc17da6a2176532735132f20704e78039ddc"
+      "bytes": 837,
+      "sha256": "60266c47b1d0010496af26b1bff101e5f3efc7ad2fd43a3473d05f904b79f9ad"
     },
     {
       "path": "dist/model.d.ts.map",
       "bytes": 451,
-      "sha256": "a5470076876c76947aafc7b250ca11a1e332b5ac2fafb8688e307862a9ad9c4e"
+      "sha256": "d4a6c843f6e6beccab33bad9c2bca431277b000a86027e65dd6520abbc8c0e1d"
     },
     {
       "path": "dist/model.js",
-      "bytes": 2722,
-      "sha256": "2cb1d4ef776173bf4643d845845bf39fdbb9821ecbbace8d535b5887f4f1c25d"
+      "bytes": 2734,
+      "sha256": "e9d766f07f8c686e15a413a3d759a1f0bf00083169e62939fbd72e797d147556"
     },
     {
       "path": "dist/tokenizer.d.ts",
@@ -115,7 +115,7 @@
       "sha256": "587a673933425dbc36ec61268d3b954051b2d3ef3c9b322ede357976055ffdd5"
     },
     {
-      "path": "licenses/potion-base-8M-MIT.txt",
+      "path": "licenses/potion-retrieval-32M-MIT.txt",
       "bytes": 1074,
       "sha256": "b0214f148eceae739f916209e78cfe15712c4b810c8bc9d44b6c2d1d1616aab6"
     },

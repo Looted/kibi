@@ -1,6 +1,6 @@
 # Dev only: records tests/fixtures/tokenizer-boundaries.json with the upstream
 # Hugging Face tokenizer. Run from a directory holding potion/tokenizer.json
-# (the pinned potion-base-8M revision) with `pip install tokenizers`.
+# (the pinned potion-retrieval-32M revision) with `pip install tokenizers`.
 import json
 from tokenizers import Tokenizer
 tok = Tokenizer.from_file("potion/tokenizer.json")

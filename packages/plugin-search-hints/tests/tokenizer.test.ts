@@ -13,7 +13,7 @@ const vocabulary = readFileSync(
 )
   .split("\n")
   .filter((_, index, all) => index < all.length - 1);
-// Recorded with Hugging Face `tokenizers` from potion-base-8M's
+// Recorded with Hugging Face `tokenizers` from potion-retrieval-32M's
 // tokenizer.json (add_special_tokens: false).
 const fixtures = JSON.parse(
   readFileSync(
