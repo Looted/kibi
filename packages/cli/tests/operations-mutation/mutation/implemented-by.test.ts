@@ -592,6 +592,8 @@ describe("executeUpsertRequest", () => {
       scenarios: async () => [],
       covered: async () => true,
       tested: async () => true,
+      neighbours: async () => [],
+      proofIntegration: async () => true,
       subjectGaps: async () => [
         {
           claimKey: "C1",
