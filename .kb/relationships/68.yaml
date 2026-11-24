@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d3114ae4b83
+  - type: executable_for
+    from: SYM-antigravity-serve-deferred-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:31.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42146b3edda0

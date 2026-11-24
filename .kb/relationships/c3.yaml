@@ -650,3 +650,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af86221efdec
+  - type: implements
+    from: SYM-usage-log-append-hook-usage
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:22.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac5317ea7755
+  - type: covered_by
+    from: SYM-usage-log-append-hook-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:22.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f52694aed839
+  - type: assumes
+    from: SCEN-NEG-antigravity-journal-not-append-only
+    to: FACT-NEG-antigravity-journal-not-append-only
+    created_at: 2026-11-24T05:07:28.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82858d220234
+  - type: verified_by
+    from: SCEN-NEG-antigravity-journal-not-append-only
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:28.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ea67ad7538

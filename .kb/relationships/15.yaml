@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2e5304475d3
+  - type: verified_by
+    from: SCEN-antigravity-plugin-package
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:03:05.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf8a966b5ad5
+  - type: assumes
+    from: SCEN-antigravity-plugin-package
+    to: FACT-antigravity-package-parts
+    created_at: 2026-11-22T05:15:26.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55f7b8275bad
+  - type: assumes
+    from: SCEN-antigravity-plugin-package
+    to: FACT-antigravity-bundled-skills
+    created_at: 2026-11-22T05:15:26.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a2c84531fa6
