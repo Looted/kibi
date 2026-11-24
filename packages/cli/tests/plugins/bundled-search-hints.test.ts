@@ -71,6 +71,8 @@ describe("the bundled search hints provider", () => {
       expect(replace?.mode).toBe("replace");
       // Kibi's own dependency: the stamp reads as not external.
       expect(replace?.external).toBe(false);
+      expect(replace?.packageName).toBe("kibi-plugin-search-hints");
+      expect(BUNDLED_SEARCH_HINTS_PACKAGE).toBe("kibi-plugin-search-hints");
       expect(replace?.stamp).toStrictEqual({
         pluginId: "bundled",
         pluginVersion: "1.0.0",
@@ -175,8 +177,14 @@ describe("the bundled search hints provider", () => {
         },
       },
     } as KibiPluginV1);
-    await expect(
-      registry({}, {}, () => without).resolveSearchHints(),
-    ).rejects.toThrow(`Bundled plugin 'empty' does not export ${HINTS}`);
+    const failure = await registry({}, {}, () => without)
+      .resolveSearchHints()
+      .catch((error: unknown) => error);
+    expect((failure as { code?: string }).code).toBe(
+      "PLUGIN_MISSING_CAPABILITY",
+    );
+    expect((failure as Error).message).toBe(
+      `Bundled plugin 'empty' does not export ${HINTS}`,
+    );
   });
 });

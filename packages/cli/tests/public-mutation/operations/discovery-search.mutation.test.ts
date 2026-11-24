@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import {
+  KIBI_PLUGIN_API_VERSION,
+  type KibiPluginV1,
+  defineKibiPlugin,
+} from "kibi-plugin-sdk";
 import * as intent from "../../../src/intent-search.js";
+import { CapabilityRegistry } from "../../../src/plugins/registry.js";
 import * as entities from "../../../src/public/operations/discovery-entities.js";
 import { executeSearch } from "../../../src/public/operations/discovery-executors.js";
+import { toKibiResult } from "../../../src/public/operations/result-envelope.js";
 import * as answers from "../../../src/search-answer.js";
 import * as hints from "../../../src/search-hints.js";
 import * as ranking from "../../../src/search-ranking.js";
@@ -775,5 +782,77 @@ describe("executeSearch structured next steps", () => {
         (action: { operation: string }) => action.operation,
       ),
     ).toStrictEqual(["kb_query", "kb_search", "kb_check"]);
+  });
+});
+
+const searchSpec = { name: "kb_search", effects: [] as const };
+
+describe("executeSearch with the bundled search hints provider", () => {
+  const bundledPlugin = (hint: () => unknown) =>
+    defineKibiPlugin({
+      apiVersion: KIBI_PLUGIN_API_VERSION,
+      id: "bundled",
+      version: "1.0.0",
+      permissions: { network: false, metered: false, secrets: [] },
+      capabilities: {
+        searchHints: { id: "bundled.hints", model: "m", hint },
+      },
+    } as KibiPluginV1);
+
+  const answerWith = async (bundled: () => KibiPluginV1) => {
+    const fakes = intentFakes({ matches: [] });
+    // The real hints builder runs against the real registry.
+    fakes.build.mockRestore();
+    fakes.search.mockImplementation(
+      async (
+        _input: unknown,
+        _prolog: unknown,
+        _root: unknown,
+        capture: (entities: unknown[], bodies: unknown) => void,
+      ) => {
+        capture([FULL_ROW], new Map());
+        return { matches: [], analysis: fakes.analysis };
+      },
+    );
+    const registry = new CapabilityRegistry({
+      workspaceRoot: "/ws",
+      projectConfig: {},
+      bundledSearchHints: bundled,
+    });
+    const result = await search(
+      { query: "q" },
+      context({ ensurePlugins: async () => registry }),
+    );
+    return {
+      result,
+      envelope: toKibiResult(searchSpec, result.structuredContent),
+    };
+  };
+
+  test("a bundled plugin that fails to load leaves the search without hints and not failed", async () => {
+    const { result, envelope } = await answerWith(() => {
+      throw new Error("cannot load model");
+    });
+    expect(envelope.status).toBe("success");
+    expect(result.structuredContent.count).toBe(0);
+    const analysis = result.structuredContent.queryAnalysis.hints;
+    expect(analysis.items).toStrictEqual([]);
+    expect(analysis.diagnostics[0].code).toBe("provider_unavailable");
+    expect(analysis.diagnostics[0].message).toBe("cannot load model");
+  });
+
+  test("a bundled plugin that throws while answering leaves the search without hints and not failed", async () => {
+    const { result, envelope } = await answerWith(() =>
+      bundledPlugin(() => {
+        throw new Error("model crashed");
+      }),
+    );
+    expect(envelope.status).toBe("success");
+    expect(result.structuredContent.queryAnalysis.hints.items).toStrictEqual(
+      [],
+    );
+    expect(
+      result.structuredContent.queryAnalysis.hints.diagnostics,
+    ).toHaveLength(1);
   });
 });

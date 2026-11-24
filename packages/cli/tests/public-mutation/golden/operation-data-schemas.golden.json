@@ -111,13 +111,6 @@
           "type": "string"
         }
       },
-      "nextActions": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      },
       "branch": {
         "type": ["string", "null"]
       },

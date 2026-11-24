@@ -533,7 +533,7 @@ export class CapabilityRegistry {
     if (
       capabilityId === SEARCH_HINTS_CAPABILITY_ID &&
       !entries.some((entry) => entry.capabilities[capabilityId]) &&
-      !(config.declinedPlugins ?? []).includes(BUNDLED_SEARCH_HINTS_PACKAGE) &&
+      !config.declinedPlugins?.includes(BUNDLED_SEARCH_HINTS_PACKAGE) &&
       !servesKbDependency()
     ) {
       const plugin = validateKibiPlugin(await this.bundledSearchHints());

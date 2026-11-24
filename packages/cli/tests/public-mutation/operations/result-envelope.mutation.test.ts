@@ -734,3 +734,34 @@ describe("envelopeDiagnostic", () => {
       });
   });
 });
+
+describe("kb_search next actions", () => {
+  const next = [
+    { operation: "kb_query", input: {}, reason: "r", required: false },
+  ];
+  const searchSpec = { name: "kb_search", effects: [] as const };
+
+  test("are lifted to the envelope and left out of the data", () => {
+    const result = toKibiResult(searchSpec, {
+      count: 0,
+      notes: ["n"],
+      nextActions: next,
+    });
+    expect(result.nextActions).toStrictEqual(next);
+    expect(result.data as unknown).toStrictEqual({ count: 0, notes: ["n"] });
+  });
+
+  test("a payload without them is left as it is", () => {
+    const data = { count: 1 };
+    expect(toKibiResult(searchSpec, data).data).toBe(data);
+  });
+
+  test("another operation keeps them in its data", () => {
+    const data = { nextActions: next };
+    expect(toKibiResult(readSpec, data).data).toBe(data);
+  });
+
+  test("a payload that is not a record passes through", () => {
+    expect(toKibiResult(searchSpec, "x" as unknown).data).toBe("x");
+  });
+});

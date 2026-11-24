@@ -452,7 +452,6 @@ const BASE_DATA_SCHEMAS: Readonly<
       queryAnalysis: recordValue,
       answer: recordValue,
       notes: stringArray,
-      nextActions: recordArray,
       branch: { type: ["string", "null"] },
       branchStore: recordValue,
       truncation: recordValue,
