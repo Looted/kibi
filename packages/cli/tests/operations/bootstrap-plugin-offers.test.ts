@@ -4,7 +4,6 @@ import path from "node:path";
 
 import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import { buildActions } from "../../src/operations/bootstrap/guidance-actions.js";
-import { SEARCH_HINTS_OFFER_REQUIREMENTS } from "../../src/operations/bootstrap/plugin-offers.js";
 import { normalizeBootstrapContext } from "../../src/operations/bootstrap/presentation.js";
 import {
   nodeFilesystem,
@@ -265,8 +264,8 @@ describe("bootstrap plugin offers", () => {
   });
 
   // executable_for TEST-kibi-plugin-search-hints
-  it("offers kibi-plugin-search-hints in replace mode once the KB holds enough requirements", async () => {
-    for (let index = 0; index < SEARCH_HINTS_OFFER_REQUIREMENTS - 1; index++)
+  it("never offers kibi-plugin-search-hints, which is bundled and active", async () => {
+    for (let index = 0; index < 60; index++)
       write(
         fixture.root,
         `.kb/requirements/REQ-${String(index).padStart(3, "0")}.md`,
@@ -275,62 +274,5 @@ describe("bootstrap plugin offers", () => {
     expect(
       (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
     ).toEqual([]);
-
-    write(
-      fixture.root,
-      ".kb/requirements/REQ-last.md",
-      "---\nid: REQ-last\n---\n",
-    );
-    const [offer] = (await discoverBootstrap(runtime(fixture.root)))
-      .pluginOffers;
-    expect(offer).toMatchObject({
-      package: "kibi-plugin-search-hints",
-      capability: "kibi.search-hints.v1",
-      mode: "replace",
-      fileCount: SEARCH_HINTS_OFFER_REQUIREMENTS,
-      evidence: [
-        ".kb/requirements/REQ-000.md",
-        ".kb/requirements/REQ-001.md",
-        ".kb/requirements/REQ-002.md",
-        ".kb/requirements/REQ-003.md",
-        ".kb/requirements/REQ-004.md",
-      ],
-    });
-
-    setKibiConfig(fixture.root, {
-      declinedPlugins: ["kibi-plugin-search-hints"],
-    });
-    expect(
-      (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
-    ).toEqual([]);
-  });
-  // executable_for TEST-kibi-plugin-search-hints
-  it("withholds the search-hints offer at 49 requirement documents and makes it at exactly 50", async () => {
-    const offered = async () =>
-      (await discoverBootstrap(runtime(fixture.root))).pluginOffers.filter(
-        (offer) => offer.package === "kibi-plugin-search-hints",
-      );
-    for (let index = 0; index < 49; index++)
-      write(
-        fixture.root,
-        `.kb/requirements/REQ-${String(index).padStart(3, "0")}.md`,
-        `---\nid: REQ-${index}\n---\n`,
-      );
-    // One document short of the bound: no offer.
-    expect(await offered()).toEqual([]);
-
-    write(
-      fixture.root,
-      ".kb/requirements/REQ-049.md",
-      "---\nid: REQ-049\n---\n",
-    );
-    // At the bound itself the offer appears; a higher bound would miss it.
-    const offers = await offered();
-    expect(offers).toHaveLength(1);
-    expect(offers[0]).toMatchObject({
-      package: "kibi-plugin-search-hints",
-      mode: "replace",
-      fileCount: 50,
-    });
   });
 });
