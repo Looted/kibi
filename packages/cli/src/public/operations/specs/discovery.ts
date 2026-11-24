@@ -234,7 +234,7 @@ export const searchSpec = {
         type: "boolean",
         default: true,
         description:
-          "Intent-v1 only, first page only. When true (default) and the project activates a kibi.search-hints.v1 plugin, a weak or abstained answer adds queryAnalysis.hints: requirements the question may mean, to re-ask with. Hints never change results or the answer layer.",
+          "Intent-v1 only, first page only. When true (default), a weak or abstained answer adds queryAnalysis.hints from the bundled kibi-plugin-search-hints (or the kibi.search-hints.v1 provider the project configured): requirements the question may mean, to re-ask with. A project that lists kibi-plugin-search-hints in kibi.declinedPlugins gets none. Hints never change results or the answer layer.",
         [ADVERTISED_DESCRIPTION]:
           "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
       },
