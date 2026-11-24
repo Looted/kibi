@@ -32,6 +32,11 @@ export type ShardTestResults = Readonly<{
   commit: string | null;
   dirty: boolean;
   files: Readonly<Record<string, FileTestResult>>;
+  /**
+   * Wall-clock milliseconds the shard spent running. The partition balancer
+   * reads this back from the published results. Absent on older ledgers.
+   */
+  durationMs?: number;
 }>;
 
 /** The combined ledger the proof producer reads. */
@@ -133,6 +138,7 @@ export function shardTestResults(
   shard: string,
   identity: GitIdentity,
   files: ReadonlyMap<string, FileTestResult>,
+  durationMs?: number,
 ): ShardTestResults {
   return {
     version: UNIT_TEST_RESULTS_VERSION,
@@ -142,6 +148,9 @@ export function shardTestResults(
     files: Object.fromEntries(
       [...files].sort(([a], [b]) => a.localeCompare(b)),
     ),
+    ...(Number.isSafeInteger(durationMs) && (durationMs as number) >= 0
+      ? { durationMs }
+      : {}),
   };
 }
 
