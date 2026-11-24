@@ -4,12 +4,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { recordRequest, statedReason, statedRule } from "../src/decision-guard";
 import {
   pathTopicWords,
   rankRequirementCandidates,
   replacedRequirements,
   requestTopicWords,
   requirementCandidatesForPath,
+  restatedRequirement,
 } from "../src/requirement-candidates";
 import { MAX_SNIPPET_CHARS, unownedSourceNote } from "../src/snippets";
 
@@ -271,5 +273,73 @@ describe("candidate requirements for an unlinked file", () => {
     expect(note).toContain("nothing recorded is known to cover it");
     expect(note).toContain("is recorded with kb_record");
     expect(note.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+  });
+});
+
+describe("a rule sentence that only restates a current requirement", () => {
+  // Built per test: afterEach removes every workspace a test made.
+  const keys = () =>
+    workspace({
+      "REQ-key-expiry":
+        "title: API keys expire\nstatus: open\nsemantic_text: 'API keys must expire after 90 days. An expired key is not accepted by the API.'",
+      "REQ-old-limit":
+        "title: Uploads stay under 10 MB\nstatus: closed\nsemantic_text: Uploads must stay under 10 MB.",
+      "REQ-folded":
+        "title: Exports are signed by the server\nstatus: open\nsemantic_text: >-",
+    });
+
+  test("matches when every topic word, number and negation is already said", () => {
+    const KEYS = keys();
+    expect(
+      restatedRequirement(KEYS, "API keys must expire after 90 days.")?.id,
+    ).toBe("REQ-key-expiry");
+    // A negated clause matches the negated sentence of the statement.
+    expect(
+      restatedRequirement(KEYS, "Expired keys must not be accepted by the API.")
+        ?.id,
+    ).toBe("REQ-key-expiry");
+    // A folded statement is not read; the title still is.
+    expect(
+      restatedRequirement(KEYS, "Exports must be signed by the server.")?.id,
+    ).toBe("REQ-folded");
+  });
+
+  test("a new number, term or negation, a closed requirement or a short sentence is a rule", () => {
+    const KEYS = keys();
+    for (const sentence of [
+      "API keys must expire after 30 days.",
+      "API keys must expire after 90 days for admins.",
+      "API keys must never expire after 90 days.",
+      "Uploads must stay under 10 MB.",
+      "Keys must expire.",
+    ])
+      expect(restatedRequirement(KEYS, sentence)).toBeUndefined();
+    expect(
+      restatedRequirement(
+        path.join(KEYS, "missing"),
+        "API keys must expire after 90 days.",
+      ),
+    ).toBeUndefined();
+  });
+
+  test("the prompt hooks skip a restated sentence and still see a new rule after it", () => {
+    const KEYS = keys();
+    const prompt =
+      "API keys must expire after 90 days. Admin keys must expire after 7 days because they reach billing.";
+    expect(statedRule("API keys must expire after 90 days.")).toBe("must");
+    expect(
+      statedRule("API keys must expire after 90 days.", KEYS),
+    ).toBeUndefined();
+    expect(statedRule(prompt, KEYS)).toBe("must");
+    expect(statedReason(prompt, KEYS)).toBe("because they reach billing");
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-restated-"));
+    roots.push(stateDir);
+    expect(
+      recordRequest(
+        { stateDir, sessionId: "s" },
+        "API keys must expire after 90 days.",
+        { workspaceRoot: KEYS },
+      ),
+    ).toBeUndefined();
   });
 });

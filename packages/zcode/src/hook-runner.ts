@@ -457,7 +457,9 @@ export async function runHook(
 
       case "UserPromptSubmit": {
         const rule = input.prompt
-          ? recordRequest(session, input.prompt)
+          ? recordRequest(session, input.prompt, {
+              workspaceRoot: workspace.root,
+            })
           : undefined;
         trace.action =
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
@@ -465,7 +467,10 @@ export async function runHook(
           ? defaultResult()
           : contextResult(
               input.event,
-              rulePromptNote(rule, statedReason(input.prompt)),
+              rulePromptNote(
+                rule,
+                statedReason(input.prompt, workspace.root),
+              ),
             );
       }
 

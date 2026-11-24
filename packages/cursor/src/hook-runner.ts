@@ -475,9 +475,11 @@ export async function runHook(
         // Cursor's prompt hook cannot add context: the request's rule note
         // waits for the next pre-edit message.
         if (kibiReady && input.prompt) {
-          const rule = recordRequest(session, input.prompt);
+          const rule = recordRequest(session, input.prompt, {
+            workspaceRoot: cwd,
+          });
           if (rule !== undefined)
-            holdRuleNote(session, rule, statedReason(input.prompt));
+            holdRuleNote(session, rule, statedReason(input.prompt, cwd));
           trace.action =
             rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
