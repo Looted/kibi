@@ -110,8 +110,8 @@ output so a failure says which question regressed.
 
 `repo-search-hints-gold.v1.jsonl` holds 20 reworded questions: each names a
 current requirement in words it does not use (for example "the cleanup
-command" for `kibi gc`). Kibi's repository activates `kibi-plugin-search-hints`,
-so the same runner measures what an agent sees in one call. Lexical ranking
+command" for `kibi gc`). The bundled `kibi-plugin-search-hints` is active by
+default, so the same runner measures what an agent sees in one call. Lexical ranking
 alone finds 2 of the 20 in its top three; with hints 12 of 20 show the expected
 requirement. `repo-search-hints-thresholds.json` gates `recallWithHints` at
 0.6, which is that baseline, so one more missed question fails it; the `proof`
