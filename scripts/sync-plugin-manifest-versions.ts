@@ -521,8 +521,8 @@ async function discoverPluginManifestPaths(
         entry.name.endsWith("-plugin"),
     )
     .map((entry) => join(packageDir, entry.name, "plugin.json"));
-  // A native Agent Plugins 1.0 package (e.g. kibi-vibe) keeps plugin.json at
-  // the package root instead of a `.<name>-plugin/` directory.
+  // A native Agent Plugins 1.0 package (e.g. kibi-vibe, kibi-antigravity) keeps
+  // plugin.json at the package root instead of a `.<name>-plugin/` directory.
   manifestPaths.push(join(packageDir, "plugin.json"));
   return manifestPaths
     .filter((manifestPath) => existsSync(manifestPath))
