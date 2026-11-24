@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee130fc878e2
+  - type: assumes
+    from: SCEN-NEG-antigravity-skills-missing-usage
+    to: FACT-NEG-antigravity-skills-missing-usage
+    created_at: 2026-11-24T05:07:31.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d39c7e16f08
+  - type: verified_by
+    from: SCEN-NEG-antigravity-skills-missing-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:31.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9275e465608c

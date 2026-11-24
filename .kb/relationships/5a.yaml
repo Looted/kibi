@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-34339edc4a53
+  - type: assumes
+    from: SCEN-NEG-antigravity-diagnostic-skips-usage-log
+    to: FACT-NEG-antigravity-diagnostic-skips-usage-log
+    created_at: 2026-11-24T05:07:13.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b2e4d2736bd
+  - type: verified_by
+    from: SCEN-NEG-antigravity-diagnostic-skips-usage-log
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:13.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a35103583cc2

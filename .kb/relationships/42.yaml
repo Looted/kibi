@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-074517e0a40e
+  - type: assumes
+    from: SCEN-NEG-antigravity-non-kibi-auto-approve
+    to: FACT-NEG-antigravity-non-kibi-auto-approve
+    created_at: 2026-11-24T05:07:04.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d0db9dc538d
+  - type: verified_by
+    from: SCEN-NEG-antigravity-non-kibi-auto-approve
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:04.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-147757255af7

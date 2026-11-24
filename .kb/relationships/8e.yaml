@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73de34cccdca
+  - type: assumes
+    from: SCEN-NEG-antigravity-skills-outside-set
+    to: FACT-NEG-antigravity-skills-outside-set
+    created_at: 2026-11-24T05:07:34.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c7f393d9156
+  - type: verified_by
+    from: SCEN-NEG-antigravity-skills-outside-set
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:34.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc568c57d7c9

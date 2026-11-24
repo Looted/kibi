@@ -48217,3 +48217,99 @@ symbols:
         target: TEST-vibe-hooks-decision-guard
       - type: implements
         target: REQ-vibe-hooks-firm-edit-notice
+  - id: SYM-antigravity-hook-runner-branches-test
+    title: Antigravity hook runner branch tests
+    status: active
+    sourceFile: packages/antigravity/tests/hook-runner-branches.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:12.564Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-hook-runner-test
+    title: Antigravity hook runner tests
+    status: active
+    sourceFile: packages/antigravity/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:15.254Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-kb-tools-session-test
+    title: Antigravity KB tool and session journal tests
+    status: active
+    sourceFile: packages/antigravity/tests/kb-tools-session.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:17.781Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-edges-test
+    title: Antigravity MCP launcher edge-case tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher-edges.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:20.301Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-port-test
+    title: Antigravity MCP launcher resolution tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher-port.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:22.954Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-mcp-launcher-test
+    title: Antigravity MCP launcher tests
+    status: active
+    sourceFile: packages/antigravity/tests/mcp-launcher.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:25.544Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-plugin-contract-test
+    title: Antigravity plugin contract tests
+    status: active
+    sourceFile: packages/antigravity/tests/plugin-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:28.063Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin
+  - id: SYM-antigravity-serve-deferred-test
+    title: Antigravity deferred MCP server tests
+    status: active
+    sourceFile: packages/antigravity/tests/serve-deferred.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-24T05:08:30.862Z
+    relationships:
+      - type: executable_for
+        target: TEST-antigravity-plugin

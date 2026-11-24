@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66677daa8691
+  - type: specified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: SCEN-NEG-antigravity-default-writes-usage-log
+    created_at: 2026-11-24T05:07:41.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d62007de728a
+  - type: specified_by
+    from: REQ-antigravity-hook-usage-telemetry
+    to: SCEN-NEG-antigravity-diagnostic-skips-usage-log
+    created_at: 2026-11-24T05:07:41.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbc8e31f7ce5
