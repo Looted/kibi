@@ -652,6 +652,45 @@ describe("search hints host edges", () => {
     ]);
   });
 
+  test("a requirement several hits point to comes before one that a single stronger hit shares", async () => {
+    const replace = provider(() => ({
+      hints: [
+        { id: "SCEN-export", score: 0.9 },
+        { id: "TEST-orphan", score: 0.8 },
+        { id: "SCEN-login", score: 0.5 },
+        { id: "REQ-login", score: 0.45 },
+      ],
+    }));
+    const hints = await hintsFor(replace, {
+      entities: [
+        ...kbRows,
+        {
+          id: "SCEN-login",
+          type: "scenario",
+          title: "Sign in with a password",
+        },
+      ],
+      prolog: capturingProlog([
+        ["specified_by", "REQ-export", "SCEN-export"],
+        ["specified_by", "REQ-audit", "SCEN-export"],
+        ["specified_by", "REQ-login", "SCEN-login"],
+      ]),
+    });
+    // REQ-login has 0.5 + 0.45 behind it; the two requirements of the one
+    // 0.9 hit have 0.9 each and keep that hit's place ahead of the 0.8 hit.
+    expect(hints?.items).toEqual([
+      { id: "REQ-login", title: "Sign in", score: 0.5, via: "SCEN-login" },
+      { id: "REQ-audit", title: "Audit log", score: 0.9, via: "SCEN-export" },
+      {
+        id: "REQ-export",
+        title: "Export reports",
+        score: 0.9,
+        via: "SCEN-export",
+      },
+      { id: "TEST-orphan", title: "Orphan test", score: 0.8 },
+    ]);
+  });
+
   test("lifts 2-hop tests and scenario-assumed clause facts, walks supersedes chains, and filters superseded closed requirements", async () => {
     const entities = [
       {
@@ -725,7 +764,10 @@ describe("search hints host edges", () => {
               "[specified_by,REQ-closed-live,SCEN-clause]",
               "[supersedes,REQ-v2,REQ-closed-old]",
               "[supersedes,REQ-v3,REQ-v2]",
-            ].join(",").replace(/^/, "[").concat("]"),
+            ]
+              .join(",")
+              .replace(/^/, "[")
+              .concat("]"),
           },
         };
       },

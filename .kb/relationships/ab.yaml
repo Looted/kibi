@@ -556,3 +556,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03ce73f63e72
+  - type: assumes
+    from: SCEN-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    to: FACT-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    created_at: 2026-11-24T11:16:47.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e10e62baf8f2
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-24T11:16:47.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-040d89865c53

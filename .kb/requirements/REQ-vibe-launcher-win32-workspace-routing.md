@@ -10,7 +10,7 @@ tags:
 semantic_text: 'On Windows, a drive-letter workspace (C:\...) must run Kibi natively: the project-local kibi-mcp and kibi bins are spawned directly with the current Node and SWI-Prolog comes from the bundled kibi-swipl-win32-x64 runtime, with no WSL probe. A wsl.localhost UNC workspace must run inside the distro named in the path through wsl.exe with -d, --cd and --exec as literal argv. KIBI_FORCE_WSL=1 must force the WSL wrap for drive-letter workspaces, converting paths with wsl.exe wslpath. KIBI_FORCE_DIRECT=1 must force a native spawn even for UNC workspaces, which Windows reads natively. A forced WSL wrap of a path that wslpath cannot convert must be a hard error, never a silent fallback to another directory.'
 origin:
   kind: agent
-  ref: 'Maintainer request on PR #818, 2026-11-20: detect WSL vs native Windows workspaces automatically and run accordingly now that kibi-swipl-win32-x64 bundles a native runtime'
+  ref: 'Maintainer approval, 2026-11-24: Approved (claim texts as listed).'
   approved_by: maintainer
   recorded_at: '2026-11-20T18:00:00.000Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -62,6 +62,7 @@ id: REQ-vibe-launcher-win32-workspace-routing
 type: req
 firmness: firm
 ---
+
 ## Context
 
 PR #818 adds the kibi-vibe plugin. Now that kibi-swipl-win32-x64 bundles a native Windows SWI-Prolog runtime (PR #824), Windows sessions no longer need WSL at all unless the workspace itself is a wsl.localhost UNC path. planRuntime in packages/vibe/bin/kibi-runtime.mjs decides per workspace kind; this requirement pins the routing table and the two escape hatches. Covered by packages/vibe/tests/runtime.test.mjs via TEST-vibe-plugin-contract-v1.
@@ -69,3 +70,7 @@ PR #818 adds the kibi-vibe plugin. Now that kibi-swipl-win32-x64 bundles a nativ
 ## Rationale
 
 Running natively on drive-letter workspaces removes a WSL probe from every launch and every hook invocation, and uses the verified bundled runtime instead of a distro-local Node.
+
+## Source
+
+> Maintainer approval, 2026-11-24: Approved (claim texts as listed).
