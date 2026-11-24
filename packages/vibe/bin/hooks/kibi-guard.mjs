@@ -57,7 +57,7 @@ function missingHooksNote(workspaceRoot) {
 
 // ../agent-core/dist/decision-guard.js
 import { createHash as createHash2 } from "node:crypto";
-import fs4 from "node:fs";
+import fs5 from "node:fs";
 import path4 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
@@ -210,6 +210,7 @@ function extractEditedPaths(toolInput) {
 }
 
 // ../agent-core/dist/requirement-candidates.js
+import fs3 from "node:fs";
 import path3 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
@@ -1044,6 +1045,8 @@ function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
 
 // ../agent-core/dist/requirement-candidates.js
 var REQUIREMENTS_DIR = path3.join(".kb", "requirements");
+var HEAD_BYTES = 4096;
+var MAX_SCANNED = 2000;
 var LAYOUT_WORDS = stems([
   "src",
   "app",
@@ -1128,7 +1131,50 @@ function words(text) {
 function stems(list) {
   return new Set(list.flatMap(words));
 }
+function unquote2(value) {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function readHead(file) {
+  let head;
+  try {
+    const descriptor = fs3.openSync(file, "r");
+    try {
+      const buffer = Buffer.alloc(HEAD_BYTES);
+      const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
+      head = buffer.subarray(0, bytes).toString("utf8");
+    } finally {
+      fs3.closeSync(descriptor);
+    }
+  } catch {
+    return;
+  }
+  const lines = head.split(/\r?\n/);
+  if (lines[0].trim() !== "---")
+    return;
+  const fields = {};
+  for (const line of lines.slice(1)) {
+    if (line.trim() === "---")
+      break;
+    const match = /^(id|title|status|semantic_text):(.+)/.exec(line);
+    if (match)
+      fields[match[1]] = unquote2(match[2]);
+  }
+  if (!fields.id || !fields.title)
+    return;
+  const statement = fields.semantic_text?.replace(/''/g, "'");
+  return {
+    id: fields.id,
+    title: fields.title,
+    ...fields.status ? { status: fields.status } : {},
+    ...statement && !/^[>|]/.test(statement) ? { statement } : {}
+  };
+}
+var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 var NOTHING_REPLACED = new Set;
+function isClosed(head) {
+  return String(head.status).trim().toLowerCase() === "closed";
+}
 function requestTopicWords(text, limit = 40) {
   const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
   return [...new Set(found)].slice(0, limit);
@@ -1194,9 +1240,53 @@ var REQUEST_FILLER_WORDS = stems([
   "too",
   "very"
 ]);
+var NEGATION = /\b(?:not|never|no|none|without|cannot|nor)\b|n't\b/i;
+var MIN_RESTATED_WORDS = 3;
+function ruleWords(text) {
+  const found = [
+    ...words(text),
+    ...text.match(/\d+(?:[.,]\d+)?/g) ?? []
+  ].filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return new Set(found);
+}
+function restatedRequirement(workspaceRoot, sentence) {
+  const asked = ruleWords(sentence);
+  if (asked.size < MIN_RESTATED_WORDS)
+    return;
+  const negated = NEGATION.test(sentence);
+  const directory = path3.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs3.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return;
+  }
+  if (names.length > MAX_SCANNED)
+    return;
+  for (const name of names.sort()) {
+    const head = readHead(path3.join(directory, name));
+    if (head === undefined || isClosed(head))
+      continue;
+    if (RETIRED_STATUS2.test(String(head.status)))
+      continue;
+    const title = ruleWords(head.title);
+    const clauses = [
+      head.title,
+      ...(head.statement ?? "").split(/(?<=[.;!?])\s+/)
+    ].filter((clause) => clause.trim() !== "");
+    for (const clause of clauses) {
+      if (NEGATION.test(clause) !== negated)
+        continue;
+      const known = new Set([...title, ...ruleWords(clause)]);
+      if ([...asked].every((word) => known.has(word)))
+        return head;
+    }
+  }
+  return;
+}
 
 // ../agent-core/dist/snippets.js
-import fs3 from "node:fs";
+import fs4 from "node:fs";
 var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 function overlaps(symbol, range) {
   const line = Number(symbol.line);
@@ -1221,9 +1311,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs3.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs4.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs3.readFileSync(absolutePath, "utf8");
+    content = fs4.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1268,9 +1358,9 @@ var CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
 var NAME_LOOKAHEAD_LINES = 5;
 function readSmallText(absolutePath) {
   try {
-    if (fs4.statSync(absolutePath).size > MAX_LOCATE_BYTES)
+    if (fs5.statSync(absolutePath).size > MAX_LOCATE_BYTES)
       return;
-    return fs4.readFileSync(absolutePath, "utf8");
+    return fs5.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1375,10 +1465,12 @@ function instructingAdverb(sentence) {
   }
   return;
 }
-function ruleMatch(prompt) {
+function ruleMatch(prompt, workspaceRoot) {
   const sentences = requestSentences(prompt);
   for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
+      continue;
+    if (workspaceRoot !== undefined && restatedRequirement(workspaceRoot, sentence) !== undefined)
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
       const clause = currentClause(sentence.slice(0, match.index));
@@ -1394,13 +1486,13 @@ function ruleMatch(prompt) {
   }
   return;
 }
-function statedRule(prompt) {
-  return ruleMatch(prompt)?.phrase;
+function statedRule(prompt, workspaceRoot) {
+  return ruleMatch(prompt, workspaceRoot)?.phrase;
 }
 var REASON_MARKER = /\b(?:because|so that)\b/i;
 var MAX_REASON_CHARS2 = 200;
-function statedReason(prompt) {
-  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+function statedReason(prompt, workspaceRoot) {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt, workspaceRoot);
   if (match === undefined)
     return;
   for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
@@ -1423,6 +1515,7 @@ function rulePromptNote(phrase, reason) {
   ].join(`
 `);
 }
+var RECORD_FOLLOW_UP_LINE = "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.";
 function ruleCaptureTemplate(rulePhrase, reason) {
   const template = {
     statement: "<the rule as one shall or must sentence>",
@@ -1437,7 +1530,8 @@ function ruleCaptureTemplate(rulePhrase, reason) {
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...reason === undefined ? [] : [reasonLine(reason)],
-    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert."
+    RECORD_FOLLOW_UP_LINE,
+    "Facts, decisions and other modeling go through kb_upsert."
   ].join(`
 `);
 }
@@ -1459,7 +1553,7 @@ function newestOf(files) {
   let newest = Number.NaN;
   for (const file of files) {
     try {
-      const time = fs4.statSync(file).mtimeMs;
+      const time = fs5.statSync(file).mtimeMs;
       if (!(time <= newest))
         newest = time;
     } catch {}
@@ -1468,14 +1562,14 @@ function newestOf(files) {
 }
 function markerFiles(dir) {
   try {
-    return fs4.readdirSync(dir).map((name) => path4.join(dir, name));
+    return fs5.readdirSync(dir).map((name) => path4.join(dir, name));
   } catch {
     return [];
   }
 }
 function removeQuietly(target) {
   try {
-    fs4.rmSync(target, { recursive: true, force: true });
+    fs5.rmSync(target, { recursive: true, force: true });
   } catch {}
 }
 function startDecisionSession(session, cause, options = {}) {
@@ -1501,7 +1595,7 @@ function startDecisionSession(session, cause, options = {}) {
     return dropped;
   let keys = [];
   try {
-    keys = fs4.readdirSync(root);
+    keys = fs5.readdirSync(root);
   } catch {}
   for (const key of keys) {
     if (key === own)
@@ -1514,15 +1608,15 @@ function startDecisionSession(session, cause, options = {}) {
   return dropped;
 }
 function writeMarker(file, content) {
-  fs4.mkdirSync(path4.dirname(file), { recursive: true });
-  fs4.writeFileSync(file, content);
+  fs5.mkdirSync(path4.dirname(file), { recursive: true });
+  fs5.writeFileSync(file, content);
 }
 function touchMarker(file, flag) {
-  fs4.mkdirSync(path4.dirname(file), { recursive: true });
-  fs4.closeSync(fs4.openSync(file, flag));
+  fs5.mkdirSync(path4.dirname(file), { recursive: true });
+  fs5.closeSync(fs5.openSync(file, flag));
 }
 function readMarker(session, name) {
-  return JSON.parse(String(fs4.readFileSync(sessionPath(session, name))));
+  return JSON.parse(String(fs5.readFileSync(sessionPath(session, name))));
 }
 function stringList(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
@@ -1534,7 +1628,7 @@ function markDecisionFlag(session, flag) {
 }
 function hasDecisionFlag(session, flag) {
   try {
-    return fs4.existsSync(sessionPath(session, flag));
+    return fs5.existsSync(sessionPath(session, flag));
   } catch {
     return false;
   }
@@ -1547,9 +1641,10 @@ function claimDecisionFlag(session, flag) {
     return false;
   }
 }
-function recordRequest(session, prompt, now = Date.now()) {
+function recordRequest(session, prompt, options = {}) {
+  const { now = Date.now(), workspaceRoot } = typeof options === "number" ? { now: options } : options;
   startDecisionSession(session, "prompt", { now });
-  const rule = statedRule(prompt);
+  const rule = statedRule(prompt, workspaceRoot);
   try {
     writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
   } catch {}
@@ -1557,7 +1652,7 @@ function recordRequest(session, prompt, now = Date.now()) {
     markDecisionFlag(session, "rule-prompt");
     try {
       writeMarker(sessionPath(session, "rule-phrase"), rule);
-      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt) ?? "");
+      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt, workspaceRoot) ?? "");
     } catch {}
   }
   return rule;
@@ -1565,14 +1660,14 @@ function recordRequest(session, prompt, now = Date.now()) {
 function sessionRuleReason(session) {
   let reason = "";
   try {
-    reason = String(fs4.readFileSync(sessionPath(session, "rule-reason")));
+    reason = String(fs5.readFileSync(sessionPath(session, "rule-reason")));
   } catch {}
   return reason || undefined;
 }
 function sessionRulePhrase(session) {
   let phrase = "";
   try {
-    phrase = String(fs4.readFileSync(sessionPath(session, "rule-phrase")));
+    phrase = String(fs5.readFileSync(sessionPath(session, "rule-phrase")));
   } catch {}
   return phrase || undefined;
 }
@@ -1691,8 +1786,10 @@ function promptNote(workspaceRoot, payload, env = process.env) {
   const input = parseHookInput(payload);
   if (!input.prompt)
     return;
-  const rule = recordRequest(session(workspaceRoot, input, env), input.prompt);
-  return rule === undefined ? undefined : rulePromptNote(rule, statedReason(input.prompt));
+  const rule = recordRequest(session(workspaceRoot, input, env), input.prompt, {
+    workspaceRoot
+  });
+  return rule === undefined ? undefined : rulePromptNote(rule, statedReason(input.prompt, workspaceRoot));
 }
 function workspaceRelative(workspaceRoot, absolute) {
   const rel = path5.relative(workspaceRoot, absolute);
