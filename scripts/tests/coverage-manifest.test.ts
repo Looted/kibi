@@ -47,10 +47,22 @@ describe("coverage manifest", () => {
         join(root, "packages", "vibe", "bin", "kibi-runtime.mjs"),
         "",
       );
+      mkdirSync(join(root, "packages", "vibe", "bin", "hooks"), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "hooks", "kibi-common.mjs"),
+        "",
+      );
       // Script entrypoints that run on import stay out of the manifest.
       writeFileSync(join(root, "packages", "vibe", "bin", "kibi.mjs"), "");
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "hooks", "kibi-file-context.mjs"),
+        "",
+      );
       expect(collectProductionSourceFiles(root)).toEqual([
         "packages/antigravity/bin/mcp-launcher.cjs",
+        "packages/vibe/bin/hooks/kibi-common.mjs",
         "packages/vibe/bin/kibi-runtime.mjs",
       ]);
     } finally {

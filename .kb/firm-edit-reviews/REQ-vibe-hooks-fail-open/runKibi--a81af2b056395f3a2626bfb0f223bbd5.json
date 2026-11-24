@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/hooks/kibi-common.mjs",
   "symbol": "runKibi",
   "verdict": "keeps",
-  "note": "runKibi still resolves the workspace root from payload.cwd and exits 0 silently on any error or non-Kibi workspace while defaulting KIBI_AUTO_SYNC=0.",
+  "note": "Hooks still anchor at the workspace root resolved from the payload cwd, and relative tool paths now resolve against that cwd; every failure path still exits 0, and the failing kibi call's stderr is dropped unless KIBI_VIBE_LAUNCHER_DEBUG=1, so a hook prints nothing on error or outside a Kibi workspace (hooks.test.mjs, launcher-contract.test.mjs).",
   "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
-  "codeHash": "sha256:d0c038b54c4680ae3a0890f03ccd36744e723244b3afc0f6ab52d18a98c41e18",
-  "startLine": 68,
-  "endLine": 100,
-  "recordedAt": "2026-11-23T10:27:16.485Z"
+  "codeHash": "sha256:1ad73c927f6a09575f48b852302e7094aa97f2bdba92e6e18e82773457939d5a",
+  "startLine": 79,
+  "endLine": 115,
+  "recordedAt": "2026-11-24T10:17:49.600Z"
 }

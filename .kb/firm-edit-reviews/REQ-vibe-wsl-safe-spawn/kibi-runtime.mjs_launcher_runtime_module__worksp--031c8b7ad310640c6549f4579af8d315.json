@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
   "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
   "verdict": "keeps",
-  "note": "Only the pointer step of resolveWorkspace changed; WSL spawning is untouched.",
+  "note": "WSL spawns still use literal argv with -d, --cd and --exec and no shell string; the drive-letter conversion now also runs as wsl.exe --exec wslpath -a, and an unconvertible path stays a hard error (runtime.test.mjs).",
   "statementHash": "sha256:d301bbd73cdb0e9561227fc7fbbd7571c2688c696e9f7233af4a16e84651c68c",
-  "codeHash": "sha256:8542059be3f2e46af3526731fe22698edc6752bbe879d959bb7f0660b20ca1f8",
-  "startLine": 1,
-  "endLine": 561,
-  "recordedAt": "2026-11-23T04:01:16.095Z"
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-24T10:08:14.082Z"
 }

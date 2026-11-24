@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/launch-kibi-mcp.mjs",
+  "symbol": "Vibe MCP stdio launcher entrypoint",
+  "verdict": "keeps",
+  "note": "The launcher still serves the full tool list inside a Kibi workspace, a silent zero-tool server outside, and kibi.mjs still exits 3 before spawning; changes are the WSL planning error, the version in serverInfo and the debug-log name (launcher-contract.test.mjs, runtime.test.mjs).",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:f7810aa16c2916ff034052eb578b5528a465b41086e0c7a7ec34eea1ed426075",
+  "startLine": 1,
+  "endLine": 85,
+  "recordedAt": "2026-11-24T10:07:01.482Z"
+}

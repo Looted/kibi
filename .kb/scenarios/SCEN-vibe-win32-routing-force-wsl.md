@@ -8,4 +8,4 @@ origin:
 id: SCEN-vibe-win32-routing-force-wsl
 type: scenario
 ---
-Given KIBI_FORCE_WSL=1 and a drive-letter workspace, when the launcher plans the runtime, then the WSL wrap is forced: the path is converted with wsl.exe wslpath against the default distro and the spawn goes through WSL. Covered by packages/vibe/tests/runtime.test.mjs.
+Given KIBI_FORCE_WSL=1 and a drive-letter workspace, when the launcher plans the runtime, then the WSL wrap is forced: the path is converted with wsl.exe --exec wslpath -a against the default distro and the spawn goes through WSL. Covered by packages/vibe/tests/runtime.test.mjs.

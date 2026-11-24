@@ -13,19 +13,26 @@ import {
 } from "./kibi-common.mjs";
 import { promptNote } from "./kibi-guard.mjs";
 
+const MAX_SEARCH_PROMPT_CHARS = 2000;
+
 try {
   const payload = await readStdinJson();
   const prompt = String(payload?.prompt ?? "").trim();
-  if (!prompt || prompt.length > 2000) process.exit(0);
+  if (!prompt) process.exit(0);
   const workspace = resolveHookWorkspace(payload);
   // The rule note comes first and stands on its own: a prompt that states a
   // rule gets it even when the search finds nothing.
   const rule = guardNote(promptNote, workspace, payload);
-  const res = await runKibi(workspace, ["search", "--input", "-"], {
-    query: prompt,
-    limit: 5,
-  });
-  const data = res.code === 0 ? parseKibiData(res.stdout) : null;
+  // A very long prompt is not a search query: it keeps the rule note but
+  // skips the KB search.
+  const res =
+    prompt.length > MAX_SEARCH_PROMPT_CHARS
+      ? null
+      : await runKibi(workspace, ["search", "--input", "-"], {
+          query: prompt,
+          limit: 5,
+        });
+  const data = res?.code === 0 ? parseKibiData(res.stdout) : null;
   const results = Array.isArray(data?.results) ? data.results : [];
   const lines = results.slice(0, 5).map((hit) => {
     const e = hit?.entity ?? {};
