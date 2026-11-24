@@ -370,6 +370,7 @@ describe("executeSearch intent ranking", () => {
       "truncated",
       "queryAnalysis",
       "answer",
+      "nextActions",
       "branch",
     ]);
     expect(result.structuredContent).toMatchObject({
@@ -608,5 +609,171 @@ describe("executeSearch intent ranking", () => {
     ]);
     await search({ query: "q", rankingMode: "legacy" });
     expect(legacy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("executeSearch structured next steps", () => {
+  const ensurePlugins = async () => ({ resolveSearchHints: async () => "R" });
+  const REASON_TAIL =
+    "no entity shares enough of the question's words. That is not evidence that nothing is recorded. List the requirement titles to find the words the knowledge base uses, then search again in those words.";
+  const shownHints = (items: unknown[]) =>
+    spy(hints, "buildSearchHints").mockResolvedValue({
+      trigger: "weak",
+      provider: "p",
+      items,
+      diagnostics: [],
+    });
+
+  test("an abstained search without a provider lists the requirement titles and carries the note", async () => {
+    intentFakes({ matches: [] });
+    const { structuredContent } = await search({ query: "q" });
+    expect(structuredContent.nextActions).toStrictEqual([
+      {
+        operation: "kb_query",
+        input: { type: "req" },
+        reason: `The search abstained: ${REASON_TAIL}`,
+        required: false,
+      },
+    ]);
+    expect(structuredContent.notes).toStrictEqual([
+      "The search abstained: no entity shares enough of the question's words. That is not evidence that nothing is recorded: ask again in the words and language the KB is written in, or pass sourceLocations.",
+    ]);
+  });
+
+  test("a weak search without a provider lists them too, with no abstention note", async () => {
+    intentFakes({ matches: [match("REQ-1")] });
+    const { structuredContent } = await search({ query: "q" });
+    expect(structuredContent.nextActions).toStrictEqual([
+      {
+        operation: "kb_query",
+        input: { type: "req" },
+        reason: `The search matched weakly: ${REASON_TAIL}`,
+        required: false,
+      },
+    ]);
+    expect(Object.hasOwn(structuredContent, "notes")).toBe(false);
+  });
+
+  test("a provider that is unavailable, empty or switched off leaves the next step in place", async () => {
+    intentFakes({ matches: [] });
+    const failing = async () => {
+      throw new Error("no plugin");
+    };
+    shownHints([]);
+    for (const [input, ctx] of [
+      [{ query: "q" }, context({ ensurePlugins: failing })],
+      [{ query: "q" }, context({ ensurePlugins })],
+      [{ query: "q", hints: false }, context({ ensurePlugins })],
+    ] as const)
+      expect(
+        (await search({ ...input }, ctx)).structuredContent.nextActions,
+      ).toHaveLength(1);
+  });
+
+  test("shown hints are the next step, so the listing is not added", async () => {
+    intentFakes({ matches: [] });
+    shownHints([{ id: "REQ-h" }]);
+    const result = await search({ query: "q" }, context({ ensurePlugins }));
+    expect(Object.hasOwn(result.structuredContent, "nextActions")).toBe(false);
+    // The abstention note stays: it states the fact, not the next call.
+    expect(result.structuredContent.notes).toHaveLength(1);
+  });
+
+  test("a strong answer carries neither", async () => {
+    intentFakes({ matches: [match("REQ-1")], trigger: null });
+    const { structuredContent } = await search({ query: "q" });
+    expect(Object.hasOwn(structuredContent, "nextActions")).toBe(false);
+    expect(Object.hasOwn(structuredContent, "notes")).toBe(false);
+  });
+
+  test("a later page adds no listing but an abstained ranking still says so", async () => {
+    intentFakes({ matches: [match("REQ-1"), match("REQ-2")] });
+    const later = await search({ query: "q", offset: 1 });
+    expect(Object.hasOwn(later.structuredContent, "nextActions")).toBe(false);
+    intentFakes({ matches: [] });
+    const empty = await search({ query: "q", offset: 1 });
+    expect(Object.hasOwn(empty.structuredContent, "nextActions")).toBe(false);
+    expect(empty.structuredContent.notes).toHaveLength(1);
+  });
+
+  test("an explicit type lists that type", async () => {
+    intentFakes({ matches: [] });
+    const { structuredContent } = await search({ query: "q", type: "adr" });
+    expect(structuredContent.nextActions[0].input).toStrictEqual({
+      type: "adr",
+    });
+    expect(structuredContent.nextActions[0].reason).toContain(
+      "List the adr titles",
+    );
+  });
+
+  test("a file path in the question suggests the search with sourceLocations", async () => {
+    intentFakes({ matches: [match("REQ-1")], trigger: null });
+    const one = await search({ query: "about src/a.ts" });
+    expect(one.structuredContent.nextActions).toStrictEqual([
+      {
+        operation: "kb_search",
+        input: {
+          query: "about src/a.ts",
+          sourceLocations: [{ path: "src/a.ts" }],
+        },
+        reason:
+          "The question names src/a.ts; its words were left out of the topic. Pass it as sourceLocations to also see the requirements linked to that file.",
+        required: false,
+      },
+    ]);
+    const many = await search({
+      query: "compare src/a.ts and lib/b.ts",
+      sourceLocations: [{ path: "lib/b.ts" }],
+    });
+    expect(many.structuredContent.nextActions).toStrictEqual([
+      {
+        operation: "kb_search",
+        input: {
+          query: "compare src/a.ts and lib/b.ts",
+          sourceLocations: [{ path: "lib/b.ts" }, { path: "src/a.ts" }],
+        },
+        reason:
+          "The question names src/a.ts; its words were left out of the topic. Pass it as sourceLocations to also see the requirements linked to that file.",
+        required: false,
+      },
+    ]);
+    const plural = await search({ query: "compare src/a.ts and lib/b.ts" });
+    expect(plural.structuredContent.nextActions[0].reason).toBe(
+      "The question names src/a.ts, lib/b.ts; their words were left out of the topic. Pass them as sourceLocations to also see the requirements linked to those files.",
+    );
+    const located = await search({
+      query: "about src/a.ts",
+      sourceLocations: [{ path: "src/a.ts" }],
+    });
+    expect(Object.hasOwn(located.structuredContent, "nextActions")).toBe(false);
+  });
+
+  test("a question about contradictions names the check", async () => {
+    intentFakes({ matches: [match("REQ-1")], trigger: null });
+    const { structuredContent } = await search({
+      query: "do the rules contradict",
+    });
+    expect(structuredContent.nextActions).toStrictEqual([
+      {
+        operation: "kb_check",
+        input: { rules: ["domain-contradictions"] },
+        reason:
+          'Search only finds entities that mention a conflict. Whether current requirements contradict each other is decided by kb_check with rules ["domain-contradictions"]; what a proposed rule would conflict with, by kb_model mode predicates (decisionConflicts) on its text or a kb_upsert dryRun.',
+        required: false,
+      },
+    ]);
+  });
+
+  test("the steps come in a fixed order when several apply", async () => {
+    intentFakes({ matches: [] });
+    const { structuredContent } = await search({
+      query: "does src/a.ts contradict anything",
+    });
+    expect(
+      structuredContent.nextActions.map(
+        (action: { operation: string }) => action.operation,
+      ),
+    ).toStrictEqual(["kb_query", "kb_search", "kb_check"]);
   });
 });

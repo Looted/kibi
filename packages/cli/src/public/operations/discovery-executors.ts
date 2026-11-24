@@ -217,10 +217,26 @@ export type SearchPayload = {
     readonly hints?: SearchHintsAnalysis;
   };
   readonly answer?: SearchAnswer;
+  /**
+   * What to do next, for harnesses that show only the structured result:
+   * list the requirement titles after an abstained or weak search with no
+   * hint shown, re-ask with sourceLocations for a file path the question
+   * names, run the contradiction check for a question about conflicts.
+   */
+  readonly nextActions?: readonly SearchNextAction[];
+  /** Sentences the text digest holds that the structured result must hold too. */
+  readonly notes?: readonly string[];
   /** The Kibi branch whose store was searched, when the runtime attached one. */
   readonly branch?: string | null;
   /** Present when the searched store was never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+};
+
+export type SearchNextAction = {
+  readonly operation: "kb_query" | "kb_search" | "kb_check";
+  readonly input: Record<string, unknown>;
+  readonly reason: string;
+  readonly required: false;
 };
 
 export type SearchBranchStoreNotice = {
@@ -1048,19 +1064,73 @@ const CONTRADICTION_HINT =
 
 // A file path written in the question is left out of its topic. Passed as
 // sourceLocations it also brings the requirements linked to that file.
-function questionPathHint(
+function questionPathsNotLocated(
   query: string,
   locations: readonly SourceLocation[] | undefined,
-): string {
+): string[] {
   const located = new Set(
     (locations ?? []).map((location) => location.path.replace(/^\.\//, "")),
   );
-  const named = questionPaths(query).filter((file) => !located.has(file));
+  return questionPaths(query).filter((file) => !located.has(file));
+}
+
+function questionPathHint(named: readonly string[]): string {
   if (named.length === 0) return "";
   const list = named.join(", ");
   return named.length === 1
     ? ` The question names ${list}; its words were left out of the topic. Pass it as sourceLocations to also see the requirements linked to that file.`
     : ` The question names ${list}; their words were left out of the topic. Pass them as sourceLocations to also see the requirements linked to those files.`;
+}
+
+/**
+ * The sentence an abstained search carries in its structured result, so the
+ * advice never depends on the text digest.
+ */
+const ABSTENTION_NOTE =
+  "The search abstained: no entity shares enough of the question's words. That is not evidence that nothing is recorded: ask again in the words and language the KB is written in, or pass sourceLocations.";
+
+/**
+ * The next calls the structured result names. They mirror the advice in the
+ * text digest and never change when it is given.
+ */
+export function searchNextActions(options: {
+  readonly query: string;
+  readonly type: string | undefined;
+  readonly abstained: boolean;
+  /** An abstained or weak first page whose hints (if any) showed nothing. */
+  readonly listTitles: boolean;
+  readonly unlocatedPaths: readonly string[];
+  readonly sourceLocations: readonly SourceLocation[] | undefined;
+}): SearchNextAction[] {
+  const actions: SearchNextAction[] = [];
+  if (options.listTitles)
+    actions.push({
+      operation: "kb_query",
+      input: { type: options.type ?? "req" },
+      reason: `The search ${options.abstained ? "abstained" : "matched weakly"}: no entity shares enough of the question's words. That is not evidence that nothing is recorded. List the ${options.type ?? "requirement"} titles to find the words the knowledge base uses, then search again in those words.`,
+      required: false,
+    });
+  if (options.unlocatedPaths.length > 0)
+    actions.push({
+      operation: "kb_search",
+      input: {
+        query: options.query,
+        sourceLocations: [
+          ...(options.sourceLocations ?? []),
+          ...options.unlocatedPaths.map((path) => ({ path })),
+        ],
+      },
+      reason: questionPathHint(options.unlocatedPaths).trimStart(),
+      required: false,
+    });
+  if (CONTRADICTION_QUESTION.test(options.query))
+    actions.push({
+      operation: "kb_check",
+      input: { rules: ["domain-contradictions"] },
+      reason: CONTRADICTION_HINT.trim(),
+      required: false,
+    });
+  return actions;
 }
 
 /**
@@ -1215,6 +1285,22 @@ export async function executeSearch(
               prolog,
             })
           : undefined;
+      const unlocatedPaths = questionPathsNotLocated(
+        trimmedQuery,
+        sourceLocations,
+      );
+      const abstained = intentResult.matches.length === 0;
+      const nextActions = searchNextActions({
+        query: trimmedQuery,
+        type,
+        abstained,
+        listTitles:
+          offset === 0 &&
+          searchHintsTrigger(intentResult.analysis) !== null &&
+          (hints?.items.length ?? 0) === 0,
+        unlocatedPaths,
+        sourceLocations,
+      });
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -1224,7 +1310,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+      }${searchHintsNote(hints)}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
@@ -1237,6 +1323,8 @@ export async function executeSearch(
               ? { ...intentResult.analysis, hints }
               : intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
+          ...(abstained ? { notes: [ABSTENTION_NOTE] } : {}),
+          ...(nextActions.length > 0 ? { nextActions } : {}),
           ...branchFields,
         },
       };
