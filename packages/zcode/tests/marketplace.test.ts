@@ -46,6 +46,26 @@ describe("kibi-zcode ZCode marketplace", () => {
     expect(plugin?.description).toEqual(expect.stringContaining("Kibi"));
   });
 
+  test("every plugin entry carries an https icon that ships in the repo", () => {
+    const marketplace = JSON.parse(
+      fs.readFileSync(marketplacePath, "utf8"),
+    ) as {
+      plugins: Array<{ name: string; icon?: string }>;
+    };
+    // ZCode reads a plugin's icon only from its marketplace entry.
+    const prefix = "https://raw.githubusercontent.com/Looted/kibi/master/";
+    expect(marketplace.plugins.length).toBeGreaterThan(0);
+    for (const entry of marketplace.plugins) {
+      expect(entry.icon?.startsWith(prefix), entry.name).toBe(true);
+      expect(
+        fs.existsSync(
+          path.join(repoRoot, (entry.icon as string).slice(prefix.length)),
+        ),
+        entry.name,
+      ).toBe(true);
+    }
+  });
+
   test("marketplace has no unsupported npm/pip source kinds", () => {
     const raw = fs.readFileSync(marketplacePath, "utf8");
     expect(raw).not.toContain('"npm"');
