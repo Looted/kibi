@@ -62,11 +62,22 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           lookup-only: ${{ inputs.archive-cache == 'write' }}
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
+      - name: Use the restored archive
+        if: success() && inputs.archive-cache == 'read' && steps.cache.outputs.cache-hit == 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p "$BUILD_DIR"
+          archives=("$CACHE_DIR"/swipl-*.tar.gz)
+          sidecars=("$CACHE_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$CACHE_DIR/report.json" "$BUILD_DIR/"
       - name: Require no preinstalled SWI-Prolog
         if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
@@ -116,15 +127,27 @@ jobs:
             ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Stage the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rm -rf "$CACHE_DIR"
+          mkdir -p "$CACHE_DIR"
+          archives=("$BUILD_DIR"/swipl-*.tar.gz)
+          sidecars=("$BUILD_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$BUILD_DIR/report.json" "$CACHE_DIR/"
       - name: Save the archive cache
         if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
         continue-on-error: ${{ inputs.archive-cache == 'read' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   build-macos:
@@ -149,11 +172,22 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           lookup-only: ${{ inputs.archive-cache == 'write' }}
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
+      - name: Use the restored archive
+        if: success() && inputs.archive-cache == 'read' && steps.cache.outputs.cache-hit == 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p "$BUILD_DIR"
+          archives=("$CACHE_DIR"/swipl-*.tar.gz)
+          sidecars=("$CACHE_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$CACHE_DIR/report.json" "$BUILD_DIR/"
       - name: Require no preinstalled SWI-Prolog
         if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
@@ -209,15 +243,27 @@ jobs:
             ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Stage the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rm -rf "$CACHE_DIR"
+          mkdir -p "$CACHE_DIR"
+          archives=("$BUILD_DIR"/swipl-*.tar.gz)
+          sidecars=("$BUILD_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$BUILD_DIR/report.json" "$CACHE_DIR/"
       - name: Save the archive cache
         if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
         continue-on-error: ${{ inputs.archive-cache == 'read' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   build-windows:
@@ -243,11 +289,22 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           lookup-only: ${{ inputs.archive-cache == 'write' }}
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
+      - name: Use the restored archive
+        if: success() && inputs.archive-cache == 'read' && steps.cache.outputs.cache-hit == 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p "$BUILD_DIR"
+          archives=("$CACHE_DIR"/swipl-*.tar.gz)
+          sidecars=("$CACHE_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$CACHE_DIR/report.json" "$BUILD_DIR/"
       - name: Require no preinstalled SWI-Prolog
         if: success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')
         run: |
@@ -298,15 +355,27 @@ jobs:
             ${{ steps.paths.outputs.dir }}/cache-status
           if-no-files-found: error
           retention-days: 7
+      - name: Stage the archive cache
+        if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_DIR: ${{ steps.paths.outputs.dir }}
+          CACHE_DIR: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rm -rf "$CACHE_DIR"
+          mkdir -p "$CACHE_DIR"
+          archives=("$BUILD_DIR"/swipl-*.tar.gz)
+          sidecars=("$BUILD_DIR"/swipl-*.tar.gz.sha256)
+          test "${#archives[@]}" -eq 1
+          test "${#sidecars[@]}" -eq 1
+          cp "${archives[0]}" "${sidecars[0]}" "$BUILD_DIR/report.json" "$CACHE_DIR/"
       - name: Save the archive cache
         if: success() && (inputs.archive-cache == 'read' || inputs.archive-cache == 'write') && steps.cache.outputs.cache-hit != 'true'
         continue-on-error: ${{ inputs.archive-cache == 'read' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/swipl-*.tar.gz.sha256
-            ${{ runner.temp }}/swipl-build/${{ matrix.target }}/report.json
+          path: ${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}
           key: swipl-release-archive-${{ matrix.target }}-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/swipl-windows-repack.py', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml') }}
 
   smoke-linux:
