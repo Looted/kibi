@@ -251,8 +251,8 @@ writes with different content is suppressed as `duplicate_entity`. Only a
 activate it in, `reason`, `fileCount` and up to five `evidence` paths, and
 `recommendedActions` repeats it as a `plugin_offer` action. Kibi offers
 `kibi-plugin-ui` (`augment`) when production `*.tsx`, `*.jsx` or
-`*.component.ts` files exist, and `kibi-plugin-search-hints` (`replace`) when
-`.kb/requirements/` holds 50 or more requirement documents. Offers are outside
+`*.component.ts` files exist. `kibi-plugin-search-hints` is never offered: it
+ships with Kibi and is on unless the project lists it in `kibi.declinedPlugins`. Offers are outside
 the plan and its hash; the agent asks the human, and Kibi never edits
 `package.json` itself.
 
@@ -473,7 +473,7 @@ Ask the KB a question or search it. The default `intent-v1` ranking accepts natu
 - `offset` (optional): Number of results to skip
 - `rankingMode` (optional): `intent-v1` (default) or `legacy`
 - `answer` (optional, default `true`): Intent mode, first page only. Adds the answer layer described below.
-- `hints` (optional, default `true`): Intent mode, first page only. With a `kibi.search-hints.v1` plugin activated, a weak or abstained answer adds `queryAnalysis.hints`, described below.
+- `hints` (optional, default `true`): Intent mode, first page only. A weak or abstained answer adds `queryAnalysis.hints` (the bundled search hints plugin is on by default), described below.
 - `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
 - `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code. The symbols at those locations match, and so do the requirements they `implements`, even when the question shares no word with them (their `sourceMatches` name the implementing symbol with `distance: 3` and the reason `implemented at the source location`).
 - `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
@@ -507,7 +507,9 @@ On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the
 
 The answer layer is graph traversal plus the existing checks scoped to the governing requirements: discovery, not proof. Use `kb_check` and `kb_coverage` for full consistency and proof status. Pass `answer: false` to skip it.
 
-When the project activates a `kibi.search-hints.v1` provider (such as `kibi-plugin-search-hints`) and the intent answer abstained or its top score is below 0.44, `queryAnalysis.hints` lists what the question may mean, found by meaning rather than shared words. It has `trigger` (`abstained` or `weak`), the `provider` stamp (with its `model`), and `items`: up to ten current requirements with `id`, `title` and `score`. A hit on a scenario, test or fact is shown as the current requirement linked to it, with the matched entity under `via`; one no requirement owns is shown as itself. A hit on a negative-path fact is shown as the current requirements it guards (`via` names the fact); one that guards no current requirement is shown as itself with a title prefixed `Forbidden: ` and `negativePath`. The answer's top three governing requirements are left out. Shadow providers appear under `shadow` only, and `diagnostics` names a provider that failed, timed out, returned an invalid result or could not load; the search answers as usual in every case. The text names the first five hints. Hints never change the results, the answer layer or abstention: re-ask in a hint's words or pass them as `semanticFacets.aliases`, then read the requirement with `kb_query`. Pass `hints: false` to skip them.
+When a `kibi.search-hints.v1` provider is active (the bundled `kibi-plugin-search-hints` unless the project configured another provider or listed it in `kibi.declinedPlugins`) and the intent answer abstained or its top score is below 0.44, `queryAnalysis.hints` lists what the question may mean, found by meaning rather than shared words. It has `trigger` (`abstained` or `weak`), the `provider` stamp (with its `model`), and `items`: up to ten current requirements with `id`, `title` and `score`. A hit on a scenario, test or fact is shown as the current requirement linked to it, with the matched entity under `via`; one no requirement owns is shown as itself. A hit on a negative-path fact is shown as the current requirements it guards (`via` names the fact); one that guards no current requirement is shown as itself with a title prefixed `Forbidden: ` and `negativePath`. The answer's top three governing requirements are left out. Shadow providers appear under `shadow` only, and `diagnostics` names a provider that failed, timed out, returned an invalid result or could not load; the search answers as usual in every case. The text names the first five hints. Hints never change the results, the answer layer or abstention: re-ask in a hint's words or pass them as `semanticFacets.aliases`, then read the requirement with `kb_query`. Pass `hints: false` to skip them.
+
+When the first page of an intent answer abstained or is weak and no hint was shown (hints are off, declined, failed or empty), the result's `nextActions` holds a `kb_query` of the requirement titles (of the `type` filter when one is given), `required: false`: an abstention is not evidence that nothing is recorded, and the titles show the words to search with. An abstained answer also carries `notes` with that sentence, so the advice does not depend on the text digest. A file path written in the question adds a `kb_search` action that repeats the question with that path as `sourceLocations`, and a question about contradictions adds a `kb_check` action with `rules: ["domain-contradictions"]`. These mirror the advice in the text and do not change when it is given.
 
 **Example:**
 ```json
