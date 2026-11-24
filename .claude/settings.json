@@ -32,7 +32,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Read|Edit|MultiEdit|Write|NotebookEdit|Grep|Glob|Bash|Skill|mcp__.*__kb_.*",
+        "matcher": "^(Read|Edit|MultiEdit|Write|NotebookEdit|Grep|Glob|Bash|Skill|mcp__.*__kb_.*)$",
         "hooks": [
           {
             "type": "command",
@@ -44,7 +44,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write|NotebookEdit|Bash|mcp__.*kb_.*",
+        "matcher": "^(Edit|MultiEdit|Write|NotebookEdit|Bash|mcp__.*__kb_.*)$",
         "hooks": [
           {
             "type": "command",

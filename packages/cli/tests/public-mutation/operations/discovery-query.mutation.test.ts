@@ -620,7 +620,7 @@ describe("executeQuery entity pages", () => {
     expect(result.content).toStrictEqual([
       {
         type: "text",
-        text: "Found 9 entities of type 'req'. Showing 6 (offset 1, limit 5): REQ-1 (One, status=open), REQ-2 (, status=), REQ-3 (, status=), SYM-1 (, status=), see file:///a/X (, status=),  (, status=)",
+        text: "Found 9 entities of type 'req'. Showing 6 (offset 1, limit 5): REQ-1 (One, status=open), REQ-2 (, status=), REQ-3 (, status=), SYM-1 (, status=), see file:///a/X (, status=),  (, status=) Pass includeBody: true to read its authored body.",
       },
     ]);
     const firm = { id: "REQ-9", type: "req", firmness: "firm" };
