@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e4d62255935
+  - type: implements
+    from: SYM-search-answer-answer-quoted-ids
+    to: REQ-kb-search-answered-results-identity-only
+    created_at: 2026-11-24T19:21:52.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b6e53db04e
+  - type: covered_by
+    from: SYM-search-answer-answer-quoted-ids
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:53.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-268080876574

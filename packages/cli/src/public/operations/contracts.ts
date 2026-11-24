@@ -794,6 +794,11 @@ const BASE_DATA_SCHEMAS: Readonly<
         diagnostics: recordArray,
         qualityDiagnostics: recordArray,
         impactDiagnostics: recordArray,
+        impactAdvice: {
+          ...stringArray,
+          description:
+            "Advice that impact diagnostics share, once each. An impact diagnostic whose advice is an index into this list carries no suggestion of its own.",
+        },
         sourceFiles: stringArray,
         extractedSymbols: recordArray,
         linkedEntities: recordArray,

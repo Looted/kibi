@@ -538,3 +538,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c67357ee0bf
+  - type: constrains
+    from: REQ-kb-check-symbols-without-links
+    to: FACT-SUBJ-kibi-impact-next-actions
+    created_at: 2026-11-24T19:21:39.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c293fda0e3fb
+  - type: requires_property
+    from: REQ-kb-check-symbols-without-links
+    to: FACT-check-symbols-without-links
+    created_at: 2026-11-24T19:21:39.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a35d263a751
+  - type: specified_by
+    from: REQ-kb-check-symbols-without-links
+    to: SCEN-kb-check-symbols-without-links
+    created_at: 2026-11-24T19:21:39.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7f4c1b61ad3
+  - type: relates_to
+    from: REQ-kb-check-symbols-without-links
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-24T19:21:39.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd04659a8405
+  - type: specified_by
+    from: REQ-kb-check-symbols-without-links
+    to: SCEN-CASE-kb-check-symbols-without-links-CHECK-SYMBOL-WITH-LINKS
+    created_at: 2026-11-24T19:26:54.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3cec16518b7

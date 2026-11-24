@@ -19,6 +19,8 @@ import type { Violation } from "../check-types.js";
  */
 import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
+import { withoutQuotedStatement } from "../impact/requirement-statements.js";
+import { sharedAdviceOf } from "../impact/shared-advice.js";
 import type { OmittedViolations } from "./check-helpers.js";
 import type { MigrationPlan } from "./migration-plan.js";
 import { RESULT_BUDGET_CHARS, type ResultTruncation } from "./result-budget.js";
@@ -65,9 +67,14 @@ export interface CheckStructuredContent {
   readonly evaluated: CheckEvaluated;
   readonly diagnostics: readonly CheckDiagnostic[];
   readonly qualityDiagnostics?: readonly QualityDiagnostic[];
-  readonly impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
+  readonly impactDiagnostics?: readonly CheckImpactDiagnostic[];
+  /**
+   * Advice that impact diagnostics share, once each: a diagnostic whose
+   * `advice` is an index into this list carries no suggestion of its own.
+   */
+  readonly impactAdvice?: readonly string[];
   readonly sourceFiles?: ChangedFileImpactResult["sourceFiles"];
-  readonly extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
+  readonly extractedSymbols?: readonly CheckExtractedSymbol[];
   readonly linkedEntities?: ChangedFileImpactResult["linkedEntities"];
   readonly nextActions?: ChangedFileImpactResult["nextActions"];
   readonly migrationPlan?: MigrationPlan;
@@ -86,6 +93,47 @@ export interface CheckStructuredContent {
    * file only with includeSymbolDebt. Never blocking.
    */
   readonly symbolDebt?: SymbolDebt;
+}
+
+/**
+ * An impact diagnostic as kb_check lists it: its suggestion, when every
+ * diagnostic of its kind shares the advice, is the `advice` index into
+ * `impactAdvice` instead.
+ */
+export type CheckImpactDiagnostic = Omit<
+  ChangedFileImpactResult["impactDiagnostics"][number],
+  "suggestion"
+> & { readonly suggestion?: string; readonly advice?: number };
+
+/** A changed symbol without its links, which `linkedEntities` lists. */
+export type CheckExtractedSymbol = Omit<
+  ChangedFileImpactResult["extractedSymbols"][number],
+  "linkedEntityIds"
+>;
+
+/**
+ * The impact diagnostics with each requirement statement quoted once (in
+ * evidence) and each shared advice listed once in `advice`, by index.
+ */
+export function compactImpactDiagnostics(
+  diagnostics: ChangedFileImpactResult["impactDiagnostics"],
+): { diagnostics: CheckImpactDiagnostic[]; advice: string[] } {
+  const advice: string[] = [];
+  const indexOf = new Map<string, number>();
+  const compact = diagnostics.map((diagnostic): CheckImpactDiagnostic => {
+    const quotedOnce = withoutQuotedStatement(diagnostic);
+    const shared = sharedAdviceOf(diagnostic.suggestion);
+    if (shared === undefined) return quotedOnce;
+    let index = indexOf.get(shared);
+    if (index === undefined) {
+      index = advice.length;
+      advice.push(shared);
+      indexOf.set(shared, index);
+    }
+    const { suggestion: _suggestion, ...rest } = quotedOnce;
+    return { ...rest, advice: index };
+  });
+  return { diagnostics: compact, advice };
 }
 
 /** A migration plan reduced to what a scoped check needs to say. */
@@ -493,6 +541,10 @@ export function buildStructuredContent(input: {
     input.impactResult,
   );
   const plan = input.migrationPlan;
+  const impact =
+    input.impactResult === undefined
+      ? undefined
+      : compactImpactDiagnostics(input.impactResult.impactDiagnostics);
   return {
     violations: [...input.violations],
     count: input.violations.length + (input.omittedViolations?.total ?? 0),
@@ -509,11 +561,14 @@ export function buildStructuredContent(input: {
     ...(qualityDiagnostics.length > 0
       ? { qualityDiagnostics: [...qualityDiagnostics] }
       : {}),
-    ...(input.impactResult
+    ...(input.impactResult && impact
       ? {
-          impactDiagnostics: input.impactResult.impactDiagnostics,
+          impactDiagnostics: impact.diagnostics,
+          ...(impact.advice.length > 0 ? { impactAdvice: impact.advice } : {}),
           sourceFiles: input.impactResult.sourceFiles,
-          extractedSymbols: input.impactResult.extractedSymbols,
+          extractedSymbols: input.impactResult.extractedSymbols.map(
+            ({ linkedEntityIds: _linked, ...symbol }) => symbol,
+          ),
           linkedEntities: input.impactResult.linkedEntities,
           nextActions: input.impactResult.nextActions,
         }
