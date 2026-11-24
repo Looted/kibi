@@ -555,6 +555,12 @@
                 "minimum": -9007199254740991,
                 "type": "integer"
               },
+              "notes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "queryAnalysis": {
                 "additionalProperties": {},
                 "properties": {},

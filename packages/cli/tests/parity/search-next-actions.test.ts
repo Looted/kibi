@@ -60,6 +60,7 @@ describe("the next steps of a kb_search answer", () => {
       hints: false,
     });
     expect(envelope.data?.count).toBe(0);
+    expect(envelope.data).not.toHaveProperty("nextActions");
     expect(envelope.data?.notes).toHaveLength(1);
     expect(envelope.nextActions as unknown).toStrictEqual([
       {
