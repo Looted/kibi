@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { OperationError } from "../../cli-errors.js";
+import { staleStoreWarningNote } from "../../utils/content-freshness.js";
 import type {
   KibiResult,
   OperationContent,
@@ -178,6 +179,30 @@ export function preparationAfterCut(
   };
 }
 
+function kbQueryCutText(data: Data): string {
+  const base = idListText("entities", "entities")(data);
+  const store = isRecord(data.branchStore) ? data.branchStore : undefined;
+  if (store?.state === "not_compiled") {
+    const detail = typeof store.detail === "string" ? `${store.detail} ` : "";
+    return `${base} Note: ${detail}Run kibi sync before relying on query results.`;
+  }
+  const meta = isRecord(data.meta) ? data.meta : undefined;
+  if (meta?.syncState === "stale") {
+    const count =
+      integer(meta.staleReasonCount) ??
+      (Array.isArray(meta.staleReasons) ? meta.staleReasons.length : 1);
+    const paths = Array.isArray(meta.staleReasons)
+      ? meta.staleReasons.flatMap((reason) =>
+          isRecord(reason) && typeof reason.path === "string"
+            ? [reason.path]
+            : [],
+        )
+      : [];
+    return `${base} ${staleStoreWarningNote(Math.max(1, count), paths)}`;
+  }
+  return base;
+}
+
 /**
  * Every catalog operation's declaration. The record type makes a new
  * operation without one fail to compile.
@@ -186,7 +211,7 @@ export const RESULT_BUDGETS: Readonly<
   Record<OperationName, ResultBudgetDeclaration>
 > = {
   kb_query: rowsDeclaration("entities", {
-    text: idListText("entities", "entities"),
+    text: (data) => kbQueryCutText(data),
   }),
   kb_search: rowsDeclaration("results", {
     afterCut: (data, kept) => ({ ...data, returned: kept.length }),

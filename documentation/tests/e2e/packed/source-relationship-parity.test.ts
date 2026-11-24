@@ -117,13 +117,18 @@ if (RUN_NODE_TEST_SUITE) {
           ),
         );
 
-        const drift = await kibi(sandbox, [
-          "check",
-          "--rules",
-          "source-relationship-parity",
-          "--format",
-          "json",
-        ]);
+        // With auto-sync on, check compiles the drift away before it
+        // compares; turn it off to see the parity rule block the drift.
+        const drift = await kibi(
+          { ...sandbox, env: { ...sandbox.env, KIBI_AUTO_SYNC: "0" } },
+          [
+            "check",
+            "--rules",
+            "source-relationship-parity",
+            "--format",
+            "json",
+          ],
+        );
         assert.strictEqual(drift.exitCode, 1, drift.stderr);
         assertSourceRelationshipParityOutcome(drift.stdout);
 

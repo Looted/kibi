@@ -1,6 +1,15 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  statSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { hashManifestWithCoordinates } from "../../src/commands/sync/cache.js";
@@ -8,6 +17,8 @@ import {
   MTIME_SOURCE_REASON_CODES,
   confirmMetaFreshness,
   confirmSourceNewerReasons,
+  createFreshnessMemo,
+  missingCachedKbSourceReasons,
 } from "../../src/utils/content-freshness.js";
 
 const base = mkdtempSync(path.join(os.tmpdir(), "kibi-freshness-evidence-"));
@@ -74,11 +85,12 @@ const coordinates = (rows: Array<[string, string]>) =>
   ].join("\n");
 
 describe("mtime reason codes", () => {
-  test("only the three source-newer codes are content-confirmed", () => {
+  test("only the four source-newer codes are content-confirmed", () => {
     expect([...MTIME_SOURCE_REASON_CODES].sort()).toStrictEqual([
       "documentation_source_newer",
       "indexed_source_newer",
       "knowledge_source_newer",
+      "relationship_source_newer",
     ]);
     const { root, store } = workspace({ "a.md": "A" });
     writeCache(store, { "a.md": sha("A") });
@@ -449,5 +461,130 @@ describe("confirmMetaFreshness", () => {
         root,
       ).meta?.staleReasonCount,
     ).toBe(1);
+  });
+});
+
+describe("relationship hashes, persisted memo, and missing cached sources", () => {
+  test("relationshipHashes confirms relationship_source_newer reasons", () => {
+    const { root, store } = workspace({
+      ".kb/relationships/same.yaml": "links: []\n",
+      ".kb/relationships/edited.yaml": "links: [new]\n",
+    });
+    writeFileSync(
+      path.join(store, "sync-cache.json"),
+      JSON.stringify({
+        version: 2,
+        hashes: {},
+        relationshipHashes: {
+          ".kb/relationships/same.yaml": sha("links: []\n"),
+          ".kb/relationships/edited.yaml": sha("links: [old]\n"),
+        },
+        seenAt: {},
+      }),
+    );
+    const sameReason = reason(
+      ".kb/relationships/same.yaml",
+      "relationship_source_newer",
+    );
+    const editedReason = reason(
+      ".kb/relationships/edited.yaml",
+      "relationship_source_newer",
+    );
+    expect(
+      confirmSourceNewerReasons(root, store, [sameReason, editedReason]),
+    ).toStrictEqual({
+      kept: [editedReason],
+      dropped: [sameReason],
+    });
+  });
+
+  test("persists freshness-memo.json across instances and invalidates on ctime change", () => {
+    const { root, store } = workspace({
+      "docs/a.md": "AAAA",
+    });
+    const filePath = path.join(root, "docs/a.md");
+    const olderSec = Math.floor(Date.now() / 1000) - 20;
+    utimesSync(filePath, olderSec, olderSec);
+    writeCache(store, { "docs/a.md": sha("AAAA") });
+
+    const first = createFreshnessMemo(store);
+    expect(first.fileSha256(root, "docs/a.md")).toBe(sha("AAAA"));
+    first.save();
+
+    const memoPath = path.join(store, "freshness-memo.json");
+    expect(existsSync(memoPath)).toBe(true);
+    // Ensure memo mtime is strictly newer than file's ctimeMs/mtimeMs (as across processes).
+    const fileCtimeSec = statSync(filePath).ctimeMs / 1000;
+    const futureSec = Math.max(fileCtimeSec + 5, Date.now() / 1000 + 5);
+    utimesSync(memoPath, futureSec, futureSec);
+
+    const second = createFreshnessMemo(store);
+    expect(second.fileSha256(root, "docs/a.md")).toBe(sha("AAAA"));
+
+    // Overwrite same byte length and backdate mtime to match old mtime: ctimeMs still advances!
+    writeFileSync(filePath, "BBBB");
+    utimesSync(filePath, olderSec, olderSec);
+    const third = createFreshnessMemo(store);
+    expect(third.fileSha256(root, "docs/a.md")).toBe(sha("BBBB"));
+  });
+
+  test("read-only store skips memo write without throwing", () => {
+    if (process.getuid?.() === 0) return;
+    const { root, store } = workspace({ "docs/a.md": "A" });
+    writeCache(store, { "docs/a.md": sha("A") });
+    chmodSync(store, 0o555);
+    try {
+      const result = confirmSourceNewerReasons(root, store, [
+        reason("docs/a.md"),
+      ]);
+      expect(result.dropped).toStrictEqual([reason("docs/a.md")]);
+      expect(existsSync(path.join(store, "freshness-memo.json"))).toBe(false);
+    } finally {
+      chmodSync(store, 0o755);
+    }
+  });
+
+  test("missingCachedKbSourceReasons flags deleted relationship shards only", () => {
+    const { root, store } = workspace({});
+    writeFileSync(
+      path.join(store, "sync-cache.json"),
+      JSON.stringify({
+        version: 2,
+        hashes: {
+          ".kb/requirements/REQ-gone.md": sha("gone"),
+          "src/already-handled-elsewhere.ts": sha("src"),
+        },
+        relationshipHashes: {
+          ".kb/relationships/shard.yaml": sha("links: []\n"),
+          ".kb/relationships/other.yaml": sha("links: []\n"),
+        },
+        seenAt: {},
+      }),
+    );
+    expect(missingCachedKbSourceReasons(root, store)).toStrictEqual([
+      {
+        code: "relationship_source_missing",
+        path: ".kb/relationships/other.yaml",
+        entityIds: [],
+      },
+      {
+        code: "relationship_source_missing",
+        path: ".kb/relationships/shard.yaml",
+        entityIds: [],
+      },
+    ]);
+    expect(
+      missingCachedKbSourceReasons(
+        root,
+        store,
+        new Set([".kb/relationships/other.yaml"]),
+      ),
+    ).toStrictEqual([
+      {
+        code: "relationship_source_missing",
+        path: ".kb/relationships/shard.yaml",
+        entityIds: [],
+      },
+    ]);
   });
 });

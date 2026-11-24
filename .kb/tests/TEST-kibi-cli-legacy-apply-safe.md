@@ -1,6 +1,6 @@
 ---
 title: kibi migrate --apply-safe migrates a legacy branch store from its previewed plan
-status: pending
+status: passing
 priority: must
 tags:
   - branching

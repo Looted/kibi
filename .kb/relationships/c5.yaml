@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-617970cf488b
+  - type: implements
+    from: SYM-requirement-lifting-resolve-supersedes-target
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-23T10:35:09.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4391545b5470
+  - type: covered_by
+    from: SYM-requirement-lifting-resolve-supersedes-target
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-23T10:35:09.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c86d60f75271
