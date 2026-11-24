@@ -1654,7 +1654,7 @@ describe("usage telemetry", () => {
 });
 
 describe("workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const fixture = createKibiWorkspace();
     const result = await runHook(
       {
@@ -1673,6 +1673,25 @@ describe("workspace stamp", () => {
         updatedInput: { query: "rounding", workspaceRoot: fixture.root },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const fixture = createKibiWorkspace();
+    const worktree = tempDir("kibi-claude-worktree-");
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          session_id: "s-stamp",
+          cwd: path.join(fixture.root, "src"),
+          hook_event_name: "PreToolUse",
+          tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+          tool_input: { query: "rounding", workspaceRoot: worktree },
+        },
+        { pluginData: fixture.pluginData, env: {} },
+      ),
+    ).toEqual({});
   });
 
   test("a Kibi call outside any Kibi workspace is left alone", async () => {

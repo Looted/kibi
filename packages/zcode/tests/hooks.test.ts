@@ -120,19 +120,32 @@ describe("kibi-zcode hooks.json", () => {
     const preToolUse = config.hooks?.PreToolUse ?? [];
     expect(preToolUse).toHaveLength(1);
     const matcher = preToolUse[0]?.matcher;
-    expect(matcher).toBe("Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*");
+    // ZCode tests a matcher against the whole tool name as a regular
+    // expression, so the alternatives are anchored: unanchored, `Write` also
+    // matched `TodoWrite` and started the hook runner for it.
+    expect(matcher).toBe("^(Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*)$");
     for (const tool of [
       "Edit",
       "MultiEdit",
       "Write",
       "apply_patch",
-      // Kibi MCP calls get the session workspace stamped on them.
+      // Kibi MCP calls get the session workspace stamped when they name none.
       "mcp__kibi__kb_search",
       "mcp__plugin_kibi__kb_check",
+      "mcp__plugin_kibi-zcode_kibi__kb_status",
     ]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(true);
     }
-    for (const tool of ["Read", "Bash", "Agent", "edit", "mcp__other__tool"]) {
+    for (const tool of [
+      "Read",
+      "Bash",
+      "Agent",
+      "edit",
+      // A tool whose name merely ends in an edit tool's name.
+      "TodoWrite",
+      "mcp__other__tool",
+      "mcp__kibi__other",
+    ]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(false);
     }
   });

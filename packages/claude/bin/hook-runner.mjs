@@ -325,6 +325,9 @@ function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   if (!workspaceRoot || !isKibiMcpToolName(toolName))
     return;
   const base = isRecord(toolInput) ? toolInput : {};
+  const named = base[KIBI_WORKSPACE_ARGUMENT];
+  if (typeof named === "string" && named.trim().length > 0)
+    return;
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 function effectiveKbOperation(operation, payload) {
@@ -3799,9 +3802,9 @@ function withFirmConfirmation(output, firm, workspace, trace) {
 }
 function preToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName;
-  const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
-  if (stamped) {
-    return {
+  if (isKibiMcpToolName(toolName)) {
+    const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
+    return stamped === undefined ? {} : {
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         updatedInput: stamped

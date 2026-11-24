@@ -587,6 +587,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e626a4e54b9f
+  - type: validates
+    from: TEST-agent-hosts-kb-call-workspace-stamp
+    to: REQ-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:55:47.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91854401e0a7
+  - type: validates
+    from: TEST-agent-hosts-kb-call-workspace-stamp
+    to: SCEN-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:55:48.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-528c5f5ecc42
+  - type: validates
+    from: TEST-agent-hosts-kb-call-workspace-stamp
+    to: SCEN-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    created_at: 2026-11-23T17:55:48.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3c99cedabff
   - type: constrains
     from: REQ-antigravity-hook-lifecycle-and-scoping
     to: FACT-SUBJECT-antigravity-plugin

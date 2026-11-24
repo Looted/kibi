@@ -141,9 +141,10 @@ file. Remove the variable to stop recording.
   The launcher resolves the workspace from `CLAUDE_PROJECT_DIR`, is silent
   outside Kibi workspaces, and proxies the project-local `kibi-mcp`. The
   `PreToolUse` hook adds `workspaceRoot` (the session's current workspace) to
-  every Kibi MCP call, so a session that moves into a git worktree, as Claude
-  Code desktop sessions do, is answered from that worktree's branch rather
-  than the checkout the server started in. Set `KIBI_WORKSPACE` to pin one
+  a Kibi MCP call that carries none, so a session that moves into a git
+  worktree, as Claude Code desktop sessions do, is answered from that
+  worktree's branch rather than the checkout the server started in. A
+  `workspaceRoot` the agent passes is kept. Set `KIBI_WORKSPACE` to pin one
   workspace instead.
 - `hooks/hooks.json`: `SessionStart`, `UserPromptSubmit`, `PreToolUse` (read,
   edit, and search tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP

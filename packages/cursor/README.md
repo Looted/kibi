@@ -67,8 +67,9 @@ The plugin bundles `mcp.json` with a thin launcher that locates and starts the
 resolved child from the consumer workspace and sets `KIBI_WORKSPACE` to that
 root; it never downloads, bundles, or falls back to a global Kibi runtime.
 The `preToolUse` hook adds `workspaceRoot` (the agent's current workspace) to
-every Kibi MCP call, so an agent working in a git worktree is answered from
-that worktree's branch. Setting `KIBI_WORKSPACE` pins one workspace instead:
+a Kibi MCP call that carries none, so an agent working in a git worktree is
+answered from that worktree's branch; a `workspaceRoot` the agent passes is
+kept. Setting `KIBI_WORKSPACE` pins one workspace instead:
 
 ```json
 {
