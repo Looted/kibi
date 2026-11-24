@@ -353,6 +353,7 @@ describe("executeSearch intent ranking", () => {
       branch: "kb-main",
       detail: "summary",
       syncState: "unknown",
+      ambiguous: true,
     });
     expect(calls.build).toHaveBeenCalledWith({
       query: "login",
@@ -368,7 +369,7 @@ describe("executeSearch intent ranking", () => {
     expect(result.content).toStrictEqual([
       {
         type: "text",
-        text: "Found 6 intent search results for 'login' (top matches are close; confirm before relying on one). Top: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5. Governing: REQ-g1, REQ-g2 (the top match REQ-1 is linked to no requirement). [hints]",
+        text: "Found 6 intent search results for 'login' (top matches are close; confirm before relying on one). Top: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5. Candidate requirements, not confirmed to govern: REQ-g1, REQ-g2 (the top match REQ-1 is linked to no requirement). [hints]",
       },
     ]);
     expect(Object.keys(result.structuredContent)).toEqual([
@@ -604,9 +605,7 @@ describe("executeSearch intent ranking", () => {
 
     const weakCalls = intentFakes({ matches: [] });
     weakCalls.trigger.mockReturnValue("abstained");
-    expect(
-      await tail({ query: "why did we choose this architecture?" }),
-    ).toBe(
+    expect(await tail({ query: "why did we choose this architecture?" })).toBe(
       ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).',
     );
     // Filtered or strong rationale searches do not add the weak ADR note.
@@ -617,9 +616,9 @@ describe("executeSearch intent ranking", () => {
       }),
     ).toBe("");
     weakCalls.trigger.mockReturnValue(null);
-    expect(
-      await tail({ query: "why did we choose this architecture?" }),
-    ).toBe("");
+    expect(await tail({ query: "why did we choose this architecture?" })).toBe(
+      "",
+    );
   });
 
   test("uses intent ranking for facets or locations in legacy mode", async () => {
