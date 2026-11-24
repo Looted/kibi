@@ -32,10 +32,10 @@ const caches = new Map<string, VectorCache>();
 const MAX_LIMIT = 20;
 
 function dot(left: Float32Array, right: Float32Array): number {
-  return left.reduce(
-    (sum, value, index) => sum + value * (right[index] as number),
-    0,
-  );
+  let sum = 0;
+  for (let index = 0; index < left.length; index += 1)
+    sum += (left[index] as number) * (right[index] as number);
+  return sum;
 }
 
 /**
@@ -77,7 +77,7 @@ export function rankByMeaning(
 
 export function createSearchHints(): SearchHintsV1 {
   return {
-    id: "kibi-plugin-search-hints.potion-base-8M",
+    id: "kibi-plugin-search-hints.potion-retrieval-32M",
     model: MODEL_LABEL,
     hint(input: SearchHintsInput): SearchHintsResult {
       // The table loads on the first hint, not when the plugin is resolved.
@@ -99,7 +99,7 @@ export function createSearchHints(): SearchHintsV1 {
 
 /**
  * Offline meaning-based hints for weak kb_search answers, from the bundled
- * potion-base-8M static embedding. No network, no native code.
+ * potion-retrieval-32M static embedding. No network, no native code.
  */
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,

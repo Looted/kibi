@@ -53,7 +53,7 @@ function asset(
       table.writeInt8(weight, 16 + rows.length * 4 + index * dims + col),
     );
   });
-  writeFileSync(path.join(directory, "potion-base-8M.int8.bin"), table);
+  writeFileSync(path.join(directory, "potion-retrieval-32M.int8.bin"), table);
   writeFileSync(
     path.join(directory, "vocab.txt"),
     `${vocabulary.join("\n")}\n`,
@@ -80,11 +80,11 @@ function header(file: string): { entries: [string, string][] } {
 // executable_for TEST-kibi-plugin-search-hints
 describe("search hints model edges", () => {
   test("the model id names the label and the asset digest", () => {
-    expect(MODEL_LABEL).toBe("minishlab/potion-base-8M@bf8b056651a2/int8");
+    expect(MODEL_LABEL).toBe("minishlab/potion-retrieval-32M@6fc8051fab2a/int8");
     expect(model.id).toMatch(
-      /^minishlab\/potion-base-8M@bf8b056651a2\/int8-[0-9a-f]{12}$/,
+      /^minishlab\/potion-retrieval-32M@6fc8051fab2a\/int8-[0-9a-f]{12}$/,
     );
-    expect(model.dims).toBe(256);
+    expect(model.dims).toBe(512);
   });
 
   test("vectors are unit length, and text with no known token is all zero", () => {

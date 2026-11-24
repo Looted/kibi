@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7df42fdc0ab
+  - type: implements
+    from: SYM-index-create-search-hints
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:03.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dab18abe5f5
+  - type: covered_by
+    from: SYM-index-create-search-hints
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:03.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00bf72845f3f

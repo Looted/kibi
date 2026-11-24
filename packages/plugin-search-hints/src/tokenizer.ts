@@ -1,7 +1,7 @@
 /**
  * BERT WordPiece tokenizer, matching the Hugging Face `tokenizers`
  * BertNormalizer (clean text, CJK spacing, accent stripping, lowercase),
- * BertPreTokenizer and WordPiece model that potion-base-8M ships with.
+ * BertPreTokenizer and WordPiece model that potion-retrieval-32M ships with.
  */
 
 const MAX_INPUT_CHARS_PER_WORD = 100;

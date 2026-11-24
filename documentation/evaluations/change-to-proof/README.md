@@ -112,10 +112,12 @@ output so a failure says which question regressed.
 current requirement in words it does not use (for example "the cleanup
 command" for `kibi gc`). The bundled `kibi-plugin-search-hints` is active by
 default, so the same runner measures what an agent sees in one call. Lexical ranking
-alone finds 2 of the 20 in its top three; with hints 12 of 20 show the expected
-requirement. `repo-search-hints-thresholds.json` gates `recallWithHints` at
-0.6, which is that baseline, so one more missed question fails it; the `proof`
-workflow runs it after the gold-set gate.
+alone finds 2 of the 20 in its top three; with hints from the bundled
+potion-retrieval-32M model 14 of 20 show the expected requirement (12 with the
+earlier potion-base-8M). `repo-search-hints-thresholds.json` gates
+`recallWithHints` at 0.6, the potion-base-8M baseline, so the gate fails when
+three more questions are missed; the `proof` workflow runs it after the
+gold-set gate.
 
 The questions are about Kibi's behaviour, not about one agent host: a gold set
 has no question that only one host's plugin can answer. When a gate fails, the
