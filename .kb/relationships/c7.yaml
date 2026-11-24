@@ -510,3 +510,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-794a505365e9
+  - type: verified_by
+    from: SCEN-kibi-search-hints-default
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T08:21:14.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f465bb8c5f0b
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-without-configuration
+    created_at: 2026-11-24T08:22:01.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90a23c2b7349
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-when-declined
+    created_at: 2026-11-24T08:22:01.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ce4382c61a2
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-beside-configured
+    created_at: 2026-11-24T08:22:01.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c8f281c63d

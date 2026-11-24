@@ -349,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e354ab1bad1
+  - type: verified_by
+    from: SCEN-kibi-search-question-next-steps
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:38:59.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d147bf42c14e
+  - type: assumes
+    from: SCEN-kibi-search-question-next-steps
+    to: FACT-search-next-step-path
+    created_at: 2026-11-24T08:38:59.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67c65a732ea9
+  - type: assumes
+    from: SCEN-kibi-search-question-next-steps
+    to: FACT-search-next-step-contradiction
+    created_at: 2026-11-24T08:38:59.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6193fdf0d0ce
