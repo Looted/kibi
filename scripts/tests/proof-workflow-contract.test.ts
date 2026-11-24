@@ -218,7 +218,7 @@ describe("strict proof workflow contract", () => {
         pull_request: { branches: string[] };
       };
       permissions: Record<string, string>;
-      jobs: { reuse: Job; prove: Job; proof: Job };
+      jobs: { reuse: Job; prove: Job; "search-gates": Job; proof: Job };
     };
     expect(workflow.on.push.branches).toEqual(["develop"]);
     expect(workflow.on.pull_request.branches).toEqual(["develop", "master"]);
@@ -252,7 +252,11 @@ describe("strict proof workflow contract", () => {
     expect(
       reuse.steps.find((step) => step.name === "Checkout")?.with,
     ).toMatchObject({ ref: "${{ github.sha }}", "fetch-depth": 2 });
-    for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
+    for (const job of [
+      workflow.jobs.prove,
+      workflow.jobs["search-gates"],
+      workflow.jobs.proof,
+    ]) {
       expect(job.needs).toContain("reuse");
       expect(job.env?.KIBI_PROOF_EXECUTE).toBe(
         "${{ needs.reuse.outputs.execute }}",
