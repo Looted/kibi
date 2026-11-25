@@ -489,20 +489,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a984fc283a9c
-  - type: implements
-    from: SYM-search-hints-search-hints-entities
-    to: REQ-search-answers-search-hints-lift-two
-    created_at: 2026-11-23T10:35:11.051Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4ce50174a93
-  - type: covered_by
-    from: SYM-search-hints-search-hints-entities
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-11-23T10:35:11.058Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c11ef5109ac4
   - type: assumes
     from: SCEN-NEG-search-scope-candidates-other-scope-count-only-OFF
     to: FACT-NEG-search-scope-candidates-other-scope-count-only-OFF

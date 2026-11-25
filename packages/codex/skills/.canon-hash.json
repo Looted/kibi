@@ -1,5 +1,5 @@
 {
-  "kibi-bootstrap/SKILL.md": "d71849c2d63697c58d51a83624911b9078af263b5b9af1f158b746358a060cb1",
+  "kibi-bootstrap/SKILL.md": "71cef30e6737c35bd41622ce19839fa660e49dc7b440b68badb96fd54631cdbf",
   "kibi-bootstrap/resources/bootstrap.md": "cb61dcb629d9f6313305cf6faf11c0da397c21fe0c13ffa2396732e9e81089fe",
   "kibi-bootstrap/resources/branch-lifecycle.md": "c854264ce888439140883a3fc636db5e522f020dd27b30a5c1ecc4105b64ed13",
   "kibi-bootstrap/resources/operation-access.md": "b5a6a59e72d800c376e7fad79132897623c32a0ce152a1e8d73f9628b444db51",
@@ -31,7 +31,7 @@
   "kibi-usage/resources/kb-quality.md": "057988528b644a0e696f60b42f22a516c436487bbf061dd85fcce720a0ac03d5",
   "kibi-usage/resources/logic-ir.md": "9a125adaf380043ebc13447f6ec1de3b8cb1a18d7f4717790aeb162db490fee5",
   "kibi-usage/resources/operation-access.md": "c24426e4bc2ba52e4592d977d85ac675edb246ecab21ddd0f8e159f9abf90d63",
-  "kibi-usage/resources/operation-fields.md": "644c3c4a47b93a470524e60cb08f972d6ffde46fb67c824fa0268e3c0cb3072d",
+  "kibi-usage/resources/operation-fields.md": "757adf0feb6a473274fc4c5d20c71b3c0592e2524c0640296342d8982a1575e4",
   "kibi-usage/resources/predicate-ontology.md": "9e241ac2eeaf51fd5c0dd8a06df3ba32558fe485b2fe044f03ab1510a70aabda",
   "kibi-usage/resources/prolog-proofs.md": "b630f1edf32c4d14dbd096deb15c370f6ce05dede8aa9cda4fbf294d8668f164",
   "kibi-usage/resources/proof.md": "6f2c22e841f5ba632c5d1735b36af8a16c8101b4a2fada5c2e906dd8602eed01",
@@ -39,9 +39,9 @@
   "kibi-usage/resources/recording.md": "8d071409a5aeb412d1f8231966adb5794aaebe66a787272766ebc743a4b6b699",
   "kibi-usage/resources/relationship-directions.md": "f0e6c0b147233b0dd07ec48ca2ab798416c815841ace04d053e1b1f551bc9185",
   "kibi-usage/resources/requirement-size.md": "aae38773d8d982c676e673b562eecbef23c30cc3a9f2c822d193b3a58a691db5",
-  "kibi-usage/resources/results-and-recovery.md": "4e33dc3c480daee6d1ceb545a1b4a6b3935e8be29f1004ac5ef4327936f4dbda",
+  "kibi-usage/resources/results-and-recovery.md": "9191cacf85c55653d0d77a486d35d0321050f1296e8bd1c2af1b48f79cf3b5c7",
   "kibi-usage/resources/second-agent-edits.md": "1123bbb20987e51d8470c2c0793eec70349809c1cae7b2d6c8a7de3fed71b087",
   "kibi-usage/resources/source-authoring.md": "0ad85fd25667ef0b9b34e6426a9219abddea361780e1c36dff57d551832483aa",
   "kibi-usage/resources/ui-requirements.md": "1c3de8e91eb1e79a18950e112bcbf84fc9ed4c0b91634717d3e2d7097d9d2574",
-  "kibi-usage/resources/workflows.md": "7cce9a3e411b54aa10648536fec67f96636146e36569dd1c93a1d5e48428217e"
+  "kibi-usage/resources/workflows.md": "0b01034cdc918f30453f102fed23283baaee94fc495bc80f72d66b0972e640b2"
 }

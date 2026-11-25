@@ -615,3 +615,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc7c5644127e
+  - type: executable_for
+    from: SYM-proof-search-meaning-score-limit
+    to: TEST-proof-search-meaning-score-limit
+    created_at: 2026-11-25T19:27:03.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f56fc801f16

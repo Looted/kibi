@@ -132,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b822b6172c0
-  - type: validates
-    from: TEST-proof-search-hint-shown-limit
-    to: SCEN-kibi-search-hints-host
-    created_at: 2026-10-29T21:35:34.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-69dc056ed180
   - type: constrains
     from: REQ-kibi-distribution-parity-matrix
     to: FACT-kibi-distribution-parity-component

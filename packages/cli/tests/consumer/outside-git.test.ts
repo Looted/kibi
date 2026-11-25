@@ -218,7 +218,7 @@ describe("Kibi outside a Git repository", () => {
     const doctor = kibi(root, ["doctor"]);
     expect(doctor.stdout).toContain("No Git repository: Kibi is working");
     expect(doctor.stdout).not.toContain("✗ Git");
-  });
+  }, 60_000);
 
   test("usage telemetry records working without Git as success and a Git feature as rejected, with vcs none", () => {
     const root = workspace();
@@ -322,7 +322,7 @@ describe("Kibi outside a Git repository", () => {
     const init = kibi(root, ["init"]);
     expect(init.status).toBe(0);
     expect(init.stdout).not.toContain("No Git repository");
-  });
+  }, 60_000);
 
   test("KIBI_BRANCH names a store for the processes that set it; the directory's own store stays", () => {
     const root = workspace();

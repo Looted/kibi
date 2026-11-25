@@ -1,5 +1,5 @@
 ---
-title: kb_search search hints host tests
+title: kb_search meaning ranking tests
 status: passing
 tags:
   - search
@@ -21,17 +21,17 @@ id: TEST-kibi-search-hints-host
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-cfc1d195d62ff97f5331af30
+    receipt_id: PR-eacc11e3635c64433bc2ae5d
     test_id: TEST-kibi-search-hints-host
     scope: end_to_end
     outcome: passed
-    code_snapshot: 86aa79d815f6e72a7264e4735e8c18223199357bff9ffad9c4ac72c57d956997
+    code_snapshot: 4b66676736e4ffd3d568ebd40c071d55c0a0c605ee2bb57b0941bd7a509e70d6
     environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-24T11:40:37.375Z'
-    finished_at: '2026-11-24T11:40:40.710Z'
-    artifact_digest: 9f2c778390a0442b3e7e4596b0f6f86c08ee8e4e1cda017db5cc8649081719e7
+    started_at: '2026-11-25T19:50:34.314Z'
+    finished_at: '2026-11-25T19:50:37.032Z'
+    artifact_digest: 6fcfa78a1ac1d9dc7a685041f7165d8f263ca3d9f3ce5c9191ed874044db6566
     contract_hash: 4f0dd1922bf5b05bf8986aaf0c245d881c31a7168a487695adb2928c9dd93487
-    binding_hash: 85c73cfb5ada7729b90c8f27e9a2879eea4aafb30ccbe5900805c94c9cb2dd8c
+    binding_hash: 9ff51c6066f805acea7b064e5a9ec124f2065c7e085d92b900ac2af931033d5a
     fingerprint: 2af39c1ddc2e600fac4cd39effc728dca8240393b637fcfd3d696653defcc141
     fingerprint_components:
       contract: 4f0dd1922bf5b05bf8986aaf0c245d881c31a7168a487695adb2928c9dd93487
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-CLI tests for the search hints host: the trigger matrix, the current-entity corpus and its query-independent text, replace and shadow composition, failure, invalid result and timeout handling, the operation allowlist, lifting hits to linked requirements, and kb_search answers with hints on, off and with a provider that cannot load.
+CLI tests for the meaning ranking of kb_search: replace and shadow composition, a throwing, invalid or late provider giving no scores and a diagnostic, the operation allowlist, the provider's first and warm time budgets and its per-workspace cache directory (packages/cli/tests/search-hints.test.ts), and decision search fusing the provider's scores, crediting each decision with its linked scenarios, tests and assumed facts and listing the closest decisions that are not cards (packages/cli/tests/decision-search.test.ts), with kb_search answers with a provider, without one and with one that cannot load.

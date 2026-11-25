@@ -1,6 +1,6 @@
 ---
 title: Search hints are ordered by the summed score of the hits behind each
-status: open
+status: closed
 firmness: default
 priority: should
 required_evidence: tested

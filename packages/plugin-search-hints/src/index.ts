@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 import {
   KIBI_PLUGIN_API_VERSION,
+  SEARCH_HINTS_MAX_LIMIT,
   type SearchHint,
   type SearchHintsInput,
   type SearchHintsResult,
@@ -28,8 +29,6 @@ const packageJson = createRequire(import.meta.url)("../package.json") as {
 
 let model: StaticModel | undefined;
 const caches = new Map<string, VectorCache>();
-/** kibi.search-hints.v1 caps a request at 20 hints. */
-const MAX_LIMIT = 20;
 
 function dot(left: Float32Array, right: Float32Array): number {
   let sum = 0;
@@ -54,7 +53,7 @@ export function rankByMeaning(
   cache.retain(input.entities);
   cache.save();
   const query = staticModel.encode(input.query);
-  const limit = Math.max(0, Math.min(input.limit, MAX_LIMIT));
+  const limit = Math.max(0, Math.min(input.limit, SEARCH_HINTS_MAX_LIMIT));
   return input.entities
     .map((entity, index) => ({
       id: entity.id,
@@ -98,7 +97,7 @@ export function createSearchHints(): SearchHintsV1 {
 }
 
 /**
- * Offline meaning-based hints for weak kb_search answers, from the bundled
+ * Offline meaning-based similarity for every kb_search, from the bundled
  * potion-retrieval-32M static embedding. No network, no native code.
  */
 export const kibiPlugin = defineKibiPlugin({

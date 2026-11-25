@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-meaning-score-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts"
+    ]
+  ]
+}
