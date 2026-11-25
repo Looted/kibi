@@ -83,6 +83,12 @@
         "description": "Add no pull-request gate workflow (default)",
         "default": null,
         "mandatory": false
+      },
+      {
+        "flags": "--level <level>",
+        "description": "How hard Kibi holds the agent to its requirements: test (default; also asks for scenarios and linked tests) or remember (records requirements without them). Asked at a terminal when not given; recorded in package.json kibi.level or .kb/setup.json",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []

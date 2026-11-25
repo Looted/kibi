@@ -70,6 +70,10 @@ export function registerFoundationCommands(program: Command): void {
       "Add .github/workflows/kibi-check.yml, which runs kibi check on every pull request",
     )
     .option("--no-ci-gate", "Add no pull-request gate workflow (default)")
+    .option(
+      "--level <level>",
+      "How hard Kibi holds the agent to its requirements: test (default; also asks for scenarios and linked tests) or remember (records requirements without them). Asked at a terminal when not given; recorded in package.json kibi.level or .kb/setup.json",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         (await import("./commands/init.js")).initCommand(options),

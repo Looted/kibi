@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13665436ad36
+  - type: assumes
+    from: SCEN-NEG-kibi-schema-20-level-c01-neq-0
+    to: FACT-NEG-kibi-schema-20-level-c01-neq-0
+    created_at: 2026-11-25T10:19:51.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b8be80507e1

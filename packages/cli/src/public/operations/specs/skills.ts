@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import {
   type SkillManifest,
   listBundledSkills,
@@ -14,11 +15,31 @@ function assertNonEmptyString(value: string, field: string): void {
   }
 }
 
+/**
+ * The skills a project at Kibi level remember is not offered: they shape
+ * code for proofs, which that level does not ask for. Loading one by id
+ * still works.
+ */
+export const REMEMBER_UNOFFERED_SKILLS: ReadonlySet<string> = new Set([
+  "kibi-provable-code",
+]);
+
+/** The skills of `skills` a project is offered at its Kibi level. */
+export function offeredSkills(
+  skills: readonly SkillManifest[],
+  workspaceRoot: string,
+): SkillManifest[] {
+  const remember = readKibiLevel(workspaceRoot).level === "remember";
+  return skills.filter(
+    (skill) => !remember || !REMEMBER_UNOFFERED_SKILLS.has(skill.id),
+  );
+}
+
 async function executeSkillsList(
   _input: Readonly<Record<string, unknown>>,
-  _context: OperationContext,
+  context: OperationContext,
 ): Promise<OperationResult<{ readonly skills: readonly SkillManifest[] }>> {
-  const skills = listBundledSkills();
+  const skills = offeredSkills(listBundledSkills(), context.workspaceRoot);
   const ids = skills.map((skill) => skill.id).join(", ") || "none";
   return {
     content: [
