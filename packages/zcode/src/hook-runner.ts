@@ -297,7 +297,7 @@ function toolReads(
  * Requirement rows for the code a read, search or shell call puts in view
  * (see kibi-agent-core/read-context), each requirement once per session.
  */
-function readRows(
+export function readRows(
   workspaceRoot: string,
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,

@@ -168,7 +168,7 @@ function isKnownEditTool(toolName: string | undefined): boolean {
  * Requirement rows for what a shell call reads or searches (see
  * kibi-agent-core/read-context), each requirement once per session.
  */
-function shellReadRows(
+export function shellReadRows(
   workspaceRoot: string,
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,

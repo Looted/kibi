@@ -4903,5 +4903,6 @@ export {
   main,
   runHook,
   runHookCli,
-  runHookCliIfMain
+  runHookCliIfMain,
+  shellReadRows
 };

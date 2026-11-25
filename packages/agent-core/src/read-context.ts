@@ -265,7 +265,8 @@ function rowText(
   return `- ${describeEntity(summarize(candidate.id))} — ${where}`;
 }
 
-function busyLine(view: ReadView, ids: readonly string[]): string {
+/** The one-line id list a busy whole file gets in place of its rows. */
+export function busyLine(view: ReadView, ids: readonly string[]): string {
   const line = `- ${view.relativePath} implements ${ids.length} requirements: ${ids.join(", ")}; reading a line range narrows them to the code in view.`;
   return truncate(line, MAX_BUSY_LINE);
 }

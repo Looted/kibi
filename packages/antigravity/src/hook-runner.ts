@@ -457,9 +457,7 @@ function preToolUse(
         ? grepSearchRows(input, state, workspace, trace, events)
         : undefined;
     if (rows) {
-      // Rows already say the code is governed, so the tip would repeat it.
-      if (!state.notices.has("search-tip"))
-        events.push({ kind: "notice", name: "search-tip" });
+      spendSearchTip(state, events);
       queueAndCommit(rows, "read_snippet");
       return passthrough;
     }
@@ -643,12 +641,24 @@ function queueEditPreToolUse(
 }
 
 /**
+ * Marks the one-time search tip as spent once a search has shown rows,
+ * since the rows already say the code is governed.
+ */
+export function spendSearchTip(
+  state: SessionState,
+  events: SessionEvent[],
+): void {
+  if (!state.notices.has("search-tip"))
+    events.push({ kind: "notice", name: "search-tip" });
+}
+
+/**
  * Requirement rows for the code a read or search puts in view (see
  * kibi-agent-core/read-context), each requirement once per session, counting
  * those a Kibi tool result already showed; the files they describe are
  * marked as read.
  */
-function requirementRows(
+export function requirementRows(
   reads: readonly ShellRead[],
   state: SessionState,
   workspace: Workspace,
@@ -815,8 +825,7 @@ function queueShellContext(
     events,
   );
   if (rows) {
-    if (isSearchCommand(command) && !state.notices.has("search-tip"))
-      events.push({ kind: "notice", name: "search-tip" });
+    if (isSearchCommand(command)) spendSearchTip(state, events);
     queueAndCommit(rows, "read_snippet");
     return;
   }

@@ -4827,8 +4827,7 @@ function preToolUse(input, workspace, trace = {}) {
     trace.action = "search_silent";
     const rows = toolName === "grep_search" ? grepSearchRows(input, state, workspace, trace, events) : undefined;
     if (rows) {
-      if (!state.notices.has("search-tip"))
-        events.push({ kind: "notice", name: "search-tip" });
+      spendSearchTip(state, events);
       queueAndCommit(rows, "read_snippet");
       return passthrough;
     }
@@ -4949,6 +4948,10 @@ function queueEditPreToolUse(relativePath, kind, symbols, focus, state, workspac
   }
   appendSessionEvents(workspace.stateDir, events);
 }
+function spendSearchTip(state, events) {
+  if (!state.notices.has("search-tip"))
+    events.push({ kind: "notice", name: "search-tip" });
+}
 function requirementRows(reads, state, workspace, trace, events, admits) {
   const rows = hookReadRows(reads, {
     workspaceRoot: workspace.root,
@@ -5043,8 +5046,8 @@ function queueShellContext(input, workspace, state, trace, command, edited, even
   }
   const rows = requirementRows(reads.filter(({ absolute }) => !edited.has(absolute)), state, workspace, trace, events);
   if (rows) {
-    if (isSearchCommand(command) && !state.notices.has("search-tip"))
-      events.push({ kind: "notice", name: "search-tip" });
+    if (isSearchCommand(command))
+      spendSearchTip(state, events);
     queueAndCommit(rows, "read_snippet");
     return;
   }
@@ -5404,7 +5407,9 @@ export {
   main,
   normalizeEditArgs,
   readFocus,
+  requirementRows,
   runHook,
   runHookCli,
-  runHookCliIfMain
+  runHookCliIfMain,
+  spendSearchTip
 };
