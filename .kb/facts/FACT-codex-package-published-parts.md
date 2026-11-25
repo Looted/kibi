@@ -7,17 +7,19 @@ property_key: published_files
 operator: includes
 value_type: set
 value_set:
-  - .codex-plugin
+  - plugin.json
+  - assets
   - .mcp.json
   - bin
   - hooks
   - skills
-claim_text: The kibi-codex package must publish its .codex-plugin manifest directory, its .mcp.json configuration and its bin, hooks and skills directories
-claim_key: CLAIM-E17040C703A7CF28
+claim_text: The kibi-codex package must publish its plugin.json manifest, its assets, .mcp.json configuration and its bin, hooks and skills directories
+claim_key: CLAIM-A803F27577B74ED2
 text_ref: REQ-codex-plugin-package
 origin:
-  kind: agent
-  recorded_at: '2026-10-27T07:48:26.849Z'
+  kind: human
+  ref: Maintainer approval, 2026-11-25, migrating kibi-codex to root plugin.json and bundling icon assets
+  recorded_at: '2026-11-25T11:39:57.207Z'
 id: FACT-codex-package-published-parts
 type: fact
 ---

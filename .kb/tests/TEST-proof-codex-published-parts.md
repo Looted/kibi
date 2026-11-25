@@ -26,7 +26,7 @@ proof_contract:
     path: /files
     select: items
   proves:
-    - CLAIM-E17040C703A7CF28
+    - CLAIM-A803F27577B74ED2
 proof_receipts:
   - version: kibi.proof-receipt.v2
     receipt_id: PR-f02eccb40e94fe74f272404d

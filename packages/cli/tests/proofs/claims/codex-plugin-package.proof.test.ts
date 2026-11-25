@@ -13,12 +13,12 @@ import type { SourceSpec } from "../../../src/public/proof-sources.js";
  */
 const WORKSPACE = `${import.meta.dir}/../../../../..`;
 
-/** The kibi-codex package must publish its .codex-plugin manifest directory, its .mcp.json configuration and its bin, hooks and skills directories. */
+/** The kibi-codex package must publish its plugin.json manifest, its assets, .mcp.json configuration and its bin, hooks and skills directories. */
 export function codexPublishedPartsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-codex-published-parts" });
 }
 
-/** The kibi-codex plugin manifest must declare the skills, hooks and mcpServers fields. */
+/** The kibi-codex plugin manifest must declare the hooks, interface and mcpServers fields under extensions["com.openai"]. */
 export function codexManifestFieldsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-codex-manifest-fields" });
 }
@@ -55,7 +55,7 @@ async function expectSource(
 }
 
 describe("What the published kibi-codex package contains", () => {
-  test("The kibi-codex package must publish its .codex-plugin manifest directory, its .mcp.json configuration and its bin, hooks and skills directories", async () => {
+  test("The kibi-codex package must publish its plugin.json manifest, its assets, .mcp.json configuration and its bin, hooks and skills directories", async () => {
     writeCodeCertificate(codexPublishedPartsCertificate());
     await expectSource(
       {
@@ -65,20 +65,20 @@ describe("What the published kibi-codex package contains", () => {
         select: "items",
       },
       "includes",
-      [".codex-plugin", ".mcp.json", "bin", "hooks", "skills"],
+      ["plugin.json", "assets", ".mcp.json", "bin", "hooks", "skills"],
     );
   });
-  test("The kibi-codex plugin manifest must declare the skills, hooks and mcpServers fields", async () => {
+  test('The kibi-codex plugin manifest must declare the hooks, interface and mcpServers fields under extensions["com.openai"]', async () => {
     writeCodeCertificate(codexManifestFieldsCertificate());
     await expectSource(
       {
         reader: "json",
-        file: "packages/codex/.codex-plugin/plugin.json",
-        path: "",
+        file: "packages/codex/plugin.json",
+        path: "/extensions/com.openai",
         select: "keys",
       },
       "includes",
-      ["hooks", "mcpServers", "skills"],
+      ["hooks", "interface", "mcpServers"],
     );
   });
   test("The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others", async () => {

@@ -153,8 +153,9 @@ the session start names missing Kibi git hooks; a prompt that states a rule
 gets the rule note, with the person's reason when the prompt gives one; and
 after an edit of code that implements a firm requirement, the context names
 that requirement once per session and asks the agent to undo an edit that
-breaks it unless the person agrees (Vibe has no pre-tool hook, so the notice
-follows the edit; `KIBI_CONFIRM_FIRM_EDITS=0` turns it off). The first source
+breaks it unless the person agrees (Vibe `pre_tool` hooks cannot inject advisory
+context — only deny or rewrite input — so the notice follows the edit;
+`KIBI_CONFIRM_FIRM_EDITS=0` turns it off). The first source
 edit after a rule prompt gets the rule-capture template. Session markers live
 in a per-user directory in the OS temp dir (`KIBI_VIBE_STATE_DIR` overrides
 it).
