@@ -164,8 +164,16 @@ describe("tokens", () => {
     expect(intentTokens("plans glass cats berries")).toStrictEqual([
       "plan",
       "glass",
-      "cats",
+      "cat",
       "berry",
+    ]);
+    expect(intentTokens("tags ids keys status analysis bus")).toStrictEqual([
+      "tag",
+      "id",
+      "key",
+      "status",
+      "analysis",
+      "bus",
     ]);
     expect(
       intentTokens("tested nation freeing replace abcd1ing tied abcdef"),

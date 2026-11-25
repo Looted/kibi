@@ -496,6 +496,90 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee4ce56db7f7
+  - type: constrains
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-subject
+    created_at: 2026-11-25T14:29:13.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d577f37a8f57
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-superseded-folds-into-chain-head
+    created_at: 2026-11-25T14:29:13.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-620c51271ac3
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-near-identical-folds-unless-firm-or-polarity
+    created_at: 2026-11-25T14:29:13.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c31b6c7fcf28
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-folded-listed-on-card
+    created_at: 2026-11-25T14:29:13.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2bc1f48ae98
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-search-collapse-chains-and-twins
+    created_at: 2026-11-25T14:29:13.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1270e18083d0
+  - type: verified_by
+    from: REQ-search-decision-collapse
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:29:13.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6e321aa987
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-superseded-folds-into-chain-head-OFF
+    created_at: 2026-11-25T14:37:12.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-516893ba95c3
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-near-identical-folds-unless-firm-or-polarity-BELOW
+    created_at: 2026-11-25T14:37:12.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-456929fa75ba
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-search-decision-collapse-near-identical-folds-unless-firm-or-polarity-AT
+    created_at: 2026-11-25T14:37:12.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec02792b5490
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    created_at: 2026-11-25T14:37:12.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8983041b0da9
+  - type: covered_by
+    from: SYM-retrieval-tokens-words
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:58:05.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ee552da1fce
+  - type: implements
+    from: SYM-retrieval-tokens-words
+    to: REQ-search-decision-collapse
+    created_at: 2026-11-25T14:58:05.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-973d670d8d40
   - type: validates
     from: TEST-kibi-required-evidence-at-remember
     to: SCEN-kibi-required-evidence-at-remember
