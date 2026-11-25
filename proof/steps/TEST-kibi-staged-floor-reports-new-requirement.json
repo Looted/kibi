@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-staged-floor-reports-new-requirement",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/staged-floor.test.ts"
+    ]
+  ]
+}

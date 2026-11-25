@@ -8,6 +8,7 @@ import { serverInstructions } from "../../src/server.js";
 import {
   BOOTSTRAP_TOOLS,
   DEFAULT_PROFILE_TOOLS,
+  REMEMBER_UNLISTED_TOOLS,
   TOOLS,
   buildBaseTools,
   knowledgeBaseIsEmpty,
@@ -62,6 +63,34 @@ describe("MCP tool profile", () => {
     ]);
     expect(profileToolNames("full", true)).toBeUndefined();
     expect(profileToolNames("full", false)).toBeUndefined();
+  });
+
+  test("at Kibi level remember no profile lists kb_ingest_proof, and the instructions do not offer it", () => {
+    expect([...REMEMBER_UNLISTED_TOOLS]).toEqual(["kb_ingest_proof"]);
+    const full = profileToolNames("full", false, "remember");
+    expect(full?.has("kb_ingest_proof")).toBe(false);
+    expect([...(full ?? [])]).toEqual(
+      TOOLS.map((tool) => tool.name).filter(
+        (name) =>
+          name !== "kb_ingest_proof" &&
+          name !== "kb_sparql_remote" &&
+          name !== "kb_job_status",
+      ),
+    );
+    expect([...(profileToolNames("core", true, "remember") ?? [])]).toEqual([
+      ...DEFAULT_PROFILE_TOOLS,
+      ...BOOTSTRAP_TOOLS,
+    ]);
+    // At test every profile is as before.
+    expect(profileToolNames("full", false, "test")).toBeUndefined();
+    expect(profileToolNames("core", false, "test")).toEqual(
+      profileToolNames("core", false),
+    );
+    const listed = new Set(["kb_search", "kb_query"]);
+    expect(serverInstructions(listed)).toContain("kb_ingest_proof");
+    expect(
+      serverInstructions(listed, TOOLS, REMEMBER_UNLISTED_TOOLS),
+    ).not.toContain("kb_ingest_proof");
   });
 
   test("a value that names no profile is ignored and named on stderr", () => {

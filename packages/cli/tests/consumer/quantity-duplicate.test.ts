@@ -192,7 +192,7 @@ describe("one quantity stated under two names", () => {
     upsert(windowCapFact(500, { distinct_from: [] }));
     const manifestPath = ".kb/manifest.json";
     const manifest = JSON.parse(workspace.read(manifestPath)) as Json;
-    expect(manifest.schemaVersion).toBe(19);
+    expect(manifest.schemaVersion).toBe(20);
     workspace.write(
       manifestPath,
       `${JSON.stringify({ ...manifest, schemaVersion: 18 }, null, 2)}\n`,
@@ -217,7 +217,7 @@ describe("one quantity stated under two names", () => {
     const manifest = JSON.parse(workspace.read(manifestPath)) as Json;
     workspace.write(
       manifestPath,
-      `${JSON.stringify({ ...manifest, schemaVersion: 19 }, null, 2)}\n`,
+      `${JSON.stringify({ ...manifest, schemaVersion: 20 }, null, 2)}\n`,
     );
     upsert(
       windowCapFact(500, { distinct_from: ["client.call_quota.remaining"] }),

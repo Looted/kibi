@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c11ef5109ac4
+  - type: implements
+    from: SYM-migrate-kibi-level-note
+    to: REQ-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:32.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a333c07701c3
+  - type: covered_by
+    from: SYM-migrate-kibi-level-note
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:32.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2df0507a435

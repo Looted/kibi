@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f369a53ba2f
+  - type: executable_for
+    from: SYM-test-kibi-levels-cli
+    to: TEST-kibi-levels-cli
+    created_at: 2026-11-25T09:51:02.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4c5a9ce97e8

@@ -587,3 +587,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6db73a8e84b8
+  - type: implements
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:05.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f030dfe29703
+  - type: covered_by
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:05.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4ae7d620601
+  - type: assumes
+    from: SCEN-NEG-kibi-level-setting-c02-eq-false
+    to: FACT-NEG-kibi-level-setting-c02-eq-false
+    created_at: 2026-11-25T10:19:19.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c357c1ce17b

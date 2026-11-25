@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-remember-level-surface",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/remember-surface.test.ts"
+    ]
+  ]
+}

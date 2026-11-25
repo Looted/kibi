@@ -414,20 +414,6 @@ relationships:
     id: rel-24d5263c4a8f
   - type: assumes
     from: SCEN-kibi-check-rule-selection
-    to: FACT-PROP-kibi-check-rule-selection-c01
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-694d9e259e3f
-  - type: assumes
-    from: SCEN-kibi-check-rule-selection
-    to: FACT-PROP-kibi-check-rule-selection-c02
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d634430a4841
-  - type: assumes
-    from: SCEN-kibi-check-rule-selection
     to: FACT-PROP-kibi-check-rule-selection-c03
     created_at: 2026-11-10T13:00:00.000Z
     created_by: kibi/upsert

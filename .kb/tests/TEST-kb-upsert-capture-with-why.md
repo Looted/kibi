@@ -1,6 +1,6 @@
 ---
 title: kb_upsert capture with why tests
-status: active
+status: passing
 priority: must
 verification_scope: end_to_end
 verification_perspective: internal
@@ -20,17 +20,17 @@ id: TEST-kb-upsert-capture-with-why
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d019843e45b6dbf4962000c1
+    receipt_id: PR-f99b1b4ac425103a5a531ac6
     test_id: TEST-kb-upsert-capture-with-why
     scope: end_to_end
     outcome: passed
-    code_snapshot: 2c0987e21243e06c6762118cf23bb96d0ff699c969f1df44721f343d92a0810e
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-24T20:13:47.344Z'
-    finished_at: '2026-11-24T20:13:55.485Z'
-    artifact_digest: 5a5c3314a9921246ac5c60a3613d0ec45db45e7e198f0ce73d9e688122ce11c1
+    code_snapshot: b6649d29181ccab088798d2373ba640e85507f701aca154d615cc7f2c4e9cc6f
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-25T10:22:17.135Z'
+    finished_at: '2026-11-25T10:22:23.541Z'
+    artifact_digest: d041cbf81fd4881bbbaef3e77b0eddc18b1a334cce38c89ead87dd7e50aa7abb
     contract_hash: e3a1e8977ba75f24bc5a4c7967629ffde2830d30c2601a80c4e8d9968f6b810e
-    binding_hash: 780a7e444b775f18ee1895643ff8544d0458efd5854649a662aecedc7c211c19
+    binding_hash: b5d9f446fbf5b48c5cd0d6faf9d9ab2cba90733fd87dd8e743a3a33884b27d88
     fingerprint: 3a131a21177955cd5f0aaec572bc916dcdabd6bb755b72c28c0bc15040ef3ed6
     fingerprint_components:
       contract: e3a1e8977ba75f24bc5a4c7967629ffde2830d30c2601a80c4e8d9968f6b810e

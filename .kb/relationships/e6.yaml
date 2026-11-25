@@ -342,3 +342,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1c93aa6c11b
+  - type: requires_property
+    from: REQ-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c01
+    created_at: 2026-11-25T09:49:35.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f791da024ae0
+  - type: requires_property
+    from: REQ-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c02
+    created_at: 2026-11-25T09:49:35.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44f03be5cb6
+  - type: requires_property
+    from: REQ-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c03
+    created_at: 2026-11-25T09:49:35.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-237829d9e353
+  - type: specified_by
+    from: REQ-kibi-init-level-choice
+    to: SCEN-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:44.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf552ecd0d1
+  - type: specified_by
+    from: REQ-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-rejected
+    created_at: 2026-11-25T09:49:44.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9ec6374900f
+  - type: verified_by
+    from: REQ-kibi-init-level-choice
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:44.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e7d933d2155
+  - type: verified_by
+    from: REQ-kibi-init-level-choice
+    to: TEST-kibi-levels-cli
+    created_at: 2026-11-25T09:51:11.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-967e1b04d803
+  - type: constrains
+    from: REQ-kibi-init-level-choice
+    to: FACT-SUBJ-kibi-level
+    created_at: 2026-11-25T10:18:20.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c696e0312fc
+  - type: specified_by
+    from: REQ-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c01-eq-false
+    created_at: 2026-11-25T10:20:51.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-503085dbaa7a
+  - type: specified_by
+    from: REQ-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c02-eq-false
+    created_at: 2026-11-25T10:20:57.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b9ca0f28867
+  - type: specified_by
+    from: REQ-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c03-eq-false
+    created_at: 2026-11-25T10:21:03.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b420ab92ae3f

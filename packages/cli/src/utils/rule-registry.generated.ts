@@ -370,6 +370,15 @@ export const GENERATED_RULES = [
     diagnosticSeverity: "info",
   },
   {
+    name: "required-evidence-above-level",
+    description:
+      "Advisory: at Kibi level remember, a current requirement whose required_evidence is tested or proved asks for evidence the level does not check; the finding names the level, and a person chooses level test to have the floor enforced",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    layer: "knowledge",
+    diagnosticSeverity: "warning",
+  },
+  {
     name: "requirement-rationale-missing",
     description:
       "Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding",

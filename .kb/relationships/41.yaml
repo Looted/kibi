@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41697ed395dc
+  - type: assumes
+    from: SCEN-kibi-remember-level-surface
+    to: FACT-PROP-kibi-remember-level-surface-c01
+    created_at: 2026-11-25T09:49:17.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4929b72d76e0
+  - type: assumes
+    from: SCEN-kibi-remember-level-surface
+    to: FACT-PROP-kibi-remember-level-surface-c02
+    created_at: 2026-11-25T09:49:17.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b355ba0ae98
