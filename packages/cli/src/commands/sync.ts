@@ -84,6 +84,11 @@ import {
   committedOnLocalBranch,
   pendingReceiptScope,
 } from "../utils/pending-source-branch.js";
+import { adoptNoGitStore } from "../vcs/no-git-adoption.js";
+import {
+  type AuthoredSources,
+  authoredSourcesSync,
+} from "../vcs/source-inventory.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
@@ -254,19 +259,26 @@ export function trackedRelationshipFiles(
   recoverMissingPendingSources = false,
   recoveredPendingReceiptPaths?: PendingSourceReceiptSnapshot[],
 ): string[] {
-  let tracked: Set<string>;
+  const shards = (): string[] => {
+    try {
+      return readdirSync(relationshipsDir)
+        .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+        .map((file) => path.join(relationshipsDir, file));
+    } catch {
+      return [];
+    }
+  };
+  let sources: AuthoredSources;
   try {
-    tracked = new Set(
-      gitText(
-        workspaceRoot,
-        "git ls-files --cached -- .kb/relationships",
-      ).split("\n"),
-    );
+    sources = authoredSourcesSync(workspaceRoot, [".kb/relationships"]);
   } catch {
-    // A non-Git workspace has no tracked relationship inputs. The caller's
-    // branch resolver will produce the user-facing attachment diagnostic.
+    // Git failed in a repository: no shard can be vouched for. The caller's
+    // branch resolver produces the user-facing attachment diagnostic.
     return [];
   }
+  // Outside Git every shard on disk is input, and receipts do not apply.
+  if (sources.kind === "disk") return shards().sort();
+  const tracked = sources.tracked;
 
   const pending = new Set<string>();
   const pendingRoot = path.join(
@@ -341,15 +353,7 @@ export function trackedRelationshipFiles(
     }
   }
 
-  let names: string[];
-  try {
-    names = readdirSync(relationshipsDir);
-  } catch {
-    return [];
-  }
-  return names
-    .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
-    .map((file) => path.join(relationshipsDir, file))
+  return shards()
     .filter((file) => {
       const relative = path
         .relative(workspaceRoot, file)
@@ -799,6 +803,13 @@ export async function syncCommand(
     }
 
     currentBranch = branchResult.kbBranch;
+
+    // A repository created since Kibi last ran without Git takes over the
+    // knowledge recorded there before anything is compiled.
+    if (!validateOnly && recoveryBackupPath === undefined) {
+      const adopted = adoptNoGitStore(workspaceRoot, branchResult);
+      if (adopted !== null) console.error(`[KIBI] ${adopted.notice}`);
+    }
 
     // Cut over legacy branches before creating a staging copy.  If another
     // CLI/MCP operation has an engine attached, stop that single writer so the

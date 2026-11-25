@@ -68,7 +68,8 @@ const isExecutable = (file: string) => (statSync(file).mode & 0o777) === 0o755;
 
 describe("getCurrentBranch", () => {
   test("reports why the branch cannot be resolved", async () => {
-    await expect(getCurrentBranch(root)).rejects.toThrow(
+    // A directory that does not exist has no branch to resolve.
+    await expect(getCurrentBranch(path.join(root, "missing"))).rejects.toThrow(
       "Failed to resolve active branch",
     );
     expect(errors).toHaveLength(1);

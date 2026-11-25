@@ -598,3 +598,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6211b7d0ce04
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-unreadable-repository
+    to: FACT-NEG-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:41.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78e0f2fba5d4

@@ -19,6 +19,7 @@ import * as path from "node:path";
 import {
   type BranchErrorCode,
   DETACHED_SNAPSHOT_KB_BRANCH,
+  NO_GIT_KB_BRANCH,
   _setBranchResolverDepsForTests,
   copyCleanSnapshot,
   detachedHeadWriteRefusal,
@@ -176,13 +177,11 @@ describe("branch-resolver", () => {
       );
     });
 
-    test("returns NOT_A_GIT_REPO error when not in git repo", () => {
-      const result = resolveActiveBranch(tmpDir);
-
-      expect("error" in result).toBe(true);
-      expect((result as { error: string; code: BranchErrorCode }).code).toBe(
-        "NOT_A_GIT_REPO",
-      );
+    test("attaches the reserved no-Git store outside any Git repository", () => {
+      expect(resolveActiveBranch(tmpDir)).toStrictEqual({
+        branch: NO_GIT_KB_BRANCH,
+        noGit: "not_a_repository",
+      });
     });
 
     test("returns branch using git rev-parse when branch --show-current fails", () => {
@@ -311,35 +310,61 @@ describe("branch-resolver", () => {
         ]);
       });
 
-      test("returns NOT_A_GIT_REPO when both git commands report repository errors", () => {
+      test("attaches the no-Git store when both git commands fail outside Git", () => {
         const gitRepoError = new Error(
           "fatal: not a git repository (or any of the parent directories): .git",
         );
         queueExecSyncResponses(gitRepoError, gitRepoError);
 
-        const result = resolveActiveBranch(tmpDir);
-
-        expect("error" in result).toBe(true);
-        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
-          "NOT_A_GIT_REPO",
-        );
+        expect(resolveActiveBranch(tmpDir)).toStrictEqual({
+          branch: NO_GIT_KB_BRANCH,
+          noGit: "not_a_repository",
+        });
       });
 
-      test("returns GIT_NOT_AVAILABLE when git commands report ENOENT", () => {
+      test("reports the probe's code for a repository Git cannot read", () => {
         const gitMissingError = new Error("spawnSync git ENOENT");
         queueExecSyncResponses(gitMissingError, gitMissingError);
+        _setBranchResolverDepsForTests({
+          execSync: mockExecSync as unknown as typeof execSync,
+          probeVcs: () => ({
+            kind: "unresolved",
+            code: "GIT_NOT_AVAILABLE",
+            reason: "Git is unavailable.",
+          }),
+        });
 
-        const result = resolveActiveBranch(tmpDir);
-
-        expect("error" in result).toBe(true);
-        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
-          "GIT_NOT_AVAILABLE",
-        );
+        expect(resolveActiveBranch(tmpDir)).toStrictEqual({
+          error: "Git is unavailable.",
+          code: "GIT_NOT_AVAILABLE",
+        });
       });
 
-      test("returns UNKNOWN_ERROR when git commands fail unexpectedly", () => {
+      test("an unresolved probe without a specific code is UNKNOWN_ERROR", () => {
         const gitFailure = new Error("fatal: simulated git failure");
         queueExecSyncResponses(gitFailure, gitFailure);
+        _setBranchResolverDepsForTests({
+          execSync: mockExecSync as unknown as typeof execSync,
+          probeVcs: () => ({
+            kind: "unresolved",
+            code: "BRANCH_UNRESOLVED",
+            reason: "why",
+          }),
+        });
+
+        expect(resolveActiveBranch(tmpDir)).toStrictEqual({
+          error: "why",
+          code: "UNKNOWN_ERROR",
+        });
+      });
+
+      test("returns UNKNOWN_ERROR when git commands fail inside a readable repository", () => {
+        const gitFailure = new Error("fatal: simulated git failure");
+        queueExecSyncResponses(gitFailure, gitFailure);
+        _setBranchResolverDepsForTests({
+          execSync: mockExecSync as unknown as typeof execSync,
+          probeVcs: () => ({ kind: "git" }) as never,
+        });
 
         const result = resolveActiveBranch(tmpDir);
 

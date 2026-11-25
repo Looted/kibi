@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c05081d72668
+  - type: implements
+    from: SYM-agent-instructions-for
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:52.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-698836367e8a
+  - type: covered_by
+    from: SYM-agent-instructions-for
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:52.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-812576e6e3dc

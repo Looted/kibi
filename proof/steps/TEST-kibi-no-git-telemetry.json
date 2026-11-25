@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-kibi-no-git-telemetry",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/cli-failure-categories.test.ts",
+      "./packages/agent-core/tests/usage-telemetry.test.ts",
+      "./packages/agent-core/tests/usage-telemetry-outcomes.test.ts",
+      "./packages/cli/tests/consumer/outside-git.test.ts"
+    ]
+  ]
+}

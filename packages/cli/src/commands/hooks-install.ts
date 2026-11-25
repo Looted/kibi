@@ -19,6 +19,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { resolveGitRepository } from "../utils/git-repository-context.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 import { detectHookManager } from "./hook-managers.js";
 import {
   installGitHooks,
@@ -163,6 +164,16 @@ export async function hooksInstallCommand(
   });
 
   if (quiet && isCi(env)) return done("ci");
+  // Outside any repository a quiet install (a prepare script) stays silent;
+  // an explicit one is refused with the Git-free way to finish a change.
+  if (!quiet) {
+    const refusal = refuseWithoutGit(
+      process.cwd(),
+      "git_hooks",
+      "kibi hooks install",
+    );
+    if (refusal !== null) return done("not-a-repository", refusal.exitCode);
+  }
   const resolution = resolveGitRepository(process.cwd());
   if (resolution.status !== "ok") {
     note("No Git work tree here; no hooks to install.");

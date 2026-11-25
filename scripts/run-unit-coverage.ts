@@ -166,6 +166,7 @@ const CLI_SUPPORT_TEST_DIRECTORIES = [
   "./packages/cli/tests/signoff",
   "./packages/cli/tests/helpers",
   "./packages/cli/tests/dependencies",
+  "./packages/cli/tests/vcs",
 ];
 const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })

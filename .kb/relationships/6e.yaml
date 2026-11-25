@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f7887a3d09e
+  - type: implements
+    from: SYM-vcs-authored-sources-sync
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:24.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3d85ffbe779
+  - type: covered_by
+    from: SYM-vcs-authored-sources-sync
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:24.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79c5045fcaf8

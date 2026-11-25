@@ -32,10 +32,7 @@ import type {
   PrologQueryResult,
   RuntimeOptions,
 } from "../../src/public/operations/runtime-types.js";
-import {
-  attachmentFailureMessage,
-  createCliRuntime,
-} from "../../src/runtime/cli-runtime.js";
+import { createCliRuntime } from "../../src/runtime/cli-runtime.js";
 import * as autoCompile from "../../src/utils/auto-compile.js";
 import {
   type BranchResolverDeps,
@@ -188,19 +185,6 @@ afterEach(() => {
 });
 
 const warnings = () => warn.mock.calls.map((call) => String(call[0]));
-
-describe("attachmentFailureMessage", () => {
-  test("outside Git names KIBI_BRANCH, otherwise the resolution error", () => {
-    for (const code of ["NOT_A_GIT_REPO", "GIT_NOT_AVAILABLE"] as const) {
-      expect(attachmentFailureMessage({ error: "x", code })).toBe(
-        "Kibi requires an active Git branch outside a repository; set KIBI_BRANCH explicitly for a standalone workspace.",
-      );
-    }
-    expect(
-      attachmentFailureMessage({ error: "detached", code: "DETACHED_HEAD" }),
-    ).toBe("Failed to resolve active branch: detached");
-  });
-});
 
 describe("context basics", () => {
   test("the workspace root comes from options, then the environment, then cwd", async () => {

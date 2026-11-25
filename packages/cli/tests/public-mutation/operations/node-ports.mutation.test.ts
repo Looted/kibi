@@ -294,8 +294,29 @@ describe("workspaceSnapshot", () => {
     expect((over.changes.at(-1) as { path: string }).path).toBe("n/199.txt");
   });
 
-  test("a directory outside git fails", async () => {
-    await expect(snapshotOf(temp())).rejects.toThrow();
+  test("a directory outside git hashes the files on disk, clean", async () => {
+    const root = temp();
+    write(root, { "a.txt": "a", "src/b.ts": "b", ".kb/recovery/x": "x" });
+    const snapshot = await snapshotOf(root);
+    expect(snapshot).toStrictEqual({
+      version: "kibi.workspace-snapshot.v2",
+      hash: snapshot.hash,
+      dirty: false,
+      fileCount: 2,
+      changes: [],
+      changeCount: 0,
+      changesTruncated: false,
+    });
+    write(root, { "c.txt": "c" });
+    const grown = await snapshotOf(root);
+    expect(grown.fileCount).toBe(3);
+    expect(grown.hash).not.toBe(snapshot.hash);
+  });
+
+  test("a repository Git cannot read fails", async () => {
+    const root = temp();
+    mkdirSync(join(root, ".git"));
+    await expect(snapshotOf(root)).rejects.toThrow();
   });
 });
 

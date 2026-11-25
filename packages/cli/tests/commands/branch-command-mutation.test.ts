@@ -197,9 +197,19 @@ describe("legacy store hashing", () => {
 });
 
 describe("branch ensure", () => {
-  test("explains an unresolvable branch", async () => {
+  test("refuses outside Git with GIT_REQUIRED", async () => {
     const root = createTempDir("kibi-branch-nogit-");
     roots.push(root);
+    await expect(
+      branchEnsureCommand({ workspaceRoot: root }),
+    ).rejects.toMatchObject({ code: "GIT_REQUIRED" });
+  });
+
+  test("explains an unresolvable branch", async () => {
+    const root = createTempDir("kibi-branch-unreadable-");
+    roots.push(root);
+    // An empty .git entry: a repository Git cannot read.
+    mkdirSync(path.join(root, ".git"));
     await expect(branchEnsureCommand({ workspaceRoot: root })).rejects.toThrow(
       "Failed to resolve active branch",
     );

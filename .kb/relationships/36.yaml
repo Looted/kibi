@@ -643,3 +643,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e6ceadd6f5e
+  - type: implements
+    from: SYM-session-brief-for
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:55.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-478d0b5eafa5
+  - type: covered_by
+    from: SYM-session-brief-for
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:55.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7beb045e6396
