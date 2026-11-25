@@ -120,19 +120,38 @@ describe("kibi search", () => {
       count: number;
       results: Array<{ entity: { id: string } }>;
     };
-    expect(result.count).toBe(1);
+    // Only decisions are cards; the bundled meaning ranking may add the
+    // other requirement below the one that holds the words.
     expect(result.results[0]?.entity.id).toBe("REQ-001");
+    expect(result.results.length).toBeLessThanOrEqual(5);
+    expect(
+      result.results.every((row) => row.entity.id.startsWith("REQ-")),
+    ).toBe(true);
   });
 
   test("returns improved ranking for broad synthetic corpus queries", () => {
     const query =
       "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in";
 
-    // First invocation
-    const output1 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+    // Without a type the answer is a decision card.
+    const decisions = JSON.parse(
+      execSync(`bun ${kibiBin} search "${query}" --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { results: Array<{ entity: { id: string } }> };
+    expect(decisions.results[0]?.entity.id).toBe(
+      "REQ-search-revenuecat-entitlement",
+    );
+
+    // First invocation over facts
+    const output1 = execSync(
+      `bun ${kibiBin} search "${query}" --type fact --format json`,
+      {
+        cwd: tmpDir,
+        encoding: "utf8",
+      },
+    );
 
     const result1 = JSON.parse(output1) as {
       count: number;
@@ -152,10 +171,13 @@ describe("kibi search", () => {
     expect(firstIds).not.toContain("FACT-search-unrelated-sync-feedback");
 
     // Second invocation — deterministic across two consecutive CLI invocations
-    const output2 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+    const output2 = execSync(
+      `bun ${kibiBin} search "${query}" --type fact --format json`,
+      {
+        cwd: tmpDir,
+        encoding: "utf8",
+      },
+    );
 
     const result2 = JSON.parse(output2) as {
       count: number;

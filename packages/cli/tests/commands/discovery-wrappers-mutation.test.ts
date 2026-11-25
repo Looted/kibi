@@ -289,7 +289,7 @@ describe("searchCommand", () => {
       offset: 2,
     });
     expect(ops[0]?.[3]).toStrictEqual({ workspaceRoot: process.cwd() });
-    expect(ops[1]?.[2]).toStrictEqual({ query: "login", limit: 20, offset: 0 });
+    expect(ops[1]?.[2]).toStrictEqual({ query: "login", offset: 0 });
     expect(prints).toStrictEqual([
       ["json", { results: [1], count: 1 }, "found"],
       [undefined, { results: [], count: 0 }, "No search results for 'login'."],
