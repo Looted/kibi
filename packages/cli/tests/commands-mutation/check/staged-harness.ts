@@ -2,6 +2,7 @@ import { spyOn } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as kibiLevel from "kibi-agent-core/kibi-level";
 import { checkCommand } from "../../../src/commands/check.js";
 import * as markdown from "../../../src/extractors/markdown.js";
 import * as generated from "../../../src/plugins/generated-sources.js";
@@ -138,6 +139,8 @@ export function stagedHarness() {
     readTreeManifest: () => null,
     floorChangedRequirementIds: () => [],
     collectStagedEvidenceFloorViolations: async () => [],
+    addedRequirementIds: () => new Set<string>(),
+    readKibiLevel: () => ({ level: "test", source: "default" }),
     collectIntroducedEntityContextViolations: () => [],
     amendsRootCommit: () => false,
     stagedInventoryDriftViolations: () => [],
@@ -224,6 +227,8 @@ export function stagedHarness() {
     [requirementRules, "readTreeManifest"],
     [evidenceFloor, "floorChangedRequirementIds"],
     [evidenceFloor, "collectStagedEvidenceFloorViolations"],
+    [evidenceFloor, "addedRequirementIds"],
+    [kibiLevel, "readKibiLevel"],
     [entityContext, "collectIntroducedEntityContextViolations"],
     [commitAmend, "amendsRootCommit"],
     [inventoryDrift, "stagedInventoryDriftViolations"],

@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e1ca5efd7cf
+  - type: implements
+    from: SYM-staged-evidence-floor-staged-requirement-proof-rules
+    to: REQ-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:09.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6ffbcc3ed1d
+  - type: covered_by
+    from: SYM-staged-evidence-floor-staged-requirement-proof-rules
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:09.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1888e1b0fde0

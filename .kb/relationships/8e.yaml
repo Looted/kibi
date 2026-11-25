@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47f702719a14
+  - type: implements
+    from: SYM-cli-rule-registry-getEffectiveRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:59.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c91088d45c9
+  - type: covered_by
+    from: SYM-cli-rule-registry-getEffectiveRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:59.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8126393c444

@@ -1,3 +1,9 @@
+import {
+  type KibiLevel,
+  type ResolvedKibiLevel,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import {
@@ -62,6 +68,7 @@ import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import { tagBlocks } from "./finding-blocks.js";
+import { collectRequiredEvidenceAboveLevelViolations } from "./level-evidence.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -149,15 +156,32 @@ export type CheckExecutionOptions = {
  * after the rules ran on the same store. A count the engine cannot give (an
  * older engine) is left out rather than reported as zero.
  */
+/** A recorded level Kibi does not know: the check ran at test. */
+export function invalidLevelDiagnostic(
+  workspaceRoot: string,
+  resolved: ResolvedKibiLevel,
+): CheckDiagnostic {
+  const where = kibiLevelSettingName(workspaceRoot);
+  return {
+    category: "CONFIG_WARNING",
+    severity: "warning",
+    message: `${where} is ${JSON.stringify(resolved.invalid)}, which is not a Kibi level (remember or test), so Kibi runs at test.`,
+    file:
+      resolved.source === "package.json" ? "package.json" : ".kb/setup.json",
+    suggestion: `Ask the person which level the project uses and set ${where} to "remember" or "test".`,
+  };
+}
+
 async function describeEvaluation(
   prolog: PrologPort,
   rules: ReadonlySet<string>,
+  level: KibiLevel,
 ): Promise<CheckEvaluated> {
   const evaluated: {
     ruleCount: number;
     rules?: readonly string[];
     domainContradictions?: { factPairsExamined: number };
-  } = describeEvaluatedRules(rules);
+  } = describeEvaluatedRules(rules, level);
   if (!rules.has("domain-contradictions")) return evaluated;
   try {
     const result = await prolog.query(
@@ -331,7 +355,10 @@ export async function executeCheck(
     };
     // Enforcement policy is Kibi-owned and deterministic from the installed
     // version. `args.rules` is an invocation-time diagnostic selector only.
-    const rulesAllowlist = resolveCheckRules(args);
+    // The project's Kibi level selects whether the verification rules run.
+    const resolvedLevel = readKibiLevel(workspaceRoot);
+    const level = resolvedLevel.level;
+    const rulesAllowlist = resolveCheckRules(args, level);
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = await analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = [
@@ -508,6 +535,11 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const levelEvidenceFindings = collectRequiredEvidenceAboveLevelViolations(
+      rulesAllowlist,
+      workspaceRoot,
+      level,
+    );
     const checkPolicyFindings = await collectCheckPolicyViolations(
       prolog,
       rulesAllowlist,
@@ -541,13 +573,14 @@ export async function executeCheck(
       ...subjectLayerFindings,
       ...quantityFindings,
       ...decisionFirmnessFindings,
+      ...levelEvidenceFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
       ...proofContractClaimFindings,
       ...positiveScenarioFindings,
     ]);
     const allViolations: Violation[] = partitioned.violations;
-    const evaluated = await describeEvaluation(prolog, rulesAllowlist);
+    const evaluated = await describeEvaluation(prolog, rulesAllowlist, level);
     // A check scoped to sourceFiles answers about those files: blocking
     // findings elsewhere are counted, not listed (kb_check without
     // sourceFiles lists them all).
@@ -571,6 +604,8 @@ export async function executeCheck(
       ...(v.source !== undefined ? { file: v.source } : {}),
       ...(v.suggestion !== undefined ? { suggestion: v.suggestion } : {}),
     }));
+    if (resolvedLevel.invalid !== undefined)
+      diagnostics.push(invalidLevelDiagnostic(workspaceRoot, resolvedLevel));
 
     const collectFullQualityDiagnostics =
       !hasExplicitRules ||

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-change-snapshots",
+  "sourceFile": "packages/cli/src/traceability/snapshot-knowledge.ts",
+  "symbol": "readSnapshotKnowledge",
+  "verdict": "keeps",
+  "note": "It still compiles knowledge only from regular blobs of one Git tree; the change keeps one copy of a link that both the entity document and a relationship shard declare.",
+  "statementHash": "sha256:1dd9315945f6416b4333b520da1dbe3970cf2ac501f7dc3c538b97ffad5cb6a9",
+  "codeHash": "sha256:95ec06a7f6728fb90c99abe0b1c21ee66aac506d0159754359c9b2b76751c59b",
+  "startLine": 23,
+  "endLine": 136,
+  "recordedAt": "2026-11-25T10:42:18.328Z"
+}

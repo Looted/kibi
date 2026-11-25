@@ -17,6 +17,7 @@
 */
 
 import { existsSync } from "node:fs";
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import type { ExtractionResult } from "../extractors/markdown.js";
 import type { PrologProcess } from "../prolog.js";
 import { toPrologAtom } from "../prolog/codec.js";
@@ -26,12 +27,14 @@ import {
   readAuthoredEntity,
 } from "../public/operations/entity-context.js";
 import {
+  EVIDENCE_FLOOR_RULE,
   EVIDENCE_FLOOR_SCHEMA_VERSION,
   REQUIREMENT_PROOF_RULES,
   collectEvidenceFloorViolations,
 } from "../public/operations/evidence-floor.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { branchStorePath } from "../utils/branch-store-locator.js";
+import { getRuleLayer, layerRunsAtLevel } from "../utils/rule-registry.js";
 import {
   cleanupTempKb,
   createTempKb,
@@ -82,6 +85,57 @@ export function floorChangedRequirementIds(
 }
 
 /** The ids among `ids` that the attached store holds as requirements. */
+/**
+ * The current requirements the commit adds: staged documents with no
+ * version in the base tree.
+ */
+export function addedRequirementIds(
+  stagedFiles: readonly Readonly<{ path: string; content?: string }>[],
+  readBase: (path: string) => string | null,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const file of stagedFiles) {
+    if (file.content === undefined || readBase(file.path) !== null) continue;
+    const staged = readAuthoredEntity(file.content, file.path);
+    if (staged === null || staged.type !== "req") continue;
+    if (isCurrentAuthoredEntity(staged, new Set())) ids.add(staged.id);
+  }
+  return ids;
+}
+
+/**
+ * The staged floor findings split by what they stop. At level test a
+ * requirement the commit adds may still be below its floor: the commit that
+ * records it is reported, not refused, so the requirement can land before
+ * the scenario and test that lift it. Every other finding blocks.
+ */
+export function partitionStagedFloorFindings(
+  findings: readonly Violation[],
+  added: ReadonlySet<string>,
+): { blocking: Violation[]; reported: Violation[] } {
+  const blocking: Violation[] = [];
+  const reported: Violation[] = [];
+  for (const finding of findings)
+    (finding.rule === EVIDENCE_FLOOR_RULE && added.has(finding.entityId)
+      ? reported
+      : blocking
+    ).push(finding);
+  return { blocking, reported };
+}
+
+/**
+ * The requirement-proof rules the staged gate runs at a Kibi level: the
+ * unapproved-requirement rule belongs to the knowledge layer and runs at
+ * every level, the evidence floor (verification) only at level test.
+ */
+export function stagedRequirementProofRules(level: KibiLevel): Set<string> {
+  return new Set(
+    REQUIREMENT_PROOF_RULES.filter((rule) =>
+      layerRunsAtLevel(getRuleLayer(rule) ?? "verification", level),
+    ),
+  );
+}
+
 async function heldRequirementIds(
   prolog: PrologProcess,
   ids: readonly string[],
@@ -111,10 +165,13 @@ export async function collectStagedEvidenceFloorViolations(
     schemaVersion: number | undefined;
     /** The staged documents; those of `requirementIds` are projected. */
     stagedEntities: readonly ExtractionResult[];
+    /** The requirement-proof rules the project's Kibi level runs. */
+    rules: ReadonlySet<string>;
   }>,
 ): Promise<Violation[]> {
   if (
     input.requirementIds.length === 0 ||
+    input.rules.size === 0 ||
     input.schemaVersion === undefined ||
     input.schemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
   )
@@ -146,7 +203,7 @@ export async function collectStagedEvidenceFloorViolations(
           save: () => ctx.prolog.query("kb_save"),
         },
       },
-      new Set(REQUIREMENT_PROOF_RULES),
+      input.rules,
       // Only the staged requirements are judged, so only their proofs are
       // evaluated: every requirement's took minutes on a large store.
       { requirementIds: [...held] },

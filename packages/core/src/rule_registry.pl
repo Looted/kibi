@@ -60,6 +60,7 @@ known_rule('ontology-quality').
 known_rule('exception-unapproved').
 known_rule('exception-approval-self-attested').
 known_rule('agent-requirement-unapproved').
+known_rule('required-evidence-above-level').
 known_rule('requirement-rationale-missing').
 known_rule('symbol-owner-superseded').
 known_rule('adr-unlinked').
@@ -130,6 +131,7 @@ rule_enforcement_class('ontology-quality', advisory).
 rule_enforcement_class('exception-unapproved', advisory).
 rule_enforcement_class('exception-approval-self-attested', advisory).
 rule_enforcement_class('agent-requirement-unapproved', advisory).
+rule_enforcement_class('required-evidence-above-level', advisory).
 rule_enforcement_class('requirement-rationale-missing', advisory).
 rule_enforcement_class('symbol-owner-superseded', advisory).
 rule_enforcement_class('adr-unlinked', advisory).
@@ -200,6 +202,7 @@ rule_implementation('ontology-quality', prolog).
 rule_implementation('exception-unapproved', typescript).
 rule_implementation('exception-approval-self-attested', typescript).
 rule_implementation('agent-requirement-unapproved', typescript).
+rule_implementation('required-evidence-above-level', typescript).
 rule_implementation('requirement-rationale-missing', typescript).
 rule_implementation('symbol-owner-superseded', prolog).
 rule_implementation('adr-unlinked', prolog).
@@ -270,6 +273,7 @@ rule_layer('ontology-quality', knowledge).
 rule_layer('exception-unapproved', knowledge).
 rule_layer('exception-approval-self-attested', knowledge).
 rule_layer('agent-requirement-unapproved', knowledge).
+rule_layer('required-evidence-above-level', knowledge).
 rule_layer('requirement-rationale-missing', knowledge).
 rule_layer('symbol-owner-superseded', knowledge).
 rule_layer('adr-unlinked', knowledge).
@@ -424,6 +428,7 @@ rule_description('ontology-quality', 'Informational: predicate schemas whose arg
 rule_description('exception-unapproved', 'Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it').
 rule_description('exception-approval-self-attested', 'Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval').
 rule_description('agent-requirement-unapproved', 'Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check').
+rule_description('required-evidence-above-level', 'Advisory: at Kibi level remember, a current requirement whose required_evidence is tested or proved asks for evidence the level does not check; the finding names the level, and a person chooses level test to have the floor enforced').
 rule_description('requirement-rationale-missing', 'Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding').
 rule_description('symbol-owner-superseded', 'Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding').
 rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)').
