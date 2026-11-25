@@ -29,14 +29,24 @@ import {
   statSync,
 } from "node:fs";
 import * as path from "node:path";
+import {
+  type NoGitReason,
+  findRepositoryMarker,
+  noGitAdvisory,
+} from "kibi-agent-core/version-control";
 import { getBranchOverride } from "../env.js";
+import { type WorkspaceVcs, probeWorkspaceVcs } from "../vcs/workspace-vcs.js";
 import {
   branchStoreManifestMatches,
   branchStorePath,
   legacyBranchStorePath,
 } from "./branch-store-locator.js";
 
-export type BranchResolutionSuccess = { branch: string };
+export type BranchResolutionSuccess = {
+  branch: string;
+  /** Present when the workspace is outside any Git repository. */
+  noGit?: NoGitReason;
+};
 export type BranchResolutionError = { error: string; code: BranchErrorCode };
 export type BranchResolutionResult =
   | BranchResolutionSuccess
@@ -56,7 +66,12 @@ export type BranchAttachment = {
   kbBranch: string;
   /** The resolved compiled-store path. Never derive this path at call sites. */
   storePath: string;
-  kind: "exact" | "explicit_override" | "legacy_compat" | "detached_snapshot";
+  kind:
+    | "exact"
+    | "explicit_override"
+    | "legacy_compat"
+    | "detached_snapshot"
+    | "no_git";
   migrationRequired: boolean;
   /**
    * Present only on a detached HEAD that no single local branch points at.
@@ -64,7 +79,32 @@ export type BranchAttachment = {
    * checkout, and every write route must refuse it.
    */
   readOnly?: DetachedReadOnlyAttachment;
+  /**
+   * Present only when the workspace is outside any Git repository (also when
+   * KIBI_BRANCH names the store). Git attachments never carry it.
+   */
+  noGit?: NoGitAttachment;
 };
+
+export type NoGitAttachment = {
+  readonly reason: NoGitReason;
+  /** True when KIBI_BRANCH, not the reserved identity, names the store. */
+  readonly explicitOverride: boolean;
+  /** The no-Git advisory for this workspace. */
+  readonly notice: string;
+};
+
+/**
+ * Store identity of a workspace outside any Git repository. It is not a
+ * branch and never a default branch: it is selected only from Git's own
+ * answer and the absence of any `.git` entry, never from a file in .kb/, so
+ * every process (CLI, engine, MCP server, host hooks) attaches the same store
+ * with nothing to pass along (ADR-012 as amended).
+ */
+export const NO_GIT_KB_BRANCH = "kibi-internal/no-git";
+
+/** Store identities Kibi reserves; KIBI_BRANCH cannot name them. */
+const RESERVED_BRANCH_PREFIX = "kibi-internal/";
 
 export type DetachedReadOnlyAttachment = {
   /** The checked-out commit. */
@@ -88,7 +128,7 @@ export type BranchErrorCode =
   | "DETACHED_HEAD"
   | "UNBORN_BRANCH"
   | "GIT_NOT_AVAILABLE"
-  | "NOT_A_GIT_REPO"
+  | "GIT_REPOSITORY_UNREADABLE"
   | "AMBIGUOUS_ATTACHMENT"
   | "MIGRATION_RECOVERY_REQUIRED"
   | "UNKNOWN_ERROR";
@@ -96,10 +136,16 @@ export type BranchErrorCode =
 export interface BranchResolverDeps {
   execSync: typeof import("node:child_process").execSync;
   execFileSync: typeof import("node:child_process").execFileSync;
+  /** Classifies a workspace whose branch Git could not report. */
+  probeVcs: (workspaceRoot: string) => WorkspaceVcs;
 }
 
 function realBranchResolverDeps(): BranchResolverDeps {
-  return { execSync: rawExecSync, execFileSync: rawExecFileSync };
+  return {
+    execSync: rawExecSync,
+    execFileSync: rawExecFileSync,
+    probeVcs: probeWorkspaceVcs,
+  };
 }
 
 const defaultDeps: BranchResolverDeps = realBranchResolverDeps();
@@ -110,6 +156,7 @@ export function _setBranchResolverDepsForTests(
   const real = realBranchResolverDeps();
   defaultDeps.execSync = deps.execSync ?? real.execSync;
   defaultDeps.execFileSync = deps.execFileSync ?? real.execFileSync;
+  defaultDeps.probeVcs = deps.probeVcs ?? real.probeVcs;
 }
 
 // Files to exclude when copying branch snapshots (volatile artifacts)
@@ -145,7 +192,8 @@ function isVolatileArtifact(fileName: string): boolean {
  * Resolve the active branch according to ADR-012 precedence:
  * 1. KIBI_BRANCH env var (if set)
  * 2. Git active branch (from git branch --show-current)
- * 3. Diagnostic failure (no silent fallback)
+ * 3. Outside any Git repository: the reserved no-Git store identity
+ * 4. Diagnostic failure (no silent fallback)
  *
  * @param workspaceRoot - The workspace root directory
  * @returns BranchResolutionResult with either the branch name or an error
@@ -163,7 +211,16 @@ export function resolveActiveBranch(
         code: "ENV_OVERRIDE",
       };
     }
-    return { branch: envBranch };
+    if (envBranch.startsWith(RESERVED_BRANCH_PREFIX)) {
+      return {
+        error: `KIBI_BRANCH='${envBranch}' names a store Kibi reserves for itself (${RESERVED_BRANCH_PREFIX}*); choose another name.`,
+        code: "ENV_OVERRIDE",
+      };
+    }
+    const noGit = explicitWorkspaceWithoutGit(workspaceRoot);
+    return noGit === null
+      ? { branch: envBranch }
+      : { branch: envBranch, noGit };
   }
 
   // 2. Try to get the current git branch
@@ -241,36 +298,38 @@ export function resolveActiveBranch(
 
       return { branch };
     } catch {
-      // Determine specific error type
+      // Git could not report a branch: ask the one classifier whether this
+      // workspace is outside Git, or a repository Kibi cannot read.
+      const vcs = defaultDeps.probeVcs(workspaceRoot);
+      if (vcs.kind === "none")
+        return { branch: NO_GIT_KB_BRANCH, noGit: vcs.reason };
+      if (vcs.kind === "unresolved") {
+        return {
+          error: vcs.reason,
+          code: vcs.code === "BRANCH_UNRESOLVED" ? "UNKNOWN_ERROR" : vcs.code,
+        };
+      }
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-
-      if (errorMessage.includes("not a git repository")) {
-        return {
-          error: getBranchDiagnostic(undefined, "Not a git repository"),
-          code: "NOT_A_GIT_REPO",
-        };
-      }
-
-      if (
-        errorMessage.includes("command not found") ||
-        errorMessage.includes("ENOENT")
-      ) {
-        return {
-          error: getBranchDiagnostic(
-            undefined,
-            "Git is not installed or not available in PATH",
-          ),
-          code: "GIT_NOT_AVAILABLE",
-        };
-      }
-
       return {
         error: getBranchDiagnostic(undefined, errorMessage),
         code: "UNKNOWN_ERROR",
       };
     }
   }
+}
+
+/**
+ * Why a workspace whose store KIBI_BRANCH names has no Git repository, or
+ * null. A `.git` entry at or above the root settles it without spawning Git,
+ * so an explicit override inside a repository (CI) costs nothing extra.
+ */
+function explicitWorkspaceWithoutGit(
+  workspaceRoot: string,
+): NoGitReason | null {
+  if (findRepositoryMarker(workspaceRoot) !== null) return null;
+  const vcs = defaultDeps.probeVcs(workspaceRoot);
+  return vcs.kind === "none" ? vcs.reason : null;
 }
 
 /**
@@ -494,13 +553,21 @@ export function resolveBranchAttachment(
       code: "AMBIGUOUS_ATTACHMENT",
     };
   }
-  return {
+  const attachment: BranchAttachment = {
     gitBranch: active.branch,
     kbBranch: active.branch,
     storePath: exactPath,
-    kind: explicit ? "explicit_override" : "exact",
+    kind: explicit ? "explicit_override" : active.noGit ? "no_git" : "exact",
     migrationRequired: false,
   };
+  if (active.noGit !== undefined) {
+    attachment.noGit = {
+      reason: active.noGit,
+      explicitOverride: explicit,
+      notice: noGitAdvisory(active.noGit, explicit ? active.branch : undefined),
+    };
+  }
+  return attachment;
 }
 
 /**
@@ -553,9 +620,6 @@ export function getBranchDiagnostic(
     "",
     "3. If in detached HEAD state, create or checkout a branch:",
     "   git checkout -b my-branch",
-    "",
-    "4. For non-git workspaces, always use KIBI_BRANCH:",
-    "   KIBI_BRANCH=feature-branch kibi sync",
   );
 
   return lines.join("\n");
@@ -611,8 +675,10 @@ export function isValidBranchName(name: string): boolean {
       timeout: 5000,
     });
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    // Without Git (it cannot be spawned) the local rules above decide; any
+    // answer Git gives, including a refusal, stands.
+    return (error as NodeJS.ErrnoException).code === "ENOENT";
   }
 }
 

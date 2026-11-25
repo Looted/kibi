@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d61ba0068a6e
+  - type: implements
+    from: SYM-vcs-no-git-repository-diagnostic
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:37.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f70c3a563919
+  - type: covered_by
+    from: SYM-vcs-no-git-repository-diagnostic
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:37.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82fd5bae8083

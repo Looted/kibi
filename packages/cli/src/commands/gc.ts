@@ -10,6 +10,7 @@ import {
   branchStoresRoot,
   readBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 
 const DEFAULT_RETENTION_DAYS = 30;
 
@@ -127,6 +128,11 @@ export async function gcCommand(
   git: GcGitRunner = runGit,
 ): Promise<void> {
   const workspaceRoot = process.cwd();
+  const refusal = refuseWithoutGit(workspaceRoot, "branch_gc", "kibi gc");
+  if (refusal !== null) {
+    process.exitCode = refusal.exitCode;
+    return;
+  }
   const retentionDays =
     Number.isFinite(options.retentionDays) &&
     (options.retentionDays as number) >= 0

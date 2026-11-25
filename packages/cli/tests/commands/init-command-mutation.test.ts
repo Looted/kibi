@@ -13,9 +13,12 @@ import * as setupChoices from "../../src/commands/setup-choices.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
 import * as languageNote from "../../src/plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import * as telemetry from "../../src/usage-telemetry.js";
 import * as branchResolver from "../../src/utils/branch-resolver.js";
+import type { BranchErrorCode } from "../../src/utils/branch-resolver.js";
 import * as config from "../../src/utils/config.js";
 import * as gitContext from "../../src/utils/git-repository-context.js";
+import * as noGitAdoption from "../../src/vcs/no-git-adoption.js";
 import type { GitRepositoryContext } from "../../src/utils/git-repository-context.js";
 import {
   createTempDir,
@@ -265,31 +268,43 @@ describe("initCommand repository checks", () => {
 
   test("explains a branch it cannot resolve", async () => {
     const root = tempRoot();
-    const cases: Array<[string, string]> = [
-      [
-        "NOT_A_GIT_REPO",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
-      ],
+    const cases: Array<[BranchErrorCode, string, string]> = [
       [
         "GIT_NOT_AVAILABLE",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
+        "GIT_NOT_AVAILABLE",
+        "boom. Install Git (or put it on PATH), then retry.",
       ],
-      ["DETACHED_HEAD", "boom."],
+      [
+        "GIT_REPOSITORY_UNREADABLE",
+        "GIT_REPOSITORY_UNREADABLE",
+        "boom. Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.",
+      ],
+      ["DETACHED_HEAD", "DETACHED_HEAD", "boom."],
+      ["UNBORN_BRANCH", "BRANCH_UNRESOLVED", "boom."],
     ];
-    for (const [code, detail] of cases) {
-      errors = [];
-      resolveTo(
-        { status: "ok", context: context(root) },
-        { error: "boom.", code },
-      );
-      expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
-      expect(errorLines()).toStrictEqual([
-        "Error: Failed to resolve the active git branch.",
-        detail,
-      ]);
-      expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
-      restores.pop()?.();
-      restores.pop()?.();
+    // Not called through: a note left behind would reach the next test file.
+    const category = spyOn(
+      telemetry,
+      "noteCliErrorCategory",
+    ).mockImplementation(() => {});
+    try {
+      for (const [code, noted, detail] of cases) {
+        errors = [];
+        resolveTo(
+          { status: "ok", context: context(root) },
+          { error: "boom.", code },
+        );
+        expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+        expect(errorLines()).toStrictEqual([
+          `Error: Failed to resolve active branch: ${detail}`,
+        ]);
+        expect(category.mock.calls.at(-1)).toStrictEqual([noted]);
+        expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
+        restores.pop()?.();
+        restores.pop()?.();
+      }
+    } finally {
+      category.mockRestore();
     }
   });
 
@@ -368,6 +383,21 @@ describe("initCommand infrastructure", () => {
     expect(errors).toStrictEqual([]);
   });
 
+  test("reports knowledge recorded without Git that the new repository adopted", async () => {
+    const root = tempRoot();
+    track(spyOn(process, "cwd").mockReturnValue(root));
+    resolveTo({ status: "ok", context: context(root) });
+    record(noGitAdoption, "adoptNoGitStore", () => ({
+      branch: "main",
+      files: 2,
+      retiredStorePath: "/retired",
+    }));
+    expect(await initCommand({})).toStrictEqual({ exitCode: 0 });
+    expect(logs).toContain(
+      "✓ Knowledge recorded without Git now belongs to branch 'main' (2 source file(s) sealed for it)",
+    );
+  });
+
   test("falls back to the working directory outside a repository", async () => {
     const root = tempRoot();
     track(spyOn(process, "cwd").mockReturnValue(root));
@@ -377,9 +407,10 @@ describe("initCommand infrastructure", () => {
       [path.join(root, ".kb"), "main"],
     ]);
     expect(named("resolveGitRepository")).toStrictEqual([[root]]);
-    expect(errorLines()).toStrictEqual([
-      "Warning: No git repository found, skipping hooks",
-    ]);
+    expect(errorLines()).toStrictEqual([]);
+    expect(logs).toContain(
+      "- Git hooks: not installed; this directory has no Git repository",
+    );
     expect(named("syncPrepareScript")).toStrictEqual([[root, true]]);
   });
 
@@ -770,7 +801,7 @@ describe("initCommand setup choices", () => {
     expect(logs).toContain(
       "✓ Recorded Kibi setup choices in .kb/setup.json (autoSync: false, prepareHooks: true, agentInstructions: true, ciGate: true)",
     );
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("reportAgentInstructions")).toStrictEqual([["instructions"]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
   });
@@ -786,7 +817,7 @@ describe("initCommand setup choices", () => {
     await initCommand({});
     expect(named("writeSetupChoices")).toStrictEqual([[root, {}]]);
     expect(logs.some((line) => line.startsWith("✓ Recorded"))).toBe(false);
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([]);
   });
 

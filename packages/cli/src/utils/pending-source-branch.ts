@@ -30,7 +30,24 @@ export function pendingReceiptBranch(
   workspaceRoot: string,
 ): string | undefined {
   const resolved = resolveActiveBranch(workspaceRoot);
-  return "branch" in resolved ? resolved.branch : undefined;
+  // The no-Git store is not a branch: a receipt there names none.
+  return "branch" in resolved && resolved.noGit === undefined
+    ? resolved.branch
+    : undefined;
+}
+
+/**
+ * Whether a pending-source receipt has anything to vouch for. Outside any
+ * Git repository every source on disk is input, so no receipt is written;
+ * the branch a receipt binds is returned otherwise (undefined when Git
+ * cannot name one, which keeps the receipt unscoped).
+ */
+export function pendingReceiptBinding(
+  workspaceRoot: string,
+): { readonly branch: string | undefined } | null {
+  const resolved = resolveActiveBranch(workspaceRoot);
+  if (!("branch" in resolved)) return { branch: undefined };
+  return resolved.noGit === undefined ? { branch: resolved.branch } : null;
 }
 
 /**

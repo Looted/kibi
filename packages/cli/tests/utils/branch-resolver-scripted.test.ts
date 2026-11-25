@@ -20,6 +20,7 @@ import path from "node:path";
 import {
   type BranchResolverDeps,
   DETACHED_SNAPSHOT_KB_BRANCH,
+  NO_GIT_KB_BRANCH,
   _setBranchResolverDepsForTests,
   copyCleanSnapshot,
   detachedHeadWriteRefusal,
@@ -67,7 +68,10 @@ afterEach(() => {
 const HEAD = "0123456789abcdef0123456789abcdef01234567";
 const VALID_REF = "git check-ref-format --branch";
 
-function script(answers: Script): void {
+function script(
+  answers: Script,
+  probeVcs?: BranchResolverDeps["probeVcs"],
+): void {
   const answer = (command: string, options: unknown) => {
     calls.push({ command, options });
     if (command.startsWith(VALID_REF)) return "";
@@ -84,6 +88,7 @@ function script(answers: Script): void {
         [file, ...args].join(" "),
         options,
       )) as BranchResolverDeps["execFileSync"],
+    ...(probeVcs ? { probeVcs } : {}),
   });
 }
 
@@ -118,9 +123,6 @@ describe("getBranchDiagnostic and fixed values", () => {
         "",
         "3. If in detached HEAD state, create or checkout a branch:",
         "   git checkout -b my-branch",
-        "",
-        "4. For non-git workspaces, always use KIBI_BRANCH:",
-        "   KIBI_BRANCH=feature-branch kibi sync",
       ].join("\n"),
     );
     expect(getBranchDiagnostic(undefined, "why").split("\n")[3]).toBe("");
@@ -281,26 +283,61 @@ describe("resolveActiveBranch", () => {
     });
   });
 
-  test("classifies a failure of both commands by the first error", () => {
-    const both = (first: unknown) => {
-      script({ [SHOW]: fail(first), [ABBREV]: fail(new Error("second")) });
+  test("KIBI_BRANCH may not name a store Kibi reserves", () => {
+    process.env.KIBI_BRANCH = NO_GIT_KB_BRANCH;
+    expect(resolveActiveBranch("/w")).toStrictEqual({
+      error:
+        "KIBI_BRANCH='kibi-internal/no-git' names a store Kibi reserves for itself (kibi-internal/*); choose another name.",
+      code: "ENV_OVERRIDE",
+    });
+  });
+
+  test("a failure of both commands is classified by the workspace probe", () => {
+    const both = (first: unknown, probe?: BranchResolverDeps["probeVcs"]) => {
+      script(
+        { [SHOW]: fail(first), [ABBREV]: fail(new Error("second")) },
+        probe,
+      );
       return resolveActiveBranch("/w");
     };
-    expect(both(new Error("fatal: not a git repository"))).toStrictEqual({
-      error: diagnostic("Not a git repository"),
-      code: "NOT_A_GIT_REPO",
-    });
-    for (const message of ["git: command not found", "spawn git ENOENT"]) {
-      expect(both(new Error(message))).toStrictEqual({
-        error: diagnostic("Git is not installed or not available in PATH"),
+    expect(
+      both(new Error("fatal: not a git repository"), () => ({
+        kind: "none",
+        reason: "git_unavailable",
+      })),
+    ).toStrictEqual({ branch: NO_GIT_KB_BRANCH, noGit: "git_unavailable" });
+    expect(
+      both(new Error("spawn git ENOENT"), () => ({
+        kind: "unresolved",
         code: "GIT_NOT_AVAILABLE",
-      });
-    }
+        reason: "Git is unavailable.",
+      })),
+    ).toStrictEqual({
+      error: "Git is unavailable.",
+      code: "GIT_NOT_AVAILABLE",
+    });
+    expect(
+      both(new Error("refused"), () => ({
+        kind: "unresolved",
+        code: "GIT_REPOSITORY_UNREADABLE",
+        reason: "Git refuses the repository.",
+      })),
+    ).toStrictEqual({
+      error: "Git refuses the repository.",
+      code: "GIT_REPOSITORY_UNREADABLE",
+    });
+    // The real probe: a workspace directory that does not exist.
     expect(both(new Error("boom"))).toStrictEqual({
+      error: "The workspace directory /w does not exist.",
+      code: "UNKNOWN_ERROR",
+    });
+    // A readable repository keeps Git's own message.
+    const inGit = () => ({ kind: "git" }) as never;
+    expect(both(new Error("boom"), inGit)).toStrictEqual({
       error: diagnostic("boom"),
       code: "UNKNOWN_ERROR",
     });
-    expect(both("plain string")).toStrictEqual({
+    expect(both("plain string", inGit)).toStrictEqual({
       error: diagnostic("plain string"),
       code: "UNKNOWN_ERROR",
     });
@@ -327,6 +364,8 @@ describe("isDetachedHead", () => {
 describe("resolveBranchAttachment", () => {
   test("an exact or explicit attachment uses the hashed store", () => {
     const root = fresh();
+    // Inside Git, so the explicit store carries no no-Git notice.
+    mkdirSync(path.join(root, ".git"));
     script({ [SHOW]: "main" });
     expect(resolveBranchAttachment(root)).toStrictEqual({
       gitBranch: "main",

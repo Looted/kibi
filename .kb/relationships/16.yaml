@@ -517,3 +517,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-645c8a877110
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: REQ-kibi-no-git-detection-never-inside-repository
+    created_at: 2026-11-25T09:16:49.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bfef00dbaf4
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: SCEN-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:49.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd360aaff5a1
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: SCEN-NEG-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:49.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f95b54cd2b2c
