@@ -8,6 +8,8 @@ exit with an error naming the Node they found. Both start through the first
 `node` on `PATH`, so Node.js 22+ must come first there for your shell, your Git
 hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
 
+Git is recommended, not required. In a Git repository Kibi keeps knowledge per branch and installs the commit gate; in a directory without one it works on a single knowledge store, with no commit gate or Git hooks, and says so. Running `git init` and then `kibi init` later turns those on and keeps what was recorded ([Working without Git](error-reference.md#working-without-git-no_git_repository-git_required)).
+
 ### Bundled SWI-Prolog
 
 `kibi-cli` (and `kibi-runtime`, which `kibi-mcp` uses) depend on `kibi-swipl`, which lists one platform package per target as an optional dependency. Your package manager installs only the one that matches your machine:
@@ -874,11 +876,33 @@ repository's `.claude/settings.json` (the exact snippet is in
 - always-on workflow rules (`rules/AGENTS.md`);
 - lifecycle hooks (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) that inject progressive-disclosure requirement snippets, stamp `workspaceRoot` onto Kibi MCP calls, ask before edits that change code implementing a `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables), and remind once at stop about unchecked edits, unrecorded decisions, or pending signoff.
 
-Validate or install directly with the Antigravity CLI (`agy`):
+Install globally from GitHub with the Antigravity CLI (`agy`) (use `tree/develop/packages/antigravity` instead of `tree/master/packages/antigravity` if installing before the plugin is released on `master`):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+When validating or installing from a local Kibi monorepo checkout, exclude `node_modules` first (`agy plugin install` rejects workspace symlinks pointing outside the plugin directory):
+
+macOS / Linux:
 
 ```bash
 agy plugin validate --strict ./packages/antigravity
-agy plugin install ./packages/antigravity
+rsync -a --delete --exclude node_modules ./packages/antigravity/ /tmp/kibi-antigravity/
+agy plugin install /tmp/kibi-antigravity
+rm -rf /tmp/kibi-antigravity
+```
+
+Windows (PowerShell):
+
+```powershell
+agy plugin validate --strict .\packages\antigravity
+$tmp = Join-Path $env:TEMP kibi-antigravity
+Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $tmp | Out-Null
+Get-ChildItem .\packages\antigravity -Exclude node_modules | Copy-Item -Destination $tmp -Recurse
+agy plugin install $tmp
+Remove-Item -Recurse -Force $tmp
 ```
 
 To share the plugin across a repository via VCS, register it in `.agents/plugins.json`. See `packages/antigravity/README.md` for details.

@@ -387,16 +387,18 @@ describe("doctorCommand legacy storage check", () => {
 });
 
 describe("doctorCommand git repository check", () => {
-  test("fails outside a git repository and suggests git init", async () => {
+  test("warns outside a git repository with the advisory and suggests git init", async () => {
     restores.push(isolateKibiEnv());
     const cwd = createTempDir("kibi-doctor-nogit-");
     roots.push(cwd);
     writeOkManifest(cwd);
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
-    const { exitCode, text } = await runDoctorTable(cwd);
-    expect(exitCode).toBe(1);
-    expect(text).toContain("✗ Git repository: Not a git repository");
-    expect(text).toContain("→ Run: git init");
+    const { text } = await runDoctorTable(cwd);
+    expect(text).toContain(
+      "! Git repository: No Git repository: Kibi is working without version control",
+    );
+    expect(text).toContain("→ Run: git init, then kibi init");
+    expect(text).not.toContain("✗ Git repository");
   });
 });
 
@@ -1301,7 +1303,7 @@ describe("doctorCommand kibi-managed hook sections", () => {
     expect(outdated.passed).toBe(false);
     expect(outdated.message).toContain("pre-commit");
     expect(outdated.remediation).toBe(
-      "Run: kibi init to refresh the kibi-managed hook sections",
+      "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     );
   });
 

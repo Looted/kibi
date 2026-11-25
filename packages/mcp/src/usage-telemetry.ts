@@ -1,9 +1,11 @@
+import { workspaceTelemetryVcs } from "kibi-agent-core/checkout-hooks";
 import {
   type TelemetrySource,
   detectTelemetryHost,
   flushTelemetry,
   recordOperationTelemetry,
   takeTelemetryNotice,
+  telemetryEnabled,
   telemetryErrorClass,
   telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
@@ -106,6 +108,10 @@ export function recordMcpToolTelemetry(input: {
       result: input.result,
       error: input.error,
     }),
+    // Asked only when the event is recorded at all.
+    ...(telemetryEnabled()
+      ? { vcs: workspaceTelemetryVcs(resolveWorkspaceRoot()) }
+      : {}),
   });
 }
 

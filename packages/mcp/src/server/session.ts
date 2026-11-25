@@ -22,6 +22,7 @@ import process from "node:process";
 import { EngineClient } from "kibi-runtime";
 import { PrologProcess } from "kibi-runtime";
 import {
+  BranchResolutionFailure,
   copyCleanSnapshot,
   ensureBranchStoreManifest,
   escapeAtomContent,
@@ -364,12 +365,12 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     const branchResult = sessionDeps.resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
-      const diagnostic = sessionDeps.getBranchDiagnostic(
-        undefined,
-        branchResult.error,
+      // Coded, so the tool answers with the same error envelope (and the
+      // same instruction) as the CLI JSON route.
+      console.error(
+        `[KIBI-MCP] ${sessionDeps.getBranchDiagnostic(undefined, branchResult.error)}`,
       );
-      console.error(`[KIBI-MCP] ${diagnostic}`);
-      throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
+      throw new BranchResolutionFailure(branchResult);
     }
 
     targetBranch = branchResult.kbBranch;

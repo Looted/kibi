@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e49d8db57d3
+  - type: implements
+    from: SYM-antigravity-run-node-sh
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-25T08:33:45.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e82ff662610
+  - type: covered_by
+    from: SYM-antigravity-run-node-sh
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-25T08:33:45.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca64e51e3c62

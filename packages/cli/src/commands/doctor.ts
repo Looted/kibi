@@ -21,6 +21,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { noGitAdvisory } from "kibi-agent-core/version-control";
 import {
   type BootstrapKibiEnvironmentResult,
   type EnvValueSource,
@@ -77,9 +78,10 @@ import {
   mergeDriverSetup,
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
+import { probeWorkspaceVcs } from "../vcs/workspace-vcs.js";
 import {
   AGENTS_FILE,
-  KIBI_AGENT_INSTRUCTIONS,
+  agentInstructionsFor,
   managedSectionState,
 } from "./agent-instructions.js";
 import { GITHUB_CHECK_WORKFLOW_RELPATH } from "./github-init.js";
@@ -1003,11 +1005,12 @@ function checkLegacyStorage(): {
   };
 }
 
-function checkGitRepository(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+/**
+ * Kibi works without Git on one knowledge store, so a workspace outside any
+ * repository is a warning with the advisory, not a failure. A repository Git
+ * cannot read still fails.
+ */
+function checkGitRepository(): DoctorCheckResult {
   try {
     execSync("git status", { stdio: "pipe", cwd: process.cwd() });
 
@@ -1015,11 +1018,23 @@ function checkGitRepository(): {
       passed: true,
       message: "Found",
     };
-  } catch (error) {
+  } catch {
+    const vcs = probeWorkspaceVcs(process.cwd());
+    if (vcs.kind === "none") {
+      return {
+        passed: true,
+        warning: true,
+        message: noGitAdvisory(vcs.reason),
+        remediation: "Run: git init, then kibi init",
+      };
+    }
     return {
       passed: false,
-      message: "Not a git repository",
-      remediation: "Run: git init",
+      message:
+        vcs.kind === "unresolved"
+          ? `Git cannot read this repository: ${vcs.reason}`
+          : "git status failed in this repository",
+      remediation: "Run: git status, and fix what it reports",
     };
   }
 }
@@ -1176,16 +1191,19 @@ function fileMentionsKibi(filePath: string): boolean {
  * and the pull-request gate. Each gap is a warning; `kibi init` repairs it.
  */
 function checkFreshCloneSetup(): DoctorCheckResult {
-  const root = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
+  const repository = doctorRepositoryContext();
+  const root = repository?.worktreeRoot ?? process.cwd();
   if (!existsSync(path.join(root, ".kb", "manifest.json"))) {
     return { passed: true, message: "Skipped: Kibi is not initialized here" };
   }
+  // Without Git the instructions name `kibi check` instead of the gate.
+  const noGit = repository === null && probeWorkspaceVcs(root).kind === "none";
   const choices = readSetupChoices(root);
   const gaps: string[] = [];
   let customAgentsMentionsKibi = false;
   if (choices.agentInstructions) {
     const agentsPath = path.join(root, AGENTS_FILE);
-    const state = managedSectionState(agentsPath, KIBI_AGENT_INSTRUCTIONS);
+    const state = managedSectionState(agentsPath, agentInstructionsFor(noGit));
     if (state !== "current") {
       if (state === "missing" && fileMentionsKibi(agentsPath)) {
         customAgentsMentionsKibi = true;
@@ -1418,8 +1436,9 @@ function checkManagedHookSections(): DoctorCheckResult {
   if (outdated.length > 0) {
     return {
       passed: false,
-      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (installed by a different version; newer gates may be missing)${hooksPathSuffix()}`,
-      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (they differ from the template this CLI installs, whatever version wrote them; newer gates may be missing)${hooksPathSuffix()}`,
+      remediation:
+        "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     };
   }
   return { passed: true, message: "Current for this Kibi CLI" };

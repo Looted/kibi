@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e3731523532
+  - type: assumes
+    from: SCEN-kibi-no-git-adoption
+    to: FACT-kibi-no-git-adoption-unadopted-source-count
+    created_at: 2026-11-25T09:21:21.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af0724ab3b01
+  - type: assumes
+    from: SCEN-kibi-no-git-adoption
+    to: FACT-kibi-no-git-adoption-retired-store-location
+    created_at: 2026-11-25T09:21:21.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b73322a6f4a7
