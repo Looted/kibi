@@ -486,3 +486,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca58a3542f11
+  - type: constrains
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-subject
+    created_at: 2026-11-25T06:08:06.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f67623d9ba45
+  - type: specified_by
+    from: REQ-contributions-require-cla
+    to: SCEN-contributions-require-cla
+    created_at: 2026-11-25T06:08:31.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5feb0d1e859
+  - type: verified_by
+    from: REQ-contributions-require-cla
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:31.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f4ae028e5cf
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-runs-on-pull-requests
+    created_at: 2026-11-25T06:10:16.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70546c1d2944
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-exempts-maintainer-and-bots
+    created_at: 2026-11-25T06:10:16.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75dcf04d6e51
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-sign-sentence-consistent
+    created_at: 2026-11-25T06:10:16.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-550ab5d1ffd1
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-signatures-branch
+    created_at: 2026-11-25T06:10:16.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8359adb4b558
+  - type: specified_by
+    from: REQ-contributions-require-cla
+    to: SCEN-NEG-cla-check-exempts-other-accounts
+    created_at: 2026-11-25T06:12:18.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c1248af1364

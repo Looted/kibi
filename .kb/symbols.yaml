@@ -49155,3 +49155,32 @@ symbols:
         target: TEST-search-answer-first-layer
       - type: implements
         target: REQ-kb-search-close-matches-candidates
+  - id: SYM-cla-workflow
+    title: cla.yml
+    status: active
+    sourceFile: .github/workflows/cla.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - ci
+      - governance
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T06:08:35.863Z
+    relationships:
+      - type: covered_by
+        target: TEST-cla-workflow-contract
+      - type: implements
+        target: REQ-contributions-require-cla
+  - id: SYM-test-cla-workflow-contract
+    title: CLA workflow contract suite
+    status: active
+    sourceFile: scripts/tests/cla-workflow-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T06:08:39.004Z
+    relationships:
+      - type: executable_for
+        target: TEST-cla-workflow-contract
