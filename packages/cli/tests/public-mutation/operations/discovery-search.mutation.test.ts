@@ -359,6 +359,7 @@ describe("executeSearch intent ranking", () => {
       branch: "kb-main",
       detail: "summary",
       syncState: "unknown",
+      ambiguous: true,
     });
     expect(calls.build).toHaveBeenCalledWith({
       query: "login",
@@ -374,7 +375,7 @@ describe("executeSearch intent ranking", () => {
     expect(result.content).toStrictEqual([
       {
         type: "text",
-        text: "Found 6 intent search results for 'login' (top matches are close; confirm before relying on one). Top: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5. Governing: REQ-g1, REQ-g2 (the top match REQ-1 is linked to no requirement). [hints]",
+        text: "Found 6 intent search results for 'login' (top matches are close; confirm before relying on one). Top: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5. Candidate requirements, not confirmed to govern: REQ-g1, REQ-g2 (the top match REQ-1 is linked to no requirement). [hints]",
       },
     ]);
     expect(Object.keys(result.structuredContent)).toEqual([

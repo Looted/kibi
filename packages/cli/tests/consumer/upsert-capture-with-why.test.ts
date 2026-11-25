@@ -64,6 +64,14 @@ function filled(input: Json): Json {
         /<one case [^>]*>/,
         "Given a quota window with sixty client calls, when the quota page loads, then it lists the twenty most recent calls.",
       )
+      .replace(
+        /<a value [^>]* forbids is refused>/,
+        "A quota page asked for more than twenty calls is refused",
+      )
+      .replace(
+        /<given a value or situation [^>]*>/,
+        "Given a quota page request for fifty calls, when the page loads, then the request is refused.",
+      )
       .replace(/<what the test checks about [^>]*>/, "Quota page call cap")
       .replace(
         "<what the test runs and what it checks>",
@@ -101,13 +109,21 @@ describe("kb_upsert records why and returns the remaining steps", () => {
     expect(file).toContain(`## Source\n\n> ${REF}`);
 
     const steps = data.nextActions as Step[];
+    // Every step kb_check will ask for comes in this one answer: the
+    // subject, the model step for the unmodeled claim, both scenarios, the
+    // test, the link and the proof run.
     expect(steps.map((step) => [step.operation, step.code])).toEqual([
       ["kb_upsert", "claim-subject-missing"],
+      ["kb_model", "evidence-floor"],
+      ["kb_upsert", "evidence-floor"],
       ["kb_upsert", "evidence-floor"],
       ["kb_upsert", "evidence-floor"],
       ["kb_upsert", "evidence-floor"],
       ["kibi prove", "evidence-floor"],
     ]);
+    expect(
+      (data.approvalsNeeded as { kind: string }[]).map((ask) => ask.kind),
+    ).toEqual(["signoff", "failure_side_waiver"]);
     expect(steps.every((step) => step.required)).toBe(true);
     expect(data.relatedRequirements).toEqual([
       {
@@ -126,7 +142,8 @@ describe("kb_upsert records why and returns the remaining steps", () => {
         ],
       },
     });
-    for (const step of steps.slice(0, 4)) upsert(filled(step.input));
+    for (const step of steps)
+      if (step.operation === "kb_upsert") upsert(filled(step.input));
     const left = checkViolations(
       workspace,
       "claim-subject-missing,entity-context-missing,evidence-floor",

@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4508a2e4911
+  - type: implements
+    from: SYM-capture-grounding-step
+    to: REQ-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:12:36.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0994bc46d77
+  - type: covered_by
+    from: SYM-capture-grounding-step
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:12:36.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6025f8d7262

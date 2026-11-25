@@ -268,6 +268,11 @@ export type SearchAnswerOptions = Readonly<{
   staleReasonCount?: number;
   /** Concise staleness warning prepended to `answer.note` when stale. */
   staleWarningNote?: string;
+  /**
+   * The ranking's top matches are close (the query analysis is ambiguous):
+   * the note says the governing list holds candidates to confirm.
+   */
+  ambiguous?: boolean;
 }>;
 
 /**
@@ -1560,9 +1565,23 @@ export async function buildSearchAnswer(
       governing.length,
       ungovernedAnswer,
       options.staleWarningNote,
+      options.ambiguous === true,
     ),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
+}
+
+/**
+ * The digest's name for the governing list: when the top matches are close,
+ * the requirements in it are candidates, not confirmed to govern.
+ */
+export function governingLabel(
+  ambiguous: boolean,
+  governingCount: number,
+): string {
+  return ambiguous && governingCount > 0
+    ? "Candidate requirements, not confirmed to govern"
+    : "Governing";
 }
 
 /**
@@ -1574,8 +1593,15 @@ export function answerNote(
   governingCount: number,
   ungoverned: readonly SearchAnswerUngoverned[],
   staleWarningNote?: string,
+  ambiguous = false,
 ): string {
   const staleLead = staleWarningNote ? `${staleWarningNote} ` : "";
+  // A close ranking reaches look-alikes and neighbours as easily as the rule
+  // that applies, so the list is not presented as settled.
+  const candidates =
+    ambiguous && governingCount > 0
+      ? "The top matches are close, so the governing list holds candidates, not requirements confirmed to govern this change: read each statement and keep only those about the code being changed. "
+      : "";
   const top = ungoverned.find((entry) => entry.rank === 1);
   const lead =
     top === undefined
@@ -1598,6 +1624,7 @@ export function answerNote(
     .join("");
   return (
     staleLead +
+    candidates +
     lead +
     ungovernedFact +
     overridden +

@@ -129,11 +129,17 @@ describe("a flow-style symbol manifest from an older Kibi", () => {
     );
     expect(ws.text(["sync"])).not.toContain("Rewrote .kb/symbols.yaml");
 
-    // The compiled KB sees both symbols and their requirement links.
+    // The compiled KB sees both symbols and their requirement links: a
+    // lookup by file returns the symbols and the requirements they implement.
     const query = ws.json(["query"], {
       sourceFile: "src/app/services/auth.service.ts",
     }) as { data?: { entities?: { id: string }[] } };
     const ids = (query.data?.entities ?? []).map((entity) => entity.id).sort();
-    expect(ids).toEqual(["SYM-auth-signout", "SYM-auth-toggle"]);
+    expect(ids).toEqual([
+      "REQ-auth-sign-out",
+      "REQ-auth-view-mode",
+      "SYM-auth-signout",
+      "SYM-auth-toggle",
+    ]);
   }, 180_000);
 });

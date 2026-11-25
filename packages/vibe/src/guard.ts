@@ -117,10 +117,12 @@ export function promptNote(
 ): string | undefined {
   const input = parseHookInput(payload);
   if (!input.prompt) return undefined;
-  const rule = recordRequest(session(workspaceRoot, input, env), input.prompt);
+  const rule = recordRequest(session(workspaceRoot, input, env), input.prompt, {
+    workspaceRoot,
+  });
   return rule === undefined
     ? undefined
-    : rulePromptNote(rule, statedReason(input.prompt));
+    : rulePromptNote(rule, statedReason(input.prompt, workspaceRoot));
 }
 
 /** Workspace-relative path of `absolute`, or undefined outside it. */

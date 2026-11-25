@@ -293,6 +293,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-428e30a8f750
+  - type: assumes
+    from: SCEN-NEG-edit-snippet-names-hidden-requirements-COUNT-ONLY
+    to: FACT-NEG-edit-snippet-names-hidden-requirements-COUNT-ONLY
+    created_at: 2026-11-24T20:02:11.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05a71bc60e5f
+  - type: verified_by
+    from: SCEN-NEG-edit-snippet-names-hidden-requirements-COUNT-ONLY
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-24T20:02:11.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6bd4f2ad6e2
   - type: verified_by
     from: SCEN-kb-check-impact-advice-once
     to: TEST-kibi-compact-results

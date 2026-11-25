@@ -925,16 +925,66 @@ describe("the recorded reason on the Why line", () => {
       moreClaims: text.includes(" +1 more."),
       why: text.split("\n").find((line) => line.startsWith("Why: ")),
       tests: text.includes("\nCovered by: "),
+      moreIds: text.includes("- Also linked ("),
     });
     const why = (chars: number) => reasonLine(lead, chars, "REQ-long-0");
     expect(shapes.map(shape)).toEqual([
-      { requirements: 4, moreClaims: false, why: why(240), tests: true },
-      { requirements: 3, moreClaims: false, why: why(240), tests: true },
-      { requirements: 2, moreClaims: true, why: why(240), tests: true },
-      { requirements: 2, moreClaims: true, why: why(160), tests: true },
-      { requirements: 1, moreClaims: true, why: why(160), tests: true },
-      { requirements: 1, moreClaims: true, why: why(160), tests: false },
-      { requirements: 1, moreClaims: true, why: why(100), tests: false },
+      {
+        requirements: 4,
+        moreClaims: false,
+        why: why(240),
+        tests: true,
+        moreIds: true,
+      },
+      {
+        requirements: 3,
+        moreClaims: false,
+        why: why(240),
+        tests: true,
+        moreIds: true,
+      },
+      {
+        requirements: 2,
+        moreClaims: true,
+        why: why(240),
+        tests: true,
+        moreIds: true,
+      },
+      {
+        requirements: 2,
+        moreClaims: true,
+        why: why(160),
+        tests: true,
+        moreIds: true,
+      },
+      {
+        requirements: 1,
+        moreClaims: true,
+        why: why(160),
+        tests: true,
+        moreIds: true,
+      },
+      {
+        requirements: 1,
+        moreClaims: true,
+        why: why(160),
+        tests: false,
+        moreIds: true,
+      },
+      {
+        requirements: 1,
+        moreClaims: true,
+        why: why(100),
+        tests: false,
+        moreIds: true,
+      },
+      {
+        requirements: 1,
+        moreClaims: true,
+        why: why(100),
+        tests: false,
+        moreIds: false,
+      },
     ]);
   });
 

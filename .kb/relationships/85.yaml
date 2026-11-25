@@ -510,3 +510,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8173b62b788
+  - type: implements
+    from: SYM-capture-proof-integration-follow-up
+    to: REQ-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:12:43.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37953c7db7b4
+  - type: covered_by
+    from: SYM-capture-proof-integration-follow-up
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:12:43.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cad7e8a2ce2

@@ -35,6 +35,7 @@
     kb_rebuild_indexes/0,
     kb_entity/3,
     kb_entities_by_source/2,
+    kb_entities_in_source/2,
     kb_assert_relationship/4,
     kb_assert_relationships_reporting/2,
     kb_query_proof_contracts/4,
@@ -1894,6 +1895,18 @@ kb_entities_by_source(SourcePath, Ids) :-
             RawIds),
     sort(RawIds, Ids).
 
+%% kb_entities_in_source(+SourcePath, -Ids)
+% The entities a lookup by file returns: those whose source contains
+% SourcePath and those a symbol in that file implements.
+kb_entities_in_source(SourcePath, Ids) :-
+    kb_ensure_indexes,
+    source_value_atom(SourcePath, SourceQuery),
+    findall(Id,
+            ( kb_index_entity(Id, _),
+              indexed_source_match(SourceQuery, Id) ),
+            RawIds),
+    sort(RawIds, Ids).
+
 %% kb_entities_by_tag(+Tag, -Ids)
 % Index-backed tag lookup used by exact/paginated discovery queries.
 kb_entities_by_tag(Tag, Ids) :-
@@ -2056,8 +2069,20 @@ indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id) :-
     (   SourceFilter == none
     ->  true
     ;   source_value_atom(SourceFilter, SourceQuery),
-        kb_index_source(Source, Id),
+        indexed_source_match(SourceQuery, Id)
+    ).
+
+% An entity is in a source file when its own indexed source contains the
+% path, or when a symbol in that file implements it: a requirement is found
+% by the code that implements it, which is what a lookup by file asks.
+indexed_source_match(SourceQuery, Id) :-
+    (   kb_index_source(Source, Id),
         sub_atom(Source, _, _, _, SourceQuery)
+    ->  true
+    ;   kb_relationship(implements, Symbol, Id),
+        kb_index_source(SymbolSource, Symbol),
+        sub_atom(SymbolSource, _, _, _, SourceQuery)
+    ->  true
     ).
 
 drop_index_ids(Offset, Ids, Remaining) :-

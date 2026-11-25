@@ -440,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fbcf70ea6f3
+  - type: constrains
+    from: REQ-kb-search-close-matches-candidates
+    to: FACT-SUBJECT-kibi-discovery-search
+    created_at: 2026-11-24T20:05:19.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7915784b836f
+  - type: requires_property
+    from: REQ-kb-search-close-matches-candidates
+    to: FACT-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:05:19.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6609586aea9e
+  - type: specified_by
+    from: REQ-kb-search-close-matches-candidates
+    to: SCEN-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:05:19.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b41e934e45
+  - type: specified_by
+    from: REQ-kb-search-close-matches-candidates
+    to: SCEN-NEG-kb-search-close-matches-candidates-GOVERNING
+    created_at: 2026-11-24T20:05:19.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9889cd2b6317

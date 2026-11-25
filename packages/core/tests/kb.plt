@@ -873,6 +873,51 @@ test(prefers_source_file_over_legacy_source, [setup(setup_kb), cleanup(cleanup_k
     kb_entities_by_source('documentation/brief.md', LegacyIds),
     \+ memberchk('sym-both-source-fields', LegacyIds).
 
+test(file_lookup_returns_requirements_its_symbols_implement, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='REQ-FILE-IMPLEMENTED',
+        title="Names ignore letter case",
+        status=open,
+        created_at="2026-11-24T00:00:00Z",
+        updated_at="2026-11-24T00:00:00Z",
+        source="requirements/REQ-FILE-IMPLEMENTED.md"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-FILE-ELSEWHERE',
+        title="Other file rule",
+        status=open,
+        created_at="2026-11-24T00:00:00Z",
+        updated_at="2026-11-24T00:00:00Z",
+        source="requirements/REQ-FILE-ELSEWHERE.md"
+    ]),
+    kb_assert_entity(symbol, [
+        id='SYM-file-lookup',
+        title="normalizeName",
+        status=active,
+        created_at="2026-11-24T00:00:00Z",
+        updated_at="2026-11-24T00:00:00Z",
+        source="symbols.yaml#SYM-file-lookup",
+        sourceFile="src/tags/names.ts"
+    ]),
+    kb_assert_entity(symbol, [
+        id='SYM-file-elsewhere',
+        title="other",
+        status=active,
+        created_at="2026-11-24T00:00:00Z",
+        updated_at="2026-11-24T00:00:00Z",
+        source="symbols.yaml#SYM-file-elsewhere",
+        sourceFile="src/other.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-file-lookup', 'REQ-FILE-IMPLEMENTED', []),
+    kb_assert_relationship(implements, 'SYM-file-elsewhere', 'REQ-FILE-ELSEWHERE', []),
+    kb_entities_in_source('src/tags/names.ts', Ids),
+    Ids == ['REQ-FILE-IMPLEMENTED', 'SYM-file-lookup'],
+    kb_query_entities(req, none, [], 'src/tags/names.ts', 10, 0, Rows, Count),
+    Count == 1,
+    Rows = [['REQ-FILE-IMPLEMENTED', req, _]],
+    kb_entities_by_source('src/tags/names.ts', OwnIds),
+    OwnIds == ['SYM-file-lookup'].
+
 test(indexed_search_materializes_only_matching_page, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='REQ-SEARCH-UNIQUE',

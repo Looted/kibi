@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7bdc2394894
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    to: FACT-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    created_at: 2026-11-24T20:01:51.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0457cf47ecb
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:01:51.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8590ccf8440

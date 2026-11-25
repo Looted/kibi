@@ -592,6 +592,8 @@ describe("executeUpsertRequest", () => {
       scenarios: async () => [],
       covered: async () => true,
       tested: async () => true,
+      neighbours: async () => [],
+      proofIntegration: async () => true,
       subjectGaps: async () => [
         {
           claimKey: "C1",
@@ -630,10 +632,14 @@ describe("executeUpsertRequest", () => {
     expect(result.structuredContent?.relatedRequirements).toEqual([
       { id: "REQ-key-age", statement: "Keys expire after 90 days." },
     ]);
+    expect(
+      result.structuredContent?.approvalsNeeded?.map((ask) => ask.kind),
+    ).toEqual(["signoff"]);
     const step = result.structuredContent?.nextActions?.[0];
     expect(result.content.map((part) => part.text)).toEqual([
       "wrote REQ-key-expiry",
       `Left before kb_check passes: 1 step(s), also in nextActions:\n1. ${step?.operation} (claim-subject-missing): ${step?.reason} Input: ${JSON.stringify(step?.input)}`,
+      'Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):\n1. Does REQ-key-expiry say what was decided: "Keys expire"?',
       "Current requirements on the same terms: REQ-key-age. If REQ-key-expiry replaces one, add a supersedes link to it and close it.",
     ]);
 

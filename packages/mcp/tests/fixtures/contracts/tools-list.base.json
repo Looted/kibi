@@ -2949,6 +2949,15 @@
               {
                 "additionalProperties": false,
                 "properties": {
+                  "approvalsNeeded": {
+                    "description": "For a requirement below its evidence floor: every decision only a person can make before it reaches the floor, to ask in one question.",
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "claimKey": {
                     "description": "For a fact with claim_text: the stored claim_key, derived from claim_text when the payload did not supply it.",
                     "type": "string"
@@ -3351,6 +3360,14 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "approvalsNeeded": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
               "commitAllowed": {
                 "type": "boolean"
               },

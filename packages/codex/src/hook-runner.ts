@@ -529,6 +529,7 @@ export async function runHook(
           // rationale: a missing prompt states no rule whatever text stands in.
           // Stryker disable next-line StringLiteral
           input.prompt ?? "",
+          { workspaceRoot: workspace.root },
         );
         trace.action =
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
@@ -537,7 +538,10 @@ export async function runHook(
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule, statedReason(input.prompt)),
+            additionalContext: rulePromptNote(
+              rule,
+              statedReason(input.prompt, workspace.root),
+            ),
           },
         };
       }

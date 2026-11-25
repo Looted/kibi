@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f78f63982a99
+  - type: implements
+    from: SYM-requirement-candidates-restated-requirement
+    to: REQ-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:00:25.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1061083f909
+  - type: covered_by
+    from: SYM-requirement-candidates-restated-requirement
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-24T20:00:25.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4ead8e2448
