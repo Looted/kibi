@@ -43,6 +43,9 @@ function createTempRoot(prefix: string): string {
 }
 
 function optInWorkspace(root: string): void {
+  // Inside Git, so the session brief carries no no-Git advisory.
+  if (!fs.existsSync(path.join(root, ".git")))
+    fs.mkdirSync(path.join(root, ".git"));
   fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
 }

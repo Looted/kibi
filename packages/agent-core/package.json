@@ -62,6 +62,10 @@
       "types": "./dist/workspace-optin.d.ts",
       "default": "./dist/workspace-optin.js"
     },
+    "./version-control": {
+      "types": "./dist/version-control.d.ts",
+      "default": "./dist/version-control.js"
+    },
     "./hook-input": {
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"

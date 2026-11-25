@@ -48,6 +48,9 @@ function workspace(): string {
     fs.mkdtempSync(path.join(tmpdir(), "kibi-source-authoring-")),
   );
   roots.push(root);
+  // Receipts are written inside Git only; an empty .git entry is a
+  // repository whose branch Git cannot name, so they stay unscoped.
+  fs.mkdirSync(path.join(root, ".git"));
   return root;
 }
 

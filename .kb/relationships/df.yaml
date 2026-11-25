@@ -440,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-175aa9537c03
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-attached-store
+    to: FACT-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:06.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c4d668c6ec7
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:16.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f0f2fd4127a
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: SCEN-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:16.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f8d9c27d9b9
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: SCEN-NEG-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:16.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f79c34bbb66c

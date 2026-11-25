@@ -12,11 +12,18 @@ import {
 import { assertTrustedPullRequestBaseline } from "../traceability/impact-pr-diff.js";
 import { canonicalJson } from "../traceability/impact-review.js";
 import { resolveTrustedPullRequestSnapshot } from "../traceability/trusted-pr-event.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 
 /** Full, non-interactive aggregate PR gate; all inputs come from a verified event. */
 export async function checkDiffCommand(
   workspaceRoot = process.cwd(),
 ): Promise<{ exitCode: number }> {
+  const refusal = refuseWithoutGit(
+    workspaceRoot,
+    "check_diff",
+    "kibi check-diff",
+  );
+  if (refusal !== null) return refusal;
   const event = resolveTrustedPullRequestSnapshot(workspaceRoot);
   const snapshot = captureDiffSnapshot(
     workspaceRoot,

@@ -150,7 +150,11 @@ describe("branch-resolver leftover attachment and validation", () => {
 
   test("resolveActiveBranch covers env, detached, fallback, and git errors", () => {
     process.env.KIBI_BRANCH = "valid-name";
-    expect(resolveActiveBranch("/tmp")).toEqual({ branch: "valid-name" });
+    // /tmp is outside Git: the named store still says Git is missing.
+    expect(resolveActiveBranch("/tmp")).toEqual({
+      branch: "valid-name",
+      noGit: "not_a_repository",
+    });
     process.env.KIBI_BRANCH = "bad name";
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "ENV_OVERRIDE" });
     Reflect.deleteProperty(process.env, "KIBI_BRANCH");
@@ -200,30 +204,22 @@ describe("branch-resolver leftover attachment and validation", () => {
     });
     expect(resolveActiveBranch("/tmp")).toEqual({ branch: "feature/ok" });
 
+    // Git cannot report a branch: the probe decides. /tmp is outside Git.
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw new Error("not a git repository");
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({
-      code: "NOT_A_GIT_REPO",
-    });
-
-    _setBranchResolverDepsForTests({
-      execSync: ((command: string) => {
-        if (command.includes("show-current"))
-          throw new Error("command not found");
-        throw new Error("ENOENT");
-      }) as unknown as typeof execSync,
-    });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({
-      code: "GIT_NOT_AVAILABLE",
+    expect(resolveActiveBranch("/tmp")).toEqual({
+      branch: "kibi-internal/no-git",
+      noGit: "not_a_repository",
     });
 
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw new Error("mystery git failure");
       }) as unknown as typeof execSync,
+      probeVcs: () => ({ kind: "git" }) as never,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({
       code: "UNKNOWN_ERROR",

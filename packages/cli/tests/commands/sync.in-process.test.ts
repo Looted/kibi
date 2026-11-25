@@ -32,16 +32,18 @@ afterEach(async () => {
 });
 
 describe("syncCommand error and option paths", () => {
-  test("fails when the workspace is not a git repository", async () => {
+  test("fails when Git cannot read the repository", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
-    const cwd = createTempDir("kibi-sync-nongit-");
+    const cwd = createTempDir("kibi-sync-unreadable-");
     roots.push(cwd);
+    // An empty .git entry: a repository Git refuses.
+    mkdirSync(path.join(cwd, ".git"));
     const io = captureIo();
     restores.push(io.restore);
     try {
       await syncCommand({ workspaceRoot: cwd, validateOnly: true });
-      throw new Error("expected SyncError outside git");
+      throw new Error("expected SyncError for an unreadable repository");
     } catch (error) {
       expect(error).toBeInstanceOf(SyncError);
     }
