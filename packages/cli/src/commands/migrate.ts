@@ -834,6 +834,37 @@ async function syncMigratedSources(
   return result.ok;
 }
 
+/**
+ * After a CLI upgrade, the kibi-managed sections of this checkout's Git hooks
+ * may differ from the template this CLI installs, and `kibi doctor` then
+ * fails until they are rewritten. Migrate rewrites them (a dry run only names
+ * them), keeping user-authored lines and leaving hook managers' hooks alone.
+ */
+async function refreshManagedHookSections(
+  cwd: string,
+  dryRun: boolean,
+): Promise<void> {
+  const { findOutdatedManagedHooks, refreshOutdatedManagedHooks } =
+    await import("../operations/migration/managed-hooks.js");
+  const outdated = findOutdatedManagedHooks(cwd);
+  if (outdated === null) return;
+  if (dryRun) {
+    console.log(
+      `Would refresh the kibi-managed sections of ${outdated.hooks.join(", ")}: they differ from the template this Kibi CLI installs.`,
+    );
+    return;
+  }
+  const { refreshed, skipped } = refreshOutdatedManagedHooks(outdated);
+  if (refreshed.length > 0)
+    console.log(
+      `Refreshed the kibi-managed sections of ${refreshed.join(", ")} to this Kibi CLI's template.`,
+    );
+  if (skipped.length > 0)
+    printWarning(
+      `Could not refresh the kibi-managed section of ${skipped.join(", ")} (a symlinked or unreadable hook); run kibi init and kibi doctor.`,
+    );
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -1007,6 +1038,7 @@ export async function migrateCommand(
           manualLifecycle: lifecycle.manual,
         });
       if (options.yes === true) updateGitIgnore(cwd);
+      await refreshManagedHookSections(cwd, options.dryRun === true);
       return { exitCode: 0 };
     }
     console.log(
@@ -1022,6 +1054,7 @@ export async function migrateCommand(
     if (options.yes === true) {
       updateGitIgnore(cwd);
     }
+    await refreshManagedHookSections(cwd, options.dryRun === true);
 
     return { exitCode: 0 };
   }
@@ -1532,6 +1565,7 @@ export async function migrateCommand(
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);
+  await refreshManagedHookSections(cwd, false);
   // Every pending schema migration ends with the derived-coordinates step.
   if (migrationSteps.length > 0) {
     const { untrackCoordinateArtifact } = await import(
@@ -1760,6 +1794,20 @@ async function buildWorkspaceMigrationPlan(
       buildMigrationPlan({
         evaluatedDomains: ["symbol"],
         actions: [migrationAction(inlineReview)],
+      }),
+    );
+  }
+  // Hook sections an older or different CLI build wrote keep running without
+  // the gates this CLI installs; compare by content, not by version.
+  const { findOutdatedManagedHooks, managedHooksRefreshAction } = await import(
+    "../operations/migration/managed-hooks.js"
+  );
+  const outdatedHooks = findOutdatedManagedHooks(workspaceRoot);
+  if (outdatedHooks !== null) {
+    plans.push(
+      buildMigrationPlan({
+        evaluatedDomains: ["hooks"],
+        actions: [migrationAction(managedHooksRefreshAction(outdatedHooks))],
       }),
     );
   }

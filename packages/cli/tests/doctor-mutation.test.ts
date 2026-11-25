@@ -2279,8 +2279,9 @@ describe("managed hook sections check", () => {
       name: "Kibi-managed hook sections",
       passed: false,
       message:
-        "Outdated for this Kibi CLI: pre-commit, post-merge (installed by a different version; newer gates may be missing)",
-      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+        "Outdated for this Kibi CLI: pre-commit, post-merge (they differ from the template this CLI installs, whatever version wrote them; newer gates may be missing)",
+      remediation:
+        "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     });
     s.outdated.mockImplementation(() => {
       throw new Error("EACCES");
