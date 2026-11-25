@@ -23,7 +23,13 @@ Register the plugin in `.agents/plugins.json`:
 
 ### User-global install
 
-Copy the built `kibi-antigravity` package directory into `~/.gemini/config/plugins/kibi`:
+Install globally from GitHub with the Antigravity CLI:
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+Or copy the built `kibi-antigravity` npm package directory into `~/.gemini/config/plugins/kibi`:
 
 ```bash
 mkdir -p ~/.gemini/config/plugins
@@ -33,11 +39,13 @@ cp -R "$(npm root)/kibi-antigravity" ~/.gemini/config/plugins/kibi
 
 No `node_modules` are needed in the copied plugin directory: `bin/hook-runner.mjs` is a self-contained bundle with `kibi-agent-core` inlined, `bin/mcp-launcher.cjs` uses only Node built-ins (and automatically discovers the opened Kibi workspace via MCP `roots/list` when installed globally), `bin/run-node.cmd` is a cross-platform POSIX/Windows hook launcher, and `bin/run-node.sh` lets hooks find Node even when Antigravity's Language Server launches with a minimal non-login `PATH` (for example under `nvm`, `volta`, `fnm`, `mise`, or `asdf`).
 
-Validate or install with the Antigravity CLI:
+When validating or installing from a local Kibi monorepo checkout, exclude `node_modules` first (`agy plugin install` rejects workspace symlinks pointing outside the plugin directory):
 
 ```bash
 agy plugin validate --strict ./packages/antigravity
-agy plugin install ./packages/antigravity
+rsync -a --delete --exclude node_modules ./packages/antigravity/ /tmp/kibi-antigravity/
+agy plugin install /tmp/kibi-antigravity
+rm -rf /tmp/kibi-antigravity
 ```
 
 ## What the agent gets

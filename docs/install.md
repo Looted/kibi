@@ -873,11 +873,19 @@ repository's `.claude/settings.json` (the exact snippet is in
 - always-on workflow rules (`rules/AGENTS.md`);
 - lifecycle hooks (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) that inject progressive-disclosure requirement snippets, stamp `workspaceRoot` onto Kibi MCP calls, ask before edits that change code implementing a `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables), and remind once at stop about unchecked edits, unrecorded decisions, or pending signoff.
 
-Validate or install directly with the Antigravity CLI (`agy`):
+Install globally from GitHub with the Antigravity CLI (`agy`):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+When validating or installing from a local Kibi monorepo checkout, exclude `node_modules` first (`agy plugin install` rejects workspace symlinks pointing outside the plugin directory):
 
 ```bash
 agy plugin validate --strict ./packages/antigravity
-agy plugin install ./packages/antigravity
+rsync -a --delete --exclude node_modules ./packages/antigravity/ /tmp/kibi-antigravity/
+agy plugin install /tmp/kibi-antigravity
+rm -rf /tmp/kibi-antigravity
 ```
 
 To share the plugin across a repository via VCS, register it in `.agents/plugins.json`. See `packages/antigravity/README.md` for details.
