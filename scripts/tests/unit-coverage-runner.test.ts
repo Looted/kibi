@@ -463,6 +463,7 @@ describe("unit coverage runner contract", () => {
       "signoff",
       "helpers",
       "dependencies",
+      "kibi-levels",
     ].map((name) => `./packages/cli/tests/${name}`);
     const supportShard = COVERAGE_SHARDS.find(
       (shard) => shard.label === "cli.support",
