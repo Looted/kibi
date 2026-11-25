@@ -36,6 +36,7 @@ const scriptPath = path.join(packageRoot, "scripts", "copy-plugin-assets.ts");
 
 const manifestAssets = [
   path.join(".cursor-plugin", "plugin.json"),
+  "assets",
   "bin",
   path.join("hooks", "hooks.json"),
   "skills",
@@ -56,6 +57,7 @@ describe("kibi-cursor plugin manifest", () => {
       name?: string;
       version?: string;
       description?: string;
+      logo?: string;
       skills?: string;
       rules?: string;
       commands?: string;
@@ -66,6 +68,10 @@ describe("kibi-cursor plugin manifest", () => {
     expect(manifest.name).toBe("kibi-cursor");
     expect(manifest.version).toBe(packageJson.version);
     expect(manifest.description).toEqual(expect.stringContaining("Kibi"));
+    expect(manifest.logo).toBe("./assets/logo.svg");
+    expect(fs.existsSync(path.join(packageRoot, "assets", "logo.svg"))).toBe(
+      true,
+    );
     expect(manifest.skills).toBe("./skills/");
     expect(manifest.rules).toBe("./rules/");
     expect(manifest.commands).toBe("./commands/");

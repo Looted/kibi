@@ -423,3 +423,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-640e139411d4
+  - type: covered_by
+    from: SYM-retrieval-tokens-signal-tokens
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:58:13.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9988720e0cc4
+  - type: implements
+    from: SYM-retrieval-tokens-signal-tokens
+    to: REQ-search-decision-collapse
+    created_at: 2026-11-25T14:58:13.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c79c6df20836

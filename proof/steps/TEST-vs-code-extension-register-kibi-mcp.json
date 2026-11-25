@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-vs-code-extension-register-kibi-mcp",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/activation/mcp.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/manifestContract.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/activation/extension.test.ts"
+    ]
+  ]
+}

@@ -413,6 +413,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3caa607b1696
   - type: implements
+    from: SYM-read-context-resolve-read-views
+    to: REQ-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:27.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8d05ccfb4d5
+  - type: covered_by
+    from: SYM-read-context-resolve-read-views
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:27.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-510f6431611f
+  - type: implements
     from: SYM-vcs-take-no-git-adoption
     to: REQ-kibi-no-git-store-adopted-on-git-init
     created_at: 2026-11-25T09:21:38.557Z

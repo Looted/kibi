@@ -70,6 +70,10 @@
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"
     },
+    "./read-context": {
+      "types": "./dist/read-context.d.ts",
+      "default": "./dist/read-context.js"
+    },
     "./kibi-level": {
       "types": "./dist/kibi-level.d.ts",
       "default": "./dist/kibi-level.js"
@@ -77,6 +81,14 @@
     "./level-guard": {
       "types": "./dist/level-guard.d.ts",
       "default": "./dist/level-guard.js"
+    },
+    "./retrieval": {
+      "types": "./dist/retrieval.d.ts",
+      "default": "./dist/retrieval.js"
+    },
+    "./retrieval-tokens": {
+      "types": "./dist/retrieval-tokens.d.ts",
+      "default": "./dist/retrieval-tokens.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

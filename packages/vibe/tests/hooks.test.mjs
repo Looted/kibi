@@ -18,7 +18,7 @@ import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { isEditTool } from "../src/guard.ts";
+import { isEditTool, isReadTool } from "../src/guard.ts";
 
 const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const HOOKS = join(PLUGIN_ROOT, "bin", "hooks");
@@ -152,11 +152,18 @@ test("kibi-file-context resolves a relative tool path against the payload cwd, n
       ws.env,
     );
     assert.equal(result.code, 0);
-    assert.match(result.context, /Kibi entities linked to src\/invoices\.ts:/);
+    assert.match(result.context, /^Kibi requirements for the code in view:/);
     assert.match(
       result.context,
-      /REQ-fake \(req, open\): governs src\/invoices\.ts/,
+      /- REQ-keep-invoices \[firm: ask before changing\]: Invoices are never deleted — deleteInvoice/,
     );
+    // Each requirement once per session.
+    const again = await runHook(
+      "kibi-file-context.mjs",
+      postTool(ws.root, "read_file", { path: "src/invoices.ts" }),
+      ws.env,
+    );
+    assert.equal(again.context, "");
   } finally {
     ws.cleanup();
   }
@@ -252,10 +259,19 @@ test("the post-tool matcher in hooks.toml matches every edit tool the guard trea
   // The TOML string escapes backslashes; a matcher must hold on a full match
   // as well as on a search.
   const matcher = new RegExp(`^(?:${pattern.replace(/\\\\/g, "\\")})$`);
-  // Every Vibe file tool the guard treats as an edit, plus the read tool.
-  const fileTools = ["read_file", "write_file", "edit", "search_replace"];
+  // Every Vibe tool the guard treats as an edit or as a read.
+  const fileTools = [
+    "read_file",
+    "grep",
+    "bash",
+    "write_file",
+    "edit",
+    "search_replace",
+  ];
   const editTools = fileTools.filter((tool) => isEditTool(tool));
   assert.deepEqual(editTools, ["write_file", "edit", "search_replace"]);
+  const readTools = fileTools.filter((tool) => isReadTool(tool));
+  assert.deepEqual(readTools, ["read_file", "grep", "bash"]);
   for (const tool of fileTools) {
     assert.ok(matcher.test(tool), `matcher misses ${tool}`);
     assert.ok(
@@ -263,11 +279,39 @@ test("the post-tool matcher in hooks.toml matches every edit tool the guard trea
       `matcher misses file_system.${tool}`,
     );
   }
-  assert.ok(!matcher.test("bash"));
   // A kb_upsert, under the server's prefix or none, for a lowered floor.
   assert.ok(matcher.test("kibi_kb_upsert"));
   assert.ok(matcher.test("kb_upsert"));
   assert.ok(!matcher.test("kibi_kb_search"));
+  assert.ok(!matcher.test("todo"));
+});
+
+test("grep and bash reads through the shipped hook get requirement rows", async () => {
+  const ws = workspace();
+  try {
+    // A search names the requirements of the symbols its matches fall in.
+    writeFileSync(
+      join(ws.root, ".kb", "symbol-coordinates.yaml"),
+      "coordinates:\n  SYM-delete-invoice:\n    sourceLine: 1\n    sourceEndLine: 3\n",
+    );
+    const grep = await runHook(
+      "kibi-file-context.mjs",
+      postTool(ws.root, "grep", { pattern: "deleteInvoice", path: "src" }),
+      ws.env,
+    );
+    assert.match(grep.context, /REQ-keep-invoices/);
+    const bash = await runHook(
+      "kibi-file-context.mjs",
+      {
+        ...postTool(ws.root, "bash", { command: "cat src/invoices.ts" }),
+        session_id: "hooks-test-bash",
+      },
+      ws.env,
+    );
+    assert.match(bash.context, /REQ-keep-invoices/);
+  } finally {
+    ws.cleanup();
+  }
 });
 
 test("hooks print nothing to stderr when kibi fails, unless debugging is on", async () => {
@@ -296,7 +340,9 @@ test("hooks print nothing to stderr when kibi fails, unless debugging is on", as
       ],
       [
         "kibi-file-context.mjs",
-        postTool(ws.root, "read_file", { path: "src/invoices.ts" }),
+        // An edit of a file no requirement governs: only the kibi lookup
+        // has anything to say, and it fails.
+        postTool(ws.root, "write_file", { path: "src/other.ts" }),
       ],
     ];
     for (const [name, payload] of payloads) {

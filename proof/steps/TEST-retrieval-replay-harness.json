@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-retrieval-replay-harness",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./scripts/tests/retrieval-eval.test.ts"
+    ]
+  ]
+}

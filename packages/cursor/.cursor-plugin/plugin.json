@@ -4,10 +4,11 @@
   "version": "2.15.0",
   "description": "Optional Cursor adapter for Kibi. Requires project-local kibi-cli, kibi-mcp, and kibi-core (SWI-Prolog is bundled on Linux and macOS) before the bundled MCP server can start.",
   "license": "AGPL-3.0-or-later",
+  "logo": "./assets/logo.svg",
   "author": {
     "name": "Kibi"
   },
-  "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": "https://github.com/Looted/kibi",
   "keywords": ["kibi", "mcp", "knowledge-base", "traceability", "swi-prolog"],
   "skills": "./skills/",

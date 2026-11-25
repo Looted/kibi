@@ -314,6 +314,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec46bec072aa
+  - type: covered_by
+    from: SYM-mcp-register-mcp-server-provider
+    to: TEST-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:54:02.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ebe423a847
   - type: executable_for
     from: SYM-test-kibi-remember-level-surface
     to: TEST-kibi-remember-level-surface
@@ -335,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1b506301bef
+  - type: implements
+    from: SYM-mcp-register-mcp-server-provider
+    to: REQ-vscode-mcp-server-provider
+    created_at: 2026-11-25T18:05:57.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75834055dae

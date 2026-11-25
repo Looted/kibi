@@ -253,7 +253,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
     const injected = preInv.injectSteps?.[0]?.systemMessage.systemMessage ?? "";
     expect(injected).toContain("REQ-checkout-rounding");
     expect(injected).toContain("roundTotal");
-    expect(injected).toContain("TEST-checkout-rounding");
+    expect(injected).toContain("Kibi requirements for the code in view:");
 
     // Second PreInvocation with the same prompt does not repeat the drained snippet.
     const preInv2 = await runHook(

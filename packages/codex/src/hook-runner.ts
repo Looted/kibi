@@ -2,7 +2,10 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
+import {
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
 import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -60,6 +63,7 @@ import {
   classifyPath,
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
+import { hookReadRows } from "kibi-agent-core/read-context";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
@@ -162,6 +166,36 @@ function isKnownEditTool(toolName: string | undefined): boolean {
   // runtime Set.has(undefined) is false, so dropping it changes nothing.
   // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
+}
+
+/**
+ * Requirement rows for what a shell call reads or searches (see
+ * kibi-agent-core/read-context), each requirement once per session.
+ */
+export function shellReadRows(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const reads = shellToolReadViews(
+    input.toolName,
+    input.toolInput,
+    input.cwd ?? workspaceRoot,
+  );
+  if (reads.length === 0) return undefined;
+  const rows = hookReadRows(reads, {
+    workspaceRoot,
+    files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: input.sessionId,
+  });
+  if (!rows) return undefined;
+  trace.action = "read_snippet";
+  trace.requirementIds = rows.ids;
+  return rows.text;
 }
 
 /**
@@ -660,7 +694,10 @@ export async function runHook(
         try {
           context = isKnownEditTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : shellFirmNotice(workspace.root, stateDir, input, env);
+            : (shellFirmNotice(workspace.root, stateDir, input, env) ??
+              // Codex reads and searches through its shell tool: the files
+              // a command names get the rows of the code in view.
+              shellReadRows(workspace.root, stateDir, input, trace));
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
