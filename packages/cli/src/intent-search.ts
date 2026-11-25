@@ -319,16 +319,27 @@ export function normalize(value: string): string {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s/)
     .filter(Boolean)
-    .map((token) =>
-      token.length > 4 &&
-      token.endsWith("s") &&
-      !token.endsWith("ss") &&
-      !token.endsWith("ies")
-        ? token.slice(0, -1)
-        : token,
-    )
+    .map(singular)
     .map(stem)
     .join(" ");
+}
+
+// A plural meets its singular ("tags" / "tag", "keys" / "key", "ids" /
+// "id"). Short words count too: a four-letter plural is as common in a
+// question as a long one. Endings that are not plurals stay ("status",
+// "class", "analysis"); "-ies" plurals are left to stem, which turns them
+// into "-y".
+const SHORT_PLURALS = new Set(["ids"]);
+function singular(token: string): string {
+  if (SHORT_PLURALS.has(token)) return token.slice(0, -1);
+  return token.length > 3 &&
+    token.endsWith("s") &&
+    !token.endsWith("ss") &&
+    !token.endsWith("us") &&
+    !token.endsWith("is") &&
+    !token.endsWith("ies")
+    ? token.slice(0, -1)
+    : token;
 }
 
 // A deliberately small suffix stripper so a question's verb meets the
@@ -530,6 +541,7 @@ export function tokenizerSources(): string[] {
   return [
     ...[
       normalize,
+      singular,
       stem,
       tokens,
       expandIdentifiers,
@@ -971,7 +983,9 @@ function broadRationaleRankScores(
   const scores = new Map<IntentSearchMatch, number>(baseScores);
   for (const match of ranked) {
     if (String(match.entity.type ?? "") !== "adr") continue;
-    const status = String(match.entity.status ?? "").trim().toLowerCase();
+    const status = String(match.entity.status ?? "")
+      .trim()
+      .toLowerCase();
     if (
       NON_GOVERNING_STATUSES.has(status) ||
       match.reasons.includes("demoted: superseded")
