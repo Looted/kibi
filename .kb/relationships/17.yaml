@@ -388,3 +388,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8f192ca69f1
+  - type: implements
+    from: SYM-check-executor-invalid-level-diagnostic
+    to: REQ-kibi-level-setting
+    created_at: 2026-11-25T09:48:14.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-058426a11842
+  - type: covered_by
+    from: SYM-check-executor-invalid-level-diagnostic
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:14.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa6e03ff1dc

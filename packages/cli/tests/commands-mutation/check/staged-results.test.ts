@@ -412,6 +412,17 @@ describe("staged rule run", () => {
     expect(h.calls.assertUnchanged).toHaveLength(1);
   });
 
+  test("at level remember the staged rules skip symbol coverage", async () => {
+    h.world.inventory = [src()];
+    h.set("extractSymbolsFromStagedFileAsync", async (file) =>
+      file.path === "src/a.ts" ? [{ name: "a", reqLinks: [] }] : [],
+    );
+    h.set("readKibiLevel", () => ({ level: "remember", source: "default" }));
+    expect(await h.run()).toBe(0);
+    expect(h.calls.validateStagedSymbols).toHaveLength(1);
+    expect(h.calls.validateStagedSymbolCoverage).toBeUndefined();
+  });
+
   test("active manifest records alone run the rules", async () => {
     h.world.inventory = [src()];
     h.world.entities = [symbolEntity("SYM-ACTIVE", "src/x.ts")];

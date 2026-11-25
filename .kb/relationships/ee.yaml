@@ -650,3 +650,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a9d135572fa
+  - type: implements
+    from: SYM-init-level-write-kibi-level
+    to: REQ-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:48.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a60763c1c1b
+  - type: covered_by
+    from: SYM-init-level-write-kibi-level
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:48.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2336449d1424

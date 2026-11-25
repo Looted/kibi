@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04ebe423a847
+  - type: executable_for
+    from: SYM-test-kibi-remember-level-surface
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:21.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc71d1d64b3
+  - type: assumes
+    from: SCEN-NEG-kibi-remember-level-surface-c01-eq-true
+    to: FACT-NEG-kibi-remember-level-surface-c01-eq-true
+    created_at: 2026-11-25T10:20:43.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5e19a9564f9

@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import type { ExtractionResult } from "../extractors/markdown.js";
 import type { Violation } from "../public/check-types.js";
 import {
@@ -38,6 +39,7 @@ import {
 } from "../public/operations/subject-layer.js";
 import { type KbManifest, parseKbManifest } from "../utils/kb-manifest.js";
 import { KB_PATHS } from "../utils/kb-paths.js";
+import { getRuleLayer, layerRunsAtLevel } from "../utils/rule-registry.js";
 
 const RELATED_REQUIREMENT_UNMODELED_RULE = "related-requirement-unmodeled";
 
@@ -123,10 +125,15 @@ export function readTreeManifest(
 /** The rules a KB at `schemaVersion` blocks on; none without a manifest. */
 export function selectStagedRequirementRules(
   schemaVersion: number | undefined,
+  level: KibiLevel = "test",
 ): string[] {
   if (schemaVersion === undefined) return [];
   return Object.entries(STAGED_REQUIREMENT_RULE_SCHEMAS)
-    .filter(([, since]) => schemaVersion >= since)
+    .filter(
+      ([rule, since]) =>
+        schemaVersion >= since &&
+        layerRunsAtLevel(getRuleLayer(rule) ?? "knowledge", level),
+    )
     .map(([rule]) => rule);
 }
 
@@ -206,10 +213,15 @@ export function stagedRequirementRules(
   input: Readonly<{
     stagedPaths: readonly string[];
     knowledge: readonly ExtractionResult[];
+    /** The project's Kibi level; verification rules run at test only. */
+    level?: KibiLevel;
   }>,
 ): StagedRequirementRules | null {
   const manifest = readTreeManifest(snapshot);
-  const selected = selectStagedRequirementRules(manifest?.schemaVersion);
+  const selected = selectStagedRequirementRules(
+    manifest?.schemaVersion,
+    input.level,
+  );
   if (selected.length === 0) return null;
   const stagedPaths = new Set(input.stagedPaths);
   const staged = input.knowledge.filter(({ entity }) =>

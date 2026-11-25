@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a006c6d5d78
+  - type: assumes
+    from: SCEN-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c01
+    created_at: 2026-11-25T09:48:02.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e7a38029313
+  - type: assumes
+    from: SCEN-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c02
+    created_at: 2026-11-25T09:48:02.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26b147e36066
+  - type: assumes
+    from: SCEN-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c03
+    created_at: 2026-11-25T09:48:02.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-005c5e93f57d
