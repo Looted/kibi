@@ -36,6 +36,9 @@ const CATEGORIES = new Set([
   "traceability",
 ]);
 const IMPLEMENTATIONS = new Set(["prolog", "typescript"]);
+// The layer of Kibi a rule belongs to: knowledge (requirements, links,
+// capture and contradictions) or verification (scenarios, tests and proof).
+const LAYERS = new Set(["knowledge", "verification"]);
 // Optional severity for non-canonical findings rendered as quality
 // diagnostics. Omitted means "warning"; canonical rules always block.
 const DIAGNOSTIC_SEVERITIES = new Set(["warning", "info"]);
@@ -68,6 +71,7 @@ function validate(rules) {
       "description",
       "enforcementClass",
       "category",
+      "layer",
       "implementation",
     ]) {
       if (typeof rule[field] !== "string" || rule[field].length === 0) {
@@ -85,6 +89,9 @@ function validate(rules) {
     }
     if (!CATEGORIES.has(rule.category)) {
       throw new Error(`Rule ${rule.name}: unknown category`);
+    }
+    if (!LAYERS.has(rule.layer)) {
+      throw new Error(`Rule ${rule.name}: unknown layer`);
     }
     if (!IMPLEMENTATIONS.has(rule.implementation)) {
       throw new Error(`Rule ${rule.name}: unknown implementation`);
@@ -124,6 +131,7 @@ function renderRulesTs(rules) {
         renderTsProperty("    ", "description", rule.description),
         renderTsProperty("    ", "enforcementClass", rule.enforcementClass),
         renderTsProperty("    ", "category", rule.category),
+        renderTsProperty("    ", "layer", rule.layer),
         ...(rule.diagnosticSeverity !== undefined
           ? [
               renderTsProperty(
@@ -178,6 +186,7 @@ function renderPrologFacts(rules) {
   const known = [];
   const classes = [];
   const implementations = [];
+  const layers = [];
   const predicates = [];
   const arities = [];
   const descriptions = [];
@@ -189,6 +198,7 @@ function renderPrologFacts(rules) {
     implementations.push(
       `rule_implementation('${rule.name}', ${rule.implementation}).`,
     );
+    layers.push(`rule_layer('${rule.name}', ${rule.layer}).`);
     if (rule.prologPredicate) {
       predicates.push(
         `rule_predicate('${rule.name}', ${rule.prologPredicate}).`,
@@ -205,6 +215,7 @@ function renderPrologFacts(rules) {
     known.join("\n"),
     classes.join("\n"),
     implementations.join("\n"),
+    layers.join("\n"),
     predicates.join("\n"),
     arities.join("\n"),
     descriptions.join("\n"),
@@ -220,6 +231,7 @@ function renderPrologFacts(rules) {
     known_rule/1,
     rule_enforcement_class/2,
     rule_implementation/2,
+    rule_layer/2,
     rule_predicate/2,
     rule_predicate_arity/2,
     rule_description/2

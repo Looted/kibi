@@ -278,14 +278,16 @@ type Answer = {
   error?: string;
 };
 
-function fakeProlog(answer: Answer): PrologPort & { goals: string[] } {
+function fakeProlog(
+  answer: Answer | ((goal: string) => Answer),
+): PrologPort & { goals: string[] } {
   const goals: string[] = [];
   return {
     goals,
     oneShotMode: true,
     query: async (goal: string) => {
       goals.push(goal);
-      return answer;
+      return typeof answer === "function" ? answer(goal) : answer;
     },
   } as unknown as PrologPort & { goals: string[] };
 }
@@ -555,20 +557,30 @@ describe("agent-requirement-unapproved-implemented", () => {
     );
   });
 
-  const payload = (unapprovedImplemented?: unknown): Answer => ({
-    success: true,
-    bindings: {
-      JsonString: JSON.stringify({
-        rows: [
-          { ...base, id: "REQ-APPROVED", requiredEvidenceSource: "approval" },
-          { ...base, id: "REQ-FIRM" },
-        ],
-        ...(unapprovedImplemented === undefined
-          ? {}
-          : { unapprovedImplemented }),
-      }),
-    },
-  });
+  // The floor and the unapproved rule ask the engine different goals.
+  const payload =
+    (unapprovedImplemented?: unknown) =>
+    (goal: string): Answer => ({
+      success: true,
+      bindings: {
+        JsonString: JSON.stringify(
+          goal.includes("unapproved_implemented_json")
+            ? unapprovedImplemented === undefined
+              ? {}
+              : { rows: unapprovedImplemented }
+            : {
+                rows: [
+                  {
+                    ...base,
+                    id: "REQ-APPROVED",
+                    requiredEvidenceSource: "approval",
+                  },
+                  { ...base, id: "REQ-FIRM" },
+                ],
+              },
+        ),
+      },
+    });
   const OLD_ROW = {
     id: "REQ-OLD",
     recordedAt: "2025-01-01T00:00:00Z",
@@ -578,7 +590,7 @@ describe("agent-requirement-unapproved-implemented", () => {
   const judge = async (
     version: number,
     rules: string[],
-    answer: Answer = payload([OLD_ROW]),
+    answer: Answer | ((goal: string) => Answer) = payload([OLD_ROW]),
     freshEvidence = false,
   ) => {
     bindings(null);
@@ -614,10 +626,54 @@ describe("agent-requirement-unapproved-implemented", () => {
     expect(
       await judge(15, [AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
     ).toStrictEqual(["agent-requirement-unapproved-implemented:REQ-OLD"]);
+    const prolog = fakeProlog(payload([OLD_ROW]));
+    spies.push(
+      spyOn(manifest, "readKbManifest").mockReturnValue({
+        schemaVersion: 15,
+      } as never),
+    );
+    await collectEvidenceFloorViolations(
+      context({ prolog }),
+      new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+      { snapshotEvidence: CLEAN },
+    );
+    for (const spy of spies.splice(0)) spy.mockRestore();
+    // The unapproved rule alone reads the knowledge base, never a proof.
+    expect(prolog.goals).toHaveLength(1);
+    expect(prolog.goals[0]).toEndWith(
+      "discovery:unapproved_implemented_json(all, JsonString))",
+    );
     expect(await judge(15, [EVIDENCE_FLOOR_RULE])).toStrictEqual([
       "evidence-floor:REQ-APPROVED",
       "evidence-floor:REQ-FIRM",
     ]);
+  });
+
+  test("unapproved rows are read for the requirements in scope", async () => {
+    const scoped = async (requirementIds: string[]) => {
+      const prolog = fakeProlog(payload([OLD_ROW]));
+      spies.push(
+        spyOn(manifest, "readKbManifest").mockReturnValue({
+          schemaVersion: 15,
+        } as never),
+      );
+      const found = await collectEvidenceFloorViolations(
+        context({ prolog }),
+        new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+        { snapshotEvidence: CLEAN, requirementIds },
+      );
+      for (const spy of spies.splice(0)) spy.mockRestore();
+      return { goals: prolog.goals, found: found.map((f) => f.entityId) };
+    };
+    const none = await scoped([]);
+    expect(none.goals[0]).toEndWith(
+      "discovery:unapproved_implemented_json(ids([]), JsonString))",
+    );
+    const one = await scoped(["REQ-OLD"]);
+    expect(one.goals[0]).toEndWith(
+      "discovery:unapproved_implemented_json(ids(['REQ-OLD']), JsonString))",
+    );
+    expect(one.found).toStrictEqual(["REQ-OLD"]);
   });
 
   test("a payload without rows or review rows judges nothing", async () => {

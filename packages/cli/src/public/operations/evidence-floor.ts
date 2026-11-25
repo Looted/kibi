@@ -57,7 +57,11 @@ export const AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE =
 /** Days an implemented must requirement may wait for a person's approval. */
 export const UNAPPROVED_IMPLEMENTED_GRACE_DAYS = 14;
 
-/** The rules evaluated from the requirement proofs the floor reads. */
+/**
+ * The rules collectEvidenceFloorViolations evaluates: the floor, read from
+ * the requirement proofs, and the unapproved-implemented rule, read from the
+ * knowledge base alone.
+ */
 export const REQUIREMENT_PROOF_RULES = [
   EVIDENCE_FLOOR_RULE,
   AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
@@ -107,7 +111,6 @@ export type ApprovalClock = Readonly<{
 export type RequirementProofPayload = {
   readonly evaluated?: number;
   readonly rows?: readonly EvidenceFloorRow[];
-  readonly unapprovedImplemented?: readonly UnapprovedImplementedRow[];
 };
 
 export type EvidenceFloorOptions = Readonly<{
@@ -242,10 +245,7 @@ export async function readEvidenceFloorRows(
   );
 }
 
-/**
- * The evidence-floor rows plus the rows of the other rules that read the
- * same requirement proofs, from one evaluation on the attached store.
- */
+/** The evidence-floor rows from one evaluation on the attached store. */
 export async function readRequirementProofPayload(
   context: OperationContext,
   snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
@@ -259,9 +259,7 @@ export async function readRequirementProofPayload(
   const { perContractTestBindings } = await import("./specs/reporting.js");
   const bindings = await perContractTestBindings({ ...context, prolog });
   const scope =
-    requirementIds === undefined
-      ? ""
-      : `ids([${requirementIds.map((id) => toPrologAtom(id)).join(", ")}]), `;
+    requirementIds === undefined ? "" : `${requirementScope(requirementIds)}, `;
   const goal = `discovery:evidence_floor_json(${scope}${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
   return runOperationJsonQuery<RequirementProofPayload>(
     prolog,
@@ -269,6 +267,12 @@ export async function readRequirementProofPayload(
     goal,
     "Evidence floor evaluation",
   );
+}
+
+function requirementScope(requirementIds?: readonly string[]): string {
+  return requirementIds === undefined
+    ? "all"
+    : `ids([${requirementIds.map((id) => toPrologAtom(id)).join(", ")}])`;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -440,7 +444,9 @@ export function unapprovedImplementedViolations(
 
 /**
  * Evaluate the evidence-floor rule against the attached store, with the same
- * per-contract receipt binding kb_coverage uses.
+ * per-contract receipt binding kb_coverage uses, and the
+ * agent-requirement-unapproved-implemented rule, which reads the store alone.
+ * The requirement proofs are evaluated only when the floor is asked for.
  */
 export async function collectEvidenceFloorViolations(
   context: OperationContext,
@@ -459,9 +465,32 @@ export async function collectEvidenceFloorViolations(
     schemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
   )
     return [];
+  const checkedAt = options.checkedAt ?? context.clock().toISOString();
+  const approvalFloor = schemaVersion >= APPROVAL_FLOOR_SCHEMA_VERSION;
+  const findings: Violation[] = [];
+  if (rules.has(AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE) && approvalFloor)
+    findings.push(
+      ...unapprovedImplementedViolations(
+        // Read from the attached store alone: no requirement proof is
+        // evaluated, so the rule judges the same whether or not the project
+        // verifies its requirements.
+        (
+          await runOperationJsonQuery<{
+            rows?: readonly UnapprovedImplementedRow[];
+          }>(
+            context.prolog,
+            "discovery.pl",
+            `discovery:unapproved_implemented_json(${requirementScope(options.requirementIds)}, JsonString)`,
+            "Unapproved requirement evaluation",
+          )
+        ).rows ?? [],
+        checkedAt,
+        authoredCreatedAtReader(context.workspaceRoot),
+      ),
+    );
+  if (!rules.has(EVIDENCE_FLOOR_RULE)) return findings;
   const snapshotEvidence =
     options.snapshotEvidence ?? (await readWorkspaceSnapshot(context));
-  const checkedAt = options.checkedAt ?? context.clock().toISOString();
   const payload = await readRequirementProofPayload(
     context,
     snapshotEvidence,
@@ -469,17 +498,6 @@ export async function collectEvidenceFloorViolations(
     options.requirementIds,
   );
   const rows = payload.rows ?? [];
-  const approvalFloor = schemaVersion >= APPROVAL_FLOOR_SCHEMA_VERSION;
-  const findings: Violation[] = [];
-  if (rules.has(AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE) && approvalFloor)
-    findings.push(
-      ...unapprovedImplementedViolations(
-        payload.unapprovedImplemented ?? [],
-        checkedAt,
-        authoredCreatedAtReader(context.workspaceRoot),
-      ),
-    );
-  if (!rules.has(EVIDENCE_FLOOR_RULE)) return findings;
   // Before schema 15 an approval sets no floor; the upgrade pins the floor
   // of approved requirements without a passing proof path first.
   const violations = evidenceFloorViolations(
