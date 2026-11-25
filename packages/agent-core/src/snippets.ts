@@ -556,6 +556,8 @@ type SnippetLayout = {
   facts: number;
   whyChars: number;
   tests: boolean;
+  /** Name the ids of the requirements not shown in full. */
+  moreIds: boolean;
 };
 
 /**
@@ -569,18 +571,57 @@ const SNIPPET_LAYOUTS: readonly SnippetLayout[] = [
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
     tests: true,
+    moreIds: true,
   },
   {
     requirements: 3,
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
     tests: true,
+    moreIds: true,
   },
-  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
-  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
-  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false },
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+    moreIds: true,
+  },
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true,
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true,
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: false,
+    moreIds: true,
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: true,
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: false,
+  },
 ];
 
 /** The first layout whose text fits `maxChars`, else the last one cut to fit. */
@@ -630,8 +671,13 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
       );
     }
     if (requirementIds.length > layout.requirements) {
+      const rest = requirementIds.slice(layout.requirements);
+      // The ids name each rule, so a hidden requirement can still be seen
+      // to govern the change; only a snippet that cannot fit them drops them.
       lines.push(
-        `- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
+        layout.moreIds
+          ? `- Also linked (${rest.length} more): ${rest.join(", ")}; kb_query({sourceFile:${jsonString(relativePath)}, type:"req"}) lists them`
+          : `- +${rest.length} more requirements: kb_query({sourceFile:${jsonString(relativePath)}, type:"req"})`,
       );
     }
     const grounding =

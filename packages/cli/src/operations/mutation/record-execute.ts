@@ -39,6 +39,8 @@ export type RecordPayload = Readonly<{
   commitAllowed?: boolean;
   status?: string;
   nextActions?: readonly unknown[];
+  /** The decisions only the person can make, to ask in one question. */
+  approvalsNeeded?: readonly unknown[];
   /** dryRun only: kb_upsert's dry-run result for the payload. */
   dryRun?: true;
   preview?: Readonly<Record<string, unknown>>;
@@ -218,6 +220,9 @@ export async function executeRecord(
         verdictError,
         ...(written.status !== undefined ? { status: written.status } : {}),
         nextActions: written.nextActions ?? [],
+        ...(written.approvalsNeeded?.length
+          ? { approvalsNeeded: written.approvalsNeeded }
+          : {}),
       },
     };
   }
@@ -236,6 +241,9 @@ export async function executeRecord(
       commitAllowed: gate.commitAllowed,
       ...(written.status !== undefined ? { status: written.status } : {}),
       nextActions: written.nextActions ?? [],
+      ...(written.approvalsNeeded?.length
+        ? { approvalsNeeded: written.approvalsNeeded }
+        : {}),
     },
   };
 }

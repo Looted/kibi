@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83252af5c35a
+  - type: implements
+    from: SYM-discovery-entities-build-entity-goal
+    to: REQ-kb-query-source-file-requirements
+    created_at: 2026-11-24T19:59:54.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdaefd05ff94
+  - type: covered_by
+    from: SYM-discovery-entities-build-entity-goal
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T19:59:54.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28dbb8e3675d

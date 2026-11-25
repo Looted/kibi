@@ -1535,16 +1535,18 @@ function readHead(file) {
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
-    const match = /^(id|title|status):(.+)/.exec(line);
+    const match = /^(id|title|status|semantic_text):(.+)/.exec(line);
     if (match)
       fields[match[1]] = unquote3(match[2]);
   }
   if (!fields.id || !fields.title)
     return;
+  const statement = fields.semantic_text?.replace(/''/g, "'");
   return {
     id: fields.id,
     title: fields.title,
-    ...fields.status ? { status: fields.status } : {}
+    ...fields.status ? { status: fields.status } : {},
+    ...statement && !/^[>|]/.test(statement) ? { statement } : {}
   };
 }
 var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
@@ -1671,6 +1673,50 @@ function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_R
   const closed = new Set(rankRequirementCandidates(relativePath, heads, heads.length, requestWords).filter(isClosed).map((head) => head.id));
   const replaced = closed.size > 0 ? replacedRequirements(workspaceRoot, heads, closed) : NOTHING_REPLACED;
   return rankRequirementCandidates(relativePath, heads, limit, requestWords, replaced);
+}
+var NEGATION = /\b(?:not|never|no|none|without|cannot|nor)\b|n't\b/i;
+var MIN_RESTATED_WORDS = 3;
+function ruleWords(text) {
+  const found = [
+    ...words(text),
+    ...text.match(/\d+(?:[.,]\d+)?/g) ?? []
+  ].filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return new Set(found);
+}
+function restatedRequirement(workspaceRoot, sentence) {
+  const asked = ruleWords(sentence);
+  if (asked.size < MIN_RESTATED_WORDS)
+    return;
+  const negated = NEGATION.test(sentence);
+  const directory = path5.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs4.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return;
+  }
+  if (names.length > MAX_SCANNED)
+    return;
+  for (const name of names.sort()) {
+    const head = readHead(path5.join(directory, name));
+    if (head === undefined || isClosed(head))
+      continue;
+    if (RETIRED_STATUS2.test(String(head.status)))
+      continue;
+    const title = ruleWords(head.title);
+    const clauses = [
+      head.title,
+      ...(head.statement ?? "").split(/(?<=[.;!?])\s+/)
+    ].filter((clause) => clause.trim() !== "");
+    for (const clause of clauses) {
+      if (NEGATION.test(clause) !== negated)
+        continue;
+      const known = new Set([...title, ...ruleWords(clause)]);
+      if ([...asked].every((word) => known.has(word)))
+        return head;
+    }
+  }
+  return;
 }
 
 // ../agent-core/dist/snippets.js
@@ -1980,19 +2026,58 @@ var SNIPPET_LAYOUTS = [
     requirements: MAX_REQUIREMENTS,
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
-    tests: true
+    tests: true,
+    moreIds: true
   },
   {
     requirements: 3,
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
-    tests: true
+    tests: true,
+    moreIds: true
   },
-  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
-  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
-  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false }
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: false,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: false
+  }
 ];
 function fitLayouts(compose, maxChars) {
   const texts = SNIPPET_LAYOUTS.map(compose);
@@ -2023,7 +2108,8 @@ function fileKnowledgeSnippet(input) {
       lines.push(`- ${describeEntity(summarize(requirementId), replaced.get(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
     }
     if (requirementIds.length > layout.requirements) {
-      lines.push(`- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
+      const rest = requirementIds.slice(layout.requirements);
+      lines.push(layout.moreIds ? `- Also linked (${rest.length} more): ${rest.join(", ")}; kb_query({sourceFile:${jsonString(relativePath)}, type:"req"}) lists them` : `- +${rest.length} more requirements: kb_query({sourceFile:${jsonString(relativePath)}, type:"req"})`);
     }
     const grounding = surface === "edit" && leadId ? requirementGroundingLines(leadId, summarize, {
       maxFacts: layout.facts,
@@ -2344,10 +2430,12 @@ function instructingAdverb(sentence) {
   }
   return;
 }
-function ruleMatch(prompt) {
+function ruleMatch(prompt, workspaceRoot) {
   const sentences = requestSentences(prompt);
   for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
+      continue;
+    if (workspaceRoot !== undefined && restatedRequirement(workspaceRoot, sentence) !== undefined)
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
       const clause = currentClause(sentence.slice(0, match.index));
@@ -2363,13 +2451,13 @@ function ruleMatch(prompt) {
   }
   return;
 }
-function statedRule(prompt) {
-  return ruleMatch(prompt)?.phrase;
+function statedRule(prompt, workspaceRoot) {
+  return ruleMatch(prompt, workspaceRoot)?.phrase;
 }
 var REASON_MARKER = /\b(?:because|so that)\b/i;
 var MAX_REASON_CHARS2 = 200;
-function statedReason(prompt) {
-  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+function statedReason(prompt, workspaceRoot) {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt, workspaceRoot);
   if (match === undefined)
     return;
   for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
@@ -2392,14 +2480,15 @@ function rulePromptNote(phrase, reason) {
   ].join(`
 `);
 }
+var RECORD_FOLLOW_UP_LINE = "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.";
 function captureReminder(rulePhrase) {
   return rulePhrase === undefined ? [
     "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line."
+    `A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line. ${RECORD_FOLLOW_UP_LINE}`
   ].join(`
 `) : [
     `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
-    `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+    `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule. ${RECORD_FOLLOW_UP_LINE}`
   ].join(`
 `);
 }
@@ -2417,7 +2506,8 @@ function ruleCaptureTemplate(rulePhrase, reason) {
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...reason === undefined ? [] : [reasonLine2(reason)],
-    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert."
+    RECORD_FOLLOW_UP_LINE,
+    "Facts, decisions and other modeling go through kb_upsert."
   ].join(`
 `);
 }
@@ -2537,9 +2627,10 @@ function claimDecisionFlag(session, flag) {
     return false;
   }
 }
-function recordRequest(session, prompt, now = Date.now()) {
+function recordRequest(session, prompt, options = {}) {
+  const { now = Date.now(), workspaceRoot } = typeof options === "number" ? { now: options } : options;
   startDecisionSession(session, "prompt", { now });
-  const rule = statedRule(prompt);
+  const rule = statedRule(prompt, workspaceRoot);
   try {
     writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
   } catch {}
@@ -2547,7 +2638,7 @@ function recordRequest(session, prompt, now = Date.now()) {
     markDecisionFlag(session, "rule-prompt");
     try {
       writeMarker(sessionPath(session, "rule-phrase"), rule);
-      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt) ?? "");
+      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt, workspaceRoot) ?? "");
     } catch {}
   }
   return rule;
@@ -3946,7 +4037,7 @@ async function runHook(rawInput, environment = {}) {
         };
       }
       case "UserPromptSubmit": {
-        const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
+        const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "", { workspaceRoot: workspace.root });
         trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
         if (rule === undefined)
           return defaultResult();
@@ -3954,7 +4045,7 @@ async function runHook(rawInput, environment = {}) {
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule, statedReason(input.prompt))
+            additionalContext: rulePromptNote(rule, statedReason(input.prompt, workspace.root))
           }
         };
       }

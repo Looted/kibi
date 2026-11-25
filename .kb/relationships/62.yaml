@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24e673981ee6
+  - type: assumes
+    from: SCEN-NEG-kb-query-source-file-requirements-LOOKUP
+    to: FACT-NEG-kb-query-source-file-requirements-LOOKUP
+    created_at: 2026-11-24T20:01:03.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b4f81dce78b
+  - type: verified_by
+    from: SCEN-NEG-kb-query-source-file-requirements-LOOKUP
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T20:01:03.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26b2b38f5da1

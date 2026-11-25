@@ -594,3 +594,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2c1671b8851
+  - type: assumes
+    from: SCEN-kb-search-close-matches-candidates
+    to: FACT-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:02:29.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3900118a737
+  - type: verified_by
+    from: SCEN-kb-search-close-matches-candidates
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-24T20:02:29.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5ce9cf242d1

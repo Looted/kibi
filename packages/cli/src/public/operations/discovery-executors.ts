@@ -25,6 +25,7 @@ import {
   type SearchAnswer,
   answerQuotedIds,
   buildSearchAnswer,
+  governingLabel,
 } from "../../search-answer.js";
 import {
   type SearchHintsAnalysis,
@@ -1630,6 +1631,7 @@ export async function executeSearch(
               branch: context.branchAttachment?.kbBranch ?? null,
               detail: fields === "full" ? "full" : "summary",
               syncState: answerSyncState,
+              ...(intentResult.analysis.ambiguous ? { ambiguous: true } : {}),
               ...(storeNotice !== null
                 ? { staleReasonCount: 1 }
                 : freshness?.state === "stale"
@@ -1700,7 +1702,7 @@ export async function executeSearch(
               .map((match) => topMatchLabel(match))
               .join(
                 ", ",
-              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
+              )}${answerLayer ? `. ${governingLabel(intentResult.analysis.ambiguous, answerLayer.governing.length)}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
       }${searchHintsNote(hints)}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${weakAdrNote}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],

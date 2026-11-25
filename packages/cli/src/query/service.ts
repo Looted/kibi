@@ -75,9 +75,9 @@ export function buildEntityQueryGoal(filters: QueryFilters): string {
     const safeSource = codecDeps.escapeAtom(sourceFile);
     if (type) {
       const safeType = codecDeps.escapeAtom(type);
-      return `findall([Id,'${safeType}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${safeType}', Props)), Results)`;
+      return `findall([Id,'${safeType}',Props], (kb_entities_in_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${safeType}', Props)), Results)`;
     }
-    return `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+    return `findall([Id,Type,Props], (kb_entities_in_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
   }
 
   if (id && type) {

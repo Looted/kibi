@@ -710,6 +710,11 @@ const BASE_DATA_SCHEMAS: Readonly<
           ...recordArray,
           description: "Current requirements on the same terms.",
         },
+        approvalsNeeded: {
+          ...recordArray,
+          description:
+            "For a requirement below its evidence floor: every decision only a person can make before it reaches the floor, to ask in one question.",
+        },
       }),
       objectData(
         {
@@ -743,6 +748,7 @@ const BASE_DATA_SCHEMAS: Readonly<
       commitAllowed: booleanValue,
       status: stringValue,
       nextActions: recordArray,
+      approvalsNeeded: recordArray,
       dryRun: { const: true },
       preview: recordValue,
       valid: booleanValue,

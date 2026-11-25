@@ -982,8 +982,8 @@ function preInvocation(
   if (prompt.length > 0) {
     const hash = promptHash(prompt);
     if (hash !== state.lastPromptHash) {
-      const rule = statedRule(prompt);
-      const reason = statedReason(prompt);
+      const rule = statedRule(prompt, workspace.root);
+      const reason = statedReason(prompt, workspace.root);
       startDecisionSession(
         { stateDir: workspace.stateDir, sessionId: input.conversationId },
         "prompt",

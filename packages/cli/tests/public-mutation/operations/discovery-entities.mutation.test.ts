@@ -107,10 +107,10 @@ describe("buildEntityGoal", () => {
       "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
     );
     expect(goal({ sourceFile: "a'.md", type: "r'q", id: "X" })).toBe(
-      "findall([Id,'r''q',Props], (kb_entities_by_source('a''.md', SourceIds), member(Id, SourceIds), kb_entity(Id, 'r''q', Props)), Results)",
+      "findall([Id,'r''q',Props], (kb_entities_in_source('a''.md', SourceIds), member(Id, SourceIds), kb_entity(Id, 'r''q', Props)), Results)",
     );
     expect(goal({ sourceFile: "a.md" })).toBe(
-      "findall([Id,Type,Props], (kb_entities_by_source('a.md', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
+      "findall([Id,Type,Props], (kb_entities_in_source('a.md', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
     );
     expect(goal({ id: "I'd", type: "r'q", tags: ["t"] })).toBe(
       "findall(['I''d','r''q',Props], kb_entity('I''d', 'r''q', Props), Results)",

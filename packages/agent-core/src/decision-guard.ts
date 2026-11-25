@@ -5,7 +5,10 @@ import path from "node:path";
 import { kibiCliOperation } from "./kb-mcp-tools.js";
 import type { EntitySummary, IndexedSymbol } from "./knowledge-index.js";
 import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
-import { requestTopicWords } from "./requirement-candidates.js";
+import {
+  requestTopicWords,
+  restatedRequirement,
+} from "./requirement-candidates.js";
 import {
   type LineRange,
   type Summarize,
@@ -579,15 +582,27 @@ function instructingAdverb(sentence: string): string | undefined {
   return undefined;
 }
 
-/** The rule phrase of `prompt`, the request's sentences, and which one holds it. */
-function ruleMatch(
+/**
+ * The rule phrase of `prompt`, the request's sentences, and which one holds
+ * it. With `workspaceRoot`, a sentence that only restates a current
+ * requirement of that workspace holds none.
+ */
+export function ruleMatch(
   prompt: string,
+  workspaceRoot?: string,
 ): { phrase: string; sentences: string[]; index: number } | undefined {
   const sentences = requestSentences(prompt);
   for (const [index, sentence] of sentences.entries()) {
     if (
       sentence.endsWith("?") &&
       (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence))
+    )
+      continue;
+    // A sentence that only restates a current requirement is already
+    // recorded: nothing in it needs capturing, so it is no rule prompt.
+    if (
+      workspaceRoot !== undefined &&
+      restatedRequirement(workspaceRoot, sentence) !== undefined
     )
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
@@ -605,10 +620,14 @@ function ruleMatch(
 /**
  * The phrase that makes `prompt` read as a rule, or undefined. A sentence
  * that asks a question (other than a request such as "Can you make sure
- * ...?") states no rule.
+ * ...?") states no rule, and with `workspaceRoot` neither does one that only
+ * restates a current requirement of that workspace (restatedRequirement).
  */
-export function statedRule(prompt: string): string | undefined {
-  return ruleMatch(prompt)?.phrase;
+export function statedRule(
+  prompt: string,
+  workspaceRoot?: string,
+): string | undefined {
+  return ruleMatch(prompt, workspaceRoot)?.phrase;
 }
 
 /** Words that give the reason for a rule. */
@@ -622,8 +641,12 @@ const MAX_REASON_CHARS = 200;
  * ..." clause of the sentence that states the rule, or of the sentence after
  * it. Undefined when the prompt states no rule or gives no such reason.
  */
-export function statedReason(prompt: string | undefined): string | undefined {
-  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+export function statedReason(
+  prompt: string | undefined,
+  workspaceRoot?: string,
+): string | undefined {
+  const match =
+    prompt === undefined ? undefined : ruleMatch(prompt, workspaceRoot);
   if (match === undefined) return undefined;
   for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
     const marker = REASON_MARKER.exec(sentence);
@@ -651,6 +674,13 @@ export function rulePromptNote(phrase: string, reason?: string): string {
 }
 
 /**
+ * How an agent works through a recording's result: every step at once, and
+ * the person asked once, so the checks do not become a question each.
+ */
+export const RECORD_FOLLOW_UP_LINE =
+  "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.";
+
+/**
  * Stop-time note for a session that changed source files and wrote nothing
  * to the knowledge base. When a prompt stated a rule, the note quotes its
  * phrase and asks for the rule or a reason it is not one; only a session
@@ -660,11 +690,11 @@ export function captureReminder(rulePhrase: string | undefined): string {
   return rulePhrase === undefined
     ? [
         "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
+        `A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line. ${RECORD_FOLLOW_UP_LINE}`,
       ].join("\n")
     : [
         `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
-        `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`,
+        `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule. ${RECORD_FOLLOW_UP_LINE}`,
       ].join("\n");
 }
 
@@ -695,7 +725,8 @@ export function ruleCaptureTemplate(
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...(reason === undefined ? [] : [reasonLine(reason)]),
-    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+    RECORD_FOLLOW_UP_LINE,
+    "Facts, decisions and other modeling go through kb_upsert.",
   ].join("\n");
 }
 
@@ -922,10 +953,12 @@ export function claimDecisionFlag(
 export function recordRequest(
   session: DecisionSession,
   prompt: string,
-  now = Date.now(),
+  options: number | { now?: number; workspaceRoot?: string } = {},
 ): string | undefined {
+  const { now = Date.now(), workspaceRoot } =
+    typeof options === "number" ? { now: options } : options;
   startDecisionSession(session, "prompt", { now });
-  const rule = statedRule(prompt);
+  const rule = statedRule(prompt, workspaceRoot);
   try {
     writeMarker(
       sessionPath(session, "request-words.json"),
@@ -941,7 +974,7 @@ export function recordRequest(
       // The latest rule prompt's reason, or none: an empty marker.
       writeMarker(
         sessionPath(session, "rule-reason"),
-        statedReason(prompt) ?? "",
+        statedReason(prompt, workspaceRoot) ?? "",
       );
     } catch {
       // Best effort: without it the reminders read as for no rule.

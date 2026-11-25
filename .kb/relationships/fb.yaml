@@ -664,3 +664,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dccc32633cb
+  - type: assumes
+    from: SCEN-kb-query-source-file-requirements
+    to: FACT-kb-query-source-file-requirements
+    created_at: 2026-11-24T20:01:02.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4f74a1a077d
+  - type: verified_by
+    from: SCEN-kb-query-source-file-requirements
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T20:01:02.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb158e819cab

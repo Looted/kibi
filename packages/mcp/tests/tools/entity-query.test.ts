@@ -34,13 +34,13 @@ describe("entity-query helpers", () => {
           type: "req",
         }),
       ).toBe(
-        "findall([Id,'req',Props], (kb_entities_by_source('src/o''brien.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, 'req', Props)), Results)",
+        "findall([Id,'req',Props], (kb_entities_in_source('src/o''brien.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, 'req', Props)), Results)",
       );
     });
 
     test("builds sourceFile-only goal", () => {
       expect(buildEntityGoal({ sourceFile: "src/tools/entity-query.ts" })).toBe(
-        "findall([Id,Type,Props], (kb_entities_by_source('src/tools/entity-query.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
+        "findall([Id,Type,Props], (kb_entities_in_source('src/tools/entity-query.ts', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)",
       );
     });
 

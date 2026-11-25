@@ -968,8 +968,8 @@ function userPromptSubmit(
   trace: HookTrace,
 ): HookOutput {
   const prompt = input.prompt ?? "";
-  const rule = statedRule(prompt);
-  const reason = statedReason(prompt);
+  const rule = statedRule(prompt, workspace.root);
+  const reason = statedReason(prompt, workspace.root);
   // A session without an id idle for long has ended; this prompt starts anew.
   startDecisionSession(
     { stateDir: workspace.stateDir, sessionId: input.sessionId },

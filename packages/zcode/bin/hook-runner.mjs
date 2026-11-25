@@ -235,7 +235,7 @@ function missingHooksNote(workspaceRoot) {
 
 // ../agent-core/dist/decision-guard.js
 import { createHash as createHash3 } from "node:crypto";
-import fs5 from "node:fs";
+import fs6 from "node:fs";
 import path7 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
@@ -584,6 +584,7 @@ function isSourceImpactRelevantPath(candidate) {
 }
 
 // ../agent-core/dist/requirement-candidates.js
+import fs4 from "node:fs";
 import path5 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
@@ -1418,6 +1419,8 @@ function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
 
 // ../agent-core/dist/requirement-candidates.js
 var REQUIREMENTS_DIR = path5.join(".kb", "requirements");
+var HEAD_BYTES = 4096;
+var MAX_SCANNED = 2000;
 var LAYOUT_WORDS = stems([
   "src",
   "app",
@@ -1502,7 +1505,50 @@ function words(text) {
 function stems(list) {
   return new Set(list.flatMap(words));
 }
+function unquote3(value) {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function readHead(file) {
+  let head;
+  try {
+    const descriptor = fs4.openSync(file, "r");
+    try {
+      const buffer = Buffer.alloc(HEAD_BYTES);
+      const bytes = fs4.readSync(descriptor, buffer, 0, buffer.length, 0);
+      head = buffer.subarray(0, bytes).toString("utf8");
+    } finally {
+      fs4.closeSync(descriptor);
+    }
+  } catch {
+    return;
+  }
+  const lines = head.split(/\r?\n/);
+  if (lines[0].trim() !== "---")
+    return;
+  const fields = {};
+  for (const line of lines.slice(1)) {
+    if (line.trim() === "---")
+      break;
+    const match = /^(id|title|status|semantic_text):(.+)/.exec(line);
+    if (match)
+      fields[match[1]] = unquote3(match[2]);
+  }
+  if (!fields.id || !fields.title)
+    return;
+  const statement = fields.semantic_text?.replace(/''/g, "'");
+  return {
+    id: fields.id,
+    title: fields.title,
+    ...fields.status ? { status: fields.status } : {},
+    ...statement && !/^[>|]/.test(statement) ? { statement } : {}
+  };
+}
+var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 var NOTHING_REPLACED = new Set;
+function isClosed(head) {
+  return String(head.status).trim().toLowerCase() === "closed";
+}
 function requestTopicWords(text, limit = 40) {
   const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
   return [...new Set(found)].slice(0, limit);
@@ -1568,10 +1614,54 @@ var REQUEST_FILLER_WORDS = stems([
   "too",
   "very"
 ]);
+var NEGATION = /\b(?:not|never|no|none|without|cannot|nor)\b|n't\b/i;
+var MIN_RESTATED_WORDS = 3;
+function ruleWords(text) {
+  const found = [
+    ...words(text),
+    ...text.match(/\d+(?:[.,]\d+)?/g) ?? []
+  ].filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return new Set(found);
+}
+function restatedRequirement(workspaceRoot, sentence) {
+  const asked = ruleWords(sentence);
+  if (asked.size < MIN_RESTATED_WORDS)
+    return;
+  const negated = NEGATION.test(sentence);
+  const directory = path5.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs4.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return;
+  }
+  if (names.length > MAX_SCANNED)
+    return;
+  for (const name of names.sort()) {
+    const head = readHead(path5.join(directory, name));
+    if (head === undefined || isClosed(head))
+      continue;
+    if (RETIRED_STATUS2.test(String(head.status)))
+      continue;
+    const title = ruleWords(head.title);
+    const clauses = [
+      head.title,
+      ...(head.statement ?? "").split(/(?<=[.;!?])\s+/)
+    ].filter((clause) => clause.trim() !== "");
+    for (const clause of clauses) {
+      if (NEGATION.test(clause) !== negated)
+        continue;
+      const known = new Set([...title, ...ruleWords(clause)]);
+      if ([...asked].every((word) => known.has(word)))
+        return head;
+    }
+  }
+  return;
+}
 
 // ../agent-core/dist/snippets.js
 import { createHash as createHash2 } from "node:crypto";
-import fs4 from "node:fs";
+import fs5 from "node:fs";
 import path6 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
@@ -1610,9 +1700,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs4.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs5.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs4.readFileSync(absolutePath, "utf8");
+    content = fs5.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1845,19 +1935,58 @@ var SNIPPET_LAYOUTS = [
     requirements: MAX_REQUIREMENTS,
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
-    tests: true
+    tests: true,
+    moreIds: true
   },
   {
     requirements: 3,
     facts: MAX_GROUNDING,
     whyChars: MAX_WHY_CHARS,
-    tests: true
+    tests: true,
+    moreIds: true
   },
-  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
-  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
-  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
-  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false }
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 2,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: true,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: SHORT_WHY_CHARS,
+    tests: false,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: true
+  },
+  {
+    requirements: 1,
+    facts: 1,
+    whyChars: TIGHT_WHY_CHARS,
+    tests: false,
+    moreIds: false
+  }
 ];
 function fitLayouts(compose, maxChars) {
   const texts = SNIPPET_LAYOUTS.map(compose);
@@ -1888,7 +2017,8 @@ function fileKnowledgeSnippet(input) {
       lines.push(`- ${describeEntity(summarize(requirementId), replaced.get(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
     }
     if (requirementIds.length > layout.requirements) {
-      lines.push(`- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
+      const rest = requirementIds.slice(layout.requirements);
+      lines.push(layout.moreIds ? `- Also linked (${rest.length} more): ${rest.join(", ")}; kb_query({sourceFile:${jsonString(relativePath)}, type:"req"}) lists them` : `- +${rest.length} more requirements: kb_query({sourceFile:${jsonString(relativePath)}, type:"req"})`);
     }
     const grounding = surface === "edit" && leadId ? requirementGroundingLines(leadId, summarize, {
       maxFacts: layout.facts,
@@ -1951,8 +2081,8 @@ function claimSnippetSlot(stateDir, key) {
     return true;
   const marker = path6.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
   try {
-    fs4.mkdirSync(path6.dirname(marker), { recursive: true });
-    fs4.writeFileSync(marker, "", { flag: "wx" });
+    fs5.mkdirSync(path6.dirname(marker), { recursive: true });
+    fs5.writeFileSync(marker, "", { flag: "wx" });
     return true;
   } catch {
     return false;
@@ -1970,9 +2100,9 @@ var CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
 var NAME_LOOKAHEAD_LINES = 5;
 function readSmallText(absolutePath) {
   try {
-    if (fs5.statSync(absolutePath).size > MAX_LOCATE_BYTES)
+    if (fs6.statSync(absolutePath).size > MAX_LOCATE_BYTES)
       return;
-    return fs5.readFileSync(absolutePath, "utf8");
+    return fs6.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -2143,9 +2273,9 @@ function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
     if (typeof input.content !== "string")
       return false;
     try {
-      if (fs5.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES)
+      if (fs6.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES)
         return false;
-      pairs.push([fs5.readFileSync(absolutePath, "utf8"), input.content]);
+      pairs.push([fs6.readFileSync(absolutePath, "utf8"), input.content]);
     } catch {
       return false;
     }
@@ -2209,10 +2339,12 @@ function instructingAdverb(sentence) {
   }
   return;
 }
-function ruleMatch(prompt) {
+function ruleMatch(prompt, workspaceRoot) {
   const sentences = requestSentences(prompt);
   for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
+      continue;
+    if (workspaceRoot !== undefined && restatedRequirement(workspaceRoot, sentence) !== undefined)
       continue;
     for (const match of sentence.matchAll(RULE_PHRASES)) {
       const clause = currentClause(sentence.slice(0, match.index));
@@ -2228,13 +2360,13 @@ function ruleMatch(prompt) {
   }
   return;
 }
-function statedRule(prompt) {
-  return ruleMatch(prompt)?.phrase;
+function statedRule(prompt, workspaceRoot) {
+  return ruleMatch(prompt, workspaceRoot)?.phrase;
 }
 var REASON_MARKER = /\b(?:because|so that)\b/i;
 var MAX_REASON_CHARS2 = 200;
-function statedReason(prompt) {
-  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+function statedReason(prompt, workspaceRoot) {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt, workspaceRoot);
   if (match === undefined)
     return;
   for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
@@ -2257,14 +2389,15 @@ function rulePromptNote(phrase, reason) {
   ].join(`
 `);
 }
+var RECORD_FOLLOW_UP_LINE = "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.";
 function captureReminder(rulePhrase) {
   return rulePhrase === undefined ? [
     "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line."
+    `A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line. ${RECORD_FOLLOW_UP_LINE}`
   ].join(`
 `) : [
     `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
-    `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+    `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule. ${RECORD_FOLLOW_UP_LINE}`
   ].join(`
 `);
 }
@@ -2282,7 +2415,8 @@ function ruleCaptureTemplate(rulePhrase, reason) {
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...reason === undefined ? [] : [reasonLine2(reason)],
-    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert."
+    RECORD_FOLLOW_UP_LINE,
+    "Facts, decisions and other modeling go through kb_upsert."
   ].join(`
 `);
 }
@@ -2314,7 +2448,7 @@ function newestOf(files) {
   let newest = Number.NaN;
   for (const file of files) {
     try {
-      const time = fs5.statSync(file).mtimeMs;
+      const time = fs6.statSync(file).mtimeMs;
       if (!(time <= newest))
         newest = time;
     } catch {}
@@ -2323,14 +2457,14 @@ function newestOf(files) {
 }
 function markerFiles(dir) {
   try {
-    return fs5.readdirSync(dir).map((name) => path7.join(dir, name));
+    return fs6.readdirSync(dir).map((name) => path7.join(dir, name));
   } catch {
     return [];
   }
 }
 function removeQuietly(target) {
   try {
-    fs5.rmSync(target, { recursive: true, force: true });
+    fs6.rmSync(target, { recursive: true, force: true });
   } catch {}
 }
 function startDecisionSession(session, cause, options = {}) {
@@ -2356,7 +2490,7 @@ function startDecisionSession(session, cause, options = {}) {
     return dropped;
   let keys = [];
   try {
-    keys = fs5.readdirSync(root);
+    keys = fs6.readdirSync(root);
   } catch {}
   for (const key of keys) {
     if (key === own)
@@ -2369,15 +2503,15 @@ function startDecisionSession(session, cause, options = {}) {
   return dropped;
 }
 function writeMarker(file, content) {
-  fs5.mkdirSync(path7.dirname(file), { recursive: true });
-  fs5.writeFileSync(file, content);
+  fs6.mkdirSync(path7.dirname(file), { recursive: true });
+  fs6.writeFileSync(file, content);
 }
 function touchMarker(file, flag) {
-  fs5.mkdirSync(path7.dirname(file), { recursive: true });
-  fs5.closeSync(fs5.openSync(file, flag));
+  fs6.mkdirSync(path7.dirname(file), { recursive: true });
+  fs6.closeSync(fs6.openSync(file, flag));
 }
 function readMarker(session, name) {
-  return JSON.parse(String(fs5.readFileSync(sessionPath(session, name))));
+  return JSON.parse(String(fs6.readFileSync(sessionPath(session, name))));
 }
 function stringList(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
@@ -2389,7 +2523,7 @@ function markDecisionFlag(session, flag) {
 }
 function hasDecisionFlag(session, flag) {
   try {
-    return fs5.existsSync(sessionPath(session, flag));
+    return fs6.existsSync(sessionPath(session, flag));
   } catch {
     return false;
   }
@@ -2402,9 +2536,10 @@ function claimDecisionFlag(session, flag) {
     return false;
   }
 }
-function recordRequest(session, prompt, now = Date.now()) {
+function recordRequest(session, prompt, options = {}) {
+  const { now = Date.now(), workspaceRoot } = typeof options === "number" ? { now: options } : options;
   startDecisionSession(session, "prompt", { now });
-  const rule = statedRule(prompt);
+  const rule = statedRule(prompt, workspaceRoot);
   try {
     writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
   } catch {}
@@ -2412,7 +2547,7 @@ function recordRequest(session, prompt, now = Date.now()) {
     markDecisionFlag(session, "rule-prompt");
     try {
       writeMarker(sessionPath(session, "rule-phrase"), rule);
-      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt) ?? "");
+      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt, workspaceRoot) ?? "");
     } catch {}
   }
   return rule;
@@ -2420,14 +2555,14 @@ function recordRequest(session, prompt, now = Date.now()) {
 function sessionRuleReason(session) {
   let reason = "";
   try {
-    reason = String(fs5.readFileSync(sessionPath(session, "rule-reason")));
+    reason = String(fs6.readFileSync(sessionPath(session, "rule-reason")));
   } catch {}
   return reason || undefined;
 }
 function sessionRulePhrase(session) {
   let phrase = "";
   try {
-    phrase = String(fs5.readFileSync(sessionPath(session, "rule-phrase")));
+    phrase = String(fs6.readFileSync(sessionPath(session, "rule-phrase")));
   } catch {}
   return phrase || undefined;
 }
@@ -2462,7 +2597,7 @@ function isRequirementUpsert(toolInput) {
 function mtimeMs(file) {
   let time = Number.NaN;
   try {
-    time = fs5.statSync(file()).mtimeMs;
+    time = fs6.statSync(file()).mtimeMs;
   } catch {}
   return time;
 }
@@ -2500,12 +2635,12 @@ function settleFirmRequirements(session, ids) {
 
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
-import fs8 from "node:fs";
+import fs9 from "node:fs";
 import path10 from "node:path";
 
 // ../agent-core/dist/telemetry-signals.js
 import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";
-import fs6 from "node:fs";
+import fs7 from "node:fs";
 import path8 from "node:path";
 var RETRY_WINDOW_MS = 10 * 60 * 1000;
 var SEARCH_REPEAT_WINDOW_MS = 2 * 60 * 1000;
@@ -2588,7 +2723,7 @@ function fresh(entry, now, windowMs) {
 function readRecent(directory, now) {
   let parsed = {};
   try {
-    parsed = JSON.parse(String(fs6.readFileSync(recentPath(directory)))) ?? parsed;
+    parsed = JSON.parse(String(fs7.readFileSync(recentPath(directory)))) ?? parsed;
   } catch {}
   return {
     calls: entries(parsed.calls).filter((entry) => fresh(entry, now, RETRY_WINDOW_MS) && typeof entry.o === "string"),
@@ -2597,14 +2732,14 @@ function readRecent(directory, now) {
 }
 function writeRecent(directory, recent) {
   try {
-    fs6.mkdirSync(directory, { recursive: true });
+    fs7.mkdirSync(directory, { recursive: true });
     const file = recentPath(directory);
     const temporary = `${file}.${process.pid}.${randomUUID2()}.tmp`;
-    fs6.writeFileSync(temporary, JSON.stringify({
+    fs7.writeFileSync(temporary, JSON.stringify({
       calls: recent.calls.slice(-MAX_RECENT_ENTRIES),
       skills: recent.skills.slice(-MAX_RECENT_ENTRIES)
     }));
-    fs6.renameSync(temporary, file);
+    fs7.renameSync(temporary, file);
   } catch {}
 }
 function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
@@ -2615,7 +2750,7 @@ function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
 
 // ../agent-core/dist/usage-telemetry.js
 import { createHash as createHash5, randomUUID as randomUUID3 } from "node:crypto";
-import fs7 from "node:fs";
+import fs8 from "node:fs";
 import os from "node:os";
 import path9 from "node:path";
 import { fileURLToPath } from "node:url";
@@ -2755,7 +2890,7 @@ function remoteEnvironment(env) {
 }
 function realDirectory(directory) {
   try {
-    return fs7.realpathSync(directory);
+    return fs8.realpathSync(directory);
   } catch {
     return path9.resolve(directory);
   }
@@ -2788,8 +2923,8 @@ function insideKibiCheckout(file) {
   let current = path9.dirname(resolved);
   for (;; ) {
     try {
-      const manifest = JSON.parse(fs7.readFileSync(path9.join(current, "package.json"), "utf8"));
-      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs7.existsSync(path9.join(current, "packages", "agent-core"))) {
+      const manifest = JSON.parse(fs8.readFileSync(path9.join(current, "package.json"), "utf8"));
+      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs8.existsSync(path9.join(current, "packages", "agent-core"))) {
         return true;
       }
     } catch {}
@@ -2831,7 +2966,7 @@ function telemetryDirectory(env = process.env) {
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(String(fs7.readFileSync(path9.join(telemetryDirectory(env), CONFIG_FILE))));
+    const parsed = JSON.parse(String(fs8.readFileSync(path9.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2839,8 +2974,8 @@ function readTelemetryConfig(env = process.env) {
 }
 function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
-  fs7.mkdirSync(directory, { recursive: true });
-  fs7.writeFileSync(path9.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+  fs8.mkdirSync(directory, { recursive: true });
+  fs8.writeFileSync(path9.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
 `);
 }
 function telemetryStatus(env = process.env) {
@@ -2914,7 +3049,7 @@ function sessionMarkersPath(env) {
 }
 function readSessionMarkers(env) {
   try {
-    const parsed = JSON.parse(String(fs7.readFileSync(sessionMarkersPath(env))));
+    const parsed = JSON.parse(String(fs8.readFileSync(sessionMarkersPath(env))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2935,10 +3070,10 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
   try {
     const file = sessionMarkersPath(env);
-    fs7.mkdirSync(path9.dirname(file), { recursive: true });
+    fs8.mkdirSync(path9.dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.${randomUUID3()}.tmp`;
-    fs7.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
-    fs7.renameSync(temporary, file);
+    fs8.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
+    fs8.renameSync(temporary, file);
   } catch {}
 }
 function workspaceSessionHash(startDirectory, env = process.env) {
@@ -2987,12 +3122,12 @@ function queuePath(env) {
 function appendEvent(event, env) {
   try {
     const file = queuePath(env);
-    fs7.mkdirSync(path9.dirname(file), { recursive: true });
+    fs8.mkdirSync(path9.dirname(file), { recursive: true });
     try {
-      if (fs7.statSync(file).size > MAX_QUEUE_BYTES)
+      if (fs8.statSync(file).size > MAX_QUEUE_BYTES)
         return;
     } catch {}
-    fs7.appendFileSync(file, `${JSON.stringify(event)}
+    fs8.appendFileSync(file, `${JSON.stringify(event)}
 `);
   } catch {}
 }
@@ -3041,7 +3176,7 @@ function parseQueued(text, now) {
 function flushDue(file, now) {
   let text;
   try {
-    text = fs7.readFileSync(file, "utf8");
+    text = fs8.readFileSync(file, "utf8");
   } catch {
     return false;
   }
@@ -3062,7 +3197,7 @@ function claimBatches(directory, now) {
   const claimed = [];
   let names;
   try {
-    names = fs7.readdirSync(directory);
+    names = fs8.readdirSync(directory);
   } catch {
     return claimed;
   }
@@ -3071,17 +3206,17 @@ function claimBatches(directory, now) {
       continue;
     const file = path9.join(directory, name);
     try {
-      if (now - fs7.statSync(file).mtimeMs < STALE_CLAIM_MS)
+      if (now - fs8.statSync(file).mtimeMs < STALE_CLAIM_MS)
         continue;
       const reclaimed = `${file}.${randomUUID3()}${SENDING_SUFFIX}`;
-      fs7.renameSync(file, reclaimed);
+      fs8.renameSync(file, reclaimed);
       claimed.push(reclaimed);
     } catch {}
   }
   const queue = path9.join(directory, QUEUE_FILE);
   const target = path9.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
   try {
-    fs7.renameSync(queue, target);
+    fs8.renameSync(queue, target);
     claimed.push(target);
   } catch {}
   return claimed;
@@ -3097,12 +3232,12 @@ async function flushTelemetry(options = {}, env = process.env) {
   const events = [];
   for (const file of claimed) {
     try {
-      events.push(...parseQueued(fs7.readFileSync(file, "utf8"), now));
+      events.push(...parseQueued(fs8.readFileSync(file, "utf8"), now));
     } catch {}
   }
   const release = () => {
     for (const file of claimed)
-      fs7.rmSync(file, { force: true });
+      fs8.rmSync(file, { force: true });
   };
   if (events.length === 0) {
     release();
@@ -3197,8 +3332,8 @@ function appendHookUsage(row, env = process.env) {
   };
   try {
     const logPath = path10.join(row.workspaceRoot, ".kb", "usage.log");
-    fs8.mkdirSync(path10.dirname(logPath), { recursive: true });
-    fs8.appendFileSync(logPath, `${JSON.stringify(record)}
+    fs9.mkdirSync(path10.dirname(logPath), { recursive: true });
+    fs9.appendFileSync(logPath, `${JSON.stringify(record)}
 `);
   } catch {}
 }
@@ -3243,7 +3378,7 @@ async function finishHookTelemetry(input, env = process.env) {
 }
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(String(fs8.readFileSync(packageJsonPath)));
+    const parsed = JSON.parse(String(fs9.readFileSync(packageJsonPath)));
     const version = parsed.version;
     if (typeof version === "string")
       return version;
@@ -3321,7 +3456,7 @@ function parseStdinJson(rawInput) {
 }
 
 // ../agent-core/dist/workspace-optin.js
-import fs9 from "node:fs";
+import fs10 from "node:fs";
 import path11 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
@@ -3333,10 +3468,10 @@ function nextAncestorDirectory(current) {
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs9.existsSync(path11.join(directory, ".kb", "manifest.json"));
+  return fs10.existsSync(path11.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs9.existsSync(path11.join(directory, ".git"));
+  return fs10.existsSync(path11.join(directory, ".git"));
 }
 function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
@@ -3362,7 +3497,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
 
 // src/hook-state.ts
 import { createHash as createHash6, randomUUID as randomUUID5 } from "node:crypto";
-import fs10 from "node:fs";
+import fs11 from "node:fs";
 import os2 from "node:os";
 import path12 from "node:path";
 var stateFileName = "hook-state.json";
@@ -3442,7 +3577,7 @@ function withKbCheck(state, impactCheckRun, sourceFiles) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs10.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs11.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -3464,13 +3599,13 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs10.mkdirSync(pluginData, { recursive: true });
-  fs10.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs11.mkdirSync(pluginData, { recursive: true });
+  fs11.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `);
 }
 function readSnapshot(pluginData) {
   try {
-    return coerceHookState(JSON.parse(fs10.readFileSync(statePath(pluginData)).toString()));
+    return coerceHookState(JSON.parse(fs11.readFileSync(statePath(pluginData)).toString()));
   } catch {
     return emptyHookState();
   }
@@ -3485,9 +3620,9 @@ function saveHookState(pluginData, state) {
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
   const tempPath = uniqueTempPath(pluginData);
-  fs10.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs11.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs10.renameSync(tempPath, statePath(pluginData));
+  fs11.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   if (!pluginData) {
@@ -3753,9 +3888,11 @@ async function runHook(rawInput, environment = {}) {
         return contextResult(input.event, [SESSION_START_CONTEXT, missingHooksNote(workspace.root)].filter((line) => line !== null).join(`
 `));
       case "UserPromptSubmit": {
-        const rule = input.prompt ? recordRequest(session, input.prompt) : undefined;
+        const rule = input.prompt ? recordRequest(session, input.prompt, {
+          workspaceRoot: workspace.root
+        }) : undefined;
         trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
-        return rule === undefined ? defaultResult() : contextResult(input.event, rulePromptNote(rule, statedReason(input.prompt)));
+        return rule === undefined ? defaultResult() : contextResult(input.event, rulePromptNote(rule, statedReason(input.prompt, workspace.root)));
       }
       case "PreToolUse": {
         if (isKibiMcpToolName(input.toolName)) {

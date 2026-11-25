@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e2c561d00d3
+  - type: assumes
+    from: SCEN-agent-hosts-capture-ask-once
+    to: FACT-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:01:59.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbfea78e913b
+  - type: verified_by
+    from: SCEN-agent-hosts-capture-ask-once
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-24T20:01:59.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fb051d9809a
