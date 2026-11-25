@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-820416cfa4a4
+  - type: implements
+    from: SYM-antigravity-run-node-cmd
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-25T08:33:41.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-489be70866a3
+  - type: covered_by
+    from: SYM-antigravity-run-node-cmd
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-25T08:33:41.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91d25683b000
