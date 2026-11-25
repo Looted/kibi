@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6dec4ab9d7cb
+  - type: executable_for
+    from: SYM-test-kibi-no-git-adoption
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:32.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57abe7eea2d6

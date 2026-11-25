@@ -367,16 +367,10 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     if ("error" in branchResult) {
       // Coded, so the tool answers with the same error envelope (and the
       // same instruction) as the CLI JSON route.
-      const failure = new BranchResolutionFailure(branchResult);
       console.error(
-        `[KIBI-MCP] ${
-          failure.code === "NOT_A_GIT_REPOSITORY" ||
-          failure.code === "GIT_NOT_AVAILABLE"
-            ? failure.message
-            : sessionDeps.getBranchDiagnostic(undefined, branchResult.error)
-        }`,
+        `[KIBI-MCP] ${sessionDeps.getBranchDiagnostic(undefined, branchResult.error)}`,
       );
-      throw failure;
+      throw new BranchResolutionFailure(branchResult);
     }
 
     targetBranch = branchResult.kbBranch;

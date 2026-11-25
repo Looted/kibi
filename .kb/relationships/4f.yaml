@@ -451,3 +451,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0ba0c9cd849
+  - type: relates_to
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:08:55.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05fa0fa41898
+  - type: constrains
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: FACT-SUBJ-kibi-branch-attachment-outside-git
+    created_at: 2026-11-25T09:08:55.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-343e72da28c2
+  - type: requires_property
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: FACT-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:09:23.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54cd842bbd17
+  - type: specified_by
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: SCEN-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:08.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83da933e4220
+  - type: specified_by
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: SCEN-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:08.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3db917bdc1c8

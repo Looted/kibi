@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   BranchResolutionFailure,
+  GitRequired,
   InputError,
   KbRejection,
   OperationError,
@@ -192,26 +193,23 @@ describe("isKbRejection", () => {
 });
 
 describe("BranchResolutionFailure", () => {
-  const STANDALONE =
-    "To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.";
-
-  test("outside a repository it says to run git init, with a code", () => {
+  test("a repository Git refuses says how to find out why, with a code", () => {
     const failure = new BranchResolutionFailure({
-      error: "Branch Resolution Failed ...",
-      code: "NOT_A_GIT_REPO",
+      error: "Git refuses the repository.",
+      code: "GIT_REPOSITORY_UNREADABLE",
     });
     expect(failure).toBeInstanceOf(OperationError);
     // The name stays OperationError, so a bundled copy is still read.
     expect(failure.name).toBe("OperationError");
-    expect(failure.code).toBe("NOT_A_GIT_REPOSITORY");
+    expect(failure.code).toBe("GIT_REPOSITORY_UNREADABLE");
     expect(failure.retryable).toBe(false);
     expect(failure.exitCode).toBe(1);
     expect(failure.message).toBe(
-      `Failed to resolve active branch: this directory is not inside a Git repository, and Kibi keeps its knowledge per Git branch. Run 'git init' here (or run Kibi from inside the repository), then retry. ${STANDALONE}`,
+      "Failed to resolve active branch: Git refuses the repository. Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.",
     );
     expect(failure.detail).toBe(failure.message);
     expect(codedErrorOf(failure)).toStrictEqual({
-      code: "NOT_A_GIT_REPOSITORY",
+      code: "GIT_REPOSITORY_UNREADABLE",
       message: failure.message,
       retryable: false,
     });
@@ -219,12 +217,12 @@ describe("BranchResolutionFailure", () => {
 
   test("without Git it says to install Git", () => {
     const failure = new BranchResolutionFailure({
-      error: "Branch Resolution Failed ...",
+      error: "Git is unavailable.",
       code: "GIT_NOT_AVAILABLE",
     });
     expect(failure.code).toBe("GIT_NOT_AVAILABLE");
     expect(failure.message).toBe(
-      `Failed to resolve active branch: Git is not installed or not on PATH, and Kibi keeps its knowledge per Git branch. Install Git, then retry. ${STANDALONE}`,
+      "Failed to resolve active branch: Git is unavailable. Install Git (or put it on PATH), then retry.",
     );
   });
 
@@ -249,5 +247,17 @@ describe("BranchResolutionFailure", () => {
         "Failed to resolve active branch: why",
       ]);
     }
+  });
+});
+
+describe("GitRequired", () => {
+  test("is a coded refusal that is not retryable", () => {
+    const failure = new GitRequired("kibi gc needs a Git repository.");
+    expect(failure).toBeInstanceOf(OperationError);
+    expect(codedErrorOf(failure)).toStrictEqual({
+      code: "GIT_REQUIRED",
+      message: "kibi gc needs a Git repository.",
+      retryable: false,
+    });
   });
 });

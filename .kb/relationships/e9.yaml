@@ -503,3 +503,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d05a3fb1df09
+  - type: implements
+    from: SYM-pending-receipt-binding
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:30.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00936036c374
+  - type: covered_by
+    from: SYM-pending-receipt-binding
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:30.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d76d6a74832a
+  - type: executable_for
+    from: SYM-test-kibi-cli-failure-categories
+    to: TEST-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:08.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2611b45cf75

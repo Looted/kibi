@@ -24,6 +24,7 @@ import {
   canonicalJson,
 } from "../../traceability/impact-review.js";
 import { readSnapshotKnowledge } from "../../traceability/snapshot-knowledge.js";
+import { assertGitWorkspace } from "../../vcs/git-boundary.js";
 import type { OperationContext } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 
@@ -563,6 +564,11 @@ export async function executePrepareImpactReview(
   input: PrepareImpactReviewInput,
   context: OperationContext,
 ): Promise<OperationResult<Record<string, unknown>>> {
+  assertGitWorkspace(
+    context.workspaceRoot,
+    "impact_review",
+    "kb_prepare_impact_review",
+  );
   const { snapshot, prepared, assertUnchanged } = await captureImpactReview(
     input.scope,
     context.workspaceRoot,

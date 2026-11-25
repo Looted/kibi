@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
+import { sessionBriefFor } from "kibi-agent-core/session-brief";
 import { BranchResolutionFailure, OperationError } from "../../cli-errors.js";
 import {
   compilerFingerprintReason,
@@ -54,6 +54,10 @@ import {
   staleStoreWarningNote,
 } from "../../utils/content-freshness.js";
 import { KB_ROOT } from "../../utils/kb-paths.js";
+import {
+  type NoGitRepositoryDiagnostic,
+  noGitRepositoryDiagnostic,
+} from "../../vcs/advisory.js";
 import {
   loadEntities,
   loadSearchCandidates,
@@ -577,7 +581,8 @@ export type StatusPayload = {
       | "exact"
       | "explicit_override"
       | "legacy_compat"
-      | "detached_snapshot";
+      | "detached_snapshot"
+      | "no_git";
     readonly migrationRequired: boolean;
   };
   readonly proofSnapshotChanges?: readonly Record<string, unknown>[];
@@ -1967,7 +1972,16 @@ export async function executeStatus(
       branchStore: store,
       // The session brief every host opens with, for an agent whose host
       // has no Kibi plugin and only calls kb_status.
-      sessionBrief: SESSION_BRIEF,
+      sessionBrief: sessionBriefFor(attachment.noGit !== undefined),
+      // Only a workspace without Git says so: a repository's status is
+      // unchanged.
+      ...(attachment.noGit !== undefined
+        ? {
+            versionControl: (
+              noGitRepositoryDiagnostic(attachment) as NoGitRepositoryDiagnostic
+            ).detail,
+          }
+        : {}),
       ...(notices.length > 0 ? { notices } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,

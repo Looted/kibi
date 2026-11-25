@@ -398,24 +398,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cccaef7d0a7
-  - type: validates
-    from: TEST-kibi-refuse-operation-workspace-outside-any
-    to: SCEN-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:07:03.281Z
+  - type: implements
+    from: SYM-branch-resolver-resolve-active-branch
+    to: REQ-kibi-no-git-workspace-attaches-reserved-store
+    created_at: 2026-11-25T09:16:20.049Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-69f24308cd3b
-  - type: validates
-    from: TEST-kibi-refuse-operation-workspace-outside-any
-    to: REQ-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:07:03.319Z
+    id: rel-9d08f9562afb
+  - type: covered_by
+    from: SYM-branch-resolver-resolve-active-branch
+    to: TEST-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:20.080Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-f4b5024212e2
-  - type: validates
-    from: TEST-kibi-refuse-operation-workspace-outside-any
-    to: SCEN-NEG-kibi-outside-git-unclear-refusal
-    created_at: 2026-11-25T07:12:00.355Z
+    id: rel-603dde55380f
+  - type: implements
+    from: SYM-checkout-hooks-checkout-session-note
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:46.568Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0014a906c913
+    id: rel-89b269cb73ad
+  - type: covered_by
+    from: SYM-checkout-hooks-checkout-session-note
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:46.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f91dddb596a8

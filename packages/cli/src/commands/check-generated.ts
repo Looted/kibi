@@ -11,6 +11,7 @@ import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
 import { KB_PATHS } from "../utils/kb-paths.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 
 const MAX_GIT_OUTPUT = 256 * 1024 * 1024;
@@ -116,6 +117,12 @@ export async function checkGeneratedManifests(
     quiet?: boolean;
   } = {},
 ): Promise<{ exitCode: number }> {
+  const refusal = refuseWithoutGit(
+    process.cwd(),
+    "generated_check",
+    "kibi check-generated",
+  );
+  if (refusal !== null) return refusal;
   const note = (message: string) => {
     if (!options.quiet) console.log(message);
   };

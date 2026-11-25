@@ -307,11 +307,11 @@ describe.serial("session uncovered branch coverage", () => {
     }
   });
 
-  test("refuses a workspace outside Git with a coded instruction", async () => {
+  test("refuses a repository Git cannot read with a coded failure", async () => {
     mockResolveBranchAttachment.mockImplementation(
       (): BranchAttachmentResult => ({
-        error: "Branch Resolution Failed",
-        code: "NOT_A_GIT_REPO",
+        error: "Git refused the repository.",
+        code: "GIT_REPOSITORY_UNREADABLE",
       }),
     );
     mockGetBranchDiagnostic.mockImplementation(
@@ -330,12 +330,11 @@ describe.serial("session uncovered branch coverage", () => {
         (error: unknown) => error as Error & { code?: string },
       );
       // The tool answers this with the CLI JSON route's error envelope.
-      expect(failure?.code).toBe("NOT_A_GIT_REPOSITORY");
-      expect(failure?.message).toContain("Run 'git init' here");
+      expect(failure?.code).toBe("GIT_REPOSITORY_UNREADABLE");
+      expect(failure?.message).toContain("run 'git status' to see why");
       expect(consoleErrorMock).toHaveBeenCalledWith(
-        `[KIBI-MCP] ${failure?.message}`,
+        "[KIBI-MCP] diagnostic for Git refused the repository.",
       );
-      expect(mockGetBranchDiagnostic).not.toHaveBeenCalled();
       expect(mockPrologProcessInstance.start).not.toHaveBeenCalled();
     } finally {
       console.error = originalConsoleError;

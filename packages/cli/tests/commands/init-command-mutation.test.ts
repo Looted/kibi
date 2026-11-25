@@ -18,6 +18,7 @@ import * as branchResolver from "../../src/utils/branch-resolver.js";
 import type { BranchErrorCode } from "../../src/utils/branch-resolver.js";
 import * as config from "../../src/utils/config.js";
 import * as gitContext from "../../src/utils/git-repository-context.js";
+import * as noGitAdoption from "../../src/vcs/no-git-adoption.js";
 import type { GitRepositoryContext } from "../../src/utils/git-repository-context.js";
 import {
   createTempDir,
@@ -269,14 +270,14 @@ describe("initCommand repository checks", () => {
     const root = tempRoot();
     const cases: Array<[BranchErrorCode, string, string]> = [
       [
-        "NOT_A_GIT_REPO",
-        "NOT_A_GIT_REPOSITORY",
-        "this directory is not inside a Git repository, and Kibi keeps its knowledge per Git branch. Run 'git init' here (or run Kibi from inside the repository), then retry. To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.",
+        "GIT_NOT_AVAILABLE",
+        "GIT_NOT_AVAILABLE",
+        "boom. Install Git (or put it on PATH), then retry.",
       ],
       [
-        "GIT_NOT_AVAILABLE",
-        "GIT_NOT_AVAILABLE",
-        "Git is not installed or not on PATH, and Kibi keeps its knowledge per Git branch. Install Git, then retry. To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.",
+        "GIT_REPOSITORY_UNREADABLE",
+        "GIT_REPOSITORY_UNREADABLE",
+        "boom. Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.",
       ],
       ["DETACHED_HEAD", "DETACHED_HEAD", "boom."],
       ["UNBORN_BRANCH", "BRANCH_UNRESOLVED", "boom."],
@@ -382,6 +383,21 @@ describe("initCommand infrastructure", () => {
     expect(errors).toStrictEqual([]);
   });
 
+  test("reports knowledge recorded without Git that the new repository adopted", async () => {
+    const root = tempRoot();
+    track(spyOn(process, "cwd").mockReturnValue(root));
+    resolveTo({ status: "ok", context: context(root) });
+    record(noGitAdoption, "adoptNoGitStore", () => ({
+      branch: "main",
+      files: 2,
+      retiredStorePath: "/retired",
+    }));
+    expect(await initCommand({})).toStrictEqual({ exitCode: 0 });
+    expect(logs).toContain(
+      "✓ Knowledge recorded without Git now belongs to branch 'main' (2 source file(s) sealed for it)",
+    );
+  });
+
   test("falls back to the working directory outside a repository", async () => {
     const root = tempRoot();
     track(spyOn(process, "cwd").mockReturnValue(root));
@@ -391,9 +407,10 @@ describe("initCommand infrastructure", () => {
       [path.join(root, ".kb"), "main"],
     ]);
     expect(named("resolveGitRepository")).toStrictEqual([[root]]);
-    expect(errorLines()).toStrictEqual([
-      "Warning: No git repository found, skipping hooks",
-    ]);
+    expect(errorLines()).toStrictEqual([]);
+    expect(logs).toContain(
+      "- Git hooks: not installed; this directory has no Git repository",
+    );
     expect(named("syncPrepareScript")).toStrictEqual([[root, true]]);
   });
 
@@ -784,7 +801,7 @@ describe("initCommand setup choices", () => {
     expect(logs).toContain(
       "✓ Recorded Kibi setup choices in .kb/setup.json (autoSync: false, prepareHooks: true, agentInstructions: true, ciGate: true)",
     );
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("reportAgentInstructions")).toStrictEqual([["instructions"]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
   });
@@ -800,7 +817,7 @@ describe("initCommand setup choices", () => {
     await initCommand({});
     expect(named("writeSetupChoices")).toStrictEqual([[root, {}]]);
     expect(logs.some((line) => line.startsWith("✓ Recorded"))).toBe(false);
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([]);
   });
 

@@ -517,17 +517,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-948e253c8c87
-  - type: implements
-    from: SYM-cli-errors-branch-resolution-failure
-    to: REQ-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:02:55.612Z
+  - type: relates_to
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:20:03.734Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-c776d768cbdc
-  - type: covered_by
-    from: SYM-cli-errors-branch-resolution-failure
-    to: TEST-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:07:17.580Z
+    id: rel-843b415f3574
+  - type: constrains
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: FACT-SUBJ-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:03.775Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-294c6997bbbc
+    id: rel-4f3484ef0f69
+  - type: requires_property
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: FACT-kibi-no-git-advisory-mcp-session-advised-other-result-count
+    created_at: 2026-11-25T09:20:14.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-495855497b83
+  - type: specified_by
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: SCEN-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:15.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce820eee9f50
+  - type: specified_by
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: SCEN-NEG-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:15.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ebf580c42b

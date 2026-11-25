@@ -10,6 +10,7 @@ import {
 } from "../src/cli-protocol.js";
 import { EngineQueryLimitError } from "../src/engine-limits.js";
 import * as telemetry from "../src/usage-telemetry.js";
+import * as adoption from "../src/vcs/no-git-adoption.js";
 
 function context(overrides: Partial<CliContext> = {}): CliContext {
   return {
@@ -265,6 +266,101 @@ describe("executeOperation", () => {
     ]);
   });
 
+  test("outside Git, status and check carry the advisory and other operations do not", async () => {
+    stubSpec({ execute: async () => ({}) });
+    const noGitContext = context({
+      branchAttachment: {
+        kbBranch: "kibi-internal/no-git",
+        storePath: "/s",
+        noGit: {
+          reason: "not_a_repository",
+          explicitOverride: false,
+          notice: "No Git repository.",
+        },
+      },
+    } as unknown as Partial<CliContext>);
+    const status = json(
+      (await executeOperation("kb_status", {}, noGitContext)).stdout,
+    );
+    expect(status.status).toBe("success");
+    expect(status.diagnostics).toMatchObject([
+      {
+        code: "no_git_repository",
+        severity: "warning",
+        message: "No Git repository.",
+        detail: { kbBranch: "kibi-internal/no-git", storePath: "/s" },
+      },
+    ]);
+    stubSpec({
+      name: "kb_search",
+      cliName: "search",
+      execute: async () => ({}),
+    });
+    const search = json(
+      (await executeOperation("kb_search", {}, noGitContext)).stdout,
+    );
+    expect(search.status).toBe("success");
+    expect(search.diagnostics).toStrictEqual([]);
+  });
+
+  test("a status that resolved its own attachment carries the advisory from its versionControl", async () => {
+    const detail = {
+      versionControl: "none",
+      reason: "git_unavailable",
+      kbBranch: "main",
+      storePath: "/s",
+      unavailable: [],
+      alternative: "kibi check",
+      suggestion: "git init && kibi init",
+    };
+    stubSpec({ execute: async () => ({ versionControl: detail }) });
+    const status = json(
+      (await executeOperation("kb_status", {}, context())).stdout,
+    );
+    expect(status.diagnostics).toHaveLength(1);
+    expect(status.diagnostics[0]).toMatchObject({
+      code: "no_git_repository",
+      detail,
+    });
+    expect(String(status.diagnostics[0].message)).toStartWith(
+      "Git is not installed (or not on PATH)",
+    );
+    expect(String(status.diagnostics[0].message)).toContain(
+      "KIBI_BRANCH=main selects this store only in processes that set it",
+    );
+  });
+
+  test("the store adopted after git init is reported on the next result", async () => {
+    stubSpec({ execute: async () => ({}) });
+    const take = spyOn(adoption, "takeNoGitAdoption").mockReturnValueOnce({
+      branch: "main",
+      files: 2,
+      retiredStorePath: "/r",
+      notice: "Adopted.",
+    });
+    try {
+      const result = json(
+        (await executeOperation("kb_status", {}, context())).stdout,
+      );
+      expect(take).toHaveBeenCalledTimes(1);
+      expect(result.diagnostics).toStrictEqual([
+        {
+          code: "no_git_store_adopted",
+          severity: "info",
+          message: "Adopted.",
+          detail: {
+            branch: "main",
+            files: 2,
+            retiredStorePath: "/r",
+            next: "kibi init",
+          },
+        },
+      ]);
+    } finally {
+      take.mockRestore();
+    }
+  });
+
   test("thrown errors become error envelopes", async () => {
     const cases: Array<[unknown, number, Record<string, unknown>]> = [
       [
@@ -394,17 +490,17 @@ describe("openFailureResult", () => {
   test("keeps the code of a coded refusal", () => {
     const spec = { name: "kb_upsert", effects: ["kb-write" as never] };
     const failure = new BranchResolutionFailure({
-      error: "not a git repository",
-      code: "NOT_A_GIT_REPO",
+      error: "Git refused the repository.",
+      code: "GIT_REPOSITORY_UNREADABLE",
     });
     const result = openFailureResult("kb_upsert", spec, failure);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toBe(envelopeErrorLine("NOT_A_GIT_REPOSITORY"));
+    expect(result.stderr).toBe(envelopeErrorLine("GIT_REPOSITORY_UNREADABLE"));
     expect(json(result.stdout)).toStrictEqual(
       errorEnvelope(
         "kb_upsert",
         {
-          code: "NOT_A_GIT_REPOSITORY",
+          code: "GIT_REPOSITORY_UNREADABLE",
           message: failure.message,
           retryable: false,
         },
