@@ -78,9 +78,13 @@ describe("kibi-zcode hooks.json", () => {
     for (const [event, entries] of Object.entries(config.hooks ?? {})) {
       for (const entry of entries) {
         for (const hook of entry.hooks ?? []) {
-          const match =
-            /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(hook.command ?? "");
-          expect(match, `unexpected ${event} hook command: ${hook.command}`).toBeTruthy();
+          const match = /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(
+            hook.command ?? "",
+          );
+          expect(
+            match,
+            `unexpected ${event} hook command: ${hook.command}`,
+          ).toBeTruthy();
           const relative = match?.[1] ?? "";
           expect(
             fs.existsSync(path.join(packageRoot, relative)),
@@ -116,19 +120,25 @@ describe("kibi-zcode hooks.json", () => {
     }
   });
 
-  test("PreToolUse targets edit-like tools and Kibi MCP tools only", () => {
+  test("PreToolUse targets edit-like, read, search and shell tools and Kibi MCP tools only", () => {
     const preToolUse = config.hooks?.PreToolUse ?? [];
     expect(preToolUse).toHaveLength(1);
     const matcher = preToolUse[0]?.matcher;
     // ZCode tests a matcher against the whole tool name as a regular
     // expression, so the alternatives are anchored: unanchored, `Write` also
     // matched `TodoWrite` and started the hook runner for it.
-    expect(matcher).toBe("^(Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*)$");
+    expect(matcher).toBe(
+      "^(Edit|MultiEdit|Write|apply_patch|Read|Grep|Bash|mcp__.*__kb_.*)$",
+    );
     for (const tool of [
       "Edit",
       "MultiEdit",
       "Write",
       "apply_patch",
+      // Reads, searches and shell calls get the rows of the code in view.
+      "Read",
+      "Grep",
+      "Bash",
       // Kibi MCP calls get the session workspace stamped when they name none.
       "mcp__kibi__kb_search",
       "mcp__plugin_kibi__kb_check",
@@ -137,8 +147,6 @@ describe("kibi-zcode hooks.json", () => {
       expect(new RegExp(matcher as string).test(tool)).toBe(true);
     }
     for (const tool of [
-      "Read",
-      "Bash",
       "Agent",
       "edit",
       // A tool whose name merely ends in an edit tool's name.

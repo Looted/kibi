@@ -447,6 +447,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4372ac3c3d6b
+  - type: implements
+    from: SYM-bash-command-read-text
+    to: REQ-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:45:47.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b099ee54e7
+  - type: covered_by
+    from: SYM-bash-command-read-text
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:45:47.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93ad85193bb0
+  - type: implements
+    from: SYM-bash-command-read-text
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:45:53.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e915e93823b0
   - type: relates_to
     from: REQ-kibi-no-git-telemetry-outcome
     to: ADR-kibi-workspaces-without-git

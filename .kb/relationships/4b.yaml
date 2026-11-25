@@ -503,3 +503,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0e4e5591bbc
+  - type: executable_for
+    from: SYM-test-agent-hooks-read-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:26:44.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2017101b1e4a
+  - type: implements
+    from: SYM-guard-read-rows-note
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:19.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31ba01523c52
+  - type: covered_by
+    from: SYM-guard-read-rows-note
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:19.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b7a5fa3fbb1

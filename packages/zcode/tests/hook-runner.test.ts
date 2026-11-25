@@ -1724,9 +1724,7 @@ describe("ZCode pre-edit knowledge", () => {
     const context = expectAdditionalContext(await shellEdit(), "PreToolUse");
     expect(context).toContain("src/checkout.ts");
     expect(context).toContain("REQ-checkout-rounding");
-    expect(context).not.toContain(
-      path.join(fixture.cwd, "src/checkout.ts"),
-    );
+    expect(context).not.toContain(path.join(fixture.cwd, "src/checkout.ts"));
     // The firm notice is shown once per requirement per session.
     expectQuiet(await shellEdit());
   });
@@ -1884,6 +1882,13 @@ describe("ZCode decision guard", () => {
       tool_name: "Bash",
       tool_input: { command },
     });
+    // A shell read names the requirement of the code in view, once.
+    expect(
+      expectAdditionalContext(
+        await event(shell("cat src/checkout.ts")),
+        "PreToolUse",
+      ),
+    ).toContain("- REQ-checkout-rounding [firm: ask before changing]");
     expect(await event(shell("cat src/checkout.ts"))).toEqual({
       continue: true,
     });
@@ -2413,6 +2418,7 @@ describe("ZCode hook runner exact decisions", () => {
     expect(await edit({ file_path: "src/other.ts" })).toStrictEqual({
       continue: true,
     });
+    // The edit snippet already named the file's requirement.
     expect(await edit({ file_path: "src/checkout.ts" }, "Read")).toStrictEqual({
       continue: true,
     });
@@ -2796,5 +2802,54 @@ describe("ZCode hook runner exact decisions", () => {
     expect(starts).toBe(1);
     expect(isInvokedAsCli(undefined, "")).toBe(false);
     expect(isInvokedAsCli("", "")).toBe(false);
+  });
+});
+
+describe("ZCode read, search and shell rows", () => {
+  const ROW = "- REQ-checkout-rounding [firm: ask before changing]";
+  const call = (
+    fixture: ReturnType<typeof linkedWorkspace>,
+    tool_name: string,
+    tool_input: Record<string, unknown>,
+  ) =>
+    runHook(
+      {
+        session_id: "rows",
+        cwd: fixture.cwd,
+        hook_event_name: "PreToolUse",
+        tool_name,
+        tool_input,
+      },
+      { pluginData: fixture.pluginData, env: {} },
+    );
+
+  test("a ranged Read names the requirement of the symbol in view", async () => {
+    const fixture = linkedWorkspace();
+    const read = (input: Record<string, unknown>) =>
+      call(fixture, "Read", { file_path: "src/checkout.ts", ...input });
+    expect(await read({ offset: 40 })).toStrictEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await read({ offset: 1, limit: 30 }),
+        "PreToolUse",
+      ),
+    ).toContain(ROW);
+    expect(await call(fixture, "Read", {})).toStrictEqual({ continue: true });
+  });
+
+  test("a Grep whose matches fall in a linked symbol names its requirement", async () => {
+    const fixture = linkedWorkspace();
+    expect(
+      await call(fixture, "Grep", { pattern: "return", glob: "*.js" }),
+    ).toStrictEqual({ continue: true });
+    expect(
+      await call(fixture, "Grep", { pattern: "return", path: "nowhere" }),
+    ).toStrictEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await call(fixture, "Grep", { pattern: "RETURN", "-i": true }),
+        "PreToolUse",
+      ),
+    ).toContain(ROW);
   });
 });
