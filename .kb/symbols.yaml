@@ -2156,10 +2156,14 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-kibi-refuse-operation-workspace-outside-any
       - type: implements
         target: REQ-cli-init
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-refuse-operation-workspace-outside-any
   - id: SYM-cli-github-scaffold
     title: scaffoldGitHubIntegration
     status: active
@@ -49155,3 +49159,41 @@ symbols:
         target: TEST-search-answer-first-layer
       - type: implements
         target: REQ-kb-search-close-matches-candidates
+  - id: SYM-cli-errors-branch-resolution-failure
+    title: BranchResolutionFailure
+    sourceFile: packages/cli/src/cli-errors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T07:02:54.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-refuse-operation-workspace-outside-any
+      - type: implements
+        target: REQ-kibi-refuse-operation-workspace-outside-any
+  - id: SYM-test-kibi-outside-git-consumer
+    title: Outside-Git consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/outside-git.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T07:07:22.744Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-refuse-operation-workspace-outside-any
+  - id: SYM-cli-protocol-open-failure-result
+    title: openFailureResult
+    sourceFile: packages/cli/src/cli-protocol.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T07:50:12.820Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-refuse-operation-workspace-outside-any
+      - type: implements
+        target: REQ-kibi-refuse-operation-workspace-outside-any

@@ -239,7 +239,13 @@ A write that names a dependency is refused: MCP tools without a `kb` input fail 
 
 ## Write refused on a detached HEAD
 
-`<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+`<operation> writes the branch KB, but HEAD is detached at <sha> ...` (code `DETACHED_HEAD`, not retryable) means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+
+## No Git repository (`NOT_A_GIT_REPOSITORY`, `GIT_NOT_AVAILABLE`, `BRANCH_UNRESOLVED`)
+
+`Failed to resolve active branch: this directory is not inside a Git repository ...` (code `NOT_A_GIT_REPOSITORY`) means Kibi has no branch to attach the knowledge base to. `kibi init` writes nothing in that case, and `kibi status`, the JSON routes and the MCP tools refuse with the same code and `retryable: false`. Run `git init` in the directory (or run Kibi from inside the repository), then rerun `kibi init`. `GIT_NOT_AVAILABLE` means Git is not installed or not on `PATH`: install it, then retry. `DETACHED_HEAD` is the [detached HEAD refusal](#write-refused-on-a-detached-head), and `BRANCH_UNRESOLVED` covers every other case (an unborn or ambiguous branch) and carries the resolver's own diagnostic.
+
+To use Kibi without Git, set `KIBI_BRANCH=<name>`. Nothing in `.kb/` remembers it, so every later Kibi command, Git hook and MCP server in that workspace needs the same value; `kibi init` says so when it runs that way.
 
 ## Plan application journal (`kb_apply_plan`)
 

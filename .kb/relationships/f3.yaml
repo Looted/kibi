@@ -276,3 +276,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a83c0f0c35fd
+  - type: constrains
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: FACT-SUBJ-kibi-branch-attachment-outside-git
+    created_at: 2026-11-25T07:06:26.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c22e8642427
+  - type: requires_property
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: FACT-kibi-outside-git-refusal-code
+    created_at: 2026-11-25T07:06:26.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d44b95ac617
+  - type: requires_property
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: FACT-kibi-outside-git-init-writes-nothing
+    created_at: 2026-11-25T07:06:26.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d42a663a14d
+  - type: relates_to
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: ADR-012
+    created_at: 2026-11-25T07:06:26.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-118d33c7cc11
+  - type: specified_by
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: SCEN-kibi-refuse-operation-workspace-outside-any
+    created_at: 2026-11-25T07:07:00.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49a4e73a9d25
+  - type: specified_by
+    from: REQ-kibi-refuse-operation-workspace-outside-any
+    to: SCEN-NEG-kibi-outside-git-unclear-refusal
+    created_at: 2026-11-25T07:11:57.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06bdf25e94b9

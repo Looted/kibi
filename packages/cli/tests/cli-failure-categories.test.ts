@@ -6,7 +6,7 @@ import path from "node:path";
 import { Command } from "commander";
 
 import { isClosedOutputError } from "../src/cli";
-import { KbRejection } from "../src/cli-errors";
+import { BranchResolutionFailure, KbRejection } from "../src/cli-errors";
 import { executeOperation } from "../src/cli-protocol";
 import {
   missingInputMessage,
@@ -231,6 +231,64 @@ describe("CLI failure categories", () => {
       isClosedOutputError(Object.assign(new Error("x"), { code: "ENOENT" })),
     ).toBe(false);
     expect(isClosedOutputError("EPIPE")).toBe(false);
+  });
+
+  test("init and status outside a Git repository are coded refusals", async () => {
+    const env = telemetryEnv();
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-cli-no-git-"));
+    temporaryRoots.push(cwd);
+    const previousCwd = process.cwd();
+    const previousBranch = process.env.KIBI_BRANCH;
+    const previousCeiling = process.env.GIT_CEILING_DIRECTORIES;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    // The temporary directory must not resolve to a repository above it.
+    process.env.GIT_CEILING_DIRECTORIES = path.dirname(cwd);
+    const errors = spyOn(console, "error").mockImplementation(() => {});
+    const logs = spyOn(console, "log").mockImplementation(() => {});
+    try {
+      process.chdir(cwd);
+      const { initCommand } = await import("../src/commands/init");
+      expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+      // Nothing is written, and the one instruction names git init.
+      expect(fs.readdirSync(cwd)).toEqual([]);
+      expect(String(errors.mock.calls.at(-1)?.[0])).toContain(
+        "Run 'git init' here",
+      );
+      await finish(env, "init", 1);
+      const status = await executeOperation("kb_status", {}, {
+        workspaceRoot: cwd,
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+      } as never);
+      expect(status.exitCode).toBe(1);
+      expect(JSON.parse(status.stdout).error).toMatchObject({
+        code: "NOT_A_GIT_REPOSITORY",
+        retryable: false,
+      });
+      noteCliErrorCategory("NOT_A_GIT_REPOSITORY");
+      await finish(env, "status", 1);
+      await finish(
+        env,
+        "status",
+        1,
+        new BranchResolutionFailure({ error: "x", code: "NOT_A_GIT_REPO" }),
+      );
+    } finally {
+      process.chdir(previousCwd);
+      errors.mockRestore();
+      logs.mockRestore();
+      if (previousBranch === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      else process.env.KIBI_BRANCH = previousBranch;
+      if (previousCeiling === undefined)
+        Reflect.deleteProperty(process.env, "GIT_CEILING_DIRECTORIES");
+      else process.env.GIT_CEILING_DIRECTORIES = previousCeiling;
+    }
+    expect(queuedOutcomes(env)).toEqual([
+      ["rejected", "not_a_git_repository", null],
+      ["rejected", "not_a_git_repository", null],
+      ["rejected", "not_a_git_repository", null],
+    ]);
   });
 
   test("a reader that closes stdout early does not crash the CLI", async () => {

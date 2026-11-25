@@ -1072,7 +1072,7 @@ describe("shared discovery operation executors", () => {
       }
     });
 
-    test("executeStatus reports missing stores and wraps attachment errors", async () => {
+    test("executeStatus reports missing stores and refuses a workspace outside Git", async () => {
       const root = mkdtempSync(path.join(tmpdir(), "kibi-disco-"));
       mkdirSync(path.join(root, ".kb"), { recursive: true });
       try {
@@ -1115,7 +1115,10 @@ describe("shared discovery operation executors", () => {
                 git: undefined,
               }),
             ),
-          ).rejects.toThrow("Status execution failed");
+          ).rejects.toMatchObject({
+            code: "NOT_A_GIT_REPOSITORY",
+            message: expect.stringContaining("Run 'git init' here"),
+          });
         } finally {
           if (originalBranchOverride === undefined) {
             Reflect.deleteProperty(process.env, "KIBI_BRANCH");

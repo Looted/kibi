@@ -203,9 +203,10 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
       workspaceRoot: "/not-a-git-repo",
       prolog: createManagedProlog(events),
     });
-    await expect(runtime.open(readSpec)).rejects.toThrow(
-      /set KIBI_BRANCH explicitly/,
-    );
+    await expect(runtime.open(readSpec)).rejects.toMatchObject({
+      code: "NOT_A_GIT_REPOSITORY",
+      message: expect.stringContaining("Run 'git init' here"),
+    });
     expect(events).toContain("terminate");
   });
 
@@ -272,9 +273,10 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
       workspaceRoot: "/missing-git",
       prolog: createManagedProlog(events),
     });
-    await expect(runtime.open(readSpec)).rejects.toThrow(
-      /set KIBI_BRANCH explicitly/,
-    );
+    await expect(runtime.open(readSpec)).rejects.toMatchObject({
+      code: "GIT_NOT_AVAILABLE",
+      message: expect.stringContaining("Install Git, then retry"),
+    });
     expect(events).toContain("terminate");
   });
 

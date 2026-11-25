@@ -19,9 +19,11 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { BranchResolutionFailure } from "../cli-errors.js";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { readLegacyKbConfig } from "../utils/config.js";
 import {
@@ -290,15 +292,11 @@ export async function initCommand(
   const result = resolveBranchAttachment(projectRoot);
 
   if ("error" in result) {
-    const isNonGitError =
-      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
-
-    console.error("Error: Failed to resolve the active git branch.");
-    console.error(
-      isNonGitError
-        ? `${result.error} Set KIBI_BRANCH explicitly for a standalone workspace.`
-        : result.error,
-    );
+    // Nothing is written: a workspace without a branch is refused with a
+    // coded reason (recorded for telemetry) and one instruction to follow.
+    const failure = new BranchResolutionFailure(result);
+    noteCliErrorCategory(failure.code);
+    console.error(`Error: ${failure.message}`);
     return { exitCode: 1 };
   }
   if (result.migrationRequired) {
@@ -389,6 +387,13 @@ export async function initCommand(
     console.log("  No product knowledge was inferred or changed by kibi init.");
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
+    }
+    if (repoContext === null) {
+      // KIBI_BRANCH stood in for Git on this run only: nothing in .kb/
+      // remembers it, so the next command without it is refused again.
+      console.log(
+        `! No Git repository here: this workspace's knowledge is attached to KIBI_BRANCH=${currentBranch} for this run only. Set the same KIBI_BRANCH for every later Kibi command, Git hook and MCP server, or run 'git init' and then 'kibi init' again.`,
+      );
     }
     console.log(
       legacyConfig
