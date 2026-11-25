@@ -377,6 +377,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28dbb8e3675d
+  - type: covered_by
+    from: SYM-hook-runner-run-hook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:13.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0dfa98ec98
   - type: assumes
     from: SCEN-kibi-init-level-choice
     to: FACT-PROP-kibi-init-level-choice-c01

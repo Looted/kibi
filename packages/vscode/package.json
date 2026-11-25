@@ -110,15 +110,12 @@
         }
       ]
     },
-    "mcp": {
-      "servers": {
-        "kibi": {
-          "command": "bun",
-          "args": ["${config:kibi.mcp.serverPath}"],
-          "env": {}
-        }
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "kibi.mcpProvider",
+        "label": "Kibi"
       }
-    }
+    ]
   },
   "scripts": {
     "build": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",

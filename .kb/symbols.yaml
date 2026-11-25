@@ -3252,6 +3252,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cursor-canonical-manifest
@@ -14158,6 +14160,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
@@ -18886,6 +18890,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -19126,7 +19132,7 @@ symbols:
       - type: executable_for
         target: TEST-claude-code-kibi-plugin-v1
   - id: SYM-claude-case-read-snippet-once
-    title: A linked file shows requirement titles, symbols, tests, and next calls once
+    title: A linked file shows one row per current requirement, once
     status: active
     sourceFile: packages/claude/tests/hook-runner.test.ts
     symbol_role: behavioral
@@ -43615,6 +43621,8 @@ symbols:
       recorded_at: 2026-11-16T17:00:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-session-brief
       - type: implements
         target: REQ-session-brief-on-every-surface
@@ -47871,6 +47879,8 @@ symbols:
       recorded_at: 2026-11-22T05:06:51.056Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-antigravity-plugin
       - type: implements
         target: REQ-antigravity-hook-lifecycle-and-scoping
@@ -49222,6 +49232,114 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cla-workflow-contract
+  - id: SYM-mcp-resolve-kibi-mcp-server-command
+    title: resolveKibiMcpServerCommand
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:51:25.682Z
+    relationships:
+      - type: covered_by
+        target: TEST-vs-code-extension-register-kibi-mcp
+      - type: implements
+        target: REQ-vscode-mcp-server-provider
+  - id: SYM-mcp-register-mcp-server-provider
+    title: registerMcpServerProvider
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:51:27.726Z
+    relationships:
+      - type: covered_by
+        target: TEST-vs-code-extension-register-kibi-mcp
+      - type: implements
+        target: REQ-vscode-mcp-server-provider
+  - id: SYM-mcp-mcp-deps
+    title: McpDeps
+    status: active
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:11.672Z
+  - id: SYM-mcp-resolved-mcp-server-command
+    title: ResolvedMcpServerCommand
+    status: active
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:15.150Z
+  - id: SYM-extension-ids-kibi-mcp-provider-id
+    title: KIBI_MCP_PROVIDER_ID
+    status: active
+    sourceFile: packages/vscode/src/extensionIds.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:18.619Z
+  - id: SYM-extension-ids-kibi-mcp-provider-label
+    title: KIBI_MCP_PROVIDER_LABEL
+    status: active
+    sourceFile: packages/vscode/src/extensionIds.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:22.016Z
+  - id: SYM-vscode-mock-vscode-mock-overrides
+    title: VscodeMockOverrides
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:25.485Z
+  - id: SYM-vscode-mock-default-mcp-stdio-server-definition-cwd
+    title: DefaultMcpStdioServerDefinition.cwd
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:31.268Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-mock-reset-vscode-mock
+    title: resetVscodeMock
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:34.884Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-mock-default-mcp-stdio-server-definition
+    title: DefaultMcpStdioServerDefinition
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:53:11.777Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-test-vscode-mcp-provider
+    title: packages/vscode/tests/activation/mcp.test.ts
+    status: active
+    sourceFile: packages/vscode/tests/activation/mcp.test.ts
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:53:17.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-vs-code-extension-register-kibi-mcp
   - id: SYM-test-kibi-outside-git-consumer
     title: Outside-Git consumer suite
     status: active
@@ -49832,6 +49950,868 @@ symbols:
         target: TEST-antigravity-plugin
       - type: implements
         target: REQ-antigravity-plugin-package
+  - id: SYM-test-search-decision-retrieval
+    title: Scoped decision retrieval suite
+    status: active
+    sourceFile: packages/agent-core/tests/retrieval.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:34.112Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-decision-retrieval
+  - id: SYM-retrieval-build-retrieval-index
+    title: buildRetrievalIndex
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:00.963Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-scope
+  - id: SYM-retrieval-retrieve
+    title: retrieve
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:07.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+      - type: implements
+        target: REQ-search-scope-candidates
+  - id: SYM-retrieval-format-card-line
+    title: formatCardLine
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:21.714Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-card-line
+  - id: SYM-retrieval-retrieval-entity
+    title: RetrievalEntity
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:52.294Z
+  - id: SYM-retrieval-retrieval-edge
+    title: RetrievalEdge
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:56.154Z
+  - id: SYM-retrieval-retrieval-scope
+    title: RetrievalScope
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:59.220Z
+  - id: SYM-retrieval-decision-card-data
+    title: DecisionCardData
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:02.328Z
+  - id: SYM-retrieval-retrieval-index
+    title: RetrievalIndex
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:05.519Z
+  - id: SYM-retrieval-index-format
+    title: INDEX_FORMAT
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:08.928Z
+  - id: SYM-retrieval-build-retrieval-index-options
+    title: BuildRetrievalIndexOptions
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:12.360Z
+  - id: SYM-retrieval-retrieval-edit
+    title: RetrievalEdit
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:16.149Z
+  - id: SYM-retrieval-retrieval-context
+    title: RetrievalContext
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:19.537Z
+  - id: SYM-retrieval-decision-card
+    title: DecisionCard
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:22.660Z
+  - id: SYM-retrieval-retrieval-result
+    title: RetrievalResult
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:25.701Z
+  - id: SYM-intent-search-normalize
+    title: normalize
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:48:21.494Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-intent-search-tokenizer-sources
+    title: tokenizerSources
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:07.475Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-baseline-retriever
+    title: Retriever
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:05.961Z
+  - id: SYM-baseline-retriever-run
+    title: RetrieverRun
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:09.338Z
+  - id: SYM-baseline-kibi-search-baseline
+    title: kibiSearchBaseline
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:12.862Z
+  - id: SYM-baseline-edit-hook-baseline
+    title: editHookBaseline
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:16.373Z
+  - id: SYM-cards-cards-options
+    title: CardsOptions
+    status: active
+    sourceFile: scripts/retrieval-eval/cards.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:20.420Z
+  - id: SYM-cases-edit
+    title: Edit
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:23.905Z
+  - id: SYM-cases-replay-case
+    title: ReplayCase
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:28.143Z
+  - id: SYM-metrics-case-result
+    title: CaseResult
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:31.671Z
+  - id: SYM-metrics-summary
+    title: Summary
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:35.244Z
+  - id: SYM-store-store-entity
+    title: StoreEntity
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:38.950Z
+  - id: SYM-store-store-edge
+    title: StoreEdge
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:42.240Z
+  - id: SYM-store-store
+    title: Store
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:45.401Z
+  - id: SYM-retrieval-tokens-singular
+    title: singular
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:48.935Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-stem
+    title: stem
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:52.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-words
+    title: words
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:55.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-is-stop-token
+    title: isStopToken
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:58.137Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-signal-tokens
+    title: signalTokens
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:01.193Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-test-retrieval-replay-harness
+    title: Retrieval replay harness suite
+    status: active
+    sourceFile: scripts/tests/retrieval-eval.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:57:14.437Z
+    relationships:
+      - type: executable_for
+        target: TEST-retrieval-replay-harness
+  - id: SYM-retrieval-eval-cards-retriever
+    title: cardsRetriever
+    status: active
+    sourceFile: scripts/retrieval-eval/cards.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:45.288Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-replay-cases
+    title: replayCases
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:48.790Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-rank-of
+    title: rankOf
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:52.209Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-summarize
+    title: summarize
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:55.317Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-format-summary
+    title: formatSummary
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:58.518Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-scale-store
+    title: scaleStore
+    status: active
+    sourceFile: scripts/retrieval-eval/scale.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:15:01.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-load-store
+    title: loadStore
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:15:05.124Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-test-agent-hooks-read-rows
+    title: Read and search rows suite
+    status: active
+    sourceFile: packages/agent-core/tests/read-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:26:44.158Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hooks-read-rows
+  - id: SYM-read-context-read-context
+    title: readContext
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:26.182Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-row-budgets
+      - type: implements
+        target: REQ-hook-read-rows-in-view
+  - id: SYM-read-context-resolve-read-views
+    title: resolveReadViews
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:27.244Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-in-view
+  - id: SYM-bash-command-command-read-views
+    title: commandReadViews
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:50.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-bash-command-shell-tool-read-views
+    title: shellToolReadViews
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:51.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-read-context-search-tool-read
+    title: searchToolRead
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:08.564Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-matching-lines
+    title: matchingLines
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:09.663Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-hook-read-rows
+    title: hookReadRows
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:09.314Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-row-budgets
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-decision-hooks-tool-reads
+    title: toolReads
+    sourceFile: packages/opencode/src/decision-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:30:17.104Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-guard-read-rows-note
+    title: readRowsNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:30:18.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-bash-command-shell-tool-command
+    title: shellToolCommand
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:45.376Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
+        target: TEST-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-bash-command-read-text
+    title: readText
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:46.632Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-grep-reg-exp
+    title: grepRegExp
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:50.819Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-glob-filter
+    title: globFilter
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:51.970Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-bash-command-shell-line-range
+    title: ShellLineRange
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:05.414Z
+  - id: SYM-bash-command-shell-grep
+    title: ShellGrep
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:07.703Z
+  - id: SYM-bash-command-shell-read
+    title: ShellRead
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:09.807Z
+  - id: SYM-read-context-max-rows-per-event
+    title: MAX_ROWS_PER_EVENT
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:12.048Z
+  - id: SYM-read-context-max-whole-file-rows
+    title: MAX_WHOLE_FILE_ROWS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:14.408Z
+  - id: SYM-read-context-max-event-chars
+    title: MAX_EVENT_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:16.781Z
+  - id: SYM-read-context-max-whole-file-event-chars
+    title: MAX_WHOLE_FILE_EVENT_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:19.039Z
+  - id: SYM-read-context-max-session-rows
+    title: MAX_SESSION_ROWS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:21.250Z
+  - id: SYM-read-context-max-session-chars
+    title: MAX_SESSION_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:23.464Z
+  - id: SYM-read-context-max-search-requirements
+    title: MAX_SEARCH_REQUIREMENTS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:25.647Z
+  - id: SYM-read-context-read-view
+    title: ReadView
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:28.056Z
+  - id: SYM-read-context-read-context-input
+    title: ReadContextInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:30.339Z
+  - id: SYM-read-context-resolve-input
+    title: ResolveInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:35.243Z
+  - id: SYM-read-context-hook-rows-input
+    title: HookRowsInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:37.636Z
+  - id: SYM-read-context-read-context-type
+    title: ReadContext
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:57.115Z
+  - id: SYM-hook-runner-requirement-rows
+    title: requirementRows
+    sourceFile: packages/claude/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:39.645Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-src-hook-runner-requirement-rows
+    title: requirementRows
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:41.050Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-read-rows
+    title: readRows
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:42.056Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-shell-read-rows
+    title: shellReadRows
+    sourceFile: packages/codex/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:43.114Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-src-hook-runner-read-rows
+    title: readRows
+    sourceFile: packages/zcode/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:44.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-spend-search-tip
+    title: spendSearchTip
+    sourceFile: packages/claude/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:48.069Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
+  - id: SYM-src-hook-runner-spend-search-tip
+    title: spendSearchTip
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:49.383Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
+  - id: SYM-read-context-busy-line
+    title: busyLine
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:53.433Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-busy-file-ids
   - id: SYM-test-kibi-check-rule-selection-by-level
     title: Rule selection by level suite
     status: active

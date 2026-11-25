@@ -94,6 +94,7 @@ describe("kibi-codex local marketplace fixture", () => {
           ".codex-plugin/plugin.json",
           "plugins/kibi-codex/.codex-plugin/plugin.json",
         ],
+        ["assets", "plugins/kibi-codex/assets"],
         [".mcp.json", "plugins/kibi-codex/.mcp.json"],
         ["hooks/hooks.json", "plugins/kibi-codex/hooks/hooks.json"],
         ["skills", "plugins/kibi-codex/skills"],
@@ -169,6 +170,9 @@ describe("kibi-codex local marketplace fixture", () => {
     expect(
       fs.existsSync(path.join(pluginRoot, ".codex-plugin", "plugin.json")),
     ).toBe(true);
+    expect(fs.existsSync(path.join(pluginRoot, "assets", "logo.png"))).toBe(
+      true,
+    );
     expect(fs.existsSync(path.join(pluginRoot, ".mcp.json"))).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "hooks", "hooks.json"))).toBe(
       true,

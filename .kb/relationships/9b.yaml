@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-673e537101da
+  - type: implements
+    from: SYM-retrieval-eval-rank-of
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:14:53.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-508019e3e4bd
+  - type: covered_by
+    from: SYM-retrieval-eval-rank-of
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:14:53.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9284f4ef23a

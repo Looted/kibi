@@ -4,10 +4,10 @@
   "sourceFile": "packages/zcode/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "The hooks still invoke the tracked bin/hook-runner.mjs, rebuilt from this source; the guard now also reads paths inside apply_patch text.",
+  "note": "The hooks still invoke the tracked bin/hook-runner.mjs, rebuilt from this source; only the PreToolUse matcher gained Read, Grep and Bash.",
   "statementHash": "sha256:31f1666c85438febbff1b19c790d778d29c56bac8b5c71b81ae80714a9b93913",
-  "codeHash": "sha256:bc8f38161722a038357449d31d4b3dddd8391f4e2aced2d591c83bdfe3d20157",
+  "codeHash": "sha256:a2b6684ee287e24c52c8efebfe02b895e13028d4e2ec186779bbddf6ab3a3216",
   "startLine": 1,
-  "endLine": 811,
-  "recordedAt": "2026-11-25T18:15:29.464Z"
+  "endLine": 849,
+  "recordedAt": "2026-11-25T14:41:33.676Z"
 }

@@ -4,10 +4,10 @@
   "sourceFile": "packages/codex/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "Only a comment explaining why a guarded Kibi call is not stamped was added; no path denies a tool call or writes to .kb.",
+  "note": "The new read rows only add context to PreToolUse output; nothing denies a call, and the row ledger lives in the plugin data directory, never under .kb.",
   "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
-  "codeHash": "sha256:6ae94caeb308e7ac44f89eca3a05b8f5f5bdf7e82faf9913a1186bffac8bc03b",
+  "codeHash": "sha256:05b553010575cb36b2b257632597b6ab48f24fd8688d2a0321de432d1c71e9d1",
   "startLine": 1,
-  "endLine": 891,
-  "recordedAt": "2026-11-25T18:15:29.464Z"
+  "endLine": 847,
+  "recordedAt": "2026-11-25T14:41:33.676Z"
 }

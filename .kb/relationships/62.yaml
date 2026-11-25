@@ -580,3 +580,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39348f700f48
+  - type: assumes
+    from: SCEN-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
+    to: FACT-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
+    created_at: 2026-11-25T14:29:35.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9c5693e4c2
+  - type: verified_by
+    from: SCEN-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:29:35.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1983da860782

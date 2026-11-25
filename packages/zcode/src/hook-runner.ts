@@ -2,7 +2,11 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
+import {
+  type ShellRead,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
 import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -50,6 +54,11 @@ import {
   guardedChangeOf,
 } from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import {
   claimSnippetSlot,
   createEntitySummarizer,
@@ -237,6 +246,82 @@ function noEditPaths(): string[] {
   // pipeline drops paths the meaningful-path policy rejects.
   // Stryker disable next-line ArrayDeclaration
   return [];
+}
+
+/** Read window of a Read call; undefined when the whole file is read. */
+function readWindow(fields: Record<string, unknown>) {
+  const offset = typeof fields.offset === "number" ? fields.offset : undefined;
+  const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+  if (offset === undefined && limit === undefined) return undefined;
+  const start = Math.max(1, offset ?? 1);
+  return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
+}
+
+/**
+ * What a Read, Grep or shell call puts in view: a Read's file and window, a
+ * Grep's pattern over its path (limited by its glob), a command's files and
+ * searches.
+ */
+function toolReads(
+  input: ReturnType<typeof parseHookInput>,
+  cwd: string,
+): { reads: ShellRead[]; admits?: (relativePath: string) => boolean } {
+  const fields = (input.toolInput ?? {}) as Record<string, unknown>;
+  if (input.toolName === "Read") {
+    const file = fields.file_path;
+    if (typeof file !== "string") return { reads: [] };
+    const focus = readWindow(fields);
+    return {
+      reads: [
+        {
+          absolute: path.resolve(cwd, file),
+          directory: false,
+          ...(focus ? { focus } : {}),
+        },
+      ],
+    };
+  }
+  if (input.toolName === "Grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd,
+      ignoreCase: fields["-i"] === true,
+    });
+    const glob = typeof fields.glob === "string" ? fields.glob : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...(glob ? { admits: globFilter(glob) } : {}),
+    };
+  }
+  return { reads: shellToolReadViews(input.toolName, input.toolInput, cwd) };
+}
+
+/**
+ * Requirement rows for the code a read, search or shell call puts in view
+ * (see kibi-agent-core/read-context), each requirement once per session.
+ */
+export function readRows(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const { reads, admits } = toolReads(input, input.cwd ?? workspaceRoot);
+  if (reads.length === 0) return undefined;
+  const rows = hookReadRows(reads, {
+    workspaceRoot,
+    files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    admits,
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: input.sessionId,
+  });
+  if (!rows) return undefined;
+  trace.action = "read_snippet";
+  trace.requirementIds = rows.ids;
+  return rows.text;
 }
 
 /**
@@ -563,7 +648,8 @@ export async function runHook(
         try {
           knowledge = isMutatingTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : shellFirmNotice(workspace.root, stateDir, input, env);
+            : (shellFirmNotice(workspace.root, stateDir, input, env) ??
+              readRows(workspace.root, stateDir, input, trace));
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.

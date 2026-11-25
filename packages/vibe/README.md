@@ -145,7 +145,7 @@ root, so sessions started in a subdirectory still match):
 | --- | --- | --- |
 | `kibi-session-context` | `session_start` | summarizes the attached KB (branch, freshness) into the session |
 | `kibi-prompt-context` | `pre_agent` | searches the KB for the prompt and injects the top entities as context |
-| `kibi-file-context` | `post_tool` (`read_file`/`edit`/`write_file`/`search_replace`) | appends the Kibi entities linked to the file just read or written |
+| `kibi-file-context` | `post_tool` (`read_file`/`grep`/`bash`/`edit`/`write_file`/`search_replace`) | after a read, search or shell read, appends the requirements of the code in view (each once per session, a few rows at most); after an edit, the Kibi entities linked to the file |
 
 The hooks also run the decision guard the other Kibi adapters share
 (`src/guard.ts`, bundled with kibi-agent-core into `bin/hooks/kibi-guard.mjs`):
@@ -153,8 +153,9 @@ the session start names missing Kibi git hooks; a prompt that states a rule
 gets the rule note, with the person's reason when the prompt gives one; and
 after an edit of code that implements a firm requirement, the context names
 that requirement once per session and asks the agent to undo an edit that
-breaks it unless the person agrees (Vibe has no pre-tool hook, so the notice
-follows the edit; `KIBI_CONFIRM_FIRM_EDITS=0` turns it off). The first source
+breaks it unless the person agrees (Vibe `pre_tool` hooks cannot inject advisory
+context — only deny or rewrite input — so the notice follows the edit;
+`KIBI_CONFIRM_FIRM_EDITS=0` turns it off). The first source
 edit after a rule prompt gets the rule-capture template. Session markers live
 in a per-user directory in the OS temp dir (`KIBI_VIBE_STATE_DIR` overrides
 it).

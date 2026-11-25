@@ -447,6 +447,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-853b84c31013
+  - type: verified_by
+    from: SCEN-search-collapse-chains-and-twins
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:28:54.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889c48a3a5d4
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-superseded-folds-into-chain-head
+    created_at: 2026-11-25T14:30:37.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3970f9cf5ae5
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-near-identical-folds-unless-firm-or-polarity
+    created_at: 2026-11-25T14:30:37.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b2f3964a81
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-folded-listed-on-card
+    created_at: 2026-11-25T14:30:37.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-283251eddd32
   - type: implements
     from: SYM-kibi-level-read-kibi-level
     to: REQ-kibi-level-setting

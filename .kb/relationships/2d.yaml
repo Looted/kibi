@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-268080876574
+  - type: assumes
+    from: SCEN-NEG-search-decision-scope-unscoped-otherwise-OFF
+    to: FACT-NEG-search-decision-scope-unscoped-otherwise-OFF
+    created_at: 2026-11-25T14:35:18.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d567d94fb659
+  - type: verified_by
+    from: SCEN-NEG-search-decision-scope-unscoped-otherwise-OFF
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:18.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79ee63e822b0

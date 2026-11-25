@@ -9,6 +9,10 @@ import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
+import {
+  type ShellRead,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
 import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -37,7 +41,8 @@ import {
   guardedChangeAfterNotice,
   guardedChangeSince,
 } from "kibi-agent-core/level-guard";
-import { extractEditedPaths } from "kibi-agent-core/path-policy";
+import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
+import { hookReadRows, searchToolRead } from "kibi-agent-core/read-context";
 import { createEntitySummarizer, editFocus } from "kibi-agent-core/snippets";
 
 /** Vibe's file-writing tools, with or without the `file_system.` prefix. */
@@ -72,9 +77,10 @@ export function sessionStateDir(
 }
 
 /**
- * The firm-requirement notice for an edit Vibe has already applied: Vibe has
- * no pre-tool hook, so the agent is told to check the edit against the rule
- * and to undo it, unless the person agrees, when it does not keep the rule.
+ * The firm-requirement notice for an edit Vibe has already applied: Vibe's
+ * `pre_tool` hook can only deny or rewrite input (not inject advisory
+ * context), so the agent is told to check the edit against the rule and undo
+ * it, unless the person agrees, when it does not keep the rule.
  */
 export function firmEditAfterNotice(
   where: string,
@@ -294,4 +300,88 @@ export function postEditNote(
   const capture = claimRuleCaptureTemplate(decision, true);
   if (capture !== undefined) notes.push(capture);
   return notes.length > 0 ? notes.join("\n\n") : undefined;
+}
+
+/** Vibe's tools that put code in view without changing it. */
+const READ_TOOLS = new Set(["read_file", "grep", "bash"]);
+
+export function isReadTool(toolName: string | undefined): boolean {
+  return READ_TOOLS.has(String(toolName ?? "").replace(/^file_system\./, ""));
+}
+
+/**
+ * What a read_file, grep or bash call puts in view: the file and its window
+ * (read_file's offset counts lines from 0), a grep's pattern over its path,
+ * a command's files and searches.
+ */
+export function toolReads(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): ShellRead[] {
+  const tool = String(toolName ?? "").replace(/^file_system\./, "");
+  const fields = asFields(toolInput);
+  if (tool === "read_file") {
+    if (typeof fields.path !== "string") return [];
+    const offset = typeof fields.offset === "number" ? fields.offset : 0;
+    const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+    const start = Math.max(1, offset + 1);
+    const focus =
+      offset > 0 || limit !== undefined
+        ? [
+            {
+              start,
+              end:
+                limit === undefined
+                  ? Number.MAX_SAFE_INTEGER
+                  : start + limit - 1,
+            },
+          ]
+        : undefined;
+    return [
+      {
+        absolute: path.resolve(cwd, fields.path),
+        directory: false,
+        ...(focus ? { focus } : {}),
+      },
+    ];
+  }
+  if (tool === "grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd,
+    });
+    return read ? [read] : [];
+  }
+  return shellToolReadViews("Bash", toolInput, cwd);
+}
+
+/**
+ * post_tool after a read, grep or bash call: requirement rows for the code
+ * it put in view (see kibi-agent-core/read-context), each requirement once
+ * per session, within the per-event and per-session budgets.
+ */
+export function readRowsNote(
+  workspaceRoot: string,
+  payload: unknown,
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  const input = parseHookInput(payload);
+  if (!isReadTool(input.toolName)) return undefined;
+  const reads = toolReads(
+    input.toolName,
+    input.toolInput,
+    input.cwd ?? workspaceRoot,
+  );
+  if (reads.length === 0) return undefined;
+  const decision = session(workspaceRoot, input, env);
+  return hookReadRows(reads, {
+    workspaceRoot,
+    files: loadKnowledgeIndex(workspaceRoot, decision.stateDir).files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir: decision.stateDir,
+    sessionKey: input.sessionId ?? "",
+  })?.text;
 }
