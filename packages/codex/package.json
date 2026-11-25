@@ -14,6 +14,7 @@
   },
   "files": [
     ".codex-plugin",
+    "assets",
     ".mcp.json",
     "hooks",
     "skills",

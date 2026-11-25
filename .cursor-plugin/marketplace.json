@@ -13,7 +13,7 @@
       "name": "kibi-cursor",
       "source": "kibi-cursor",
       "description": "Optional Cursor adapter for Kibi. Prerequisite: project-local kibi-cli, kibi-mcp, kibi-core; SWI-Prolog is bundled on Linux and macOS (see docs/install.md). Bundles MCP config, rules, skills, commands, and advisory hooks.",
-      "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+      "homepage": "https://looted.github.io/kibi/",
       "repository": "https://github.com/Looted/kibi",
       "keywords": [
         "kibi",
@@ -28,7 +28,7 @@
       "name": "kibi-agent-plugin",
       "source": "kibi-agent-plugin",
       "description": "Portable Agent Plugins build of Kibi (agent-plugins.org). Packages Kibi's Agent Skills and MCP server for any client that supports the open standard. Prerequisite: project-local kibi-cli, kibi-mcp, kibi-core; SWI-Prolog is bundled on Linux and macOS (see docs/install.md).",
-      "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+      "homepage": "https://looted.github.io/kibi/",
       "repository": "https://github.com/Looted/kibi",
       "keywords": [
         "kibi",

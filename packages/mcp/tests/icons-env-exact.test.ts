@@ -14,13 +14,12 @@ const LOGO =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308 309"><rect width="308" height="309" rx="64" fill="#1D1E23"/><ellipse cx="113.3" cy="150.9" rx="51.3" ry="51.5" fill="#A2D3F4"/><path d="M228.1 197.8L227.6 165.5H156.5L95.4 165.3V135.1H156.5L227.5 135.1V101.2H252.2V197.8Z" fill="#A2D3F4"/></svg>';
 
 describe("server icon", () => {
-  test("is the dark Kibi mark as an SVG data URL", () => {
+  test("is the Kibi mark as a theme-agnostic SVG data URL", () => {
     expect(KIBI_ICONS).toStrictEqual([
       {
         src: `data:image/svg+xml;base64,${Buffer.from(LOGO, "utf8").toString("base64")}`,
         mimeType: "image/svg+xml",
         sizes: ["any"],
-        theme: "dark",
       },
     ]);
   });

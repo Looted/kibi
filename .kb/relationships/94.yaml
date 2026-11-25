@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6561b18951ea
+  - type: executable_for
+    from: SYM-vscode-mock-default-mcp-stdio-server-definition-cwd
+    to: TEST-vscode-traceability
+    created_at: 2026-11-25T14:52:32.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed95502f14c4

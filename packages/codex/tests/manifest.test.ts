@@ -37,6 +37,7 @@ const hookBundlePath = path.join(packageRoot, "bin", "hook-runner.mjs");
 
 const manifestAssets = [
   path.join(".codex-plugin", "plugin.json"),
+  "assets",
   path.join("hooks", "hooks.json"),
   "skills",
   ".mcp.json",
@@ -57,6 +58,14 @@ describe("kibi-codex plugin manifest", () => {
       skills?: string;
       hooks?: string;
       mcpServers?: string;
+      interface?: {
+        displayName?: string;
+        shortDescription?: string;
+        defaultPrompt?: string[];
+        composerIcon?: string;
+        logo?: string;
+        brandColor?: string;
+      };
     };
 
     expect(manifest.name).toBe("kibi-codex");
@@ -65,6 +74,24 @@ describe("kibi-codex plugin manifest", () => {
     expect(manifest.skills).toBe("./skills/");
     expect(manifest.hooks).toBe("./hooks/hooks.json");
     expect(manifest.mcpServers).toBe("./.mcp.json");
+
+    const ui = manifest.interface;
+    expect(ui?.displayName).toBe("Kibi");
+    expect((ui?.displayName ?? "").length).toBeLessThanOrEqual(30);
+    expect((ui?.shortDescription ?? "").length).toBeGreaterThan(0);
+    expect((ui?.shortDescription ?? "").length).toBeLessThanOrEqual(30);
+    expect(ui?.defaultPrompt?.length).toBeLessThanOrEqual(3);
+    for (const prompt of ui?.defaultPrompt ?? []) {
+      expect(prompt.length).toBeLessThanOrEqual(128);
+    }
+    expect(ui?.logo).toBe("./assets/logo.png");
+    expect(ui?.composerIcon).toBe("./assets/composer-icon.svg");
+    expect(fs.existsSync(path.join(packageRoot, "assets", "logo.png"))).toBe(
+      true,
+    );
+    expect(
+      fs.existsSync(path.join(packageRoot, "assets", "composer-icon.svg")),
+    ).toBe(true);
   });
 
   test("manifests references existing source assets", () => {

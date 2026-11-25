@@ -68,9 +68,10 @@ export function sessionStateDir(
 }
 
 /**
- * The firm-requirement notice for an edit Vibe has already applied: Vibe has
- * no pre-tool hook, so the agent is told to check the edit against the rule
- * and to undo it, unless the person agrees, when it does not keep the rule.
+ * The firm-requirement notice for an edit Vibe has already applied: Vibe's
+ * `pre_tool` hook can only deny or rewrite input (not inject advisory
+ * context), so the agent is told to check the edit against the rule and undo
+ * it, unless the person agrees, when it does not keep the rule.
  */
 export function firmEditAfterNotice(
   where: string,
