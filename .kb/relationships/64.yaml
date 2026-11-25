@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e78a64b450dd
+  - type: implements
+    from: SYM-rule-registry-get-layer-rules
+    to: REQ-kibi-check-rule-layers
+    created_at: 2026-11-25T08:31:08.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d95c7a599c06
+  - type: covered_by
+    from: SYM-rule-registry-get-layer-rules
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:32:04.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bad0581343e9

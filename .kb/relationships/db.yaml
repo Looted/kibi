@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b282ef62b13c
+  - type: executable_for
+    from: SYM-test-kibi-check-rule-layers
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:31:58.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0c86fd1548a

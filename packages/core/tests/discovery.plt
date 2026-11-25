@@ -1404,7 +1404,7 @@ test(evidence_floor_rows_list_unmet_floors) :-
               status: pending_reproof, proofStatus: tested, proofGaps: [], gapDetails: _{}},
             _{id: 'REQ-5', evidenceLevel: asserted, requiredEvidence: tested, requiredEvidenceSource: firmness,
               status: below, proofStatus: missing, proofGaps: [], gapDetails: _{}}
-        ], unapprovedImplemented: []})
+        ]})
     )).
 
 % The staged check asks only about the requirements a commit stages: the
@@ -1434,41 +1434,60 @@ test(evidence_floor_json_scope_evaluates_only_named_requirements) :-
         same(None.rows, [])
     )).
 
-test(evidence_floor_json_lists_requirement_review_rows) :-
+% The rule reads the KB alone: no requirement proof is evaluated, so the
+% rows are the same with or without the verification layer.
+test(unapproved_implemented_json_reads_the_kb_alone) :-
     dsc_kb((
+        Agent = '{"kind":"agent","recorded_at":"2026-01-02T00:00:00Z"}',
         pf_entity(req, 'REQ-U', [status=open, priority=must, created_at='2026-01-01T00:00:00Z',
-                                 source=".kb/requirements/REQ-U.md",
-                                 origin='{"kind":"agent","recorded_at":"2026-01-02T00:00:00Z"}']),
-        Params = snap-'2026-05-02T00:00:00Z'-100-per_contract-_{'T': h},
-        dsc_stub(Params, 'REQ-U', _{evidenceLevel: unverified, proofStatus: missing, proofGaps: [],
-            evidenceFloor: _{required: unverified, source: firmness, status: met},
-            proofStages: _{productionSymbols: _{symbols: ['SYM-B', 'SYM-A']}}}),
-        dsc_json(evidence_floor_json(per_contract, _{'T': h}, snap, '2026-05-02T00:00:00Z', 100), Dict),
-        same(Dict.unapprovedImplemented,
-             [_{id: 'REQ-U', recordedAt: '2026-01-02T00:00:00Z',
-                source: '.kb/requirements/REQ-U.md', symbols: ['SYM-A', 'SYM-B']}])
+                                 source=".kb/requirements/REQ-U.md", origin=Agent]),
+        pf_entity(req, 'REQ-OTHER', [status=open, priority=must, origin=Agent]),
+        pf_entity(symbol, 'SYM-A', []),
+        pf_entity(symbol, 'SYM-B', []),
+        fixture_rel(implements, 'SYM-B', 'REQ-U'),
+        fixture_rel(implements, 'SYM-A', 'REQ-U'),
+        fixture_rel(implements, 'SYM-A', 'REQ-OTHER'),
+        dsc_json(unapproved_implemented_json(all), Dict),
+        same(Dict.rows,
+             [_{id: 'REQ-OTHER', recordedAt: '2026-01-02T00:00:00Z',
+                source: 'test://proof_fixture.pl', symbols: ['SYM-A']},
+              _{id: 'REQ-U', recordedAt: '2026-01-02T00:00:00Z',
+                source: '.kb/requirements/REQ-U.md', symbols: ['SYM-A', 'SYM-B']}]),
+        dsc_json(unapproved_implemented_json(ids(['REQ-U', 'REQ-MISSING'])), Scoped),
+        dsc_ids(Scoped.rows, ScopedIds),
+        same(ScopedIds, ['REQ-U']),
+        \+ kb:kb_requirement_proof_memo(_, _, _)
     )).
 
-test(requirement_review_row_needs_must_agent_unapproved_and_production_symbols) :-
-    Proof = _{proofGaps: [], proofStages: _{productionSymbols: _{symbols: ['SYM-A']}}},
-    Agent = '{"kind":"agent"}',
-    once(requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must, origin=Agent, created_at='2026-01-01T00:00:00Z'], Proof, Row)),
-    same(Row, _{recordedAt: '', source: '', symbols: ['SYM-A']}),
-    % A priority that ends in must reads as must, as coverage reads it.
-    once(requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority='p0-must', origin=Agent], Proof, _)),
-    \+ requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=should, origin=Agent], Proof, _),
-    \+ requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must], Proof, _),
-    \+ requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must, origin='{"kind":"agent","approved_by":"Owner"}'], Proof, _),
-    \+ requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must, origin=Agent],
-        _{proofGaps: [], proofStages: _{productionSymbols: _{symbols: []}}}, _),
-    \+ requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must, origin=Agent], _{proofGaps: []}, _).
+test(unapproved_implemented_row_needs_current_must_agent_unapproved_and_production_symbols) :-
+    dsc_kb((
+        Agent = '{"kind":"agent"}',
+        pf_entity(symbol, 'SYM-A', []),
+        Reqs = [
+            'REQ-YES'-[status=open, priority=must, origin=Agent],
+            % A priority that ends in must reads as must, as coverage reads it.
+            'REQ-P0'-[status=open, priority='p0-must', origin=Agent],
+            'REQ-SHOULD'-[status=open, priority=should, origin=Agent],
+            'REQ-PERSON'-[status=open, priority=must],
+            'REQ-APPROVED'-[status=open, priority=must, origin='{"kind":"agent","approved_by":"Owner"}'],
+            'REQ-EXEMPT'-[status=open, priority=must, origin=Agent,
+                          proof_exempt=true, proof_exempt_reason='manual check'],
+            'REQ-CLOSED'-[status=superseded, priority=must, origin=Agent]
+        ],
+        forall(member(Id-Props, Reqs),
+               ( pf_entity(req, Id, Props), fixture_rel(implements, 'SYM-A', Id) )),
+        pf_entity(req, 'REQ-UNLINKED', [status=open, priority=must, origin=Agent]),
+        findall(Id,
+            ( member(Id, ['REQ-YES', 'REQ-P0', 'REQ-SHOULD', 'REQ-PERSON', 'REQ-APPROVED',
+                          'REQ-EXEMPT', 'REQ-CLOSED', 'REQ-UNLINKED']),
+              kb_entity(Id, req, Props),
+              requirement_proof:unapproved_implemented_row(Id, Props, _) ),
+            Ids),
+        same(Ids, ['REQ-YES', 'REQ-P0']),
+        kb_entity('REQ-YES', req, YesProps),
+        once(requirement_proof:unapproved_implemented_row('REQ-YES', YesProps, Row)),
+        same(Row, _{recordedAt: '', source: 'test://proof_fixture.pl', symbols: ['SYM-A']})
+    )).
 
 test(evidence_floor_gap_details_every_field) :-
     Proof = _{proofStages: _{
