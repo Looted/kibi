@@ -409,3 +409,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51275889ca43
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-PRED-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:04.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96181341e71e
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-managed-hook-names
+    created_at: 2026-11-25T09:44:04.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79187754fc48
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-hook-block-begin
+    created_at: 2026-11-25T09:44:04.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6be3d80699d
