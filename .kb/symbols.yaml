@@ -50251,6 +50251,453 @@ symbols:
         target: TEST-agent-hooks-read-rows
       - type: implements
         target: REQ-hook-busy-file-ids
+  - id: SYM-test-search-decision-retrieval
+    title: Scoped decision retrieval suite
+    status: active
+    sourceFile: packages/agent-core/tests/retrieval.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:34.112Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-decision-retrieval
+  - id: SYM-retrieval-build-retrieval-index
+    title: buildRetrievalIndex
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:00.963Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-scope
+  - id: SYM-retrieval-retrieve
+    title: retrieve
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:07.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+      - type: implements
+        target: REQ-search-scope-candidates
+  - id: SYM-retrieval-format-card-line
+    title: formatCardLine
+    sourceFile: packages/agent-core/src/retrieval.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:21.714Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-card-line
+  - id: SYM-retrieval-retrieval-entity
+    title: RetrievalEntity
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:52.294Z
+  - id: SYM-retrieval-retrieval-edge
+    title: RetrievalEdge
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:56.154Z
+  - id: SYM-retrieval-retrieval-scope
+    title: RetrievalScope
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:42:59.220Z
+  - id: SYM-retrieval-decision-card-data
+    title: DecisionCardData
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:02.328Z
+  - id: SYM-retrieval-retrieval-index
+    title: RetrievalIndex
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:05.519Z
+  - id: SYM-retrieval-index-format
+    title: INDEX_FORMAT
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:08.928Z
+  - id: SYM-retrieval-build-retrieval-index-options
+    title: BuildRetrievalIndexOptions
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:12.360Z
+  - id: SYM-retrieval-retrieval-edit
+    title: RetrievalEdit
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:16.149Z
+  - id: SYM-retrieval-retrieval-context
+    title: RetrievalContext
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:19.537Z
+  - id: SYM-retrieval-decision-card
+    title: DecisionCard
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:22.660Z
+  - id: SYM-retrieval-retrieval-result
+    title: RetrievalResult
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:43:25.701Z
+  - id: SYM-intent-search-normalize
+    title: normalize
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:48:21.494Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-intent-search-tokenizer-sources
+    title: tokenizerSources
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:07.475Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+  - id: SYM-baseline-retriever
+    title: Retriever
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:05.961Z
+  - id: SYM-baseline-retriever-run
+    title: RetrieverRun
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:09.338Z
+  - id: SYM-baseline-kibi-search-baseline
+    title: kibiSearchBaseline
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:12.862Z
+  - id: SYM-baseline-edit-hook-baseline
+    title: editHookBaseline
+    status: active
+    sourceFile: scripts/retrieval-eval/baseline.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:16.373Z
+  - id: SYM-cards-cards-options
+    title: CardsOptions
+    status: active
+    sourceFile: scripts/retrieval-eval/cards.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:20.420Z
+  - id: SYM-cases-edit
+    title: Edit
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:23.905Z
+  - id: SYM-cases-replay-case
+    title: ReplayCase
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:28.143Z
+  - id: SYM-metrics-case-result
+    title: CaseResult
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:31.671Z
+  - id: SYM-metrics-summary
+    title: Summary
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:35.244Z
+  - id: SYM-store-store-entity
+    title: StoreEntity
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:38.950Z
+  - id: SYM-store-store-edge
+    title: StoreEdge
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:42.240Z
+  - id: SYM-store-store
+    title: Store
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:45.401Z
+  - id: SYM-retrieval-tokens-singular
+    title: singular
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:48.935Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-stem
+    title: stem
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:52.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-words
+    title: words
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:55.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-is-stop-token
+    title: isStopToken
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:44:58.137Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-retrieval-tokens-signal-tokens
+    title: signalTokens
+    status: active
+    sourceFile: packages/agent-core/src/retrieval-tokens.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:01.193Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-retrieval
+      - type: implements
+        target: REQ-search-decision-collapse
+  - id: SYM-test-retrieval-replay-harness
+    title: Retrieval replay harness suite
+    status: active
+    sourceFile: scripts/tests/retrieval-eval.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:57:14.437Z
+    relationships:
+      - type: executable_for
+        target: TEST-retrieval-replay-harness
+  - id: SYM-retrieval-eval-cards-retriever
+    title: cardsRetriever
+    status: active
+    sourceFile: scripts/retrieval-eval/cards.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:45.288Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-replay-cases
+    title: replayCases
+    status: active
+    sourceFile: scripts/retrieval-eval/cases.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:48.790Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-rank-of
+    title: rankOf
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:52.209Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-summarize
+    title: summarize
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:55.317Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-format-summary
+    title: formatSummary
+    status: active
+    sourceFile: scripts/retrieval-eval/metrics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:14:58.518Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-scale-store
+    title: scaleStore
+    status: active
+    sourceFile: scripts/retrieval-eval/scale.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:15:01.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-retrieval-eval-load-store
+    title: loadStore
+    status: active
+    sourceFile: scripts/retrieval-eval/store.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:15:05.124Z
+    relationships:
+      - type: covered_by
+        target: TEST-retrieval-replay-harness
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-test-kibi-check-rule-selection-by-level
     title: Rule selection by level suite
     status: active

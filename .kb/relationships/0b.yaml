@@ -469,6 +469,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-374f84214114
   - type: assumes
+    from: SCEN-search-scope-candidates-unscoped-kept-small-demotion-AT
+    to: FACT-search-scope-candidates-unscoped-kept-small-demotion-AT
+    created_at: 2026-11-25T14:35:25.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a279706e541
+  - type: verified_by
+    from: SCEN-search-scope-candidates-unscoped-kept-small-demotion-AT
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:25.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6e538918dc2
+  - type: assumes
     from: SCEN-NEG-kibi-check-rule-selection-by-level-c01-eq-false
     to: FACT-NEG-kibi-check-rule-selection-by-level-c01-eq-false
     created_at: 2026-11-25T10:21:27.231Z

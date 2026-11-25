@@ -546,6 +546,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-dddbe1ed4b7b
   - type: implements
+    from: SYM-retrieval-eval-cards-retriever
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:14:46.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9d3ac8eb390
+  - type: covered_by
+    from: SYM-retrieval-eval-cards-retriever
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:14:46.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d34ae505b8f
+  - type: implements
     from: SYM-cli-rule-registry-validateRuleName
     to: REQ-kibi-check-rule-selection-by-level
     created_at: 2026-11-25T10:18:06.213Z
