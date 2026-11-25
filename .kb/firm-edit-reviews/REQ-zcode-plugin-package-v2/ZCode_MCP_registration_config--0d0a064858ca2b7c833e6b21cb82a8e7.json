@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-zcode-plugin-package-v2",
+  "sourceFile": "packages/zcode/.zcode-plugin/plugin.json",
+  "symbol": "ZCode MCP registration config",
+  "verdict": "keeps",
+  "note": "Removed unsupported homepage, repository, and keywords keys to restore the exact develop manifest; skills, commands, and mcpServers launcher configuration are unchanged.",
+  "statementHash": "sha256:cae0ee23560dc6b0025bf8ba490806fbafd1f5c6fbda6ed0859c549428301028",
+  "codeHash": "sha256:c581bbcbb03a0d360ec98219b2c409d20c44b3b9026cfce48b0b69f2cbbafb1d",
+  "startLine": 1,
+  "endLine": 21,
+  "recordedAt": "2026-11-25T18:13:08.870Z"
+}

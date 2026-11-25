@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   KIBI_CONTAINER_ID,
   KIBI_FOCUS_KB_COMMAND,
+  KIBI_MCP_PROVIDER_ID,
+  KIBI_MCP_PROVIDER_LABEL,
   KIBI_REFRESH_TREE_COMMAND,
   KIBI_VIEW_ID,
 } from "../src/extensionIds";
@@ -35,6 +37,16 @@ describe("VS Code manifest contract", () => {
       expect.arrayContaining([
         expect.objectContaining({ command: KIBI_REFRESH_TREE_COMMAND }),
         expect.objectContaining({ command: KIBI_FOCUS_KB_COMMAND }),
+      ]),
+    );
+
+    expect(packageJson.contributes.mcp).toBeUndefined();
+    expect(packageJson.contributes.mcpServerDefinitionProviders).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: KIBI_MCP_PROVIDER_ID,
+          label: KIBI_MCP_PROVIDER_LABEL,
+        }),
       ]),
     );
   });

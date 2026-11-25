@@ -30,6 +30,5 @@ export const KIBI_ICONS: Icon[] = [
     src: KIBI_ICON_SRC,
     mimeType: "image/svg+xml",
     sizes: ["any"],
-    theme: "dark",
   },
 ];

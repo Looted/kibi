@@ -15,7 +15,9 @@
   "files": [
     ".claude-plugin",
     ".mcp.json",
+    "assets",
     "bin",
+    "commands",
     "hooks",
     "skills",
     "dist",
