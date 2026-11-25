@@ -1418,8 +1418,9 @@ function checkManagedHookSections(): DoctorCheckResult {
   if (outdated.length > 0) {
     return {
       passed: false,
-      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (installed by a different version; newer gates may be missing)${hooksPathSuffix()}`,
-      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (they differ from the template this CLI installs, whatever version wrote them; newer gates may be missing)${hooksPathSuffix()}`,
+      remediation:
+        "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     };
   }
   return { passed: true, message: "Current for this Kibi CLI" };

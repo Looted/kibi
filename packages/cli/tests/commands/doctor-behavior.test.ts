@@ -1301,7 +1301,7 @@ describe("doctorCommand kibi-managed hook sections", () => {
     expect(outdated.passed).toBe(false);
     expect(outdated.message).toContain("pre-commit");
     expect(outdated.remediation).toBe(
-      "Run: kibi init to refresh the kibi-managed hook sections",
+      "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     );
   });
 

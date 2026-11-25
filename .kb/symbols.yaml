@@ -49184,3 +49184,80 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cla-workflow-contract
+  - id: SYM-managed-hooks-find-outdated-managed-hooks
+    title: findOutdatedManagedHooks
+    sourceFile: packages/cli/src/operations/migration/managed-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:43:44.512Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-managed-hooks-refresh
+      - type: implements
+        target: REQ-cli-migrate-managed-hooks-refresh
+  - id: SYM-managed-hooks-refresh-outdated-managed-hooks
+    title: refreshOutdatedManagedHooks
+    sourceFile: packages/cli/src/operations/migration/managed-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:43:46.244Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-managed-hooks-refresh
+      - type: implements
+        target: REQ-cli-migrate-managed-hooks-refresh
+  - id: SYM-managed-hooks-managed-hooks-refresh-action
+    title: managedHooksRefreshAction
+    status: active
+    sourceFile: packages/cli/src/operations/migration/managed-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:19.912Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-managed-hooks-refresh
+      - type: implements
+        target: REQ-cli-migrate-managed-hooks-refresh
+  - id: SYM-init-helpers-managed-hook-templates-digest
+    title: managedHookTemplatesDigest
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:23.459Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-managed-hooks-refresh
+      - type: implements
+        target: REQ-cli-migrate-managed-hooks-refresh
+  - id: SYM-init-helpers-refresh-managed-hooks
+    title: refreshManagedHooks
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:26.717Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-managed-hooks-refresh
+      - type: implements
+        target: REQ-cli-migrate-managed-hooks-refresh
+  - id: SYM-cli-migrate-managed-hooks-refresh-verifier
+    title: Migrate managed hook refresh verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-managed-hooks.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:29.495Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-migrate-managed-hooks-refresh
