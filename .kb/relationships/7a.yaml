@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0af9c5f0447c
+  - type: implements
+    from: SYM-level-guard-guarded-change-of
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:46.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a61f10e0d2d2
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-of
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:46.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cd0966876a6
+  - type: implements
+    from: SYM-level-guard-guarded-change-of
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:08.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5f2640100d8

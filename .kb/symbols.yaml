@@ -27918,6 +27918,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-signoff-firm-edit-receipts
       - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: covered_by
         target: TEST-kibi-signoff-views
       - type: implements
         target: REQ-kibi-signoff-firm-edit-receipts
@@ -27935,10 +27937,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:25:52.629Z
     relationships:
-      - type: implements
-        target: REQ-kibi-signoff-lists-requirements-and-decisions
+      - type: covered_by
+        target: TEST-kibi-signoff-level
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
   - id: SYM-cli-signoff-parse-questions
     title: parseSignoffQuestionsInput
     status: active
@@ -27967,10 +27971,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:05.103Z
     relationships:
-      - type: implements
-        target: REQ-kibi-signoff-written-and-printed
+      - type: covered_by
+        target: TEST-kibi-signoff-level
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed
   - id: SYM-cli-signoff-render-markdown
     title: renderSignoffMarkdown
     status: active
@@ -51330,3 +51336,441 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-25T10:45:15.276Z
+  - id: SYM-test-agent-hosts-guarded-change-ask
+    title: Each host's hook puts a change of the Kibi level or a lowered required_evidence to the person suite
+    status: active
+    sourceFile: packages/agent-core/tests/level-guard.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:40:10.260Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-guarded-change-ask
+  - id: SYM-test-kibi-signoff-level
+    title: Signoff and the Kibi level suite
+    status: active
+    sourceFile: packages/cli/tests/signoff/collect-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:40:39.492Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-signoff-level
+  - id: SYM-level-guard-guarded-change-of
+    title: guardedChangeOf
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:27.649Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-level-guard-proposed-content
+    title: proposedContent
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:28.786Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-level-guard-content-before-edit
+    title: contentBeforeEdit
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:29.871Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-level-guard-committed-content
+    title: committedContent
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:30.840Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-level-guard-guarded-change-since
+    title: guardedChangeSince
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:31.878Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-level-guard-guarded-change-confirmation
+    title: guardedChangeConfirmation
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:34.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-level-guard-guarded-change-context
+    title: guardedChangeContext
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:35.160Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-level-guard-guarded-change-notice
+    title: guardedChangeNotice
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:36.208Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+  - id: SYM-level-guard-guarded-change-after-notice
+    title: guardedChangeAfterNotice
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:37.270Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-guard-search-replace-edits
+    title: searchReplaceEdits
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:46.901Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-decision-guard-claim-guarded-change-notice
+    title: claimGuardedChangeNotice
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:41:47.869Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-level-guard-evidence-floor
+    title: evidenceFloor
+    sourceFile: packages/agent-core/src/level-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:42:25.425Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: implements
+        target: REQ-kibi-signoff-level
+  - id: SYM-model-level-label
+    title: levelLabel
+    sourceFile: packages/cli/src/signoff/model.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:42:57.568Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: implements
+        target: REQ-kibi-signoff-level
+  - id: SYM-model-decision-label
+    title: decisionLabel
+    sourceFile: packages/cli/src/signoff/model.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:42:58.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: implements
+        target: REQ-kibi-signoff-level
+  - id: SYM-kibi-level-kibi-level-in-settings
+    title: kibiLevelInSettings
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:28.786Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-level-setting
+      - type: implements
+        target: REQ-kibi-level-setting
+  - id: SYM-level-guard-evidence-levels
+    title: EVIDENCE_LEVELS
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:30.868Z
+  - id: SYM-level-guard-evidence-level
+    title: EvidenceLevel
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:33.225Z
+  - id: SYM-level-guard-level-change
+    title: LevelChange
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:35.662Z
+  - id: SYM-level-guard-evidence-lowering
+    title: EvidenceLowering
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:37.998Z
+  - id: SYM-level-guard-guarded-change
+    title: GuardedChange
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:40.071Z
+  - id: SYM-model-signoff-level
+    title: SignoffLevel
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:42.305Z
+  - id: SYM-model-signoff-decision
+    title: SignoffDecision
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:44.543Z
+  - id: SYM-model-signoff-summary
+    title: SignoffSummary
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:46.721Z
+  - id: SYM-model-signoff-questions
+    title: SignoffQuestions
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T13:51:48.991Z
+  - id: SYM-hook-runner-guarded-change-ask
+    title: guardedChangeAsk
+    sourceFile: packages/claude/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:06:43.273Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-src-hook-runner-guarded-change-ask
+    title: guardedChangeAsk
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:06:44.706Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-hook-runner-guarded-notice
+    title: guardedNotice
+    sourceFile: packages/codex/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:07:02.963Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+  - id: SYM-src-hook-runner-guarded-notice
+    title: guardedNotice
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:07:04.199Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+  - id: SYM-packages-zcode-src-hook-runner-guarded-notice
+    title: guardedNotice
+    sourceFile: packages/zcode/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:07:05.316Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+  - id: SYM-decision-hooks-guarded-change-stop
+    title: guardedChangeStop
+    sourceFile: packages/opencode/src/decision-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:07:06.474Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-notice
+  - id: SYM-guard-guarded-change-after
+    title: guardedChangeAfter
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:07:20.979Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-vibe-guarded-change-after-notice
+  - id: SYM-collect-signoff-level
+    title: signoffLevel
+    sourceFile: packages/cli/src/signoff/collect.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:16:25.416Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: implements
+        target: REQ-kibi-signoff-level
+  - id: SYM-collect-lowered-floor-decision
+    title: loweredFloorDecision
+    sourceFile: packages/cli/src/signoff/collect.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:16:26.631Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-level
+      - type: implements
+        target: REQ-kibi-signoff-level
+  - id: SYM-markdown-render-summary-markdown-body
+    title: renderSummaryMarkdownBody
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:21:16.089Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed
+  - id: SYM-markdown-render-questions-markdown-body
+    title: renderQuestionsMarkdownBody
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:21:17.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed

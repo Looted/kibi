@@ -29,11 +29,11 @@ export function isKibiLevel(value: unknown): value is KibiLevel {
   return value === "remember" || value === "test";
 }
 
-function readJson(file: string): unknown {
+function readText(file: string): string | undefined {
   try {
-    return JSON.parse(readFileSync(file, "utf8"));
+    return readFileSync(file, "utf8");
   } catch {
-    // A missing or malformed file records no level.
+    // A missing file records no level.
     return undefined;
   }
 }
@@ -49,6 +49,31 @@ function resolved(value: unknown, source: KibiLevelSource): ResolvedKibiLevel {
   return { level: DEFAULT_KIBI_LEVEL, source, invalid: value };
 }
 
+function parseJson(text: string | undefined): unknown {
+  try {
+    return JSON.parse(text as string);
+  } catch {
+    // Missing or malformed text records no level.
+    return undefined;
+  }
+}
+
+/**
+ * The level one settings file's text records: `kibi.level` in a root
+ * package.json, `level` in `.kb/setup.json`. Missing or malformed text
+ * records none, so the level is the default.
+ */
+export function kibiLevelInSettings(
+  text: string | undefined,
+  source: "package.json" | "setup.json",
+): ResolvedKibiLevel {
+  const parsed = parseJson(text);
+  if (source === "setup.json")
+    return resolved(isRecord(parsed) ? parsed.level : undefined, source);
+  const kibi = isRecord(parsed) ? parsed.kibi : undefined;
+  return resolved(isRecord(kibi) ? kibi.level : undefined, source);
+}
+
 /**
  * The project's Kibi level: `kibi.level` in the root package.json, or
  * `level` in `.kb/setup.json` when the project has no root package.json.
@@ -56,13 +81,12 @@ function resolved(value: unknown, source: KibiLevelSource): ResolvedKibiLevel {
  */
 export function readKibiLevel(workspaceRoot: string): ResolvedKibiLevel {
   const packagePath = path.join(workspaceRoot, "package.json");
-  if (existsSync(packagePath)) {
-    const manifest = readJson(packagePath);
-    const kibi = isRecord(manifest) ? manifest.kibi : undefined;
-    return resolved(isRecord(kibi) ? kibi.level : undefined, "package.json");
-  }
-  const setup = readJson(path.join(workspaceRoot, ".kb", "setup.json"));
-  return resolved(isRecord(setup) ? setup.level : undefined, "setup.json");
+  if (existsSync(packagePath))
+    return kibiLevelInSettings(readText(packagePath), "package.json");
+  return kibiLevelInSettings(
+    readText(path.join(workspaceRoot, ".kb", "setup.json")),
+    "setup.json",
+  );
 }
 
 /** Where a project records its level, for messages that name the setting. */

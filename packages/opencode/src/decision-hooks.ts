@@ -35,6 +35,11 @@ import {
 } from "kibi-agent-core/kb-mcp-tools";
 import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
 import {
+  type GuardedChange,
+  guardedChangeNotice,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
+import {
   canonicalizeWorkspacePath,
   classifyPath,
   extractEditedPaths,
@@ -105,6 +110,44 @@ export function decisionStateDir(
     .update(path.resolve(workspaceRoot))
     .digest("hex");
   return path.join(root, "decisions", key);
+}
+
+/**
+ * The notice that stops a tool call changing the Kibi level or lowering a
+ * requirement's required_evidence, the first time the session tries that
+ * change; undefined for any other call and for the same change tried again.
+ * `stopped` holds the changes already stopped, per session.
+ */
+export function guardedChangeStop(
+  workspaceRoot: string,
+  stopped: Set<string>,
+  tool: string,
+  sessionId: string | undefined,
+  args: unknown,
+): string | undefined {
+  const kbTool = kibiToolName(tool);
+  let change: GuardedChange | undefined;
+  if (kbTool !== undefined)
+    change = guardedChangeOf({
+      workspaceRoot,
+      toolName: kbTool,
+      toolInput: args,
+    });
+  else if (EDIT_TOOLS.has(tool))
+    for (const relativePath of editedRelativePaths(workspaceRoot, tool, args)) {
+      change = guardedChangeOf({
+        workspaceRoot,
+        toolName: tool,
+        toolInput: args,
+        relativePath,
+      });
+      if (change) break;
+    }
+  if (change === undefined) return undefined;
+  const key = JSON.stringify([sessionId ?? "", change]);
+  if (stopped.has(key)) return undefined;
+  stopped.add(key);
+  return guardedChangeNotice(change);
 }
 
 /** The text of a user message's text parts, joined. */
@@ -220,6 +263,8 @@ export function createDecisionHooks(
     return session;
   };
 
+  // The guarded changes this process already stopped once, per session.
+  const stopped = new Set<string>();
   /**
    * Requirement rows for the code a read, grep or bash call puts in view
    * (see kibi-agent-core/read-context), each requirement once per session.
@@ -261,8 +306,20 @@ export function createDecisionHooks(
     },
 
     beforeTool(tool, sessionId, args) {
+      if (tool === undefined) return;
+      // A change of the Kibi level or a lowered required_evidence is the
+      // person's choice: the first try is stopped with the notice so the
+      // agent asks, and the same change tried again goes through.
+      const stop = guardedChangeStop(
+        workspaceRoot,
+        stopped,
+        tool,
+        sessionId,
+        args,
+      );
+      if (stop !== undefined) throw new Error(stop);
       // An edit tool, or a shell call that writes files in place.
-      if (tool === undefined || !confirmFirmEdits(env)) return;
+      if (!confirmFirmEdits(env)) return;
       const relatives = editedRelativePaths(workspaceRoot, tool, args).filter(
         isSourceImpactRelevantPath,
       );

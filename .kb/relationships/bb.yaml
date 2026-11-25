@@ -580,3 +580,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1838ff08c09
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c01
+    created_at: 2026-11-25T14:06:57.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29ad4fb8bd8d
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c02
+    created_at: 2026-11-25T14:06:57.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-570c28193517
