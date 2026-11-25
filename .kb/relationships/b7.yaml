@@ -489,3 +489,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c401fd07555d
+  - type: requires_property
+    from: REQ-search-answers-search-hints-lift-two
+    to: FACT-kibi-search-multi-hop-lifting
+    created_at: 2026-11-25T20:35:11.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbeb8a25d8d4
