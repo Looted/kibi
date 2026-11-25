@@ -418,4 +418,4 @@ Kibi is in beta and ready for use in real projects. Public interfaces may still 
 
 Kibi sends anonymous usage statistics (operation names, durations, error categories and versions, never code, paths, queries or KB content) to help prioritize fixes. Turn them off with `kibi telemetry disable`, `KIBI_TELEMETRY=0` or `DO_NOT_TRACK=1`; see [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html).
 
-Kibi is licensed under [AGPL-3.0-or-later](LICENSE.md).
+Kibi is licensed under [AGPL-3.0-or-later](LICENSE.md). Contributions are welcome under the [Contributor License Agreement](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md).
