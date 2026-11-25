@@ -1,6 +1,6 @@
 ---
 title: Search answers and search hints lift two-hop tests and clause facts and rerank broad rationale ADRs
-status: open
+status: closed
 firmness: default
 origin:
   kind: agent

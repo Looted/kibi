@@ -398,13 +398,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d381ba682a93
-  - type: implements
-    from: SYM-intent-search-normalize
-    to: REQ-kibi-intent-aware-source-discovery
-    created_at: 2026-11-25T14:43:32.550Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be1031e9ed09
   - type: covered_by
     from: SYM-intent-search-normalize
     to: TEST-kibi-intent-aware-source-discovery
@@ -433,13 +426,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bded08b55928
-  - type: covered_by
-    from: SYM-intent-search-normalize
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-11-25T14:43:45.109Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5be7007ae012
   - type: assumes
     from: SCEN-hook-read-rows-every-harness
     to: FACT-hook-read-rows-every-harness
@@ -454,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a41d805d5d6f
+  - type: implements
+    from: SYM-intent-search-normalize
+    to: REQ-search-decisions-are-the-unit
+    created_at: 2026-11-25T19:31:39.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dd5dddb8fa2

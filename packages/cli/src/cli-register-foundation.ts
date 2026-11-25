@@ -219,7 +219,10 @@ export function registerFoundationCommands(program: Command): void {
     .option("--type <type>", "Filter by entity type")
     .option("--format <format>", "Output format: json|table", "table")
     .option("--json", "Alias for --format json")
-    .option("--limit <n>", "Limit results", "20")
+    .option(
+      "--limit <n>",
+      "Limit results (default: 5 decision cards, or 10 rows with --type)",
+    )
     .option("--offset <n>", "Skip results", "0")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (query, options, command: Command) => {

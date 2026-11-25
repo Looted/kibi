@@ -1,7 +1,7 @@
 ---
 id: REQ-kibi-intent-aware-source-discovery
 title: Kibi finds requirements and implementation evidence from natural-language intent
-status: open
+status: closed
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
 priority: must

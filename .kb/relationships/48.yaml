@@ -300,3 +300,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5cacddae2e5d
+  - type: assumes
+    from: SCEN-NEG-search-meaning-fusion-FAILING-PROVIDER
+    to: FACT-NEG-search-meaning-fusion-failing-provider-FAILS
+    created_at: 2026-11-25T19:24:35.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88d495eb642c
+  - type: verified_by
+    from: SCEN-NEG-search-meaning-fusion-FAILING-PROVIDER
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:28:21.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-413bea67a642
+  - type: constrains
+    from: REQ-search-meaning-list
+    to: FACT-search-meaning-subject
+    created_at: 2026-11-25T19:29:20.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e592f617d2b7
+  - type: requires_property
+    from: REQ-search-meaning-list
+    to: FACT-search-meaning-list-lists-related-decisions
+    created_at: 2026-11-25T19:29:20.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd3d1afbe2d0
+  - type: requires_property
+    from: REQ-search-meaning-list
+    to: FACT-search-meaning-list-no-superseded-or-other-scope
+    created_at: 2026-11-25T19:29:20.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b780064239cf
+  - type: specified_by
+    from: REQ-search-meaning-list
+    to: SCEN-search-meaning-list
+    created_at: 2026-11-25T19:29:20.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d389a6c41c4
+  - type: specified_by
+    from: REQ-search-meaning-list
+    to: SCEN-NEG-search-meaning-list-SUPERSEDED
+    created_at: 2026-11-25T19:29:20.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90cbb843b8ba
+  - type: verified_by
+    from: REQ-search-meaning-list
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:29:20.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d5275d1b5ed
+  - type: supersedes
+    from: REQ-search-meaning-list
+    to: REQ-kibi-search-hints-shown
+    created_at: 2026-11-25T19:29:20.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24c2e7d3a1c6
+  - type: supersedes
+    from: REQ-search-meaning-list
+    to: REQ-kibi-search-hints-summed-order
+    created_at: 2026-11-25T19:29:20.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fc2f722e7bd
+  - type: supersedes
+    from: REQ-search-meaning-list
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-25T19:29:20.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f3f433320c8
+  - type: requires_property
+    from: REQ-search-meaning-list
+    to: FACT-search-meaning-list-credited-through-links
+    created_at: 2026-11-25T20:05:24.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f148685adc2
+  - type: specified_by
+    from: REQ-search-meaning-list
+    to: SCEN-NEG-search-meaning-list-MISORDERED
+    created_at: 2026-11-25T20:05:29.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-881e1c9a4ffd

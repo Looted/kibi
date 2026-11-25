@@ -163,12 +163,14 @@ describe("a new branch whose store was never compiled", () => {
       data: { count: number; branchStore?: { code: string } };
       diagnostics: Array<{ code?: string; severity?: string; message: string }>;
     };
-    for (const [route, input] of [
-      ["search", { query: "users log in" }],
-      ["query", { id: "REQ-demo-login" }],
+    for (const [route, input, count] of [
+      // Decisions are ranked from the authored .kb files, so search still
+      // finds the requirement; query reads the uncompiled store.
+      ["search", { query: "users log in" }, 1],
+      ["query", { id: "REQ-demo-login" }, 0],
     ] as const) {
       const result = ws.json([route], input, NO_AUTO_SYNC) as Envelope;
-      expect(result.data.count).toBe(0);
+      expect(result.data.count).toBe(count);
       expect(result.data.branchStore?.code).toBe("branch_store_not_compiled");
       expect(result.diagnostics).toContainEqual(
         expect.objectContaining({
@@ -222,7 +224,8 @@ describe("a new branch whose store was never compiled", () => {
     const search = ws.json(["search"], { query: "users log in" }) as {
       data: { count: number; branchStore?: { code: string } };
     };
-    expect(search.data.count).toBe(0);
+    // The decision ranking reads the authored files; the notice stays.
+    expect(search.data.count).toBe(1);
     expect(search.data.branchStore?.code).toBe("branch_store_not_compiled");
   }, 240_000);
 });
@@ -311,7 +314,13 @@ describe("stale branch store auto-sync and staleness surfacing", () => {
         "",
       ].join("\n"),
     );
-    ws.git("add", ".kb/requirements/REQ-demo-mfa.md", ".kb/relationships/extra.yaml", ".kb/symbols.yaml", "src/mfa.ts");
+    ws.git(
+      "add",
+      ".kb/requirements/REQ-demo-mfa.md",
+      ".kb/relationships/extra.yaml",
+      ".kb/symbols.yaml",
+      "src/mfa.ts",
+    );
     const symbolsEdited = ws.read(".kb/symbols.yaml");
 
     const query = ws.json(["query"], { id: "REQ-demo-mfa" }) as {

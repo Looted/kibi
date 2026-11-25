@@ -333,6 +333,10 @@ export type RetrievalContext = Readonly<{
    * (embeddings), by card position. It is fused with the word ranking by rank.
    */
   vectorScores?: readonly number[];
+  /** Weight of the similarity ranking against the word ranking (default 1). */
+  vectorWeight?: number;
+  /** Only decisions of these types are returned (default: both). */
+  types?: readonly DecisionCardData["type"][];
 }>;
 
 export type DecisionCard = Readonly<{
@@ -344,6 +348,8 @@ export type DecisionCard = Readonly<{
   firm: boolean;
   scope: Exclude<RetrievalScope, "other">;
   score: number;
+  /** Share of the question's weight this card's words cover, 0 to 1. */
+  coverage: number;
   /** Why the card is here, in short phrases. */
   evidence: readonly string[];
   /** Near-identical or replaced decisions shown through this card. */
@@ -440,11 +446,15 @@ function order(
     .slice(0, MAX_LIST);
 }
 
-function fuse(lists: readonly (readonly number[])[]): Scored {
+function fuse(
+  lists: readonly (readonly number[])[],
+  weights: ReadonlyMap<readonly number[], number> = new Map(),
+): Scored {
   const fused: Scored = new Map();
   for (const list of lists) {
+    const weight = weights.get(list) ?? 1;
     list.forEach((card, rank) => {
-      fused.set(card, (fused.get(card) ?? 0) + 1 / (RRF_K + rank + 1));
+      fused.set(card, (fused.get(card) ?? 0) + weight / (RRF_K + rank + 1));
     });
   }
   return fused;
@@ -509,8 +519,11 @@ export function retrieve(
     questionIdf = ranked.idf;
     lists.push(order(index, questionScores));
   }
+  const weights = new Map<readonly number[], number>();
   if (context.vectorScores) {
-    lists.push(order(index, context.vectorScores.entries()));
+    const list = order(index, context.vectorScores.entries());
+    weights.set(list, context.vectorWeight ?? 1);
+    lists.push(list);
   }
   if (edits.length > 0) {
     lists.push(order(index, bm25(index, signalTokens(editText(edits))).scores));
@@ -533,10 +546,12 @@ export function retrieve(
   const relevanceLists = [...lists];
   if (owners.length > 0) lists.push(owners);
 
-  const fused = fuse(lists);
+  const fused = fuse(lists, weights);
+  const types = new Set(context.types ?? ["req", "adr"]);
   const scored: Array<{ card: number; score: number; evidence: string[] }> = [];
   for (const [position, base] of fused) {
     const card = index.cards[position] as DecisionCardData;
+    if (!types.has(card.type)) continue;
     const evidence: string[] = [];
     let score = base;
     if (card.scope === "unscoped") score *= UNSCOPED_FACTOR;
@@ -579,7 +594,7 @@ export function retrieve(
   // The best match on relevance alone, before nearness and ownership boosts,
   // keeps a place near the top: a decision nobody linked to the file is not
   // pushed down by the decisions that are linked to it.
-  const relevance = [...fuse(relevanceLists)]
+  const relevance = [...fuse(relevanceLists, weights)]
     .map(([card, score]) => ({ card, score }))
     .sort(byScore)[0];
   scored.sort(byScore);
@@ -644,6 +659,16 @@ export function retrieve(
     row?.folded.push(id);
   }
 
+  const total = [...questionIdf.values()].reduce((sum, w) => sum + w, 0);
+  const coverageOf = (position: number) =>
+    total > 0
+      ? questionTokens
+          .filter((token) =>
+            index.postings[token]?.some(([card]) => card === position),
+          )
+          .reduce((sum, token) => sum + (questionIdf.get(token) ?? 0), 0) /
+        total
+      : 0;
   const cards: DecisionCard[] = shown.slice(0, limit).map((entry) => {
     const card = index.cards[entry.card] as DecisionCardData;
     return {
@@ -655,6 +680,7 @@ export function retrieve(
       firm: card.firm,
       scope: card.scope as Exclude<RetrievalScope, "other">,
       score: entry.score,
+      coverage: coverageOf(entry.card),
       evidence: entry.evidence,
       folded: entry.folded,
     };
@@ -662,7 +688,10 @@ export function retrieve(
 
   // Other scopes: what would have matched the question outside the scope.
   const other = [...questionScores]
-    .filter(([position]) => index.cards[position]?.scope === "other")
+    .filter(([position]) => {
+      const card = index.cards[position];
+      return card?.scope === "other" && types.has(card.type);
+    })
     .sort((a, b) => b[1] - a[1] || a[0] - b[0])
     .map(([position]) => (index.cards[position] as DecisionCardData).id);
 
@@ -673,15 +702,8 @@ export function retrieve(
       if (postings?.some(([card]) => card === entry.card)) covered.add(token);
     }
   }
-  const total = [...questionIdf.values()].reduce((sum, w) => sum + w, 0);
   const best = shown[0];
-  const bestCovered = best
-    ? questionTokens
-        .filter((token) =>
-          index.postings[token]?.some(([card]) => card === best.card),
-        )
-        .reduce((sum, token) => sum + (questionIdf.get(token) ?? 0), 0)
-    : 0;
+  const bestCovered = best ? coverageOf(best.card) : 0;
 
   return {
     cards,
@@ -690,8 +712,30 @@ export function retrieve(
     ),
     otherScopes: { count: other.length, ids: other.slice(0, 3) },
     uncoveredTerms: questionTokens.filter((token) => !covered.has(token)),
-    coverage: total > 0 ? bestCovered / total : 0,
+    coverage: bestCovered,
   };
+}
+
+/**
+ * Share of the question's weight that decision `id`'s words cover, 0 to 1;
+ * 0 for a decision the index does not hold.
+ */
+export function decisionCoverage(
+  index: RetrievalIndex,
+  text: string,
+  id: string,
+): number {
+  const position = index.cards.findIndex((card) => card.id === id);
+  const tokens = signalTokens(text);
+  if (position < 0 || tokens.length === 0) return 0;
+  const { idf } = bm25(index, tokens);
+  const total = [...idf.values()].reduce((sum, w) => sum + w, 0);
+  const covered = tokens
+    .filter((token) =>
+      index.postings[token]?.some(([card]) => card === position),
+    )
+    .reduce((sum, token) => sum + (idf.get(token) ?? 0), 0);
+  return covered / total;
 }
 
 const MAX_CHAIN = 32;

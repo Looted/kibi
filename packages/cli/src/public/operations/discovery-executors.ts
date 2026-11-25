@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { type DecisionCard, formatCardLine } from "kibi-agent-core/retrieval";
 import { sessionBriefFor } from "kibi-agent-core/session-brief";
 import { BranchResolutionFailure, OperationError } from "../../cli-errors.js";
 import {
@@ -7,6 +8,12 @@ import {
   sourceExtractionFailureReasons,
 } from "../../commands/sync/cache.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
+import {
+  type AnswerSeed,
+  DECISION_CARD_LIMIT,
+  type DecisionSearchResult,
+  searchDecisions,
+} from "../../decision-search.js";
 import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
@@ -15,7 +22,6 @@ import {
   type MarkdownBodyCache,
   type SourceLocation,
   executeIntentSearch,
-  isBroadRationaleQuery,
   questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
@@ -30,9 +36,9 @@ import {
 } from "../../search-answer.js";
 import {
   type SearchHintsAnalysis,
-  buildSearchHints,
+  providerMeaningRanker,
+  searchHintsAnalysis,
   searchHintsNote,
-  searchHintsTrigger,
 } from "../../search-hints.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
@@ -226,13 +232,17 @@ export type SearchInput = {
 };
 
 export type SearchPayload = {
-  readonly results: readonly (SearchMatch | IntentSearchMatch)[];
+  readonly results: readonly (
+    | SearchMatch
+    | IntentSearchMatch
+    | DecisionCardRow
+  )[];
   /** Matches in the whole ranking, before `limit` and `offset`. */
   readonly count: number;
   /** Rows in `results`: the page this call returned. */
   readonly returned: number;
   readonly truncated?: boolean;
-  readonly queryAnalysis?: IntentSearchAnalysis & {
+  readonly queryAnalysis?: (IntentSearchAnalysis | DecisionSearchAnalysis) & {
     readonly hints?: SearchHintsAnalysis;
   };
   readonly answer?: SearchAnswer;
@@ -251,6 +261,42 @@ export type SearchPayload = {
   readonly branchStore?: SearchBranchStoreNotice;
   /** Present when the searched compiled branch store is confirmed stale. */
   readonly meta?: Readonly<Record<string, unknown>>;
+};
+
+/** One decision card of a kb_search answer. */
+export type DecisionCardRow = {
+  readonly entity: Record<string, unknown>;
+  readonly score: number;
+  /** Why the card is here, in short phrases. */
+  readonly reasons: readonly string[];
+  /** The card as one line of at most 300 characters. */
+  readonly line: string;
+  readonly scope: DecisionCard["scope"];
+  /** Near-identical or replaced decisions shown through this card. */
+  readonly folded?: readonly string[];
+};
+
+/** How a decision search ranked the question. */
+export type DecisionSearchAnalysis = {
+  readonly rankingMode: "intent-v1";
+  readonly unit: "decision";
+  /** Requirements and ADRs ranked. */
+  readonly decisionCount: number;
+  /** Whether an embedding provider's ranking was fused in. */
+  readonly fused: boolean;
+  /** No card covers enough of the question to govern it. */
+  readonly weak: boolean;
+  /** No decision shares a word of the question. */
+  readonly abstained: boolean;
+  /** Share of the question's weight the best card covers, 0 to 1. */
+  readonly coverage: number;
+  /** Words of the question no returned decision contains. */
+  readonly uncoveredTerms: readonly string[];
+  /** Matching decisions linked only to files this workspace lacks. */
+  readonly otherScopes: {
+    readonly count: number;
+    readonly ids: readonly string[];
+  };
 };
 
 export type SearchNextAction = {
@@ -1502,48 +1548,10 @@ export function searchNextActions(options: {
 }
 
 /**
- * Hints from the workspace's kibi.search-hints.v1 provider. A host without a
- * plugin runtime, or a registry that fails to load, gives no hints rather than
- * failing the search.
+ * Below this top score a typed intent search (scenarios, tests, facts,
+ * symbols) matched weakly, and the next actions suggest listing titles.
  */
-async function searchHintsFor(
-  context: OperationContext,
-  options: Omit<
-    Parameters<typeof buildSearchHints>[0],
-    "resolution" | "workspaceRoot"
-  >,
-): Promise<SearchHintsAnalysis | undefined> {
-  if (!context.ensurePlugins) return undefined;
-  let resolution: Awaited<ReturnType<CapabilityRegistry["resolveSearchHints"]>>;
-  try {
-    resolution = await (await context.ensurePlugins()).resolveSearchHints();
-  } catch (error) {
-    // A configured provider that cannot load is reported, not thrown: the
-    // lexical answer stands on its own.
-    const trigger = searchHintsTrigger(options.analysis);
-    return trigger === null
-      ? undefined
-      : {
-          trigger,
-          provider: null,
-          items: [],
-          diagnostics: [
-            {
-              pluginId: "unresolved",
-              packageName: null,
-              mode: "replace",
-              code: "provider_unavailable",
-              message: error instanceof Error ? error.message : String(error),
-            },
-          ],
-        };
-  }
-  return buildSearchHints({
-    ...options,
-    resolution,
-    workspaceRoot: context.workspaceRoot,
-  });
-}
+const WEAK_TOP_SCORE = 0.44;
 
 /**
  * A top match as the text digest names it. A negative-path fact describes a
@@ -1555,6 +1563,241 @@ function topMatchLabel(match: {
 }): string {
   const id = String(match.entity.id ?? "");
   return match.negativePath === undefined ? id : `${id} (forbidden situation)`;
+}
+
+/**
+ * The sentence a weak decision search carries in its structured result. A
+ * missing match is not evidence that nothing governs the question.
+ */
+const WEAK_DECISION_NOTE =
+  "No decision in this workspace's scope matches the question strongly, so no requirement is named as governing. That is not evidence that nothing governs it: the cards are the nearest decisions, and the words listed in queryAnalysis.uncoveredTerms appear in none of them. Ask again in the KB's words, or read the nearest card with kb_query.";
+
+/** A decision card as a result row; the line is what an agent reads. */
+function decisionCardRow(card: DecisionCard): DecisionCardRow {
+  return {
+    entity: {
+      id: card.id,
+      type: card.type,
+      title: card.title,
+      status: card.status,
+      ...(card.firm ? { firmness: "firm" } : {}),
+    },
+    score: Math.round(card.score * 10_000) / 10_000,
+    reasons: card.evidence,
+    line: formatCardLine(card),
+    scope: card.scope,
+    ...(card.folded.length > 0 ? { folded: card.folded } : {}),
+  };
+}
+
+/**
+ * The answer layer's seeds as ranked matches: the cards and the decisions
+ * folded into them that cover enough of the question. The answer names the
+ * current requirements among them as governing, proposes the replacement
+ * of a replaced one that matched about as well as the best, and takes the
+ * ADRs as rationale.
+ */
+function answerSeeds(seeds: readonly AnswerSeed[]): IntentSearchMatch[] {
+  return seeds.map((seed) => ({
+    entity: {
+      id: seed.id,
+      type: seed.type,
+      title: seed.title,
+      status: seed.status,
+    },
+    score: seed.score,
+    reasons: seed.reasons.slice(),
+    evidence: {
+      normalizedScore: seed.score,
+      matchedFacets: [],
+      sourceMatches: [],
+      abstentionEligible: false,
+    },
+  }));
+}
+
+function decisionSearchText(options: {
+  readonly query: string;
+  readonly found: DecisionSearchResult;
+  readonly answer: SearchAnswer | undefined;
+  readonly hints: SearchHintsAnalysis | undefined;
+  readonly offset: number;
+}): string {
+  const { found, answer, query } = options;
+  const lines = found.cards.map((card) => formatCardLine(card));
+  if (lines.length === 0)
+    return `No decision in this workspace's scope shares the words of '${query}'${found.retrieval.uncoveredTerms.length > 0 ? ` (no decision contains: ${found.retrieval.uncoveredTerms.join(", ")})` : ""}. That is not evidence that nothing governs it: ask again in the KB's words.`;
+  const head = found.weak
+    ? `No strong match for '${query}' in this workspace's scope; the nearest decisions are:`
+    : `Decisions for '${query}'${options.offset > 0 ? ` (from rank ${options.offset + 1})` : ""}:`;
+  const tail: string[] = [];
+  if (answer)
+    tail.push(
+      `Governing: ${answer.governing.map((req) => req.id).join(", ") || "no current requirement among the cards"}.`,
+    );
+  if (found.retrieval.uncoveredTerms.length > 0)
+    tail.push(`Not in any card: ${found.retrieval.uncoveredTerms.join(", ")}.`);
+  if (found.retrieval.otherScopes.count > 0)
+    tail.push(
+      `${found.retrieval.otherScopes.count} more in other scopes (${found.retrieval.otherScopes.ids.join(", ")}).`,
+    );
+  return `${head}\n${lines.join("\n")}${tail.length > 0 ? `\n${tail.join(" ")}` : ""}${searchHintsNote(options.hints)}`;
+}
+
+/**
+ * kb_search over decisions: five cards from the words of the question with
+ * the meaning ranking fused in, the decisions related by meaning beside
+ * them, and the answer layer over the cards unless the match is weak.
+ */
+async function executeDecisionSearch(
+  input: SearchInput,
+  context: OperationContext,
+  prolog: PrologPort,
+  shared: {
+    readonly query: string;
+    readonly storeNotice: SearchBranchStoreNotice | null;
+    readonly branchFields: Record<string, unknown>;
+    readonly storeNote: string;
+  },
+): Promise<OperationResult<SearchPayload>> {
+  const {
+    type,
+    offset = 0,
+    semanticFacets,
+    sourceLocations,
+    fields,
+    answer,
+    hints: meaningWanted = true,
+  } = input;
+  const limit = input.limit ?? DECISION_CARD_LIMIT;
+  const { query, storeNotice } = shared;
+  const facetWords = semanticFacets
+    ? Object.values(semanticFacets).flatMap((values) => values ?? [])
+    : [];
+  let ranker: ReturnType<typeof providerMeaningRanker> | undefined;
+  let unavailable: SearchHintsAnalysis | undefined;
+  if (meaningWanted && context.ensurePlugins) {
+    try {
+      ranker = providerMeaningRanker(
+        await (await context.ensurePlugins()).resolveSearchHints(),
+        context.workspaceRoot,
+      );
+    } catch (error) {
+      // A provider that cannot load is reported, not thrown: the word
+      // ranking answers on its own.
+      unavailable = {
+        provider: null,
+        items: [],
+        diagnostics: [
+          {
+            pluginId: "unresolved",
+            packageName: null,
+            mode: "replace",
+            code: "provider_unavailable",
+            message: error instanceof Error ? error.message : String(error),
+          },
+        ],
+      };
+    }
+  }
+  const found = await searchDecisions(context.workspaceRoot, {
+    query: [query, ...facetWords].join(" "),
+    ...(type === "req" || type === "adr" ? { types: [type] } : {}),
+    paths: (sourceLocations ?? []).map((location) =>
+      location.path.replace(/^\.\//, ""),
+    ),
+    limit,
+    offset,
+    ...(ranker ? { meaning: ranker.rank } : {}),
+  });
+  const hints =
+    offset !== 0
+      ? undefined
+      : (unavailable ?? searchHintsAnalysis(found.meaning, ranker?.report()));
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, {
+          sourceFilterPaths: (sourceLocations ?? []).map((loc) => loc.path),
+        })
+      : undefined;
+  const syncState: "fresh" | "stale" | "unknown" =
+    storeNotice !== null ? "stale" : (freshness?.state ?? "unknown");
+  // Only cards that cover enough of the question seed the answer: the rest
+  // are the nearest decisions, not ones known to govern it.
+  const answerLayer =
+    (answer ?? true) && offset === 0 && found.seeds.length > 0
+      ? await buildSearchAnswer(prolog, answerSeeds(found.seeds), {
+          workspaceRoot: context.workspaceRoot,
+          branch: context.branchAttachment?.kbBranch ?? null,
+          detail: fields === "full" ? "full" : "summary",
+          syncState,
+          ...(storeNotice !== null
+            ? { staleReasonCount: 1 }
+            : freshness?.state === "stale"
+              ? {
+                  staleReasonCount: freshness.staleReasonCount,
+                  staleWarningNote: freshness.note,
+                }
+              : {}),
+        })
+      : undefined;
+  const unlocatedPaths = questionPathsNotLocated(query, sourceLocations);
+  // With a meaning ranking fused in, the nearest decisions are cards even
+  // when none shares a word: the search abstains on its words alone.
+  const abstained = found.retrieval.cards.every((card) => card.coverage === 0);
+  const nextActions = searchNextActions({
+    query,
+    type,
+    abstained,
+    listTitles: offset === 0 && found.weak && (hints?.items.length ?? 0) === 0,
+    unlocatedPaths,
+    sourceLocations,
+  });
+  const rows = found.cards.map(decisionCardRow);
+  const staleOrStoreNote =
+    shared.storeNote ||
+    (freshness?.state === "stale" ? ` ${freshness.note}` : "");
+  const text = `${decisionSearchText({
+    query,
+    found,
+    answer: answerLayer,
+    hints,
+    offset,
+  })}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(query) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
+  const analysis: DecisionSearchAnalysis = {
+    rankingMode: "intent-v1",
+    unit: "decision",
+    decisionCount: found.decisionCount,
+    fused: found.fused,
+    weak: found.weak,
+    abstained,
+    coverage: Math.round(found.retrieval.coverage * 1000) / 1000,
+    uncoveredTerms: found.retrieval.uncoveredTerms,
+    otherScopes: found.retrieval.otherScopes,
+  };
+  return {
+    content: [{ type: "text", text }],
+    structuredContent: {
+      // A card whose statement the answer already quotes is cut to its
+      // identity, score and reasons.
+      results:
+        fields === "full"
+          ? await reloadFullEntities(prolog, rows)
+          : slimAnsweredMatches(
+              rows,
+              answerLayer ? answerQuotedIds(answerLayer) : new Set<string>(),
+            ),
+      count: found.retrieval.ranking.length,
+      returned: rows.length,
+      truncated: offset + rows.length < found.retrieval.ranking.length,
+      queryAnalysis: hints !== undefined ? { ...analysis, hints } : analysis,
+      ...(answerLayer ? { answer: answerLayer } : {}),
+      ...(found.weak ? { notes: [WEAK_DECISION_NOTE] } : {}),
+      ...(nextActions.length > 0 ? { nextActions } : {}),
+      ...shared.branchFields,
+      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+    },
+  };
 }
 
 export async function executeSearch(
@@ -1572,7 +1815,6 @@ export async function executeSearch(
     minScore,
     fields,
     answer,
-    hints: hintsWanted = true,
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -1596,6 +1838,15 @@ export async function executeSearch(
       rankingMode === "intent-v1" ||
       semanticFacets !== undefined ||
       sourceLocations !== undefined;
+    // Requirements and ADRs are ranked as decisions; scenarios, tests, facts
+    // and symbols are rows of their own only when the caller asks for them.
+    if (intentMode && (type === undefined || type === "req" || type === "adr"))
+      return await executeDecisionSearch(input, context, prolog, {
+        query: trimmedQuery,
+        storeNotice,
+        branchFields,
+        storeNote,
+      });
     if (intentMode) {
       const intentInput = {
         query: trimmedQuery,
@@ -1605,19 +1856,10 @@ export async function executeSearch(
         ...(minScore !== undefined ? { minScore } : {}),
       } as const;
       validateIntentSearchInput(intentInput);
-      let corpus:
-        | {
-            entities: readonly Record<string, unknown>[];
-            bodies: MarkdownBodyCache;
-          }
-        | undefined;
       const intentResult = await executeIntentSearch(
         intentInput,
         prolog,
         context.workspaceRoot,
-        (entities, bodies) => {
-          corpus = { entities, bodies };
-        },
       );
       const paginated = paginateResults(intentResult.matches, limit, offset);
       const freshness =
@@ -1655,22 +1897,6 @@ export async function executeSearch(
       const topUngoverned = answerLayer?.ungoverned.find(
         (entry) => entry.rank === 1,
       );
-      // Hints come after the lexical answer and never change it; a strong
-      // answer never reaches a provider.
-      const hints =
-        hintsWanted &&
-        offset === 0 &&
-        corpus !== undefined &&
-        searchHintsTrigger(intentResult.analysis) !== null
-          ? await searchHintsFor(context, {
-              query: trimmedQuery,
-              analysis: intentResult.analysis,
-              entities: corpus.entities,
-              bodies: corpus.bodies,
-              governingIds: (answerLayer?.governing ?? []).map((req) => req.id),
-              prolog,
-            })
-          : undefined;
       const unlocatedPaths = questionPathsNotLocated(
         trimmedQuery,
         sourceLocations,
@@ -1682,22 +1908,11 @@ export async function executeSearch(
         abstained,
         listTitles:
           offset === 0 &&
-          searchHintsTrigger(intentResult.analysis) !== null &&
-          (hints?.items.length ?? 0) === 0,
+          (intentResult.analysis.abstained ||
+            (intentResult.analysis.topScore ?? 0) < WEAK_TOP_SCORE),
         unlocatedPaths,
         sourceLocations,
       });
-      const weakAdrNote =
-        isBroadRationaleQuery({
-          query: trimmedQuery,
-          ...(type !== undefined ? { type } : {}),
-          ...(sourceLocations !== undefined ? { sourceLocations } : {}),
-        }) &&
-        searchHintsTrigger(intentResult.analysis) !== null &&
-        (answerLayer?.rationale.length ?? 0) === 0 &&
-        !paginated.some((match) => match.entity.type === "adr")
-          ? ' No ADRs matched; for design rationale or architecture decisions, try kb_query({"type":"adr"}).'
-          : "";
       const staleOrStoreNote =
         storeNote || (freshness?.state === "stale" ? ` ${freshness.note}` : "");
       const text = `${
@@ -1709,7 +1924,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. ${governingLabel(intentResult.analysis.ambiguous, answerLayer.governing.length)}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${searchHintsNote(hints)}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${weakAdrNote}${staleOrStoreNote}`;
+      }${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
@@ -1722,10 +1937,7 @@ export async function executeSearch(
           count: intentResult.matches.length,
           returned: paginated.length,
           truncated: offset + paginated.length < intentResult.matches.length,
-          queryAnalysis:
-            hints !== undefined
-              ? { ...intentResult.analysis, hints }
-              : intentResult.analysis,
+          queryAnalysis: intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
           ...(abstained ? { notes: [ABSTENTION_NOTE] } : {}),
           ...(nextActions.length > 0 ? { nextActions } : {}),

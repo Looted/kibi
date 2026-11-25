@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b47103b00cbc
+  - type: validates
+    from: TEST-proof-search-meaning-weight
+    to: SCEN-search-meaning-limits
+    created_at: 2026-11-25T19:27:08.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c327f7692a5

@@ -524,9 +524,9 @@ symbols:
       - type: covered_by
         target: TEST-search-closed-requirements
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
-      - type: implements
         target: REQ-search-answer-hygiene
+      - type: implements
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
     sourceFile: packages/cli/src/intent-search.ts
@@ -537,7 +537,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-intent-aware-source-discovery
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput
     title: validateIntentSearchInput
     sourceFile: packages/cli/src/intent-search.ts
@@ -548,7 +548,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-intent-aware-source-discovery
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     title: executeApplyPlan
     status: active
@@ -36411,21 +36411,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-hints-host
-  - id: SYM-build-search-hints
-    title: buildSearchHints
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:26.032Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-shown
-      - type: implements
-        target: REQ-kibi-search-hints-summed-order
   - id: SYM-compose-search-hints
     title: composeSearchHints
     status: active
@@ -36435,10 +36420,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-29T19:22:33.597Z
     relationships:
-      - type: implements
-        target: REQ-kibi-search-hints-advisory
       - type: covered_by
         target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-meaning-fusion
   - id: SYM-rank-by-meaning
     title: rankByMeaning
     status: active
@@ -36465,19 +36450,6 @@ symbols:
         target: TEST-kibi-plugin-search-hints
       - type: implements
         target: REQ-kibi-plugin-search-hints
-  - id: SYM-search-hints-trigger
-    title: searchHintsTrigger
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:53.400Z
-    relationships:
-      - type: implements
-        target: REQ-kibi-search-hints-when-asked
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
   - id: SYM-validate-search-hints-result
     title: validateSearchHintsResult
     status: active
@@ -36490,65 +36462,7 @@ symbols:
       - type: covered_by
         target: TEST-capability-search-hints-v1
       - type: implements
-        target: REQ-capability-search-hints-v1
-  - id: SYM-search-hint-weak-score
-    title: SEARCH_HINT_WEAK_SCORE
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:27:43.941Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: covered_by
-        target: TEST-proof-search-hint-weak-score
-      - type: implements
-        target: REQ-kibi-search-hints-limits
-  - id: SYM-proof-search-hint-weak-score
-    title: searchHintWeakScoreCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:27:50.094Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-search-hint-weak-score
-  - id: SYM-search-hint-limit
-    title: SEARCH_HINT_LIMIT
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:27:59.255Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: covered_by
-        target: TEST-proof-search-hint-shown-limit
-      - type: implements
-        target: REQ-kibi-search-hints-limits
-  - id: SYM-proof-search-hint-shown-limit
-    title: searchHintShownLimitCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:28:06.295Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-search-hint-shown-limit
+        target: REQ-capability-search-hints-v1-scores
   - id: SYM-search-hints-max-limit
     title: SEARCH_HINTS_MAX_LIMIT
     status: active
@@ -36561,23 +36475,9 @@ symbols:
       - type: covered_by
         target: TEST-capability-search-hints-v1
       - type: covered_by
-        target: TEST-proof-search-hints-result-limit
+        target: TEST-proof-search-meaning-score-limit
       - type: implements
-        target: REQ-kibi-search-hints-limits
-  - id: SYM-proof-search-hints-result-limit
-    title: searchHintsResultLimitCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T21:28:19.270Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-search-hints-result-limit
+        target: REQ-search-meaning-limits
   - id: SYM-core-dimension-stage
     title: dimension_stage
     status: active
@@ -46182,7 +46082,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-intent-aware-source-discovery
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-agent-core-superseding-requirement
     title: supersedingRequirement
     sourceFile: packages/agent-core/src/knowledge-index.ts
@@ -48359,9 +48259,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:04.575Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-requirement-lifting-assumed-scenario-ids
     title: assumedScenarioIds
     sourceFile: packages/cli/src/requirement-lifting.ts
@@ -48372,9 +48272,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:05.700Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-requirement-lifting-lift-test-targets
     title: liftTestTargets
     sourceFile: packages/cli/src/requirement-lifting.ts
@@ -48385,9 +48285,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:06.646Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-requirement-lifting-lift-assumed-fact
     title: liftAssumedFact
     sourceFile: packages/cli/src/requirement-lifting.ts
@@ -48398,9 +48298,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:07.591Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-requirement-lifting-resolve-supersedes-target
     title: resolveSupersedesTarget
     sourceFile: packages/cli/src/requirement-lifting.ts
@@ -48411,9 +48311,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:08.546Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-requirement-lifting-query-typed-edges
     title: queryTypedEdges
     sourceFile: packages/cli/src/requirement-lifting.ts
@@ -48424,22 +48324,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:09.487Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
-  - id: SYM-search-hints-search-hints-entities
-    title: searchHintsEntities
-    sourceFile: packages/cli/src/search-hints.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-23T10:35:10.487Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-intent-search-is-broad-rationale-query
     title: isBroadRationaleQuery
     sourceFile: packages/cli/src/intent-search.ts
@@ -48450,9 +48337,9 @@ symbols:
       recorded_at: 2026-11-23T10:35:11.447Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-search-hints-host
+        target: TEST-search-answer-first-layer
       - type: implements
-        target: REQ-search-answers-search-hints-lift-two
+        target: REQ-search-answers-lift-two
   - id: SYM-content-freshness-freshness-memo
     title: FreshnessMemo
     status: active
@@ -50105,13 +49992,11 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: covered_by
         target: TEST-search-answer-hygiene
       - type: covered_by
         target: TEST-search-closed-requirements
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-intent-search-tokenizer-sources
     title: tokenizerSources
     sourceFile: packages/cli/src/intent-search.ts
@@ -50126,13 +50011,11 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: covered_by
         target: TEST-search-answer-hygiene
       - type: covered_by
         target: TEST-search-closed-requirements
       - type: implements
-        target: REQ-kibi-intent-aware-source-discovery
+        target: REQ-search-decisions-are-the-unit
   - id: SYM-baseline-retriever
     title: Retriever
     status: active
@@ -51774,3 +51657,216 @@ symbols:
         target: TEST-kibi-signoff-views
       - type: implements
         target: REQ-kibi-signoff-written-and-printed
+  - id: SYM-decision-search-search-decisions
+    title: searchDecisions
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:25:42.138Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-decisions-are-the-unit
+      - type: implements
+        target: REQ-search-weak-answer
+  - id: SYM-decision-search-credited-score
+    title: creditedScore
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:25:46.655Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-meaning-list
+  - id: SYM-decision-corpus-load-decision-corpus
+    title: loadDecisionCorpus
+    status: active
+    sourceFile: packages/cli/src/decision-corpus.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:25:50.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-decisions-are-the-unit
+  - id: SYM-search-hints-provider-meaning-ranker
+    title: providerMeaningRanker
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:25:53.745Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-search-meaning-fusion
+  - id: SYM-retrieval-decision-coverage
+    title: decisionCoverage
+    status: active
+    sourceFile: packages/agent-core/src/retrieval.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:25:57.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-weak-answer
+  - id: SYM-const-meaning-list-limit
+    title: MEANING_LIST_LIMIT
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:00.969Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-search-meaning-list-limit
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-meaning-limits
+  - id: SYM-const-meaning-weight
+    title: MEANING_WEIGHT
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:04.403Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-search-meaning-weight
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-meaning-limits
+  - id: SYM-const-decision-card-limit
+    title: DECISION_CARD_LIMIT
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:07.905Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-search-decision-card-limit
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-meaning-limits
+  - id: SYM-const-governing-coverage
+    title: WEAK_COVERAGE
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:11.415Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-search-governing-coverage
+      - type: covered_by
+        target: TEST-search-decision-answers
+      - type: implements
+        target: REQ-search-meaning-limits
+  - id: SYM-proof-search-meaning-list-limit
+    title: meaningListLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:14.975Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-meaning-list-limit
+  - id: SYM-proof-search-meaning-score-limit
+    title: meaningScoreLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:18.319Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-meaning-score-limit
+  - id: SYM-proof-search-meaning-weight
+    title: meaningWeightCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:21.775Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-meaning-weight
+  - id: SYM-proof-search-decision-card-limit
+    title: decisionCardLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:25.185Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-decision-card-limit
+  - id: SYM-proof-search-governing-coverage
+    title: weakCoverageCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-meaning-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:28.546Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-governing-coverage
+  - id: SYM-test-search-decision-answers
+    title: decision-search.test.ts
+    status: active
+    sourceFile: packages/cli/tests/decision-search.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T19:26:33.363Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-decision-answers

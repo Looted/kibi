@@ -72,28 +72,38 @@ name, decide how results are ranked.
 ```
 
 Supply facets only from the request, the code, or prior results. Inventing
-facets fabricates evidence and biases ranking. Intent mode abstains below
-`minScore` instead of returning weak matches; an abstention is an explicit
-no-answer, so widen the query or drop to lexical search rather than treating it
-as "nothing exists". A literal identifier lookup is still best served
-lexically.
+facets fabricates evidence and biases ranking. A literal identifier lookup is
+still best served lexically.
 
-Search hints are on by default (the bundled `kibi-plugin-search-hints`, unless
-the project configured another `kibi.search-hints.v1` provider or listed the
-package in `kibi.declinedPlugins`), so a weak or abstained intent answer also carries
-`queryAnalysis.hints`: up to ten current requirements the question may mean,
-found by meaning rather than shared words, each with a `score` and, when it
-was reached through a scenario, test or fact, that entity as `via`. Hints are
-suggestions, never governing requirements, and they never change the results
-or the answer layer. Re-ask `kb_search` in the words of a hint that fits, or
-pass them as `semanticFacets.aliases`, then read the requirement with
-`kb_query`; never cite a hint as the rule. `hints: false` turns them off.
+Without a `type`, or with `type` `req` or `adr`, intent mode answers with
+decision cards: requirements and ADRs ranked by the question's words and the
+words of the facts they link and the symbols that implement them, five by
+default. Each row in `data.results` is a card with its `line` (id, firmness,
+title, statement and strongest evidence in at most 300 characters), `scope`
+(`in` this workspace, `unscoped` or `distant`) and the decisions `folded` into
+it (a superseded or near-identical decision). Decisions linked only to files
+this workspace lacks are only counted in `queryAnalysis.otherScopes`. Pass a
+scenario, test, fact or symbol `type` to rank rows of that type instead; those
+rows abstain below `minScore`.
 
-When an abstained or weak answer shows no hint, its `nextActions` names the
-`kb_query` that lists the requirement titles, and an abstained answer carries
-`notes`. An abstention is not evidence that nothing is recorded: list the titles
-to find the words the KB uses, then search again in those words. A path written
-in the question and a question about contradictions add their own next action
+The meaning ranking is on by default (the bundled `kibi-plugin-search-hints`,
+unless the project configured another `kibi.search-hints.v1` provider or
+listed the package in `kibi.declinedPlugins`): the provider scores each
+decision and the scenarios, tests and facts it links, its ranking is fused
+into the cards, and the first page's `queryAnalysis.hints.items` lists up to
+seven more decisions related by meaning that are not cards. They are
+suggestions, never governing requirements: read one with `kb_query` before
+relying on it, and never cite it as the rule. `hints: false` ranks by words
+alone.
+
+An answer none of whose cards covers half the question is weak
+(`queryAnalysis.weak`): it names no governing requirement, lists the question's
+words no card holds in `queryAnalysis.uncoveredTerms`, and carries `notes`
+saying the missing match is not evidence that nothing governs the question.
+When a weak answer lists no decision related by meaning, its `nextActions`
+names the `kb_query` that lists the requirement titles: list them to find the
+words the KB uses, then search again in those words. A path written in the
+question and a question about contradictions add their own next action
 (`kb_search` with `sourceLocations`, `kb_check` with `domain-contradictions`).
 
 On the first page, intent mode also returns an answer layer in `data.answer`
