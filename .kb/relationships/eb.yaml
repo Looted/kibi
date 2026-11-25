@@ -335,3 +335,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a1d91f14a78
+  - type: requires_property
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: FACT-PROP-kibi-staged-floor-reports-new-requirement-c01
+    created_at: 2026-11-25T09:48:55.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4a2548b303d
+  - type: specified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: SCEN-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:04.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d11c216d9f9f
+  - type: specified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-rejected
+    created_at: 2026-11-25T09:49:04.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc41cf8192cf
+  - type: verified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:04.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94f5b71649f8
+  - type: verified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: TEST-kibi-levels-cli
+    created_at: 2026-11-25T09:51:09.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07517b314b47
+  - type: constrains
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: FACT-SUBJ-kibi-level
+    created_at: 2026-11-25T10:18:16.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae9cc98571cf
+  - type: specified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    created_at: 2026-11-25T10:20:25.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42cea7c049d7
+  - type: specified_by
+    from: REQ-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    created_at: 2026-11-25T10:20:31.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50baf9d0d6e4

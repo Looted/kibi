@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-symbol-coordinates-derived-locally",
+  "sourceFile": "packages/cli/src/commands/migrate.ts",
+  "symbol": "migrateCommand",
+  "verdict": "keeps",
+  "note": "The change adds the schema 20 step that only prints the level note and writes nothing; the schema 13 gitignore and index handling for symbol-coordinates.yaml is untouched.",
+  "statementHash": "sha256:201c86e5ee4e66d300d6ecf7402f47dd6a2cf6eda6a2e9b0c36ce755586f792c",
+  "codeHash": "sha256:ec51a8a74325c3c25f3049364ac63a9f62c47336c40c1c6b4d0a8449cc3c71ef",
+  "startLine": 881,
+  "endLine": 1622,
+  "recordedAt": "2026-11-25T10:42:18.328Z"
+}

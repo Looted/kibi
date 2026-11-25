@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import {
   InputError,
   KbRejection,
@@ -45,6 +46,7 @@ import {
 import { buildUpsertCommitGoal, upsertFailure } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
 import { inventoryCommitWarnings } from "./inventory-commit-warning.js";
+import { assertRequiredEvidenceFitsLevel } from "./level-evidence-guard.js";
 import { withStoredOmittedProperties } from "./omitted-properties.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
@@ -644,6 +646,12 @@ export async function validateUpsertForCommit(
   );
   await assertPredicateArgumentVocabulary(prolog, validated.entity, staged);
   await assertFirmDecisionUnchanged(payload, context.workspaceRoot, lookup);
+  await assertRequiredEvidenceFitsLevel(
+    payload,
+    context.workspaceRoot,
+    readKibiLevel(context.workspaceRoot).level,
+    lookup,
+  );
   // The origin the write records is added last: none of the checks above
   // reads it, and a rejected payload never pays for the stored-origin read.
   const recorded = await resolveUpsertOrigin(

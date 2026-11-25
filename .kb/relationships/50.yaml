@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-91f01059f15c
+  - type: executable_for
+    from: SYM-test-kibi-staged-floor-reports-new-requirement
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:01.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19b061226c7e

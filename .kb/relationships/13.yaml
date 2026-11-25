@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68d17c2caabd
+  - type: assumes
+    from: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    to: FACT-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    created_at: 2026-11-25T10:20:30.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9a40fc20570

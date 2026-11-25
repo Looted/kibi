@@ -2409,15 +2409,19 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-008
-      - type: implements
-        target: REQ-kibi-check-rule-selection
-      - type: covered_by
         target: TEST-001
       - type: covered_by
         target: TEST-004
       - type: covered_by
+        target: TEST-008
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-cli-rule-registry-RULES
     title: RULES
     status: active
@@ -2446,15 +2450,19 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-008
-      - type: implements
-        target: REQ-kibi-check-rule-selection
-      - type: covered_by
         target: TEST-001
       - type: covered_by
         target: TEST-004
       - type: covered_by
+        target: TEST-008
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-cli-run-aggregated-checks
     title: runAggregatedChecks
     status: active
@@ -13437,11 +13445,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-008
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
       - type: implements
         target: REQ-kibi-check-rule-selection
-      - type: covered_by
-        target: TEST-004
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-cli-rule-registry-getCanonicalRules
     title: getCanonicalRules
     status: active
@@ -13450,11 +13462,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-008
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
       - type: implements
         target: REQ-kibi-check-rule-selection
-      - type: covered_by
-        target: TEST-004
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-cli-rule-registry-isCanonicalRule
     title: isCanonicalRule
     status: active
@@ -13463,11 +13479,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-008
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
       - type: implements
         target: REQ-kibi-check-rule-selection
-      - type: covered_by
-        target: TEST-004
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-canonical-loadKbSyncPaths
     title: loadKbSyncPaths
     status: active
@@ -13536,11 +13556,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-008
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
       - type: implements
         target: REQ-kibi-check-rule-selection
-      - type: covered_by
-        target: TEST-004
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-canonical-shouldHandleFile
     title: shouldHandleFile
     status: active
@@ -13659,13 +13683,17 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-008
-      - type: implements
-        target: REQ-kibi-check-rule-selection
-      - type: covered_by
         target: TEST-004
       - type: covered_by
+        target: TEST-008
+      - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
   - id: SYM-cli-report-favicon
     title: renderKibiFaviconSvg
     status: active
@@ -44327,7 +44355,11 @@ symbols:
       recorded_at: 2026-11-16T20:00:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-remember-level-surface
+      - type: covered_by
         target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-kibi-remember-level-surface
       - type: implements
         target: REQ-mcp-default-tool-profile
   - id: SYM-mcp-serverInstructions
@@ -50241,3 +50273,527 @@ symbols:
         target: TEST-retrieval-replay-harness
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-test-kibi-check-rule-selection-by-level
+    title: Rule selection by level suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/rule-selection.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:50.587Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-check-rule-selection-by-level
+  - id: SYM-rule-registry-layer-runs-at-level
+    title: layerRunsAtLevel
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:44:56.084Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-check-rule-selection-by-level
+      - type: implements
+        target: REQ-kibi-check-rule-selection-by-level
+  - id: SYM-test-kibi-level-setting
+    title: Kibi level setting suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/level-setting.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:05.215Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-level-setting
+  - id: SYM-kibi-level-read-kibi-level
+    title: readKibiLevel
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:10.432Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-level-setting
+      - type: implements
+        target: REQ-kibi-level-setting
+  - id: SYM-kibi-level-kibi-level-setting-name
+    title: kibiLevelSettingName
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:11.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-level-setting
+      - type: implements
+        target: REQ-kibi-level-setting
+  - id: SYM-kibi-level-is-kibi-level
+    title: isKibiLevel
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:12.842Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-level-setting
+      - type: implements
+        target: REQ-kibi-level-setting
+  - id: SYM-check-executor-invalid-level-diagnostic
+    title: invalidLevelDiagnostic
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:14.076Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-level-setting
+      - type: implements
+        target: REQ-kibi-level-setting
+  - id: SYM-test-kibi-schema-20-level
+    title: Schema 20 suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/schema-20.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:26.135Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-schema-20-level
+  - id: SYM-migrate-kibi-level-note
+    title: kibiLevelNote
+    sourceFile: packages/cli/src/commands/migrate.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:31.489Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema-20-level
+      - type: implements
+        target: REQ-kibi-schema-20-level
+  - id: SYM-test-kibi-required-evidence-at-remember
+    title: Required evidence at level remember suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/required-evidence-at-remember.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:43.886Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-required-evidence-at-remember
+  - id: SYM-level-evidence-collect-required-evidence-above-level-violations
+    title: collectRequiredEvidenceAboveLevelViolations
+    sourceFile: packages/cli/src/public/operations/level-evidence.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:49.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-required-evidence-at-remember
+      - type: implements
+        target: REQ-kibi-required-evidence-at-remember
+  - id: SYM-level-evidence-guard-assert-required-evidence-fits-level
+    title: assertRequiredEvidenceFitsLevel
+    sourceFile: packages/cli/src/operations/mutation/level-evidence-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:48:50.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-required-evidence-at-remember
+      - type: implements
+        target: REQ-kibi-required-evidence-at-remember
+  - id: SYM-test-kibi-staged-floor-reports-new-requirement
+    title: Staged evidence floor by Kibi level suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/staged-floor.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:00.990Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-staged-floor-reports-new-requirement
+  - id: SYM-staged-evidence-floor-added-requirement-ids
+    title: addedRequirementIds
+    sourceFile: packages/cli/src/traceability/staged-evidence-floor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:06.375Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-staged-floor-reports-new-requirement
+      - type: implements
+        target: REQ-kibi-staged-floor-reports-new-requirement
+  - id: SYM-staged-evidence-floor-partition-staged-floor-findings
+    title: partitionStagedFloorFindings
+    sourceFile: packages/cli/src/traceability/staged-evidence-floor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:07.662Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-staged-floor-reports-new-requirement
+      - type: implements
+        target: REQ-kibi-staged-floor-reports-new-requirement
+  - id: SYM-staged-evidence-floor-staged-requirement-proof-rules
+    title: stagedRequirementProofRules
+    sourceFile: packages/cli/src/traceability/staged-evidence-floor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:08.840Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-staged-floor-reports-new-requirement
+      - type: implements
+        target: REQ-kibi-staged-floor-reports-new-requirement
+  - id: SYM-test-kibi-remember-level-surface
+    title: Remember surface suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/remember-surface.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:20.840Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-remember-level-surface
+  - id: SYM-skills-offered-skills
+    title: offeredSkills
+    sourceFile: packages/cli/src/public/operations/specs/skills.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:27.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-remember-level-surface
+      - type: implements
+        target: REQ-kibi-remember-level-surface
+  - id: SYM-test-kibi-init-level-choice
+    title: kibi init and the Kibi level suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/init-level.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:40.846Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-init-level-choice
+  - id: SYM-init-level-settle-kibi-level
+    title: settleKibiLevel
+    sourceFile: packages/cli/src/commands/init-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:46.260Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-init-level-choice
+      - type: implements
+        target: REQ-kibi-init-level-choice
+  - id: SYM-init-level-write-kibi-level
+    title: writeKibiLevel
+    sourceFile: packages/cli/src/commands/init-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:47.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-init-level-choice
+      - type: implements
+        target: REQ-kibi-init-level-choice
+  - id: SYM-init-level-ask-at-terminal
+    title: askAtTerminal
+    sourceFile: packages/cli/src/commands/init-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:48.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-init-level-choice
+      - type: implements
+        target: REQ-kibi-init-level-choice
+  - id: SYM-init-level-parse-level-answer
+    title: parseLevelAnswer
+    sourceFile: packages/cli/src/commands/init-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:50.100Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-init-level-choice
+      - type: implements
+        target: REQ-kibi-init-level-choice
+  - id: SYM-init-level-init-can-ask
+    title: initCanAsk
+    sourceFile: packages/cli/src/commands/init-level.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:49:51.332Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-init-level-choice
+      - type: implements
+        target: REQ-kibi-init-level-choice
+  - id: SYM-test-kibi-levels-cli
+    title: Kibi levels CLI suite
+    status: active
+    sourceFile: packages/cli/tests/commands/kibi-levels.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T09:51:01.058Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-levels-cli
+  - id: SYM-kibi-level-kibi-level
+    title: KibiLevel
+    status: active
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:20.355Z
+  - id: SYM-kibi-level-kibi-levels
+    title: KIBI_LEVELS
+    status: active
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:22.594Z
+  - id: SYM-kibi-level-default-kibi-level
+    title: DEFAULT_KIBI_LEVEL
+    status: active
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:24.642Z
+  - id: SYM-kibi-level-kibi-level-source
+    title: KibiLevelSource
+    status: active
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:26.722Z
+  - id: SYM-kibi-level-resolved-kibi-level
+    title: ResolvedKibiLevel
+    status: active
+    sourceFile: packages/agent-core/src/kibi-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:28.854Z
+  - id: SYM-cli-errors-kb-rejection-code
+    title: KbRejectionCode
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:30.822Z
+  - id: SYM-init-level-level-question
+    title: LEVEL_QUESTION
+    status: active
+    sourceFile: packages/cli/src/commands/init-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:32.987Z
+  - id: SYM-init-level-ask-level
+    title: AskLevel
+    status: active
+    sourceFile: packages/cli/src/commands/init-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:34.958Z
+  - id: SYM-init-level-level-settlement
+    title: LevelSettlement
+    status: active
+    sourceFile: packages/cli/src/commands/init-level.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:37.131Z
+  - id: SYM-level-evidence-required-evidence-above-level-rule
+    title: REQUIRED_EVIDENCE_ABOVE_LEVEL_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/level-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:39.228Z
+  - id: SYM-level-evidence-verified-evidence-levels
+    title: VERIFIED_EVIDENCE_LEVELS
+    status: active
+    sourceFile: packages/cli/src/public/operations/level-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:41.403Z
+  - id: SYM-skills-remember-unoffered-skills
+    title: REMEMBER_UNOFFERED_SKILLS
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/skills.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:43.539Z
+  - id: SYM-test-kibi-levels-level-workspace
+    title: levelWorkspace
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:45.767Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-init-level-choice
+      - type: executable_for
+        target: TEST-kibi-level-setting
+      - type: executable_for
+        target: TEST-kibi-remember-level-surface
+      - type: executable_for
+        target: TEST-kibi-required-evidence-at-remember
+      - type: executable_for
+        target: TEST-kibi-schema-20-level
+      - type: executable_for
+        target: TEST-kibi-staged-floor-reports-new-requirement
+  - id: SYM-test-kibi-levels-at-level
+    title: atLevel
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:48.025Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-init-level-choice
+      - type: executable_for
+        target: TEST-kibi-level-setting
+      - type: executable_for
+        target: TEST-kibi-remember-level-surface
+      - type: executable_for
+        target: TEST-kibi-required-evidence-at-remember
+      - type: executable_for
+        target: TEST-kibi-schema-20-level
+      - type: executable_for
+        target: TEST-kibi-staged-floor-reports-new-requirement
+  - id: SYM-test-kibi-levels-cleanup-level-workspaces
+    title: cleanupLevelWorkspaces
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:50.291Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-init-level-choice
+      - type: executable_for
+        target: TEST-kibi-level-setting
+      - type: executable_for
+        target: TEST-kibi-remember-level-surface
+      - type: executable_for
+        target: TEST-kibi-required-evidence-at-remember
+      - type: executable_for
+        target: TEST-kibi-schema-20-level
+      - type: executable_for
+        target: TEST-kibi-staged-floor-reports-new-requirement
+  - id: SYM-test-kibi-levels-requirement-doc
+    title: requirementDoc
+    status: active
+    sourceFile: packages/cli/tests/kibi-levels/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:52.528Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-init-level-choice
+      - type: executable_for
+        target: TEST-kibi-level-setting
+      - type: executable_for
+        target: TEST-kibi-remember-level-surface
+      - type: executable_for
+        target: TEST-kibi-required-evidence-at-remember
+      - type: executable_for
+        target: TEST-kibi-schema-20-level
+      - type: executable_for
+        target: TEST-kibi-staged-floor-reports-new-requirement
+  - id: SYM-snapshot-knowledge-read-snapshot-knowledge
+    title: readSnapshotKnowledge
+    status: active
+    sourceFile: packages/cli/src/traceability/snapshot-knowledge.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:41:54.951Z
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-kibi-change-snapshots
+  - id: SYM-tools-config-remember-unlisted-tools
+    title: REMEMBER_UNLISTED_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T10:45:15.276Z

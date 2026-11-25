@@ -643,6 +643,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e6ceadd6f5e
+  - type: validates
+    from: TEST-kibi-staged-floor-reports-new-requirement
+    to: SCEN-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:00.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1010d0adc2ef
+  - type: validates
+    from: TEST-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-rejected
+    created_at: 2026-11-25T09:49:00.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a5d5b3828dd
+  - type: validates
+    from: TEST-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    created_at: 2026-11-25T10:20:27.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ac6ccee8522
+  - type: validates
+    from: TEST-kibi-staged-floor-reports-new-requirement
+    to: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    created_at: 2026-11-25T10:20:33.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f0bea00f494
   - type: implements
     from: SYM-session-brief-for
     to: REQ-kibi-no-git-advisory

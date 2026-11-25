@@ -1,3 +1,4 @@
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { getDefaultRules } from "../../utils/rule-registry.js";
 import type { Violation } from "../check-types.js";
 /*
@@ -49,15 +50,16 @@ export interface CheckEvaluated {
 
 /**
  * The rules a run evaluated as a count, with their names only when some
- * default rule was skipped: a full run is one number, a narrowed one says
+ * default rule of the level was skipped: a full run is one number, a narrowed one says
  * which rules it covered.
  */
 export function describeEvaluatedRules(
   rules: Iterable<string>,
+  level: KibiLevel = "test",
 ): Pick<CheckEvaluated, "ruleCount" | "rules"> {
   const ran = [...rules];
   const ranSet = new Set(ran);
-  const skipped = [...getDefaultRules()].some((rule) => !ranSet.has(rule));
+  const skipped = [...getDefaultRules(level)].some((rule) => !ranSet.has(rule));
   return { ruleCount: ran.length, ...(skipped ? { rules: ran } : {}) };
 }
 
