@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -124,6 +125,26 @@ describe("kibi-antigravity plugin contract", () => {
     expect(
       fs.existsSync(path.join(packageRoot, "bin", "hook-runner.mjs")),
     ).toBe(true);
+  });
+
+  test("ships executable hook launcher scripts on POSIX", () => {
+    const runNodeCmd = path.join(packageRoot, "bin", "run-node.cmd");
+    const runNodeSh = path.join(packageRoot, "bin", "run-node.sh");
+
+    if (process.platform !== "win32") {
+      expect(fs.statSync(runNodeCmd).mode & 0o111).not.toBe(0);
+      expect(fs.statSync(runNodeSh).mode & 0o111).not.toBe(0);
+
+      // Antigravity executes hooks via `sh -c`; `run-node.cmd` is a polyglot
+      // Windows/POSIX script (no shebang) that still requires `+x` for `sh` to
+      // invoke it directly.
+      const probe = spawnSync("/bin/sh", ["-c", "./bin/run-node.cmd --version"], {
+        cwd: packageRoot,
+        encoding: "utf8",
+      });
+      expect(probe.status).toBe(0);
+      expect(probe.stdout.trim()).toMatch(/^v\d+\./);
+    }
   });
 
   test("package.json files lists exactly the shipped plugin parts", () => {
