@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7eb72e5736f8
+  - type: assumes
+    from: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    to: FACT-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    created_at: 2026-11-25T14:35:28.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-171f69528b79
+  - type: verified_by
+    from: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:28.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d661634ce2f

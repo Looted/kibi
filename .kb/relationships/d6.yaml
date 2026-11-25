@@ -605,3 +605,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78e0f2fba5d4
+  - type: assumes
+    from: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    to: FACT-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    created_at: 2026-11-25T14:35:49.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3671d5447e29
+  - type: verified_by
+    from: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:49.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8c7ebdb1990
