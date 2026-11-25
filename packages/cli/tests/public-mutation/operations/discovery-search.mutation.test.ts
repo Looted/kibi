@@ -104,7 +104,10 @@ function intentFakes(options: IntentOptions = {}) {
     ),
     answer: spy(answers, "buildSearchAnswer").mockResolvedValue(
       options.answer ?? {
-        governing: [{ id: "REQ-g1" }, { id: "REQ-g2" }],
+        governing: [
+          { id: "REQ-g1", facts: [] },
+          { id: "REQ-g2", facts: [] },
+        ],
         ungoverned: [],
       },
     ),
@@ -307,7 +310,10 @@ describe("executeSearch intent ranking", () => {
       matches,
       ambiguous: true,
       answer: {
-        governing: [{ id: "REQ-g1" }, { id: "REQ-g2" }],
+        governing: [
+          { id: "REQ-g1", facts: [] },
+          { id: "REQ-g2", facts: [] },
+        ],
         ungoverned: [
           { id: "REQ-2", rank: 2 },
           { id: "REQ-1", rank: 1 },

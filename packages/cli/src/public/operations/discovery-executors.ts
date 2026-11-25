@@ -23,6 +23,7 @@ import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import {
   type SearchAnswer,
+  answerQuotedIds,
   buildSearchAnswer,
   governingLabel,
 } from "../../search-answer.js";
@@ -1374,6 +1375,34 @@ export function summarizeMatch<
   return { ...match, entity: summary, evidence };
 }
 
+/**
+ * Each entity once: a match whose entity the answer already quotes (a
+ * requirement with its whole statement, a fact with its claim) keeps only
+ * its id, type, title, score and match reasons. Every other match is
+ * returned as it is.
+ */
+export function slimAnsweredMatches<
+  TMatch extends {
+    readonly entity: Record<string, unknown>;
+    readonly score: number;
+    readonly reasons: readonly string[];
+  },
+>(matches: readonly TMatch[], quoted: ReadonlySet<string>): readonly TMatch[] {
+  if (quoted.size === 0) return matches;
+  return matches.map((match) => {
+    const id = match.entity.id;
+    if (typeof id !== "string" || !quoted.has(id)) return match;
+    const entity: Record<string, unknown> = { id };
+    if (match.entity.type !== undefined) entity.type = match.entity.type;
+    if (match.entity.title !== undefined) entity.title = match.entity.title;
+    return {
+      entity,
+      score: match.score,
+      reasons: match.reasons,
+    } as unknown as TMatch;
+  });
+}
+
 // Candidates are projected rows, so `fields: "full"` reloads the final page's
 // complete entities by id (one bounded query each).
 async function projectMatches<
@@ -1678,7 +1707,12 @@ export async function executeSearch(
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: await projectMatches(prolog, paginated, fields),
+          results: slimAnsweredMatches(
+            await projectMatches(prolog, paginated, fields),
+            answerLayer !== undefined && fields !== "full"
+              ? answerQuotedIds(answerLayer)
+              : new Set<string>(),
+          ),
           count: intentResult.matches.length,
           returned: paginated.length,
           truncated: offset + paginated.length < intentResult.matches.length,

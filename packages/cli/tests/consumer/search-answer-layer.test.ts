@@ -714,9 +714,36 @@ links:
     );
     expect(positive?.claim).toBe("client.call_quota remaining gt 0");
     expect(positive && "ask" in positive).toBe(false);
-    const results = data.results as Array<{ evidence: Json }>;
+    const results = data.results as Array<{
+      entity: { id: string };
+      evidence?: Json;
+    }>;
     expect(results.length).toBeGreaterThan(0);
-    for (const row of results) expect("graphPaths" in row.evidence).toBe(false);
+    for (const row of results)
+      expect("graphPaths" in (row.evidence ?? {})).toBe(false);
+    // An entity the answer quotes (a whole statement, a fact's claim) comes
+    // back once: its result keeps only its identity, score and reasons.
+    const ungoverned = ((data.answer as Json).ungoverned ?? []) as Array<{
+      id: string;
+      claim?: string;
+    }>;
+    const quoted = new Set([
+      ...governing
+        .filter((req) => req.statement && !req.statement.endsWith("…"))
+        .map((req) => req.id),
+      ...[...governing.flatMap((req) => req.facts), ...ungoverned]
+        .filter((fact) => fact.claim !== undefined)
+        .map((fact) => fact.id),
+    ]);
+    expect(quoted.has("REQ-QUOTA-CALL")).toBe(true);
+    expect(results.some((row) => row.entity.id === "REQ-QUOTA-CALL")).toBe(
+      true,
+    );
+    for (const row of results) {
+      if (quoted.has(row.entity.id))
+        expect(Object.keys(row).sort()).toEqual(["entity", "reasons", "score"]);
+      else expect(row.evidence).toBeDefined();
+    }
 
     const full = ws.json(["search"], {
       query: "client call quota",

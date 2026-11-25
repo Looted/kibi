@@ -395,7 +395,7 @@
             "type": "boolean"
           },
           "fields": {
-            "description": "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
+            "description": "'summary': metadata, snippet (bare rows for entities the answer quotes); 'full': bodies, graph paths, fact queries.",
             "enum": ["summary", "full"],
             "type": "string"
           },
@@ -4407,6 +4407,13 @@
                       "additionalProperties": {},
                       "properties": {},
                       "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "impactAdvice": {
+                    "description": "Advice that impact diagnostics share, once each. An impact diagnostic whose advice is an index into this list carries no suggestion of its own.",
+                    "items": {
+                      "type": "string"
                     },
                     "type": "array"
                   },

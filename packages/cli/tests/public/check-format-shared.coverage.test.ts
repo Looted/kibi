@@ -184,3 +184,59 @@ describe("check-format-shared formatters", () => {
     expect(summary).toContain("quality diagnostic");
   });
 });
+
+describe("buildStructuredContent impact compaction", () => {
+  const symbol = {
+    id: "SYM-run",
+    name: "run",
+    kind: "function",
+    role: "behavioral",
+    location: { file: "a.ts", startLine: 1, endLine: 2 },
+    hunkRanges: [{ start: 1, end: 2 }],
+    linkedEntityIds: ["REQ-a"],
+  };
+  const build = (diagnostics: unknown[]) =>
+    buildStructuredContent({
+      violations: [],
+      evaluated: { ruleCount: 0 },
+      diagnostics: [],
+      impactResult: {
+        impactDiagnostics: diagnostics,
+        sourceFiles: ["a.ts"],
+        extractedSymbols: [symbol],
+        linkedEntities: [
+          {
+            id: "REQ-a",
+            relationshipType: "implements",
+            sourceSymbolId: "SYM-run",
+            sourceSymbolName: "run",
+          },
+        ],
+        nextActions: [],
+      } as unknown as ChangedFileImpactResult,
+    });
+
+  test("lists symbols without the links linkedEntities carries", () => {
+    const { linkedEntityIds: _linked, ...rest } = symbol;
+    expect(build([]).extractedSymbols).toEqual([rest]);
+  });
+
+  test("gives shared advice once, and none when no diagnostic shares any", () => {
+    const shared = {
+      id: "symbol_semantic_review_needed",
+      severity: "warning",
+      files: ["a.ts"],
+      message: "Changed behavioral symbol run needs semantic review",
+      suggestion:
+        "Use kb_search and kb_query for a.ts, then verify that REQ-a actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+    };
+    const withAdvice = build([shared, shared]);
+    expect(withAdvice.impactAdvice).toEqual([
+      "Use kb_search and kb_query for the file in files, then verify that the entities the message names actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+    ]);
+    expect(withAdvice.impactDiagnostics?.map((d) => d.advice)).toEqual([0, 0]);
+    const own = build([{ ...shared, suggestion: "review" }]);
+    expect("impactAdvice" in own).toBe(false);
+    expect(own.impactDiagnostics?.[0]?.suggestion).toBe("review");
+  });
+});

@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7dafc8969a13
+  - type: assumes
+    from: SCEN-CASE-kb-check-impact-statement-quoted-once-CHECK-STATEMENT-IN-MESSAGE
+    to: FACT-CASE-kb-check-impact-statement-quoted-once-CHECK-STATEMENT-IN-MESSAGE
+    created_at: 2026-11-24T19:26:40.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38cd1b7624a1
+  - type: verified_by
+    from: SCEN-CASE-kb-check-impact-statement-quoted-once-CHECK-STATEMENT-IN-MESSAGE
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:26:40.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec194e94e031
