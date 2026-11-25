@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-AEF7587DBC190FD1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-99a46345223d7a7f74ee16cb
+    receipt_id: PR-78d22065397671f31cd3a5e5
     test_id: TEST-proof-codex-manifest-fields
     scope: unit
     outcome: passed
-    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-20T07:56:37.912Z'
-    finished_at: '2026-11-20T08:21:18.271Z'
-    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
+    code_snapshot: 017f08e44cfd7461b2b4632514b2750261c1be0471722dc4ee28dbea05858af6
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-25T18:11:18.032Z'
+    finished_at: '2026-11-25T18:11:18.145Z'
+    artifact_digest: 64729ba01c9060cf23f8ed9a7055ec9629d8fe49e4994d049cd7801aab044155
     contract_hash: d827e7249b61b847ea0e7dc2762b61c339162f249ae4523e9431c935a1702a0b
-    binding_hash: a15327ac81676ff54202c2940fafb02a539498e106271477fffae7b1b402e061
+    binding_hash: 7729dfbe42ed0b73d598a1ba5d6f4c63c23d8c0db90ff66fc659a7e6cf85a3c3
     fingerprint: 8130e931cb9fd396091c1eb9bf5c187357ad1b76d3cff92602962f9a5f365fdc
     fingerprint_components:
       contract: d827e7249b61b847ea0e7dc2762b61c339162f249ae4523e9431c935a1702a0b
@@ -78,6 +78,7 @@ proof_receipts:
           - description
           - homepage
           - hooks
+          - interface
           - keywords
           - license
           - mcpServers
@@ -85,7 +86,7 @@ proof_receipts:
           - repository
           - skills
           - version
-    certificate_digest: fd7ae2e5a2c8edf45b4da3c2d6decbf8a62f5e6603eb0702dd33e3a519b71ea0
+    certificate_digest: 8dec67353de158b36ec224004ee65de9e6a77fb9af3683cc03b54fa8463fbfe5
     claim_bindings:
       - claim_key: CLAIM-AEF7587DBC190FD1
         requirement_id: REQ-codex-plugin-package
