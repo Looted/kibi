@@ -6,7 +6,7 @@
     requirement_proof_context/4,
     requirement_proof_context/6,
     requirement_proof/4,
-    requirement_review_row/4,
+    unapproved_implemented_row/3,
     test_receipt_evidence/4
 ]).
 
@@ -2832,22 +2832,24 @@ freshness_only_candidate(Candidate) :-
     forall(member(Reason, [Candidate.reason|Candidate.secondaryReasons]),
            memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])).
 
-%% requirement_review_row(+Kind, +Props, +Proof, -Row)
-% Rows for the check rules that read a current requirement's proof beside its
-% evidence floor.  Kind unapproved_implemented: a must requirement an agent
-% wrote that no person approved (origin.approved_by) while production symbols
-% implement it.  The row carries origin.recorded_at and the authored source,
-% so the rule can judge its age from authored data only: the stored
-% created_at is stamped at sync time when the front matter has none, so it
-% says nothing about when the requirement was written.
-% Exempt and non-current requirements carry no stages and produce no row.
-requirement_review_row(unapproved_implemented, Props, Proof, Row) :-
+%% unapproved_implemented_row(+ReqId, +Props, -Row)
+% A current must requirement an agent wrote that no person approved
+% (origin.approved_by) while production symbols implement it, for the
+% agent-requirement-unapproved-implemented check rule.  It reads the KB
+% alone, never a proof or a receipt, so the rule judges the same with or
+% without the verification layer.  The row carries origin.recorded_at and
+% the authored source, so the rule can judge its age from authored data
+% only: the stored created_at is stamped at sync time when the front matter
+% has none, so it says nothing about when the requirement was written.  A
+% requirement outside proof scope (proof_exempt with a reason) gives no row,
+% as it carries no production-symbol stage.
+unapproved_implemented_row(ReqId, Props, Row) :-
+    kb:current_req(ReqId),
+    \+ proof_exempt(Props, _),
     must_requirement(Props),
     origin_field(Props, kind, agent),
     \+ origin_field(Props, approved_by, _),
-    get_dict(proofStages, Proof, Stages),
-    get_dict(productionSymbols, Stages, Stage),
-    get_dict(symbols, Stage, Symbols0),
+    production_symbol_sets(ReqId, symbol_sets(_, Symbols0, _)),
     sort(Symbols0, Symbols),
     Symbols \== [],
     (   origin_field(Props, recorded_at, RecordedAt)

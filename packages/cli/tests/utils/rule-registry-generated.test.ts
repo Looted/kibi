@@ -8,6 +8,7 @@ type SourceRule = {
   description: string;
   enforcementClass: string;
   category: string;
+  layer: string;
   diagnosticSeverity?: string;
 };
 
@@ -25,6 +26,7 @@ describe("generated rule registry", () => {
         description: rule.description,
         enforcementClass: rule.enforcementClass,
         category: rule.category,
+        layer: rule.layer,
         ...(rule.diagnosticSeverity === undefined
           ? {}
           : { diagnosticSeverity: rule.diagnosticSeverity }),
