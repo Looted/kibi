@@ -37,7 +37,7 @@
       "default": "./dist/tui.js"
     }
   },
-  "files": ["dist", "index.js", "tui.js"],
+  "files": ["dist", "index.js", "tui.js", "LICENSE"],
   "engines": {
     "node": ">=22"
   },
