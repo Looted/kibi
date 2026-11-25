@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9889cd2b6317
+  - type: implements
+    from: SYM-packages-zcode-src-hook-runner-guarded-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:06.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11486db9add4
+  - type: covered_by
+    from: SYM-packages-zcode-src-hook-runner-guarded-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:06.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ba22e623191

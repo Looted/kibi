@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93c1c9f328bd
+  - type: implements
+    from: SYM-level-guard-guarded-change-context
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:48.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d5d445192c8
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-context
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:48.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9855bc43c1d4

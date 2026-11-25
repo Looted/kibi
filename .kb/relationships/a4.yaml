@@ -629,3 +629,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15753f083932
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c01
+    created_at: 2026-11-25T14:06:55.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4714a11d1ad
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c02
+    created_at: 2026-11-25T14:06:55.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-591187908cf0
+  - type: constrains
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-SUBJ-kibi-agent-hooks-guarded-change
+    created_at: 2026-11-25T14:06:55.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb0e388354bf
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:01.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0012fdc20c91
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-rejected
+    created_at: 2026-11-25T14:07:01.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ebd59c8e703
+  - type: verified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:01.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e836ab776d5a
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-notice
+    to: REQ-agent-hosts-level-ask
+    created_at: 2026-11-25T14:07:49.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc705fc9148
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-notice
+    to: REQ-agent-hosts-required-evidence-lowering-ask
+    created_at: 2026-11-25T14:07:49.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-673f3c52643c
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:41.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a7a0857d5ad
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c02-eq-false
+    created_at: 2026-11-25T14:08:47.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e2fc0d7e127

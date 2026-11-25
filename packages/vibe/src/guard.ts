@@ -16,6 +16,7 @@ import {
 import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
+  claimGuardedChangeNotice,
   claimRuleCaptureTemplate,
   confirmFirmEdits,
   firmRequirementsTouched,
@@ -28,10 +29,18 @@ import {
   statedReason,
 } from "kibi-agent-core/decision-guard";
 import { parseHookInput } from "kibi-agent-core/hook-input";
+import { canonicalKbToolName } from "kibi-agent-core/kb-mcp-tools";
 import {
   type EntitySummary,
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
+import {
+  type GuardedChange,
+  committedContent,
+  contentBeforeEdit,
+  guardedChangeAfterNotice,
+  guardedChangeSince,
+} from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import { hookReadRows, searchToolRead } from "kibi-agent-core/read-context";
 import { createEntitySummarizer, editFocus } from "kibi-agent-core/snippets";
@@ -166,10 +175,69 @@ export function afterEditInput(toolInput: unknown): Fields {
   };
 }
 
+const SEARCH_REPLACE_BLOCK =
+  /<{5,} SEARCH\r?\n([\s\S]*?)\r?\n={5,}\r?\n([\s\S]*?)\r?\n>{5,} REPLACE/g;
+
 /**
- * post_tool after an edit: the firm-requirement notice (once per
- * requirement per session), then the rule-capture template on the first
- * source edit of a session whose prompt stated a rule.
+ * A search_replace call's SEARCH/REPLACE blocks as an `edits` list of
+ * old_string/new_string pairs; any other input as it is.
+ */
+export function searchReplaceEdits(toolInput: unknown): unknown {
+  const fields = asFields(toolInput);
+  if (typeof fields.content !== "string") return toolInput;
+  const edits = [...fields.content.matchAll(SEARCH_REPLACE_BLOCK)].map(
+    (block) => ({ old_string: block[1], new_string: block[2] }),
+  );
+  return edits.length === 0 ? toolInput : { edits };
+}
+
+/**
+ * The change the person decides that a tool Vibe has already run made: an
+ * edit that changed the Kibi level or lowered a requirement's floor, or a
+ * kb_upsert that lowered one. The earlier text is the edit turned back, or
+ * the file in the last commit.
+ */
+export function guardedChangeAfter(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+  targets: readonly { absolute: string; relative: string }[],
+): GuardedChange | undefined {
+  const fields = asFields(input.toolInput);
+  const candidates =
+    canonicalKbToolName(input.toolName) === "kb_upsert"
+      ? typeof fields.id === "string" && fields.dryRun !== true
+        ? [{ relative: `.kb/requirements/${fields.id}.md`, before: undefined }]
+        : []
+      : targets.map((target) => ({
+          relative: target.relative,
+          before: contentBeforeEdit(
+            target.absolute,
+            String(input.toolName).endsWith("search_replace")
+              ? searchReplaceEdits(input.toolInput)
+              : input.toolInput,
+          ),
+        }));
+  for (const candidate of candidates) {
+    const before =
+      candidate.before ?? committedContent(workspaceRoot, candidate.relative);
+    // Without earlier text (a settings file the last commit did not have),
+    // the level the commit set is compared with the level now.
+    const change = guardedChangeSince(
+      workspaceRoot,
+      candidate.relative,
+      before,
+    );
+    if (change !== undefined) return change;
+  }
+  return undefined;
+}
+
+/**
+ * post_tool after an edit or a kb_upsert: the notice to ask the person about
+ * a change of the Kibi level or a lowered required_evidence (once per change
+ * per session), the firm-requirement notice (once per requirement per
+ * session), then the rule-capture template on the first source edit of a
+ * session whose prompt stated a rule.
  */
 export function postEditNote(
   workspaceRoot: string,
@@ -177,22 +245,33 @@ export function postEditNote(
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
   const input = parseHookInput(payload);
-  if (!isEditTool(input.toolName)) return undefined;
+  const kbWrite = canonicalKbToolName(input.toolName) === "kb_upsert";
+  if (!kbWrite && !isEditTool(input.toolName)) return undefined;
   const base = input.cwd ?? workspaceRoot;
-  const targets = extractEditedPaths(input.toolInput)
-    .map((raw) => path.resolve(base, raw))
-    .map((absolute) => ({
-      absolute,
-      relative: workspaceRelative(workspaceRoot, absolute),
-    }))
-    .filter(
-      (target): target is { absolute: string; relative: string } =>
-        target.relative !== undefined && !target.relative.startsWith(".kb/"),
-    );
-  if (targets.length === 0) return undefined;
+  const edited = kbWrite
+    ? []
+    : extractEditedPaths(input.toolInput)
+        .map((raw) => path.resolve(base, raw))
+        .map((absolute) => ({
+          absolute,
+          relative: workspaceRelative(workspaceRoot, absolute),
+        }))
+        .filter(
+          (target): target is { absolute: string; relative: string } =>
+            target.relative !== undefined,
+        );
   const decision = session(workspaceRoot, input, env);
+  const guarded = guardedChangeAfter(workspaceRoot, input, edited);
+  const guardedNote =
+    guarded !== undefined && claimGuardedChangeNotice(decision, guarded)
+      ? guardedChangeAfterNotice(guarded)
+      : undefined;
+  const targets = edited.filter(
+    (target) => !target.relative.startsWith(".kb/"),
+  );
+  if (targets.length === 0) return guardedNote;
   markDecisionFlag(decision, "source-edited");
-  const notes: string[] = [];
+  const notes: string[] = guardedNote === undefined ? [] : [guardedNote];
   if (confirmFirmEdits(env)) {
     const files = loadKnowledgeIndex(workspaceRoot, decision.stateDir).files;
     const summarize = createEntitySummarizer(workspaceRoot);

@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-840e1e6c9d5d
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-prompt
+    to: FACT-PROP-agent-hosts-guarded-change-prompt-c01
+    created_at: 2026-11-25T14:06:37.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1905866d8eb
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-prompt
+    to: FACT-PROP-agent-hosts-guarded-change-prompt-c02
+    created_at: 2026-11-25T14:06:37.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc6f65359ac
