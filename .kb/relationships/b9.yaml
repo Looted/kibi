@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-def70323bb70
+  - type: assumes
+    from: SCEN-kibi-no-git-telemetry
+    to: FACT-kibi-no-git-telemetry-recorded-status
+    created_at: 2026-11-25T09:21:57.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4eb83ab3a8
+  - type: assumes
+    from: SCEN-kibi-no-git-telemetry
+    to: FACT-kibi-no-git-telemetry-vcs
+    created_at: 2026-11-25T09:21:57.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48878b2d91aa

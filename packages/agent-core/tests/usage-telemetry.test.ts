@@ -563,6 +563,8 @@ describe("anonymous usage telemetry events", () => {
         "search_repeat",
         "crash_frame",
         "crash_fingerprint",
+        "vcs",
+        "vcs_reason",
       ].sort(),
     );
     expect(hook?.event).toBe("kibi_hook");
@@ -575,6 +577,33 @@ describe("anonymous usage telemetry events", () => {
       requirement_count: 2,
     });
     expect(JSON.stringify(sent)).not.toContain("session-secret-id");
+  });
+
+  test("names the workspace's version control without a path", async () => {
+    const env = enabledEnv();
+    recordOperationTelemetry(
+      SOURCE,
+      { ...OPERATION, vcs: { kind: "none", reason: "git_unavailable" } },
+      env,
+    );
+    recordOperationTelemetry(
+      SOURCE,
+      { ...OPERATION, vcs: { kind: "git" } },
+      env,
+    );
+    recordOperationTelemetry(SOURCE, OPERATION, env);
+    const { fetchImpl, sent } = recordingFetch();
+    expect(await flushTelemetry({ force: true, fetchImpl }, env)).toBe(3);
+    const batch = sent[0]?.body.batch as {
+      properties: Record<string, unknown>;
+    }[];
+    expect(
+      batch.map(({ properties }) => [properties.vcs, properties.vcs_reason]),
+    ).toEqual([
+      ["none", "git_unavailable"],
+      ["git", null],
+      [null, null],
+    ]);
   });
 
   test("waits for a batch unless forced", async () => {

@@ -20,6 +20,12 @@ import type { OperationSpec } from "./public/operations/types.js";
 import type { OperationEffect } from "./public/operations/types.js";
 import { detachedReadOnlyDiagnostic } from "./runtime/detached-snapshot.js";
 import { noteCliThrownError } from "./usage-telemetry.js";
+import {
+  alwaysAdvisesNoGit,
+  noGitDiagnosticOfResult,
+  noGitRepositoryDiagnostic,
+  noGitStoreAdoptedDiagnostic,
+} from "./vcs/advisory.js";
 
 // Only whether an envelope is valid matters here, never the list of errors.
 const outputValidator = new Ajv2020({ strict: false });
@@ -99,12 +105,24 @@ function errorResult(
  * An answer from a detached HEAD's read-only snapshot says so in the
  * envelope: which store was read and that writes are refused.
  */
-function withDetachedReadOnlyNotice<
+/**
+ * The attachment's notices on a result: a detached HEAD answered from its
+ * read-only snapshot, and (on the results it changes) a workspace without
+ * Git. Each CLI call is its own process, so other results stay quiet.
+ */
+function withAttachmentNotices<
   T extends { readonly diagnostics: readonly unknown[] },
->(envelope: T, context: OperationContext): T {
-  const notice = detachedReadOnlyDiagnostic(context.branchAttachment);
-  return notice
-    ? { ...envelope, diagnostics: [...envelope.diagnostics, notice] }
+>(envelope: T, context: OperationContext, operation: string, data: unknown): T {
+  const notices = [
+    detachedReadOnlyDiagnostic(context.branchAttachment),
+    alwaysAdvisesNoGit(operation)
+      ? (noGitRepositoryDiagnostic(context.branchAttachment) ??
+        noGitDiagnosticOfResult(data))
+      : undefined,
+    noGitStoreAdoptedDiagnostic(),
+  ].filter((notice) => notice !== undefined);
+  return notices.length > 0
+    ? { ...envelope, diagnostics: [...envelope.diagnostics, ...notices] }
     : envelope;
 }
 
@@ -184,12 +202,14 @@ export async function executeOperation(
     // data for the same call.
     const fitted = budgetedOperationResult(spec, prepared.businessInput, raw);
     const output = fitted.result.structuredContent;
-    const envelope = withDetachedReadOnlyNotice(
+    const envelope = withAttachmentNotices(
       toKibiResult(spec, output, {
         appendDiagnostics: fitted.diagnostics,
         appendNextActions: fitted.nextActions,
       }),
       context,
+      spec.name,
+      output,
     );
     if (!protocolValid(spec, envelope)) {
       return errorResult(

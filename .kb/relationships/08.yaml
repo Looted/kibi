@@ -442,8 +442,8 @@ relationships:
     id: rel-ba29c2e4454d
   - type: executable_for
     from: SYM-test-kibi-outside-git-consumer
-    to: TEST-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:07:23.729Z
+    to: TEST-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:16.912Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-394ffa7c31ab
+    id: rel-7891a3ba58e9

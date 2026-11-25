@@ -82,6 +82,9 @@ const RUNTIME_REQUIRED_PACKAGES = [
   // review identifies the trusted source analyzer by that manifest. Bundled,
   // `../package.json` would resolve to the MCP server's manifest instead.
   { name: "kibi-plugin-builtin", from: "packages/cli" },
+  // The engine daemon runs from the staged kibi-cli dist, outside the bundle,
+  // and resolves the Git classifier from kibi-cli's own dependency.
+  { name: "kibi-agent-core", from: "packages/cli" },
 ] as const;
 
 /** Packages kept out of the bundle and loaded from the staged node_modules. */

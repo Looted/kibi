@@ -279,10 +279,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6735068d5eb9
-  - type: covered_by
-    from: SYM-cli-init-command
-    to: TEST-kibi-refuse-operation-workspace-outside-any
-    created_at: 2026-11-25T07:07:20.385Z
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-sources-on-disk
+    to: FACT-NEG-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:08.867Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-82f43d68cdd6
+    id: rel-dcd9c2a571f2
+  - type: implements
+    from: SYM-checkout-hooks-workspace-telemetry-vcs
+    to: REQ-kibi-no-git-telemetry-outcome
+    created_at: 2026-11-25T09:22:11.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64dd77239e50
+  - type: covered_by
+    from: SYM-checkout-hooks-workspace-telemetry-vcs
+    to: TEST-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:11.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa8c4b5f7ae7

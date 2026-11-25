@@ -121,11 +121,12 @@ A failed route writes its JSON result with `status: "error"` and `error.code`, `
 Initializes Kibi repository infrastructure in the current directory. It does
 not infer or write product knowledge.
 
-Kibi keeps its knowledge per Git branch, so `kibi init` outside a Git
-repository writes nothing and exits 1 with `NOT_A_GIT_REPOSITORY`: run
-`git init` first. With `KIBI_BRANCH` set it initializes a workspace without
-Git, and every later command needs the same `KIBI_BRANCH`; see
-[No Git repository](error-reference.md#no-git-repository-not_a_git_repository-git_not_available-branch_unresolved).
+Outside a Git repository `kibi init` sets up a workspace without version
+control: it writes `.kb/` and the agent instructions (which say to finish
+each change with `kibi check`, since there is no commit gate), installs no
+Git hooks and prints the `no_git_repository` advisory. After `git init`, run
+`kibi init` again to install the hooks; the knowledge recorded so far carries
+over. See [Working without Git](error-reference.md#working-without-git-no_git_repository-git_required).
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
@@ -1087,7 +1088,7 @@ Verifies environment setup and diagnostics.
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
-- Checks git repository presence
+- Checks git repository presence: outside any repository it is a warning carrying the `no_git_repository` advisory (what is off until there is a repository, and `git init`, then `kibi init`), not a failure
 - Checks the current branch's KB store ("Branch store"): when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), it warns that the next Kibi query or check compiles it when auto-sync is on (`kibi.setup.autoSync`, the default), and fails naming `kibi sync` when auto-sync is off (`KIBI_AUTO_SYNC=0` or `autoSync: false`) or the attachment is read-only, detached or awaiting migration; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - When a hook manager owns the hooks (lefthook, husky, the pre-commit framework), reads the commands from its configuration instead of the generated hook files. A hook whose configuration visibly runs Kibi's commands passes; one that does not (for example because it calls a task runner) is a warning with `kibi init --print-hook <hook> --format <manager>` as the remediation, since doctor cannot see through the runner

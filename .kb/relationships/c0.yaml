@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f08d57b26dd
+  - type: assumes
+    from: SCEN-NEG-kibi-git-required
+    to: FACT-NEG-kibi-git-required
+    created_at: 2026-11-25T09:17:45.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ed2d23c81cb

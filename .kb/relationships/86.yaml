@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf8e401d6a43
+  - type: implements
+    from: SYM-agent-core-find-repository-marker
+    to: REQ-kibi-no-git-detection-never-inside-repository
+    created_at: 2026-11-25T09:16:57.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76300e53b2b8
+  - type: covered_by
+    from: SYM-agent-core-find-repository-marker
+    to: TEST-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:57.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abab531c69f2

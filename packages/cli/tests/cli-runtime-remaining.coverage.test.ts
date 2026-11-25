@@ -189,23 +189,23 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     expect(start).not.toHaveBeenCalled();
   });
 
-  test("names the standalone workspace error when git is unavailable", async () => {
+  test("names a repository Git refuses with its own code", async () => {
     const events: string[] = [];
     const resolve = spyOn(
       branchResolver,
       "resolveBranchAttachment",
     ).mockReturnValue({
-      error: "not a git repository",
-      code: "NOT_A_GIT_REPO",
+      error: "Git refused the repository.",
+      code: "GIT_REPOSITORY_UNREADABLE",
     } as never);
     restores.push(() => resolve.mockRestore());
     const runtime = createCliRuntime({
-      workspaceRoot: "/not-a-git-repo",
+      workspaceRoot: "/unreadable-repo",
       prolog: createManagedProlog(events),
     });
     await expect(runtime.open(readSpec)).rejects.toMatchObject({
-      code: "NOT_A_GIT_REPOSITORY",
-      message: expect.stringContaining("Run 'git init' here"),
+      code: "GIT_REPOSITORY_UNREADABLE",
+      message: expect.stringContaining("run 'git status' to see why"),
     });
     expect(events).toContain("terminate");
   });
@@ -275,7 +275,7 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     });
     await expect(runtime.open(readSpec)).rejects.toMatchObject({
       code: "GIT_NOT_AVAILABLE",
-      message: expect.stringContaining("Install Git, then retry"),
+      message: expect.stringContaining("Install Git (or put it on PATH)"),
     });
     expect(events).toContain("terminate");
   });

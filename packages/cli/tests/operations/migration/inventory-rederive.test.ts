@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -51,6 +52,8 @@ describe("semantic inventory re-derivation", () => {
 
   beforeEach(() => {
     root = mkdtempSync(path.join(os.tmpdir(), "kibi-rederive-"));
+    // Receipts are written inside Git only.
+    mkdirSync(path.join(root, ".git"));
   });
 
   afterEach(() => {

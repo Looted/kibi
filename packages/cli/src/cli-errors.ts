@@ -139,15 +139,14 @@ export function codedErrorOf(error: unknown): CodedErrorFields | null {
 }
 
 /**
- * The workspace has no branch for Kibi to attach to. A directory outside any
- * Git repository, or a machine without Git, gets one short instruction an
- * agent can follow on its own: start the repository (or install Git) and
- * retry. KIBI_BRANCH is named as the standalone alternative together with its
- * cost: every later command, hook and MCP server needs the same value, since
- * no marker in .kb/ ever stands in for the branch (ADR-012). Any other
- * resolution failure keeps the resolver's diagnostic. The message always
- * starts with "Failed to resolve active branch", which callers that tolerate
- * a missing attachment match on.
+ * The workspace's branch cannot be resolved, so Kibi cannot attach a store.
+ * A workspace outside any Git repository is not one of these: it attaches
+ * the no-Git store. What is left is a repository Kibi must not guess about (a
+ * `.git` entry without a usable Git, a repository Git refuses to read, a
+ * detached HEAD for a write, a bare repository), each a coded refusal that is
+ * not retryable, with the one step that fixes it. The message always starts
+ * with "Failed to resolve active branch", which callers that tolerate a
+ * missing attachment match on.
  */
 export class BranchResolutionFailure extends OperationError {
   constructor(attachment: BranchResolutionError) {
@@ -158,26 +157,34 @@ export class BranchResolutionFailure extends OperationError {
   }
 }
 
-const STANDALONE_ALTERNATIVE =
-  "To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.";
-
 function branchFailureDetail(
   attachment: BranchResolutionError,
 ): [code: string, detail: string] {
   switch (attachment.code) {
-    case "NOT_A_GIT_REPO":
-      return [
-        "NOT_A_GIT_REPOSITORY",
-        `this directory is not inside a Git repository, and Kibi keeps its knowledge per Git branch. Run 'git init' here (or run Kibi from inside the repository), then retry. ${STANDALONE_ALTERNATIVE}`,
-      ];
     case "GIT_NOT_AVAILABLE":
       return [
         "GIT_NOT_AVAILABLE",
-        `Git is not installed or not on PATH, and Kibi keeps its knowledge per Git branch. Install Git, then retry. ${STANDALONE_ALTERNATIVE}`,
+        `${attachment.error} Install Git (or put it on PATH), then retry.`,
+      ];
+    case "GIT_REPOSITORY_UNREADABLE":
+      return [
+        "GIT_REPOSITORY_UNREADABLE",
+        `${attachment.error} Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.`,
       ];
     case "DETACHED_HEAD":
       return ["DETACHED_HEAD", attachment.error];
     default:
       return ["BRANCH_UNRESOLVED", attachment.error];
+  }
+}
+
+/**
+ * A feature that reads Git, asked for in a workspace outside any Git
+ * repository. Everything else works there; the message names what to run
+ * instead and how to turn the feature on.
+ */
+export class GitRequired extends OperationError {
+  constructor(message: string) {
+    super("GIT_REQUIRED", message, false);
   }
 }

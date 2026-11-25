@@ -19,6 +19,7 @@ import {
 import * as nodeModule from "node:module";
 import os from "node:os";
 import path from "node:path";
+import { noGitAdvisory } from "kibi-agent-core/version-control";
 import * as agentInstructions from "../src/commands/agent-instructions.js";
 import {
   checkKibiRelease,
@@ -931,8 +932,10 @@ describe("doctor report", () => {
     s.inspect.mockResolvedValue({ packageVersions: "old" } as never);
     expect(await doctorCommand()).toStrictEqual({ exitCode: 1 });
     expect(logs).toContain("✗ Kibi updates: Broken");
-    expect(logs).toContain("✗ Git repository: Not a git repository");
-    expect(logs).toContain("  → Run: git init");
+    expect(logs).toContain(
+      "✗ Git repository: git status failed in this repository",
+    );
+    expect(logs).toContain("  → Run: git status, and fix what it reports");
     expect(logs).not.toContain("  → Run: kibi engine stop");
     expect(logs.at(-1)).toBe(
       "Some checks failed. Please address the issues above.",
@@ -1228,6 +1231,42 @@ describe("knowledge base checks", () => {
       stdio: "pipe",
       cwd,
     });
+  });
+});
+
+describe("Git repository check outside Git", () => {
+  test("outside any repository it is a warning carrying the advisory", async () => {
+    s.exec.mockImplementation(() => {
+      throw new Error("not a repository");
+    });
+    s.git.mockImplementation(() => ({ status: "not-a-repository" }) as never);
+    expect(await check("Git repository")).toStrictEqual({
+      name: "Git repository",
+      passed: true,
+      warning: true,
+      message: noGitAdvisory("not_a_repository"),
+      remediation: "Run: git init, then kibi init",
+    });
+  });
+
+  test("a repository Git cannot read fails with Git's reason", async () => {
+    s.exec.mockImplementation(() => {
+      throw new Error("dubious ownership");
+    });
+    s.git.mockImplementation(
+      () => ({ status: "git-refused", reason: "dubious ownership" }) as never,
+    );
+    expect(await check("Git repository")).toMatchObject({
+      passed: false,
+      message: "Git cannot read this repository: dubious ownership",
+      remediation: "Run: git status, and fix what it reports",
+    });
+    s.git.mockImplementation(
+      () => ({ status: "ok", context: context() }) as never,
+    );
+    expect((await check("Git repository"))?.message).toBe(
+      "git status failed in this repository",
+    );
   });
 });
 
@@ -1528,6 +1567,17 @@ describe("fresh-clone setup check", () => {
     s.choices.mockClear();
     await check("Fresh-clone setup");
     expect(s.choices).toHaveBeenCalledWith(cwd);
+  });
+
+  test("the fresh-clone check expects the no-Git agent instructions", async () => {
+    s.git.mockImplementation(() => ({ status: "not-a-repository" }) as never);
+    initialize();
+    s.choices.mockReturnValue(choices({ agentInstructions: true }) as never);
+    await check("Fresh-clone setup");
+    expect(s.section).toHaveBeenCalledWith(
+      path.join(cwd, agentInstructions.AGENTS_FILE),
+      agentInstructions.agentInstructionsFor(true),
+    );
   });
 
   test("report matching choices with their source", async () => {

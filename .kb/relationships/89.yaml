@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea5f48f288b4
+  - type: executable_for
+    from: SYM-test-kibi-workspace-vcs
+    to: TEST-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:51.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b24d3592729
+  - type: executable_for
+    from: SYM-test-kibi-workspace-vcs
+    to: TEST-kibi-git-required
+    created_at: 2026-11-25T09:17:55.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40b2358c0ce0

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { noGitAdvisory } from "kibi-agent-core/version-control";
 import { initCommand } from "../../src/commands/init.js";
 import { finishCliTelemetry } from "../../src/usage-telemetry.js";
 import {
@@ -24,7 +25,7 @@ afterEach(() => {
 });
 
 describe("initCommand remaining branches", () => {
-  test("reports a standalone workspace that is not a git repo", async () => {
+  test("initializes a workspace outside Git and advises Git", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createTempDir();
@@ -32,58 +33,18 @@ describe("initCommand remaining branches", () => {
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () => initCommand({}));
-    expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain(
-      "this directory is not inside a Git repository",
-    );
-    expect(io.errorText()).toContain("Run 'git init' here");
-    expect(io.errorText()).toContain("KIBI_BRANCH=<name>");
-    // Nothing is written outside a repository.
-    expect(existsSync(path.join(cwd, ".kb"))).toBe(false);
-    // Drop the category init noted, as the CLI's exit does.
+    expect(result.exitCode).toBe(0);
+    expect(existsSync(path.join(cwd, ".kb", "manifest.json"))).toBe(true);
+    expect(io.logText()).toContain(`! ${noGitAdvisory("not_a_repository")}`);
     await finishCliTelemetry({
       commandPath: undefined,
       packageVersion: "0.0.0",
       startedAt: new Date(),
-      exitCode: 1,
+      exitCode: 0,
     });
   });
 
-  test("blocks init when legacy branch storage still owns the attachment", async () => {
-    const restoreEnv = isolateKibiEnv();
-    restores.push(restoreEnv);
-    const cwd = createGitWorkspace();
-    roots.push(cwd);
-    mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(
-      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
-      "legacy\n",
-    );
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () => initCommand({}));
-    expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain("legacy branch storage");
-  });
-
-  test("reuses an existing .kb tree, recreates a missing manifest, and installs hooks", async () => {
-    const restoreEnv = isolateKibiEnv();
-    restores.push(restoreEnv);
-    const cwd = createGitWorkspace();
-    roots.push(cwd);
-    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
-    const io = captureIo();
-    restores.push(io.restore);
-    const first = await withCwd(cwd, () => initCommand({ hooks: true }));
-    expect(first.exitCode).toBe(0);
-    expect(io.logText()).toContain(".kb/ directory already exists");
-    expect(io.logText()).toContain("Installed/updated Kibi git hooks");
-    expect(io.logText()).toContain(
-      "Existing Kibi source knowledge was preserved",
-    );
-  });
-
-  test("warns when hooks are requested outside a git tree", async () => {
+  test("skips hooks outside a git tree and names the KIBI_BRANCH store", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     process.env.KIBI_BRANCH = "main";
@@ -93,10 +54,11 @@ describe("initCommand remaining branches", () => {
     restores.push(io.restore);
     const result = await withCwd(cwd, () => initCommand({ hooks: true }));
     expect(result.exitCode).toBe(0);
-    expect(io.errorText()).toContain("No git repository found, skipping hooks");
-    // KIBI_BRANCH stood in for Git on this run only, and init says so.
     expect(io.logText()).toContain(
-      "! No Git repository here: this workspace's knowledge is attached to KIBI_BRANCH=main for this run only. Set the same KIBI_BRANCH for every later Kibi command, Git hook and MCP server, or run 'git init' and then 'kibi init' again.",
+      "- Git hooks: not installed; this directory has no Git repository",
+    );
+    expect(io.logText()).toContain(
+      `! ${noGitAdvisory("not_a_repository", "main")}`,
     );
   });
 

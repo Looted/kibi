@@ -2156,8 +2156,6 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
-      - type: covered_by
-        target: TEST-kibi-refuse-operation-workspace-outside-any
       - type: implements
         target: REQ-cli-init
       - type: implements
@@ -49157,44 +49155,6 @@ symbols:
         target: TEST-search-answer-first-layer
       - type: implements
         target: REQ-kb-search-close-matches-candidates
-  - id: SYM-cli-errors-branch-resolution-failure
-    title: BranchResolutionFailure
-    sourceFile: packages/cli/src/cli-errors.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T07:02:54.381Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-refuse-operation-workspace-outside-any
-      - type: implements
-        target: REQ-kibi-refuse-operation-workspace-outside-any
-  - id: SYM-test-kibi-outside-git-consumer
-    title: Outside-Git consumer suite
-    status: active
-    sourceFile: packages/cli/tests/consumer/outside-git.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T07:07:22.744Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-refuse-operation-workspace-outside-any
-  - id: SYM-cli-protocol-open-failure-result
-    title: openFailureResult
-    sourceFile: packages/cli/src/cli-protocol.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T07:50:12.820Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-refuse-operation-workspace-outside-any
-      - type: implements
-        target: REQ-kibi-refuse-operation-workspace-outside-any
   - id: SYM-cla-workflow
     title: cla.yml
     status: active
@@ -49224,3 +49184,446 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cla-workflow-contract
+  - id: SYM-test-kibi-outside-git-consumer
+    title: Outside-Git consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/outside-git.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:16:11.524Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-attached-store
+  - id: SYM-branch-resolver-resolve-active-branch
+    title: resolveActiveBranch
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:16:19.077Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-attached-store
+      - type: implements
+        target: REQ-kibi-no-git-workspace-attaches-reserved-store
+  - id: SYM-test-kibi-workspace-vcs
+    title: Workspace version-control unit suite
+    status: active
+    sourceFile: packages/cli/tests/vcs/workspace-vcs.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:49.966Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-git-required
+      - type: executable_for
+        target: TEST-kibi-no-git-unreadable-repository
+  - id: SYM-vcs-probe-workspace-vcs
+    title: probeWorkspaceVcs
+    status: active
+    sourceFile: packages/cli/src/vcs/workspace-vcs.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:16:53.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-unreadable-repository
+      - type: implements
+        target: REQ-kibi-no-git-detection-never-inside-repository
+  - id: SYM-agent-core-find-repository-marker
+    title: findRepositoryMarker
+    status: active
+    sourceFile: packages/agent-core/src/version-control.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:16:56.732Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-unreadable-repository
+      - type: implements
+        target: REQ-kibi-no-git-detection-never-inside-repository
+  - id: SYM-test-kibi-source-inventory
+    title: Source inventory unit suite
+    status: active
+    sourceFile: packages/cli/tests/vcs/source-inventory.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:13.399Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-sources-on-disk
+  - id: SYM-vcs-authored-sources
+    title: authoredSources
+    status: active
+    sourceFile: packages/cli/src/vcs/source-inventory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:20.830Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-sources-on-disk
+      - type: implements
+        target: REQ-kibi-no-git-compiles-sources-on-disk
+  - id: SYM-vcs-authored-sources-sync
+    title: authoredSourcesSync
+    status: active
+    sourceFile: packages/cli/src/vcs/source-inventory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:23.809Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-sources-on-disk
+      - type: implements
+        target: REQ-kibi-no-git-compiles-sources-on-disk
+  - id: SYM-vcs-kb-files-on-disk
+    title: kbFilesOnDisk
+    status: active
+    sourceFile: packages/cli/src/vcs/source-inventory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:26.746Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-sources-on-disk
+      - type: implements
+        target: REQ-kibi-no-git-compiles-sources-on-disk
+  - id: SYM-pending-receipt-binding
+    title: pendingReceiptBinding
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:29.865Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-sources-on-disk
+      - type: implements
+        target: REQ-kibi-no-git-compiles-sources-on-disk
+  - id: SYM-vcs-git-required-message
+    title: gitRequiredMessage
+    status: active
+    sourceFile: packages/cli/src/vcs/workspace-vcs.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:17:57.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-git-required
+      - type: implements
+        target: REQ-kibi-git-required-refusal
+  - id: SYM-vcs-refuse-without-git
+    title: refuseWithoutGit
+    status: active
+    sourceFile: packages/cli/src/vcs/git-boundary.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:18:00.107Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-git-required
+      - type: implements
+        target: REQ-kibi-git-required-refusal
+  - id: SYM-vcs-assert-git-workspace
+    title: assertGitWorkspace
+    status: active
+    sourceFile: packages/cli/src/vcs/git-boundary.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:18:03.058Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-git-required
+      - type: implements
+        target: REQ-kibi-git-required-refusal
+  - id: SYM-cli-errors-git-required
+    title: GitRequired
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:18:06.100Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-git-required
+      - type: implements
+        target: REQ-kibi-git-required-refusal
+  - id: SYM-test-kibi-no-git-advisory
+    title: No-Git advisory unit suite
+    status: active
+    sourceFile: packages/cli/tests/vcs/advisory.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:34.387Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-advisory
+  - id: SYM-agent-core-no-git-advisory
+    title: noGitAdvisory
+    status: active
+    sourceFile: packages/agent-core/src/version-control.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:41.363Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-vcs-no-git-repository-diagnostic
+    title: noGitRepositoryDiagnostic
+    status: active
+    sourceFile: packages/cli/src/vcs/advisory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:44.156Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-vcs-no-git-diagnostic-of-result
+    title: noGitDiagnosticOfResult
+    status: active
+    sourceFile: packages/cli/src/vcs/advisory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:47.035Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-vcs-always-advises-no-git
+    title: alwaysAdvisesNoGit
+    status: active
+    sourceFile: packages/cli/src/vcs/advisory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:49.867Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-checkout-hooks-checkout-session-note
+    title: checkoutSessionNote
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:52.683Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-checkout-hooks-workspace-without-git
+    title: workspaceWithoutGit
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:55.573Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-agent-instructions-for
+    title: agentInstructionsFor
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:19:58.490Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-session-brief-for
+    title: sessionBriefFor
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:20:01.299Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-kibi-no-git-advisory
+  - id: SYM-test-mcp-no-git-workspace
+    title: MCP no-Git workspace suite
+    status: active
+    sourceFile: packages/mcp/tests/no-git-workspace.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:20:50.593Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-advisory-mcp-session
+  - id: SYM-mcp-tools-session-no-git-notice
+    title: sessionNoGitNotice
+    status: active
+    sourceFile: packages/mcp/src/server/tools.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:20:57.443Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-advisory-mcp-session
+      - type: implements
+        target: REQ-kibi-no-git-advisory-once-per-mcp-session
+  - id: SYM-test-kibi-no-git-adoption
+    title: No-Git adoption unit suite
+    status: active
+    sourceFile: packages/cli/tests/vcs/no-git-adoption.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:21:26.819Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-adoption
+  - id: SYM-vcs-adopt-no-git-store
+    title: adoptNoGitStore
+    status: active
+    sourceFile: packages/cli/src/vcs/no-git-adoption.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:21:34.680Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-adoption
+      - type: implements
+        target: REQ-kibi-no-git-store-adopted-on-git-init
+  - id: SYM-vcs-take-no-git-adoption
+    title: takeNoGitAdoption
+    status: active
+    sourceFile: packages/cli/src/vcs/no-git-adoption.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:21:37.585Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-adoption
+      - type: implements
+        target: REQ-kibi-no-git-store-adopted-on-git-init
+  - id: SYM-vcs-no-git-store-adopted-diagnostic
+    title: noGitStoreAdoptedDiagnostic
+    status: active
+    sourceFile: packages/cli/src/vcs/advisory.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:21:40.618Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-adoption
+      - type: implements
+        target: REQ-kibi-no-git-store-adopted-on-git-init
+  - id: SYM-agent-core-no-git-adoption-notice
+    title: noGitAdoptionNotice
+    status: active
+    sourceFile: packages/agent-core/src/version-control.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:21:43.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-adoption
+      - type: implements
+        target: REQ-kibi-no-git-store-adopted-on-git-init
+  - id: SYM-test-kibi-cli-failure-categories
+    title: CLI failure categories suite
+    status: active
+    sourceFile: packages/cli/tests/cli-failure-categories.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:22:03.584Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-no-git-telemetry
+  - id: SYM-checkout-hooks-workspace-telemetry-vcs
+    title: workspaceTelemetryVcs
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+      recorded_at: 2026-11-25T09:22:10.852Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-no-git-telemetry
+      - type: implements
+        target: REQ-kibi-no-git-telemetry-outcome

@@ -6,6 +6,19 @@ import * as snapshotModule from "../../src/traceability/git-change-snapshot.js";
 import * as evaluator from "../../src/traceability/impact-evaluator.js";
 import * as prDiff from "../../src/traceability/impact-pr-diff.js";
 import * as trusted from "../../src/traceability/trusted-pr-event.js";
+import * as boundary from "../../src/vcs/git-boundary.js";
+import { finishCliTelemetry } from "../../src/usage-telemetry.js";
+
+// A refusal notes its category for the exit event; drain it as the CLI's
+// exit does, so it never reaches the next test file in this process.
+afterEach(async () => {
+  await finishCliTelemetry({
+    commandPath: undefined,
+    packageVersion: "0.0.0",
+    startedAt: new Date(),
+    exitCode: 0,
+  });
+});
 
 const event = {
   repository: "owner/repo",
@@ -23,6 +36,8 @@ afterEach(() => {
 });
 
 function stubPipeline(inventory: unknown[], passed = true) {
+  // The fake workspace stands in for a repository.
+  spyOn(boundary, "refuseWithoutGit").mockReturnValue(null);
   const events = [event, event];
   spyOn(trusted, "resolveTrustedPullRequestSnapshot").mockImplementation(
     () => (events.shift() ?? { ...event, headCommit: "moved" }) as never,
@@ -62,6 +77,20 @@ function captureLog(): string[] {
 }
 
 describe("checkDiffCommand", () => {
+  test("outside a Git repository it is refused before reading any event", async () => {
+    const refusal = spyOn(boundary, "refuseWithoutGit").mockReturnValue({
+      exitCode: 1,
+    });
+    const read = spyOn(trusted, "resolveTrustedPullRequestSnapshot");
+    expect(await checkDiffCommand("/ws")).toStrictEqual({ exitCode: 1 });
+    expect(refusal).toHaveBeenCalledWith(
+      "/ws",
+      "check_diff",
+      "kibi check-diff",
+    );
+    expect(read).not.toHaveBeenCalled();
+  });
+
   test("reports the evaluated scope when a non-empty diff passes", async () => {
     stubPipeline([{ path: "src/a.ts" }]);
     const logs = captureLog();

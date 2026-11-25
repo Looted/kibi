@@ -16,7 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { autoSyncEnabled } from "../commands/setup-choices.js";
@@ -24,6 +23,12 @@ import {
   compilerFingerprintReason,
   hashManifestWithCoordinates,
 } from "../commands/sync/cache.js";
+import { adoptNoGitStore } from "../vcs/no-git-adoption.js";
+import {
+  type AuthoredSources,
+  authoredSourcesSync,
+  kbFilesOnDisk,
+} from "../vcs/source-inventory.js";
 import type { BranchAttachment } from "./branch-resolver.js";
 import {
   inspectBranchStore,
@@ -34,7 +39,7 @@ import {
   readSyncCacheRecord,
   stringHashMap,
 } from "./content-freshness.js";
-import { KB_PATHS, KB_ROOT, isEntityLanePath } from "./kb-paths.js";
+import { KB_PATHS, KB_ROOT, isSyncableKbSourcePath } from "./kb-paths.js";
 import { pendingReceiptScope } from "./pending-source-branch.js";
 
 export type AutoCompileOutcome =
@@ -65,36 +70,28 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function isSyncableTrackedKbPath(posix: string): boolean {
-  if (
-    isEntityLanePath(posix) &&
-    posix.endsWith(".md") &&
-    path.posix.basename(posix) !== "README.md"
-  ) {
-    return true;
-  }
-  if (posix === KB_PATHS.symbolsManifest) return true;
-  return (
-    posix.startsWith(`${KB_PATHS.relationships}/`) &&
-    (posix.endsWith(".yaml") || posix.endsWith(".yml"))
-  );
-}
-
-function listTrackedSyncableKbPaths(workspaceRoot: string): string[] | null {
+/**
+ * The syncable `.kb` sources, and whether pending receipts add to them: what
+ * Git tracks in a repository, every one on disk outside any repository. Null
+ * when Git fails in a repository (freshness is then unknown).
+ */
+function listSyncableKbSources(
+  workspaceRoot: string,
+): { paths: string[]; receipts: boolean } | null {
+  let sources: AuthoredSources;
   try {
-    const raw = execFileSync(
-      "git",
-      ["-C", workspaceRoot, "ls-files", "--cached", "-z", "--", KB_ROOT],
-      { maxBuffer: 64 * 1024 * 1024 },
-    );
-    return raw
-      .toString("utf8")
-      .split("\0")
-      .slice(0, -1)
-      .filter((entry) => isSyncableTrackedKbPath(entry));
+    sources = authoredSourcesSync(workspaceRoot, [KB_ROOT]);
   } catch {
     return null;
   }
+  const listed =
+    sources.kind === "git"
+      ? [...sources.tracked]
+      : kbFilesOnDisk(workspaceRoot);
+  return {
+    paths: listed.filter((entry) => isSyncableKbSourcePath(entry)),
+    receipts: sources.kind === "git",
+  };
 }
 
 function readInScopePendingReceipts(
@@ -154,11 +151,14 @@ function hasCompiledSyncableDrift(
   if (compilerFingerprintReason(storePath) !== null) {
     return "compiler contract changed";
   }
-  const tracked = listTrackedSyncableKbPaths(workspaceRoot);
-  if (tracked === null) return null;
+  const sources = listSyncableKbSources(workspaceRoot);
+  if (sources === null) return null;
+  const tracked = sources.paths;
 
   const syncCache = readSyncCacheRecord(storePath);
-  const pending = readInScopePendingReceipts(workspaceRoot);
+  const pending = sources.receipts
+    ? readInScopePendingReceipts(workspaceRoot)
+    : new Map<string, string>();
   const memo = createFreshnessMemo(storePath);
   let snapshotMtime: number | undefined;
   const getSnapshotMtime = (): number => {
@@ -221,7 +221,7 @@ function hasCompiledSyncableDrift(
 
     for (const key of Object.keys(hashes)) {
       if (
-        isSyncableTrackedKbPath(key) &&
+        isSyncableKbSourcePath(key) &&
         !existsSync(path.resolve(workspaceRoot, key))
       ) {
         return `removed tracked source ${key}`;
@@ -338,6 +338,11 @@ export async function ensureBranchStoreCompiled(
   ) {
     return "not-needed";
   }
+
+  // A repository created since Kibi last ran without Git takes over the
+  // knowledge recorded there; the store then compiles below as usual.
+  const adopted = adoptNoGitStore(workspaceRoot, attachment);
+  if (adopted !== null) console.error(`[KIBI] ${adopted.notice}`);
 
   const flightKey = `${path.resolve(workspaceRoot)}\0${attachment.kbBranch}`;
   const store = inspectBranchStore(workspaceRoot, attachment.kbBranch);

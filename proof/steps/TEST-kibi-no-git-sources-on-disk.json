@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kibi-no-git-sources-on-disk",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/vcs/source-inventory.test.ts",
+      "./packages/cli/tests/commands-coverage/pending-receipt-branch.test.ts",
+      "./packages/cli/tests/consumer/outside-git.test.ts"
+    ]
+  ]
+}

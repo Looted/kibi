@@ -7,6 +7,7 @@ import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export {
   BranchResolutionFailure,
+  GitRequired,
   KbRejection,
   codedErrorOf,
   isKbRejection,

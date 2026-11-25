@@ -433,3 +433,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4580f9812d51
+  - type: validates
+    from: TEST-kibi-no-git-telemetry
+    to: REQ-kibi-no-git-telemetry-outcome
+    created_at: 2026-11-25T09:22:06.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52dbafa553fe
+  - type: validates
+    from: TEST-kibi-no-git-telemetry
+    to: SCEN-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:06.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a23da3fddf9
+  - type: validates
+    from: TEST-kibi-no-git-telemetry
+    to: SCEN-NEG-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:06.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83065080196c
