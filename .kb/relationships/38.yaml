@@ -262,3 +262,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a80c70ed9ab6
+  - type: assumes
+    from: SCEN-NEG-kibi-init-level-choice-c02-eq-false
+    to: FACT-NEG-kibi-init-level-choice-c02-eq-false
+    created_at: 2026-11-25T10:20:56.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38fceb8e5680

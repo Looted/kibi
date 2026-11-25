@@ -57,6 +57,30 @@ describe("snapshot knowledge", () => {
     ).toEqual([{ type: "implements", from: "SYM-stable", to: "REQ-snapshot" }]);
     snapshot.assertUnchanged();
   });
+  test("a link both the document and a shard declare is kept once", () => {
+    const f = fixture();
+    f.write(
+      ".kb/requirements/REQ-snapshot.md",
+      "---\nid: REQ-snapshot\ntitle: Snapshot requirement\nstatus: open\nlinks:\n  - type: relates_to\n    target: SYM-stable\n---\nRetain source ownership.\n",
+    );
+    f.write(
+      ".kb/relationships/aa.yaml",
+      "relationships:\n  - id: REL-snapshot\n    type: implements\n    from: SYM-stable\n    to: REQ-snapshot\n  - id: REL-dup\n    type: relates_to\n    from: REQ-snapshot\n    to: SYM-stable\n  - id: REL-other\n    type: verified_by\n    from: REQ-snapshot\n    to: SYM-stable\n",
+    );
+    f.git("add", ".kb");
+    const snapshot = captureStagedSnapshot(f.root);
+    const knowledge = readSnapshotKnowledge(
+      snapshot.readGit,
+      snapshot.headTree,
+      snapshot.readBlobs,
+    );
+    expect(
+      knowledge.find((row) => row.entity.id === "REQ-snapshot")?.relationships,
+    ).toEqual([
+      { type: "relates_to", from: "REQ-snapshot", to: "SYM-stable" },
+      { type: "verified_by", from: "REQ-snapshot", to: "SYM-stable" },
+    ]);
+  });
   test("working knowledge cannot legalize a missing staged relationship endpoint", () => {
     const f = fixture();
     f.git("rm", "--cached", ".kb/requirements/REQ-snapshot.md");

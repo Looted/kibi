@@ -78,6 +78,7 @@ describe("knowledge consistency", () => {
     expect(input).toStrictEqual({
       stagedPaths: [REQ],
       knowledge: h.world.entities,
+      level: "test",
     });
     expect(h.calls.collectIntroducedConsistencyViolations?.[0]?.[2]).toBe(
       rules,
@@ -132,6 +133,10 @@ describe("knowledge consistency", () => {
           workspaceRoot: process.cwd(),
           branch: "kb-main",
           requirementIds: ["REQ-1"],
+          rules: new Set([
+            "evidence-floor",
+            "agent-requirement-unapproved-implemented",
+          ]),
           schemaVersion: 15,
           stagedEntities: [staged],
         },
@@ -157,6 +162,60 @@ describe("knowledge consistency", () => {
           }
         ).schemaVersion,
       ).toBeUndefined();
+    } finally {
+      for (const spy of spies) spy.mockRestore();
+    }
+  });
+
+  test("a floor finding on a requirement the commit adds is reported, not refused; remember runs no floor", async () => {
+    const spies = [
+      spyOn(resolver, "resolveReadBranchAttachment").mockImplementation(
+        () =>
+          ({
+            kbBranch: "kb-main",
+            gitBranch: "main",
+            migrationRequired: false,
+          }) as never,
+      ),
+      spyOn(detached, "refreshDetachedSnapshot").mockImplementation(
+        async () => undefined as never,
+      ),
+      spyOn(autoCompile, "ensureBranchStoreCompiled").mockImplementation(
+        async () => undefined as never,
+      ),
+    ];
+    try {
+      h.world.inventory = [md()];
+      h.set("stagesKnowledge", () => true);
+      h.set("floorChangedRequirementIds", () => ["REQ-1"]);
+      const added = { rule: "evidence-floor", entityId: "REQ-1" };
+      h.set("collectStagedEvidenceFloorViolations", async () => [added]);
+      h.set("addedRequirementIds", () => new Set(["REQ-1"]));
+      expect(await h.run({ kbPath: undefined })).toBe(0);
+      const [files, readBase] = h.calls.addedRequirementIds?.[0] as [
+        Array<{ path: string }>,
+        (file: string) => string | null,
+      ];
+      expect(files.map((file) => file.path)).toStrictEqual([REQ]);
+      expect(readBase(REQ)).toBe(`blob BASE:${REQ}`);
+      expect(h.calls.formatConsistencyViolations).toContainEqual([
+        [added],
+        "non-blocking evidence floor",
+      ]);
+      h.set("readKibiLevel", () => ({ level: "remember", source: "default" }));
+      await h.run({ kbPath: undefined });
+      const input = h.calls.collectStagedEvidenceFloorViolations?.at(
+        -1,
+      )?.[0] as {
+        rules: ReadonlySet<string>;
+      };
+      expect([...input.rules]).toStrictEqual([
+        "agent-requirement-unapproved-implemented",
+      ]);
+      expect(
+        (h.calls.stagedRequirementRules?.at(-1)?.[1] as { level: string })
+          .level,
+      ).toBe("remember");
     } finally {
       for (const spy of spies) spy.mockRestore();
     }

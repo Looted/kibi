@@ -28,6 +28,7 @@
  * shared with the kb_check input enum and the Prolog rule_registry facts.
  */
 
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { GENERATED_RULES } from "./rule-registry.generated.js";
 
 export type RuleEnforcementClass =
@@ -125,14 +126,26 @@ export function ruleRunsByDefault(
 }
 
 /**
- * Rules that a plain `kibi check` evaluates. Derived from enforcement
- * class: canonical and advisory run, migration does not.
+ * Whether a rule's layer runs at a Kibi level: the knowledge layer at every
+ * level, the verification layer only at `test`.
  */
-export function getDefaultRules(): Set<string> {
+export function layerRunsAtLevel(layer: RuleLayer, level: KibiLevel): boolean {
+  return layer === "knowledge" || level === "test";
+}
+
+/**
+ * Rules that a plain `kibi check` evaluates at a Kibi level. Derived from
+ * enforcement class and layer: canonical and advisory rules run, migration
+ * rules do not, and verification rules run only at level `test` (the
+ * level of a project that does not set one).
+ */
+export function getDefaultRules(level: KibiLevel = "test"): Set<string> {
   return new Set(
-    RULES.filter((rule) => ruleRunsByDefault(rule.enforcementClass)).map(
-      (rule) => rule.name,
-    ),
+    RULES.filter(
+      (rule) =>
+        ruleRunsByDefault(rule.enforcementClass) &&
+        layerRunsAtLevel(rule.layer, level),
+    ).map((rule) => rule.name),
   );
 }
 
@@ -156,20 +169,22 @@ export function isCanonicalRule(name: string): boolean {
  * Resolve the rule set for one check invocation.
  *
  * @param requestedRules Optional invocation-time diagnostic selector
- *   (`--rules`). When absent, canonical and advisory rules run. When
+ *   (`--rules`). When absent, the default rules of the level run. When
  *   present, only the selected rules run for that invocation and nothing is
  *   persisted. Selection never changes enforcement class.
+ * @param level The project's Kibi level.
  * @returns Set of rule names that should run
  */
 export function getEffectiveRules(
   requestedRules?: readonly string[],
+  level: KibiLevel = "test",
 ): Set<string> {
   if (requestedRules !== undefined) {
     return new Set(
       requestedRules.filter((name): name is string => RULE_NAMES.has(name)),
     );
   }
-  return getDefaultRules();
+  return getDefaultRules(level);
 }
 
 /**

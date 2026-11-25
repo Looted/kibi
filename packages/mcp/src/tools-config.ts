@@ -19,6 +19,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { advertisedInputSchema, getSpec } from "kibi-runtime";
 import type { OperationName } from "kibi-runtime";
 
@@ -182,18 +183,34 @@ export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
 /**
  * The catalog tools a session lists: every one in the `full` profile; the
  * core eight in the `core` profile, plus the bootstrap tools while the
- * knowledge base is empty.
+ * knowledge base is empty. At Kibi level remember neither lists the
+ * verification tools (REMEMBER_UNLISTED_TOOLS).
  */
 export function profileToolNames(
   profile: ToolProfile,
   kbEmpty: boolean,
+  level: KibiLevel = "test",
 ): ReadonlySet<string> | undefined {
-  if (profile === "full") return undefined;
-  return new Set<string>([
-    ...DEFAULT_PROFILE_TOOLS,
-    ...(kbEmpty ? BOOTSTRAP_TOOLS : []),
-  ]);
+  if (profile === "full")
+    return level === "test"
+      ? undefined
+      : new Set<string>(
+          MCP_TOOL_ORDER.filter((name) => !REMEMBER_UNLISTED_TOOLS.has(name)),
+        );
+  return new Set<string>(
+    [...DEFAULT_PROFILE_TOOLS, ...(kbEmpty ? BOOTSTRAP_TOOLS : [])].filter(
+      (name) => level === "test" || !REMEMBER_UNLISTED_TOOLS.has(name),
+    ),
+  );
 }
+
+/**
+ * The tools a session at Kibi level remember does not list: they record
+ * verification evidence, which that level does not ask for.
+ */
+export const REMEMBER_UNLISTED_TOOLS: ReadonlySet<string> = new Set([
+  "kb_ingest_proof",
+]);
 
 /** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
 export const OPTIONAL_TOOL_NAMES = [

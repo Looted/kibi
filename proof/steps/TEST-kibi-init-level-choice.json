@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-init-level-choice",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/init-level.test.ts"
+    ]
+  ]
+}

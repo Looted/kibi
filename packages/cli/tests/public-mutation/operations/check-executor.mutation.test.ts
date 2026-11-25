@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as kibiLevel from "kibi-agent-core/kibi-level";
 import * as aggregated from "../../../src/commands/aggregated-checks.js";
 import * as impact from "../../../src/public/impact-diagnostics.js";
 import {
@@ -422,6 +423,30 @@ describe("executeCheck", () => {
     expect(calls.inspect).not.toHaveBeenCalled();
   });
 
+  test("a level setting that names no level is a warning, and the check runs at test", async () => {
+    harness({ snapshot: false, rules: ["evidence-floor"] });
+    const level = spyOn(kibiLevel, "readKibiLevel").mockReturnValue({
+      level: "test",
+      source: "package.json",
+      invalid: "prove",
+    });
+    try {
+      const result = await run({}, context());
+      expect(level).toHaveBeenCalledWith(ROOT);
+      expect(result.structuredContent.diagnostics.at(-1)).toStrictEqual({
+        category: "CONFIG_WARNING",
+        severity: "warning",
+        message:
+          'level in .kb/setup.json is "prove", which is not a Kibi level (remember or test), so Kibi runs at test.',
+        file: "package.json",
+        suggestion:
+          'Ask the person which level the project uses and set level in .kb/setup.json to "remember" or "test".',
+      });
+    } finally {
+      level.mockRestore();
+    }
+  });
+
   test("runs no rule for an empty rule set", async () => {
     const calls = harness({ snapshot: false });
     const ctx = context();
@@ -462,7 +487,7 @@ describe("executeCheck", () => {
     ]);
     expect(calls.full).not.toHaveBeenCalled();
     expect(calls.aggregated).not.toHaveBeenCalled();
-    expect(calls.resolveRules).toHaveBeenCalledWith({ rules: [] });
+    expect(calls.resolveRules).toHaveBeenCalledWith({ rules: [] }, "test");
     expect(calls.impact).toHaveBeenCalledWith(ROOT, { rules: [] });
     expect(calls.staged).toHaveBeenCalledWith(ROOT, { rules: [] });
     expect(calls.impactQuality).toHaveBeenCalledWith(undefined);

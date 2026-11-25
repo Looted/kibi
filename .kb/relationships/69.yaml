@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2d9e510afd
+  - type: implements
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:58.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ff20d59540e
+  - type: covered_by
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:58.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b575d6b3ce4f

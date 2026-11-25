@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-required-evidence-at-remember",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/required-evidence-at-remember.test.ts"
+    ]
+  ]
+}

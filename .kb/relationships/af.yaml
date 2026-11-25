@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28dbb8e3675d
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c01
+    created_at: 2026-11-25T09:49:38.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f576faf7a5b0
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c02
+    created_at: 2026-11-25T09:49:38.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d7ff318522
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c03
+    created_at: 2026-11-25T09:49:38.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5987e81623af

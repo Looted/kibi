@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-schema-20-level",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/schema-20.test.ts"
+    ]
+  ]
+}

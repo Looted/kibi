@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import { requestTopicWords } from "kibi-agent-core/requirement-candidates";
 import { KbRejection } from "../../cli-errors.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
@@ -505,7 +506,11 @@ export function pairReviewFollowUp(
   };
 }
 
-/** A proof floor needs every claim grounded by a fact: kb_model returns them. */
+/**
+ * Unmodeled claims get a kb_model step at every level: a grounded claim is
+ * what lets kb_check catch a contradiction. Below a proof floor at level
+ * test, grounding is also what the floor needs first.
+ */
 export function groundingStep(
   id: string,
   floor: string | undefined,
@@ -514,9 +519,11 @@ export function groundingStep(
 ): CaptureNextAction {
   return required(
     "kb_model",
-    "evidence-floor",
+    floor === undefined ? "missing_logic_grounding" : "evidence-floor",
     { mode: "requirement", requirementId: id, text: statement },
-    `${id} reaches ${floor} only when each claim (${claims.join(", ")}) is grounded by a fact: kb_model returns the facts to upsert. A grounded claim also needs the failure-side scenario below.`,
+    floor === undefined
+      ? `Each claim of ${id} (${claims.join(", ")}) is still unmodeled, so kb_check cannot tell when another requirement contradicts it: kb_model returns the facts to upsert.`
+      : `${id} reaches ${floor} only when each claim (${claims.join(", ")}) is grounded by a fact: kb_model returns the facts to upsert. A grounded claim also needs the failure-side scenario below.`,
   );
 }
 
@@ -724,26 +731,31 @@ export async function captureFollowUp(
     approvals.push(...review.approvals);
   }
 
-  const uncovered: string[] = [];
+  // Level remember asks for no scenario, test or proof: only the knowledge
+  // steps above and the grounding below are listed, and a symbol's missing
+  // test is neither a step nor a warning.
+  const verifies = readKibiLevel(context.workspaceRoot).level === "test";
+  const notCovered: string[] = [];
   for (const symbol of await reads.implementingSymbols(id))
-    if (!(await reads.covered(symbol))) uncovered.push(symbol);
-  const coverage = new Set(uncovered.flatMap(symbolCoverageWarning));
+    if (!(await reads.covered(symbol))) notCovered.push(symbol);
+  const coverage = new Set(notCovered.flatMap(symbolCoverageWarning));
   drop((warning) => coverage.has(warning));
+  const uncovered = verifies ? notCovered : [];
   const floor = evidenceFloorOf(entity);
-  const needsProof = floor === "tested" || floor === "proved";
+  const needsProof = verifies && (floor === "tested" || floor === "proved");
   const tested = await reads.tested(id);
   const free = async (prefix: string) => {
     const first = `${prefix}-${id.replace(/^REQ-/, "")}`;
     return (await reads.exists(first)) ? `${first}-check` : first;
   };
   let testId = "<a TEST that verifies this requirement>";
-  // A tested floor needs every claim grounded by a fact; the failure-side
-  // scenario below is asked for once one is.
-  if (!tested && needsProof && claims.length > 0)
+  // Unmodeled claims are grounded at every level; below a tested floor the
+  // failure-side scenario below is asked for once they are.
+  if (claims.length > 0)
     actions.push(
       groundingStep(
         id,
-        floor,
+        !tested && needsProof ? floor : undefined,
         claims,
         text(entity.semantic_text) || head.title,
       ),

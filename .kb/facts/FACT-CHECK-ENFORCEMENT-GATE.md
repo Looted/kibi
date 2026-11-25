@@ -14,8 +14,8 @@ operator: eq
 value_type: string
 value_string: blocking
 polarity: require
-claim_key: CLAIM-5126258C36C49A04
-claim_text: The hook runs `kibi check` and blocks commits when must-priority coverage rules are violated
+claim_key: CLAIM-D4A3A19C54264C95
+claim_text: The hook runs `kibi check` and blocks commits when a canonical check rule that runs is violated
 type: fact
 origin:
   kind: migration

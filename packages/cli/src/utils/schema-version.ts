@@ -42,7 +42,9 @@
 // modeled or a checkable pair_reviews verdict settles it.
 // Schema 19 blocks two value facts that state one quantity under different
 // subject or property keys (quantity-duplicate); the upgrade lists the pairs.
-export const LATEST_KB_SCHEMA_VERSION = 19;
+// Schema 20 adds Kibi levels (kibi.level remember | test, test when unset):
+// the upgrade leaves the level as it is and says how to choose remember.
+export const LATEST_KB_SCHEMA_VERSION = 20;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

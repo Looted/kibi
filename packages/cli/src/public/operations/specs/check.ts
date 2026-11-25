@@ -24,7 +24,7 @@ export const checkSpec = {
           enum: [...SELECTABLE_RULE_NAMES],
           [ADVERTISED_OPEN]: true,
         },
-        description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
+        description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs the canonical and advisory rules of the project's Kibi level (level remember skips the verification rules) plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
         [ADVERTISED_DESCRIPTION]:
           "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
       },
