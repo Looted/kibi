@@ -2162,8 +2162,6 @@ symbols:
         target: REQ-cli-init
       - type: implements
         target: REQ-kibi-github-report-integration
-      - type: implements
-        target: REQ-kibi-refuse-operation-workspace-outside-any
   - id: SYM-cli-github-scaffold
     title: scaffoldGitHubIntegration
     status: active
