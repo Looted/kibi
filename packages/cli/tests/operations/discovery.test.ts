@@ -1072,7 +1072,7 @@ describe("shared discovery operation executors", () => {
       }
     });
 
-    test("executeStatus reports missing stores and wraps attachment errors", async () => {
+    test("executeStatus reports missing stores and a workspace outside Git", async () => {
       const root = mkdtempSync(path.join(tmpdir(), "kibi-disco-"));
       mkdirSync(path.join(root, ".kb"), { recursive: true });
       try {
@@ -1107,15 +1107,24 @@ describe("shared discovery operation executors", () => {
           // This case requires no branch authority. Proof CI supplies an explicit
           // override, which intentionally permits status outside a Git checkout.
           Reflect.deleteProperty(process.env, "KIBI_BRANCH");
-          await expect(
-            executeStatus(
-              {},
-              context(root, {
-                branchAttachment: undefined,
-                git: undefined,
-              }),
-            ),
-          ).rejects.toThrow("Status execution failed");
+          const outside = await executeStatus(
+            {},
+            context(root, {
+              branchAttachment: undefined,
+              git: undefined,
+            }),
+          );
+          // Outside Git the status answers from the no-Git store and says so.
+          expect(
+            (
+              outside.structuredContent as unknown as {
+                versionControl?: { reason?: unknown; kbBranch?: unknown };
+              }
+            ).versionControl,
+          ).toMatchObject({
+            reason: "not_a_repository",
+            kbBranch: "kibi-internal/no-git",
+          });
         } finally {
           if (originalBranchOverride === undefined) {
             Reflect.deleteProperty(process.env, "KIBI_BRANCH");

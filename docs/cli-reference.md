@@ -121,6 +121,13 @@ A failed route writes its JSON result with `status: "error"` and `error.code`, `
 Initializes Kibi repository infrastructure in the current directory. It does
 not infer or write product knowledge.
 
+Outside a Git repository `kibi init` sets up a workspace without version
+control: it writes `.kb/` and the agent instructions (which say to finish
+each change with `kibi check`, since there is no commit gate), installs no
+Git hooks and prints the `no_git_repository` advisory. After `git init`, run
+`kibi init` again to install the hooks; the knowledge recorded so far carries
+over. See [Working without Git](error-reference.md#working-without-git-no_git_repository-git_required).
+
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. When the repository uses a hook manager (lefthook, husky or the pre-commit framework), init installs no hooks at all and prints the manager configuration for every hook it does not visibly run Kibi's commands for yet; see [existing Git hooks and hook managers](install.md#existing-git-hooks-and-hook-managers). Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
@@ -1101,7 +1108,7 @@ Verifies environment setup and diagnostics.
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
-- Checks git repository presence
+- Checks git repository presence: outside any repository it is a warning carrying the `no_git_repository` advisory (what is off until there is a repository, and `git init`, then `kibi init`), not a failure
 - Checks the current branch's KB store ("Branch store"): when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), it warns that the next Kibi query or check compiles it when auto-sync is on (`kibi.setup.autoSync`, the default), and fails naming `kibi sync` when auto-sync is off (`KIBI_AUTO_SYNC=0` or `autoSync: false`) or the attachment is read-only, detached or awaiting migration; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - When a hook manager owns the hooks (lefthook, husky, the pre-commit framework), reads the commands from its configuration instead of the generated hook files. A hook whose configuration visibly runs Kibi's commands passes; one that does not (for example because it calls a task runner) is a warning with `kibi init --print-hook <hook> --format <manager>` as the remediation, since doctor cannot see through the runner

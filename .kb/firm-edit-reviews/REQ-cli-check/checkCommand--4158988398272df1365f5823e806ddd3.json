@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "kibi check still runs validation rules, still takes --rules and --staged, and still exits non-zero with violation logs; the change only picks the default rules from the project's level and reports new-requirement floor findings.",
+  "note": "Merging develop adds the outside-Git refusal for --staged before any rule runs; rule selection, staged focus and non-zero exit on violations are unchanged.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:364ad973897adab6e1f7a22341dd056bf8f0344f83ad24afd050477ca1c64d7f",
-  "startLine": 831,
-  "endLine": 1862,
-  "recordedAt": "2026-11-25T10:42:18.328Z"
+  "codeHash": "sha256:60b83f48f24b6c540c31d7aac37078a8c47b1b3c0cba274ed3dd859c773f438e",
+  "startLine": 832,
+  "endLine": 1871,
+  "recordedAt": "2026-11-25T14:39:36.452Z"
 }

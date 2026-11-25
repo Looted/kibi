@@ -138,7 +138,9 @@ describe("migrateCommand remaining runtime branches", () => {
     restores.push(io.restore);
     const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
     expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain("Not in a git repository");
+    expect(io.errorText()).toContain(
+      "Failed to resolve active branch: git missing",
+    );
   });
 
   test("fails on an unknown branch-attachment error", async () => {

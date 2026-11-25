@@ -162,6 +162,7 @@ import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { type Violation, layerRunsAtLevel } from "../utils/rule-registry.js";
 import { getSchemaVersionStatus } from "../utils/schema-version.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 
 export type { Violation };
 
@@ -831,6 +832,14 @@ async function attachReadBranch(
 export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.staged && !options.kbPath) {
+    const refusal = refuseWithoutGit(
+      process.cwd(),
+      "commit_gate",
+      "kibi check --staged",
+    );
+    if (refusal !== null) return refusal;
+  }
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
   try {

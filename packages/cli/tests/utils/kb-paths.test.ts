@@ -13,6 +13,7 @@ import {
   isFirmEditReceiptPath,
   isKbKnowledgePath,
   isSymbolsManifestPath,
+  isSyncableKbSourcePath,
 } from "../../src/utils/kb-paths.js";
 
 describe("kb-paths constants", () => {
@@ -107,6 +108,23 @@ describe("kb-paths predicates", () => {
     expect(isKbKnowledgePath(".kb/adr/A.md")).toBe(true);
     expect(isKbKnowledgePath(".kb/symbols.yaml")).toBe(true);
     expect(isKbKnowledgePath(".kb/manifest.json")).toBe(false);
+  });
+
+  test("syncable sources are lane documents, the symbols manifest and relationship shards", () => {
+    expect(isSyncableKbSourcePath(".kb/requirements/REQ-1.md")).toBe(true);
+    expect(isSyncableKbSourcePath(".kb/requirements/README.md")).toBe(false);
+    expect(isSyncableKbSourcePath(".kb/requirements/REQ-1.txt")).toBe(false);
+    expect(isSyncableKbSourcePath(KB_PATHS.symbolsManifest)).toBe(true);
+    expect(isSyncableKbSourcePath(`${KB_PATHS.relationships}/a.yaml`)).toBe(
+      true,
+    );
+    expect(isSyncableKbSourcePath(`${KB_PATHS.relationships}/a.yml`)).toBe(
+      true,
+    );
+    expect(isSyncableKbSourcePath(`${KB_PATHS.relationships}/a.json`)).toBe(
+      false,
+    );
+    expect(isSyncableKbSourcePath("docs/a.yaml")).toBe(false);
   });
 
   test("derived paths are each prefix itself or below it, with either separator", () => {

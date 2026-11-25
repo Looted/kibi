@@ -440,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fa77abc7d06
+  - type: relates_to
+    from: ADR-kibi-workspaces-without-git
+    to: ADR-012
+    created_at: 2026-11-25T09:08:19.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93c1c9f328bd

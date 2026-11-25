@@ -21,10 +21,23 @@ import {
   createTempDir,
   removeTempDir,
 } from "../helpers/in-process-workspace.js";
+import { finishCliTelemetry } from "../../src/usage-telemetry.js";
+
+// A refusal notes its category for the exit event; drain it as the CLI's
+// exit does, so it never reaches the next test file in this process.
+afterEach(async () => {
+  await finishCliTelemetry({
+    commandPath: undefined,
+    packageVersion: "0.0.0",
+    startedAt: new Date(),
+    exitCode: 0,
+  });
+});
 
 const roots: string[] = [];
 const restores: Array<() => void> = [];
 let logs: string[] = [];
+let errors: string[] = [];
 
 function track<T extends { mockRestore(): void }>(spy: T): T {
   restores.push(() => spy.mockRestore());
@@ -33,9 +46,15 @@ function track<T extends { mockRestore(): void }>(spy: T): T {
 
 beforeEach(() => {
   logs = [];
+  errors = [];
   track(
     spyOn(console, "log").mockImplementation((...args) => {
       logs.push(args.map(String).join(" "));
+    }),
+  );
+  track(
+    spyOn(console, "error").mockImplementation((...args) => {
+      errors.push(args.map(String).join(" "));
     }),
   );
 });
@@ -255,7 +274,10 @@ describe("hooksInstallCommand", () => {
     expect((await hooksInstallCommand({}, { CI: "true" })).outcome).toBe(
       "not-a-repository",
     );
-    expect(logs).toStrictEqual(["No Git work tree here; no hooks to install."]);
+    // A quiet install says nothing; an explicit one is refused on stderr.
+    expect(logs).toStrictEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toStartWith("Error [GIT_REQUIRED]: kibi hooks install");
   });
 
   test("reads the process environment by default", async () => {
@@ -282,7 +304,20 @@ describe("hooksInstallCommand", () => {
       exitCode: 0,
       outcome: "not-a-repository",
     });
+    expect(logs).toStrictEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toStartWith("Error [GIT_REQUIRED]: kibi hooks install");
+  });
+
+  test("a work tree Git cannot resolve is reported unless quiet", async () => {
+    // A `.git` entry: the boundary lets the command report its own cause.
+    mkdirSync(path.join(process.cwd(), ".git"));
+    expect(await hooksInstallCommand({}, {})).toStrictEqual({
+      exitCode: 1,
+      outcome: "not-a-repository",
+    });
     expect(logs).toStrictEqual(["No Git work tree here; no hooks to install."]);
+    expect(errors).toStrictEqual([]);
   });
 
   test("before kibi init it fails unless quiet", async () => {

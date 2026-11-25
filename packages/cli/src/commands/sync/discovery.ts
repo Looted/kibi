@@ -16,12 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import { existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import * as path from "node:path";
-import { promisify } from "node:util";
 import fg from "fast-glob";
 import { getRelationshipsDir } from "../../extractors/relationships.js";
 import {
@@ -32,6 +30,7 @@ import {
   committedOnLocalBranch,
   pendingReceiptScope,
 } from "../../utils/pending-source-branch.js";
+import { authoredSources } from "../../vcs/source-inventory.js";
 import {
   SyncError,
   pendingSourceHashDriftError,
@@ -39,7 +38,6 @@ import {
 } from "./errors.js";
 
 const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
-const execFileAsync = promisify(execFile);
 
 export type DiscoveryOptions = Readonly<{
   trackedOnly?: boolean;
@@ -62,17 +60,6 @@ export type PendingSourceReceiptSnapshot = Readonly<{
   afterHash: string;
   rawHash: string;
 }>;
-
-async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
-  const result = await execFileAsync(
-    "git",
-    ["-C", cwd, "ls-files", "--cached", "-z", "--"],
-    { maxBuffer: 64 * 1024 * 1024 },
-  );
-  // Git lists paths with forward slashes on every platform, each ended by a
-  // NUL, so the text after the last one names no file.
-  return new Set(result.stdout.split("\0").slice(0, -1));
-}
 
 type PendingReceipt = Readonly<{
   raw: string;
@@ -329,8 +316,11 @@ export async function discoverSourceFiles(
   });
   const recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [];
 
-  if (options.trackedOnly) {
-    const tracked = await gitTrackedPaths(cwd);
+  // Outside any Git repository every authored source on disk is input and
+  // receipts do not apply, so only a Git workspace filters.
+  const sources = options.trackedOnly ? await authoredSources(cwd) : null;
+  if (sources?.kind === "git") {
+    const tracked = sources.tracked;
     const pending = pendingSourcePaths(
       cwd,
       options.recoverMissingPendingSources === true,

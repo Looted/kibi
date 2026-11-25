@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -22,6 +22,9 @@ afterEach(async () => {
 async function workspace(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), "kibi-source-authoring-"));
   roots.push(root);
+  // Receipts are written inside Git only; an empty .git entry is a
+  // repository whose branch Git cannot name, so they stay unscoped.
+  await mkdir(path.join(root, ".git"));
   return root;
 }
 

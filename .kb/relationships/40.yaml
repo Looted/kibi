@@ -297,3 +297,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cd7d39b0ce9
+  - type: relates_to
+    from: REQ-kibi-no-git-detection-never-inside-repository
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:16:31.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4619550c0143
+  - type: constrains
+    from: REQ-kibi-no-git-detection-never-inside-repository
+    to: FACT-SUBJ-kibi-branch-attachment-unreadable-repository
+    created_at: 2026-11-25T09:16:31.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cef47283215
+  - type: requires_property
+    from: REQ-kibi-no-git-detection-never-inside-repository
+    to: FACT-kibi-no-git-unreadable-repository-refusal-error-code
+    created_at: 2026-11-25T09:16:43.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b571884acb15
+  - type: specified_by
+    from: REQ-kibi-no-git-detection-never-inside-repository
+    to: SCEN-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:43.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8b5d556048c
+  - type: specified_by
+    from: REQ-kibi-no-git-detection-never-inside-repository
+    to: SCEN-NEG-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:43.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51e1a5520574

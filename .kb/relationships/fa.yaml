@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd977fa0324e
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:30.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e0911f7cb08
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: SCEN-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:30.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9c780c5ec0c
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: SCEN-NEG-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:30.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6bb247cefe

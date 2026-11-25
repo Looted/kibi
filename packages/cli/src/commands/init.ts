@@ -20,15 +20,18 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { KIBI_LEVELS, isKibiLevel } from "kibi-agent-core/kibi-level";
+import { BranchResolutionFailure } from "../cli-errors.js";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { readLegacyKbConfig } from "../utils/config.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
+import { adoptNoGitStore } from "../vcs/no-git-adoption.js";
 import {
   reportAgentInstructions,
   writeAgentInstructions,
@@ -270,8 +273,8 @@ export async function initCommand(
   // answer, so init works from linked worktrees (.git is a file there) and
   // from subdirectories (cwd has no .kb or .git at all). Bare repositories,
   // unreadable contexts, and operational Git refusals are rejected before any
-  // workspace write — even when KIBI_BRANCH makes a standalone fallback
-  // available for genuinely non-repository directories.
+  // workspace write. A directory outside any repository is initialized on
+  // the no-Git store, with the advisory to use Git.
   const resolution = resolveGitRepository(process.cwd());
   if (resolution.status === "git-refused") {
     console.error(`Error: ${resolution.reason}`);
@@ -297,22 +300,17 @@ export async function initCommand(
 
   // Resolve the exact active Git branch against the project root (not cwd):
   // recovery journals, legacy stores, and identity manifests are read from
-  // the same .kb tree init is about to write.
-  // Standalone use must be explicit via KIBI_BRANCH; there is no implicit
-  // default branch.
+  // the same .kb tree init is about to write. Outside Git this is the
+  // reserved no-Git store, never a default branch.
   let currentBranch: string;
   const result = resolveBranchAttachment(projectRoot);
 
   if ("error" in result) {
-    const isNonGitError =
-      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
-
-    console.error("Error: Failed to resolve the active git branch.");
-    console.error(
-      isNonGitError
-        ? `${result.error} Set KIBI_BRANCH explicitly for a standalone workspace.`
-        : result.error,
-    );
+    // Nothing is written: a repository whose branch cannot be resolved is
+    // refused with a coded reason (recorded for telemetry) and one step.
+    const failure = new BranchResolutionFailure(result);
+    noteCliErrorCategory(failure.code);
+    console.error(`Error: ${failure.message}`);
     return { exitCode: 1 };
   }
   if (result.migrationRequired) {
@@ -324,6 +322,13 @@ export async function initCommand(
   currentBranch = result.kbBranch;
 
   try {
+    // A repository created since Kibi last ran without Git takes over the
+    // knowledge recorded there before init lays out the branch store.
+    const adopted = adoptNoGitStore(projectRoot, result);
+    if (adopted !== null)
+      console.log(
+        `✓ Knowledge recorded without Git now belongs to branch '${adopted.branch}' (${adopted.files} source file(s) sealed for it)`,
+      );
     if (kbExists) {
       console.log(
         "✓ .kb/ directory already exists; completing missing infrastructure",
@@ -361,7 +366,9 @@ export async function initCommand(
     if ("level" in level && level.written !== null)
       console.log(`✓ Recorded Kibi level ${level.level} in ${level.written}`);
     if (choices.agentInstructions) {
-      reportAgentInstructions(writeAgentInstructions(projectRoot));
+      reportAgentInstructions(
+        writeAgentInstructions(projectRoot, result.noGit !== undefined),
+      );
     }
 
     if (options.hooks) {
@@ -373,7 +380,9 @@ export async function initCommand(
           )
         : null;
       if (!repoContext) {
-        console.error("Warning: No git repository found, skipping hooks");
+        console.log(
+          "- Git hooks: not installed; this directory has no Git repository",
+        );
       } else if (manager) {
         reportHookManager(manager, repoContext.worktreeRoot);
       } else if (!isRepositoryManagedHooksDir(repoContext)) {
@@ -412,6 +421,7 @@ export async function initCommand(
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
     }
+    if (result.noGit !== undefined) console.log(`! ${result.noGit.notice}`);
     console.log(
       legacyConfig
         ? "  Next: run 'kibi migrate --yes' to move the legacy knowledge into .kb/."

@@ -55,6 +55,23 @@ This repository records its requirements, decisions, tests and code ownership in
 - Commits must pass \`kibi check --staged\`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or \`kibi hooks install\` runs.
 - Workflow guidance: the \`kibi-usage\` skill (\`kb_skills\` with \`action: "load"\`, or \`kibi skills load kibi-usage\`).`;
 
+const COMMIT_GATE_LINE =
+  "- Commits must pass `kibi check --staged`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or `kibi hooks install` runs.";
+
+const NO_GIT_FINISH_LINE =
+  "- This directory has no Git repository, so there is no commit gate: finish each change with `kibi check`. After `git init`, run `kibi init` to install the gate.";
+
+/**
+ * The managed section for this workspace: outside any Git repository the
+ * commit-gate line says how to finish a change instead, and `kibi init` run
+ * after `git init` writes the Git version back.
+ */
+export function agentInstructionsFor(noGit: boolean): string {
+  return noGit
+    ? KIBI_AGENT_INSTRUCTIONS.replace(COMMIT_GATE_LINE, NO_GIT_FINISH_LINE)
+    : KIBI_AGENT_INSTRUCTIONS;
+}
+
 export const CLAUDE_IMPORT_SECTION = `## Kibi
 
 @AGENTS.md`;
@@ -190,6 +207,7 @@ function writeImport(
 
 export function writeAgentInstructions(
   worktreeRoot: string,
+  noGit = false,
 ): AgentInstructionsResult {
   const agentsTarget = writeTarget(
     path.join(worktreeRoot, AGENTS_FILE),
@@ -198,7 +216,7 @@ export function writeAgentInstructions(
   const agents =
     agentsTarget === null
       ? "skipped-symlink"
-      : upsertManagedSection(agentsTarget, KIBI_AGENT_INSTRUCTIONS);
+      : upsertManagedSection(agentsTarget, agentInstructionsFor(noGit));
   return {
     agents,
     claude: writeImport(

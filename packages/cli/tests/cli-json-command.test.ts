@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -287,6 +288,8 @@ describe("runJsonInvocation", () => {
     restores.push(restoreEnv);
     process.env.KIBI_CLI_DIAGNOSTIC_MODE = "1";
     const cwd = tempDir();
+    // A .git entry Git does not accept: the store cannot be attached.
+    mkdirSync(path.join(cwd, ".git"));
     const inputPath = writeInput(cwd, "query.json", { type: "req" });
     const io = captureIo({ stdio: true });
     restores.push(io.restore);
@@ -309,9 +312,9 @@ describe("runJsonInvocation", () => {
     expect(printed).toMatchObject({
       operation: "kb_query",
       status: "error",
-      error: { code: "OPERATION_FAILED", retryable: false },
+      error: { code: "GIT_REPOSITORY_UNREADABLE", retryable: false },
     });
-    expect(printed.error.message).toMatch(/Git branch|git|Kibi requires/i);
+    expect(printed.error.message).toContain("run 'git status' to see why");
     const rows = readUsageLog(path.join(cwd, ".kb", "usage.log"));
     expect(rows[0]).toMatchObject({
       tool: "kb_query",

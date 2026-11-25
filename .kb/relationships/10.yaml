@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fb051d9809a
+  - type: executable_for
+    from: SYM-test-kibi-source-inventory
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:18.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2115062fb517
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-telemetry
+    to: FACT-NEG-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:21:58.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3c5b025131c

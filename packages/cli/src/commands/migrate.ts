@@ -385,16 +385,6 @@ function resolveMigrationBranch(
   const result = resolveBranchAttachment(cwd);
 
   if ("error" in result) {
-    const isNonGitContext =
-      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
-
-    if (isNonGitContext) {
-      return {
-        error:
-          "Not in a git repository; set KIBI_BRANCH explicitly for migration audit metadata.",
-      };
-    }
-
     return {
       error: `Failed to resolve active branch: ${result.error}`,
     };

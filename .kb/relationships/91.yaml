@@ -468,3 +468,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fda9a2296bf2
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: REQ-kibi-no-git-workspace-attaches-reserved-store
+    created_at: 2026-11-25T09:16:14.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3696b9aa67b
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: SCEN-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:14.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27fb318e6f3d
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: SCEN-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:14.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a46b47f0e3ef

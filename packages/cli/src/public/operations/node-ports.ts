@@ -6,6 +6,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
 
+import { probeWorkspaceVcs } from "../../vcs/workspace-vcs.js";
 import { createRepoIgnorePolicy } from "../ignore-policy.js";
 import { snapshotFileContent } from "./proof-receipt-projection.js";
 import type { FilesystemPort, GitPort, NetworkPort } from "./runtime-types.js";
@@ -102,20 +103,46 @@ type Keyed = { readonly key: string };
 // Stryker disable next-line EqualityOperator
 const byKey = (left: Keyed, right: Keyed) => (left.key < right.key ? -1 : 1);
 
+/**
+ * The files a workspace snapshot hashes: what Git lists (tracked and
+ * untracked, not ignored) in a repository; outside any repository, the files
+ * on disk the repository ignore rules would keep.
+ */
+async function snapshotListing(
+  workspaceRoot: string,
+): Promise<{ readonly listed: string; readonly git: boolean }> {
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      [
+        "-C",
+        workspaceRoot,
+        "ls-files",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "-z",
+      ],
+      { maxBuffer: 64 * 1024 * 1024 },
+    );
+    return { listed: stdout, git: true };
+  } catch (error) {
+    if (probeWorkspaceVcs(workspaceRoot).kind !== "none") throw error;
+    const policy = createRepoIgnorePolicy(workspaceRoot);
+    const files = await fg("**/*", {
+      cwd: workspaceRoot,
+      onlyFiles: true,
+      dot: true,
+      suppressErrors: true,
+      ignore: [...ALWAYS_IGNORED_GLOBS],
+    });
+    const kept = files.filter((file) => !policy.isIgnored(file));
+    return { listed: kept.map((file) => `${file}\0`).join(""), git: false };
+  }
+}
+
 async function workspaceSnapshot(workspaceRoot: string) {
-  const { stdout: listed } = await execFileAsync(
-    "git",
-    [
-      "-C",
-      workspaceRoot,
-      "ls-files",
-      "--cached",
-      "--others",
-      "--exclude-standard",
-      "-z",
-    ],
-    { maxBuffer: 64 * 1024 * 1024 },
-  );
+  const { listed, git } = await snapshotListing(workspaceRoot);
   // The snapshot names each file by its repo-relative path in Unicode NFC, so
   // a checkout whose filesystem reports decomposed names (macOS) hashes the
   // same commit to the same snapshot as a Linux CI runner. The raw name is
@@ -142,18 +169,21 @@ async function workspaceSnapshot(workspaceRoot: string) {
     }
     digest.update("\0");
   }
-  const { stdout: status } = await execFileAsync(
-    "git",
-    [
-      "-C",
-      workspaceRoot,
-      "status",
-      "--porcelain=v1",
-      "--untracked-files=normal",
-      "-z",
-    ],
-    { maxBuffer: 16 * 1024 * 1024 },
-  );
+  // Without Git there is no committed state for a file to differ from.
+  const { stdout: status } = git
+    ? await execFileAsync(
+        "git",
+        [
+          "-C",
+          workspaceRoot,
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=normal",
+          "-z",
+        ],
+        { maxBuffer: 16 * 1024 * 1024 },
+      )
+    : { stdout: "" };
   const rawChanges = status.split("\0").filter(Boolean);
   const changes: {
     path: string;

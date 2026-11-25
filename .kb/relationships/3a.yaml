@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a377de2341a
+  - type: implements
+    from: SYM-vcs-adopt-no-git-store
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:35.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4481c840eb9a
+  - type: covered_by
+    from: SYM-vcs-adopt-no-git-store
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:35.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d311b425f69b

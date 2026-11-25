@@ -10,3 +10,4 @@ export * from "./snippets.js";
 export * from "./requirement-candidates.js";
 export * from "./session-brief.js";
 export * from "./usage-telemetry.js";
+export * from "./version-control.js";
