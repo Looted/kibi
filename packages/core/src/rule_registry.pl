@@ -9,6 +9,7 @@
     known_rule/1,
     rule_enforcement_class/2,
     rule_implementation/2,
+    rule_layer/2,
     rule_predicate/2,
     rule_predicate_arity/2,
     rule_description/2
@@ -223,6 +224,76 @@ rule_implementation('evidence-floor', typescript).
 rule_implementation('agent-requirement-unapproved-implemented', typescript).
 rule_implementation('must-positive-scenario', typescript).
 rule_implementation('proof-contract-claims', typescript).
+
+rule_layer('must-priority-coverage', verification).
+rule_layer('symbol-coverage', verification).
+rule_layer('symbol-traceability', knowledge).
+rule_layer('symbol-granularity', knowledge).
+rule_layer('symbol-coordinates-missing', knowledge).
+rule_layer('no-dangling-refs', knowledge).
+rule_layer('source-relationship-parity', knowledge).
+rule_layer('branch-store-not-compiled', knowledge).
+rule_layer('source-path-dangling', knowledge).
+rule_layer('no-cycles', knowledge).
+rule_layer('required-fields', knowledge).
+rule_layer('deprecated-adr-no-successor', knowledge).
+rule_layer('superseded-requirement-open', knowledge).
+rule_layer('scenario-feasibility', knowledge).
+rule_layer('scenario-feasibility-unknown', knowledge).
+rule_layer('scenario-outcome-mismatch', knowledge).
+rule_layer('exception-claim-keys', knowledge).
+rule_layer('numeric-string-value', knowledge).
+rule_layer('rule-key-arguments-missing', knowledge).
+rule_layer('domain-contradictions', knowledge).
+rule_layer('logic-coverage', knowledge).
+rule_layer('rule-safety', knowledge).
+rule_layer('rule-verifiability', knowledge).
+rule_layer('query-plan-safety', knowledge).
+rule_layer('req-status-vocabulary', knowledge).
+rule_layer('retired-reason-missing', knowledge).
+rule_layer('retired-owner-only', knowledge).
+rule_layer('strict-fact-shape', knowledge).
+rule_layer('strict-req-fact-pairing', knowledge).
+rule_layer('predicate-verifiability', knowledge).
+rule_layer('strict-readiness', knowledge).
+rule_layer('semantic-completeness', knowledge).
+rule_layer('related-requirement-unmodeled', knowledge).
+rule_layer('claim-subject-missing', knowledge).
+rule_layer('claim-subject-undefined', knowledge).
+rule_layer('proof-contract-symbols', verification).
+rule_layer('entity-id-style', knowledge).
+rule_layer('domain-redundancy', knowledge).
+rule_layer('domain-implication', knowledge).
+rule_layer('subject-key-identity', knowledge).
+rule_layer('subject-key-shape', knowledge).
+rule_layer('ontology-quality', knowledge).
+rule_layer('exception-unapproved', knowledge).
+rule_layer('exception-approval-self-attested', knowledge).
+rule_layer('agent-requirement-unapproved', knowledge).
+rule_layer('requirement-rationale-missing', knowledge).
+rule_layer('symbol-owner-superseded', knowledge).
+rule_layer('adr-unlinked', knowledge).
+rule_layer('adr-proposed', knowledge).
+rule_layer('predicate-schema-conformance', knowledge).
+rule_layer('entity-context-missing', knowledge).
+rule_layer('subject-definition-missing', knowledge).
+rule_layer('subject-duplicate', knowledge).
+rule_layer('quantity-duplicate', knowledge).
+rule_layer('subject-hierarchy-invalid', knowledge).
+rule_layer('entity-context-acknowledged', knowledge).
+rule_layer('decision-firm-unreferenced', knowledge).
+rule_layer('decision-firm-superseded', knowledge).
+rule_layer('decision-firm-edited', knowledge).
+rule_layer('supersedes-reason-missing', knowledge).
+rule_layer('supersedes-reason-acknowledged', knowledge).
+rule_layer('policy-ownership', knowledge).
+rule_layer('policy-markers', knowledge).
+rule_layer('kb-consistency', knowledge).
+rule_layer('kb-consistency-unresolved', knowledge).
+rule_layer('evidence-floor', verification).
+rule_layer('agent-requirement-unapproved-implemented', knowledge).
+rule_layer('must-positive-scenario', verification).
+rule_layer('proof-contract-claims', verification).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).

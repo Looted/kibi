@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-core-validation-rules",
+  "sourceFile": "packages/cli/src/utils/rule-registry.generated.ts",
+  "symbol": "GENERATED_RULES",
+  "verdict": "keeps",
+  "note": "Adds a layer field to each generated rule; every rule, its class and what it validates are unchanged.",
+  "statementHash": "sha256:3aa5519df701e1c4e14fa6a2cbe7b85dcaeab159813aaf4ecbd345badd15aaab",
+  "codeHash": "sha256:1f14413eaeb4ea831f09467595e2c454b183e528f7537f89ab649684ea5aa367",
+  "startLine": 10,
+  "endLine": 567,
+  "recordedAt": "2026-11-25T08:28:15.701Z"
+}

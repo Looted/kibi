@@ -14,6 +14,7 @@ export const GENERATED_RULES = [
       "Every current must-priority requirement (not superseded, retired, or closed without the implemented tag) must have a scenario and a test",
     enforcementClass: "canonical",
     category: "coverage",
+    layer: "verification",
   },
   {
     name: "symbol-coverage",
@@ -21,6 +22,7 @@ export const GENERATED_RULES = [
       "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path; a linkless record whose symbol_role is structural, type-shape, config or module owes none",
     enforcementClass: "canonical",
     category: "coverage",
+    layer: "verification",
   },
   {
     name: "symbol-traceability",
@@ -28,6 +30,7 @@ export const GENERATED_RULES = [
       "Production symbols must directly implement requirements for ownership, except a linkless record whose symbol_role is structural, type-shape, config or module; covered_by is coverage only and executable_for is test identity only",
     enforcementClass: "canonical",
     category: "traceability",
+    layer: "knowledge",
   },
   {
     name: "symbol-granularity",
@@ -35,6 +38,7 @@ export const GENERATED_RULES = [
       "A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate's symbol_granularity_violation evaluated KB-wide",
     enforcementClass: "canonical",
     category: "traceability",
+    layer: "knowledge",
   },
   {
     name: "symbol-coordinates-missing",
@@ -42,6 +46,7 @@ export const GENERATED_RULES = [
       "Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code",
     enforcementClass: "advisory",
     category: "traceability",
+    layer: "knowledge",
     diagnosticSeverity: "warning",
   },
   {
@@ -49,6 +54,7 @@ export const GENERATED_RULES = [
     description: "All relationship targets must exist in the KB",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "source-relationship-parity",
@@ -56,6 +62,7 @@ export const GENERATED_RULES = [
       "Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "branch-store-not-compiled",
@@ -63,6 +70,7 @@ export const GENERATED_RULES = [
       "The current branch's KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "source-path-dangling",
@@ -70,18 +78,21 @@ export const GENERATED_RULES = [
       "An authored entity's source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "no-cycles",
     description: "No circular dependency chains in requirements",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "required-fields",
     description: "All entities must have required fields",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "deprecated-adr-no-successor",
@@ -89,6 +100,7 @@ export const GENERATED_RULES = [
       "Deprecated ADRs must have a successor ADR that supersedes them",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "superseded-requirement-open",
@@ -96,6 +108,7 @@ export const GENERATED_RULES = [
       "A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "scenario-feasibility",
@@ -103,6 +116,7 @@ export const GENERATED_RULES = [
       "A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require through typed property values or rules, unless an approved exception requirement waives that requirement or the listed clauses",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "scenario-feasibility-unknown",
@@ -110,6 +124,7 @@ export const GENERATED_RULES = [
       "Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, assumes a property value no governing requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), leaves a governing rule's conditions undecided, or conflicts only with constraints whose validity window may not cover it, so its feasibility cannot be decided",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "scenario-outcome-mismatch",
@@ -117,6 +132,7 @@ export const GENERATED_RULES = [
       "A scenario that expects rejection or error must assume a value or situation a current requirement forbids: when every assumption is governed by current requirements and they permit all of them together, the knowledge base predicts success and the scenario exercises no failure side",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "exception-claim-keys",
@@ -124,6 +140,7 @@ export const GENERATED_RULES = [
       "An exception requirement's exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "numeric-string-value",
@@ -131,6 +148,7 @@ export const GENERATED_RULES = [
       "Advisory: a property value stores a numeric-looking string where the comparison is numeric (ordering operator, or an int/number fact on the same property); the finding names the fact and the typed value, without converting it",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "rule-key-arguments-missing",
@@ -138,6 +156,7 @@ export const GENERATED_RULES = [
       "Advisory: an opposing rule pair stays unresolved only because a body predicate declares no key_arguments; the finding names the predicate and the key positions that would decide the pair",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "domain-contradictions",
@@ -145,6 +164,7 @@ export const GENERATED_RULES = [
       "Detect contradictions between requirements constraining the same fact",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "logic-coverage",
@@ -152,6 +172,7 @@ export const GENERATED_RULES = [
       "Require every explicitly declared atomic requirement claim to be grounded by a linked strict-property or predicate fact",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "rule-safety",
@@ -159,6 +180,7 @@ export const GENERATED_RULES = [
       "Stored Logic IR rules use only the typed, bounded, stratified vocabulary",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "rule-verifiability",
@@ -166,6 +188,7 @@ export const GENERATED_RULES = [
       "Requirement rule links resolve to safe rules and registered rule schemas",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "query-plan-safety",
@@ -173,6 +196,7 @@ export const GENERATED_RULES = [
       "Detect Prolog validation clauses that place negation before generator calls",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "req-status-vocabulary",
@@ -180,6 +204,7 @@ export const GENERATED_RULES = [
       "Requirement statuses must use the canonical vocabulary (open, in_progress, closed, retired; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "retired-reason-missing",
@@ -187,6 +212,7 @@ export const GENERATED_RULES = [
       "A requirement with status retired must state retired_reason: why the behavior it stated no longer exists",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "retired-owner-only",
@@ -194,6 +220,7 @@ export const GENERATED_RULES = [
       "A current fact, scenario or test whose every owning requirement is retired describes behavior that no longer exists; relink it to the current owner or archive it",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "strict-fact-shape",
@@ -201,6 +228,7 @@ export const GENERATED_RULES = [
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "strict-req-fact-pairing",
@@ -208,6 +236,7 @@ export const GENERATED_RULES = [
       "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "predicate-verifiability",
@@ -215,6 +244,7 @@ export const GENERATED_RULES = [
       "Detect requires_predicate links that do not target ground fact_kind: predicate facts",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "strict-readiness",
@@ -222,6 +252,7 @@ export const GENERATED_RULES = [
       "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
     enforcementClass: "migration",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "semantic-completeness",
@@ -229,6 +260,7 @@ export const GENERATED_RULES = [
       "Every inventoried assertive proposition is modeled or explicitly classified",
     enforcementClass: "migration",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "related-requirement-unmodeled",
@@ -236,6 +268,7 @@ export const GENERATED_RULES = [
       "A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming what resolves it (a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim key of either), naming each unmodeled claim by claim_key (a payload_hash is accepted and ignored), recorded while a relates_to edge links the pair, and, on a must or firm pair, approved by a person (origin.approved_by) when its origin is missing or an agent's or it sits on a requirement an agent wrote; a conflict verdict stays blocking until a person decides. One finding per requirement and problem lists the requirements it pairs with (KB schema 18; older schemas keep the earlier rule)",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "claim-subject-missing",
@@ -243,6 +276,7 @@ export const GENERATED_RULES = [
       "A current requirement's unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry's subjects, so Kibi can pair it with the other requirements on those subjects (KB schema 16)",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "claim-subject-undefined",
@@ -250,6 +284,7 @@ export const GENERATED_RULES = [
       "Every subject key a current requirement's inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact (KB schema 16)",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "proof-contract-symbols",
@@ -257,6 +292,7 @@ export const GENERATED_RULES = [
       "Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "verification",
   },
   {
     name: "entity-id-style",
@@ -264,6 +300,7 @@ export const GENERATED_RULES = [
       "Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "domain-redundancy",
@@ -271,6 +308,7 @@ export const GENERATED_RULES = [
       "Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "domain-implication",
@@ -278,6 +316,7 @@ export const GENERATED_RULES = [
       "Informational: one requirement's numeric bound strictly implies another requirement's bound on the same subject and property",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -286,6 +325,7 @@ export const GENERATED_RULES = [
       "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or identical property_value facts",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "subject-key-shape",
@@ -293,6 +333,7 @@ export const GENERATED_RULES = [
       "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "ontology-quality",
@@ -300,6 +341,7 @@ export const GENERATED_RULES = [
       "Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -308,6 +350,7 @@ export const GENERATED_RULES = [
       "Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "exception-approval-self-attested",
@@ -315,6 +358,7 @@ export const GENERATED_RULES = [
       "Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "agent-requirement-unapproved",
@@ -322,6 +366,7 @@ export const GENERATED_RULES = [
       "Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -330,6 +375,7 @@ export const GENERATED_RULES = [
       "Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "symbol-owner-superseded",
@@ -337,6 +383,7 @@ export const GENERATED_RULES = [
       "Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding",
     enforcementClass: "advisory",
     category: "traceability",
+    layer: "knowledge",
   },
   {
     name: "adr-unlinked",
@@ -344,6 +391,7 @@ export const GENERATED_RULES = [
       "Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "adr-proposed",
@@ -351,6 +399,7 @@ export const GENERATED_RULES = [
       "Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -359,6 +408,7 @@ export const GENERATED_RULES = [
       "Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "entity-context-missing",
@@ -366,6 +416,7 @@ export const GENERATED_RULES = [
       "A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "subject-definition-missing",
@@ -373,6 +424,7 @@ export const GENERATED_RULES = [
       "An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose, each Chinese or Japanese character counting as a word, that do not restate the title or subject_key and add at least 3 words of their own beyond them and function words), and must not be a template that 3 or more subjects repeat with only the key or title changed; a body opening with 'Definition not stated:' records the gap instead",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "subject-duplicate",
@@ -380,6 +432,7 @@ export const GENERATED_RULES = [
       "Two active subject facts define one thing twice when they carry the same subject_key, or when their keys have the same words up to simple plurals, or when their subject_key and title words mostly coincide (token Jaccard at least 0.7, plurals and function words removed); a pair is exempt when one key's words begin the other's (an ancestor and its descendant), when the keys sit under different parents, or when either lists the other under distinct_from, part_of or kind_of",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "quantity-duplicate",
@@ -387,6 +440,7 @@ export const GENERATED_RULES = [
       "Two active property_value facts, each grounded by a current requirement through requires_property, state one quantity under different subject_key.property_key when their values are equal and comparable (numbers other than 0 and 1 after unit canonicalization, or sets of at least two members), the requirements are implemented by symbols in one source file, and one signal holds: a shared implementing symbol, a proof value_source that implements the other requirement, or property keys or claim texts sharing at least half the words of the shorter; a pair is exempt when one requirement grounds both or either fact lists the other's key under distinct_from. A distinct_from entry on a value fact that names no active value fact is also reported",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "subject-hierarchy-invalid",
@@ -394,6 +448,7 @@ export const GENERATED_RULES = [
       "Active subject facts form a hierarchy: no subject lists its own key under part_of, kind_of or distinct_from, and following part_of, kind_of and nearest defined dotted prefixes upward never leads back to the subject it started from",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "entity-context-acknowledged",
@@ -401,6 +456,7 @@ export const GENERATED_RULES = [
       "Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -409,6 +465,7 @@ export const GENERATED_RULES = [
       "A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "decision-firm-superseded",
@@ -416,6 +473,7 @@ export const GENERATED_RULES = [
       "A requirement or ADR that supersedes a firm decision, retired or not, must itself be firm (and so carry a ref to the human who changed the rule); a default or exploratory replacement cannot overrule a firm decision",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "decision-firm-edited",
@@ -423,6 +481,7 @@ export const GENERATED_RULES = [
       "A current requirement or ADR that was firm at HEAD must not have its claim (title, stated meaning, the statement its body derives, an ADR's body, or its firmness) changed in place unless the edit cites new human words (a changed origin.ref, or approval_ref on a requirement); supersede it with a firm decision instead",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "supersedes-reason-missing",
@@ -430,6 +489,7 @@ export const GENERATED_RULES = [
       "A current requirement or ADR that supersedes another must explain why under a 'Why this changed' heading (at least 12 words of prose naming the evidence and answering the old decision's reasoning); supersede edges recorded before schema 9 are acknowledged in the manifest and exempt",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "supersedes-reason-acknowledged",
@@ -437,6 +497,7 @@ export const GENERATED_RULES = [
       "Informational: how many current superseding requirements and ADRs have only supersede edges the schema 9 migration acknowledged without a 'Why this changed' section; one summary finding per check",
     enforcementClass: "advisory",
     category: "lifecycle",
+    layer: "knowledge",
     diagnosticSeverity: "info",
   },
   {
@@ -445,6 +506,7 @@ export const GENERATED_RULES = [
       "When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule's file set must implement a current requirement grounded (requires_predicate) in one of the rule's predicates; projects without an activated check policy are unaffected",
     enforcementClass: "canonical",
     category: "traceability",
+    layer: "knowledge",
   },
   {
     name: "policy-markers",
@@ -452,6 +514,7 @@ export const GENERATED_RULES = [
       "When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule's pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern",
     enforcementClass: "canonical",
     category: "traceability",
+    layer: "knowledge",
   },
   {
     name: "kb-consistency",
@@ -459,6 +522,7 @@ export const GENERATED_RULES = [
       "The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "kb-consistency-unresolved",
@@ -466,6 +530,7 @@ export const GENERATED_RULES = [
       "Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent",
     enforcementClass: "advisory",
     category: "integrity",
+    layer: "knowledge",
   },
   {
     name: "evidence-floor",
@@ -473,6 +538,7 @@ export const GENERATED_RULES = [
       "Every current requirement's computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement or one a person approved (origin.approved_by) that states no firmness, and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "verification",
   },
   {
     name: "agent-requirement-unapproved-implemented",
@@ -480,6 +546,7 @@ export const GENERATED_RULES = [
       "A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by origin.recorded_at, else by an authored created_at; one with neither counts as older (KB schema 15)",
     enforcementClass: "canonical",
     category: "lifecycle",
+    layer: "knowledge",
   },
   {
     name: "must-positive-scenario",
@@ -487,6 +554,7 @@ export const GENERATED_RULES = [
       "A current must requirement must have an active scenario that specifies it, expects success, and assumes a property_value, predicate or rule fact (not the subject fact itself) on one of its subjects or a narrower one, which must be defined, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)",
     enforcementClass: "canonical",
     category: "coverage",
+    layer: "verification",
   },
   {
     name: "proof-contract-claims",
@@ -494,5 +562,6 @@ export const GENERATED_RULES = [
       "From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest",
     enforcementClass: "canonical",
     category: "integrity",
+    layer: "verification",
   },
 ] as const;
