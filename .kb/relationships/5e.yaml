@@ -307,3 +307,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73a1d1f63b6d
+  - type: relates_to
+    from: SCEN-contributions-require-cla
+    to: FACT-cla-check-subject
+    created_at: 2026-11-25T06:08:19.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf466ed75606
+  - type: verified_by
+    from: SCEN-contributions-require-cla
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:49.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3af03224d94a
+  - type: assumes
+    from: SCEN-contributions-require-cla
+    to: FACT-cla-check-runs-on-pull-requests
+    created_at: 2026-11-25T06:10:03.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84f1449eb5c4
+  - type: assumes
+    from: SCEN-contributions-require-cla
+    to: FACT-cla-check-exempts-maintainer-and-bots
+    created_at: 2026-11-25T06:10:03.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85776167a9fe
+  - type: assumes
+    from: SCEN-contributions-require-cla
+    to: FACT-cla-sign-sentence-consistent
+    created_at: 2026-11-25T06:10:03.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94c7369427de
+  - type: assumes
+    from: SCEN-contributions-require-cla
+    to: FACT-cla-signatures-branch
+    created_at: 2026-11-25T06:10:03.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b01ac9e2163c
