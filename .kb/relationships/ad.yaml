@@ -353,3 +353,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e98ee9a51b3
+  - type: assumes
+    from: SCEN-search-meaning-fusion
+    to: FACT-search-meaning-fusion-words-alone-without-provider
+    created_at: 2026-11-25T19:24:18.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-237e96ba4220
+  - type: assumes
+    from: SCEN-search-meaning-fusion
+    to: FACT-search-meaning-fusion-failing-provider-words-alone
+    created_at: 2026-11-25T19:24:18.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be32c5a22960
+  - type: assumes
+    from: SCEN-search-meaning-fusion
+    to: FACT-search-meaning-fusion-shadow-comparisons-only
+    created_at: 2026-11-25T19:24:18.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1250511b6b05
+  - type: verified_by
+    from: SCEN-search-meaning-fusion
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:28:19.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2442005121
+  - type: assumes
+    from: SCEN-search-meaning-fusion
+    to: FACT-search-meaning-fusion-fused-every-search
+    created_at: 2026-11-25T20:04:56.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a24f994ae611

@@ -279,3 +279,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdd6815777f2
+  - type: assumes
+    from: SCEN-search-meaning-limits
+    to: FACT-search-meaning-limits-max-meaning-decisions
+    created_at: 2026-11-25T19:24:22.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49306a002522
+  - type: assumes
+    from: SCEN-search-meaning-limits
+    to: FACT-search-meaning-limits-max-scored-entities
+    created_at: 2026-11-25T19:24:22.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-740e2641aefa
+  - type: assumes
+    from: SCEN-search-meaning-limits
+    to: FACT-search-meaning-limits-meaning-weight
+    created_at: 2026-11-25T19:24:22.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e84ee42c4909
+  - type: assumes
+    from: SCEN-search-meaning-limits
+    to: FACT-search-meaning-limits-default-decision-cards
+    created_at: 2026-11-25T19:24:22.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff21d1dd1fd0
+  - type: assumes
+    from: SCEN-search-meaning-limits
+    to: FACT-search-meaning-limits-governing-coverage
+    created_at: 2026-11-25T19:24:22.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d1ad11d07a0
+  - type: verified_by
+    from: SCEN-search-meaning-limits
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:16.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d53b0db0dfc
+  - type: verified_by
+    from: SCEN-search-meaning-limits
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T20:08:25.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-621cf7de119c

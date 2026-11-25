@@ -19,7 +19,7 @@ claim_text: Search answers and search hints must lift two-hop tests and scenario
 text_ref: REQ-search-answers-search-hints-lift-two
 origin:
   kind: agent
-  recorded_at: '2026-11-23T10:47:07.816Z'
+  recorded_at: '2026-11-25T20:35:06.177Z'
 id: FACT-kibi-search-multi-hop-lifting
 type: fact
 ---

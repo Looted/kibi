@@ -205,7 +205,10 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
     expect(emptySearch.isError ?? false).toBe(false);
     const emptyEnvelope = emptySearch.structuredContent as Json;
     const empty = (emptyEnvelope.data ?? emptyEnvelope) as SearchData;
-    expect(empty.count).toBe(0);
+    // Decisions are ranked from the authored .kb files, so the search still
+    // finds the requirement, and says the store it would answer from is not
+    // compiled.
+    expect(empty.count).toBe(1);
     expect(empty.branch).toBe("feature/login");
     expect(empty.branchStore).toMatchObject({
       state: "not_compiled",

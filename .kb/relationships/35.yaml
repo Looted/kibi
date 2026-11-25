@@ -279,27 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a972488a98dd
-  - type: implements
-    from: SYM-search-hint-weak-score
-    to: REQ-kibi-search-hints-limits
-    created_at: 2026-10-29T21:27:46.307Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5a562aac629
-  - type: covered_by
-    from: SYM-search-hint-weak-score
-    to: TEST-proof-search-hint-weak-score
-    created_at: 2026-10-29T21:29:09.987Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b39887c52de0
-  - type: covered_by
-    from: SYM-search-hint-weak-score
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T21:29:10.037Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-47aecf8c4857
   - type: assumes
     from: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
     to: FACT-CASE-capability-plugin-configuration-v1-zero-timeout

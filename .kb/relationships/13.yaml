@@ -405,3 +405,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9a40fc20570
+  - type: covered_by
+    from: SYM-const-decision-card-limit
+    to: TEST-proof-search-decision-card-limit
+    created_at: 2026-11-25T19:27:23.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99c4dd3a51dc
+  - type: implements
+    from: SYM-const-decision-card-limit
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:44:05.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aca10e9377b
+  - type: covered_by
+    from: SYM-const-decision-card-limit
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:44:05.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58b9c0eeb6e5

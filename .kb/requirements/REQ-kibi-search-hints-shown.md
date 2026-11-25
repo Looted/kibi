@@ -1,6 +1,6 @@
 ---
 title: Search hints name at most ten linked requirements beyond the top three answers
-status: open
+status: closed
 semantic_text: A hint on a scenario, test or fact must be shown as the current requirement linked to it. At most 10 search hints must be shown, and the top three governing requirements of the answer must be omitted from them.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

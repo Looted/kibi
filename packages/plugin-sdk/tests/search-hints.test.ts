@@ -3,6 +3,7 @@ import {
   KIBI_PLUGIN_API_VERSION,
   PluginValidationError,
   SEARCH_HINTS_CAPABILITY_ID,
+  SEARCH_HINTS_MAX_LIMIT,
   isCapabilityId,
   validateKibiPlugin,
   validateProjectKibiConfig,
@@ -283,7 +284,8 @@ describe("kibi.search-hints.v1 protocol", () => {
     }
   });
 
-  test("scores 0 and 1 are valid, ids are trimmed, and the cap is 20", () => {
+  test("scores 0 and 1 are valid, ids are trimmed, and the cap is 50000", () => {
+    expect(SEARCH_HINTS_MAX_LIMIT).toBe(50_000);
     expect(
       validateSearchHintsResult(
         {
@@ -299,16 +301,39 @@ describe("kibi.search-hints.v1 protocol", () => {
       { id: "REQ-a", score: 1 },
       { id: "REQ-b", score: 0 },
     ]);
-    const many = Array.from({ length: 21 }, (_, index) => ({
-      id: `REQ-${String(index).padStart(2, "0")}`,
-      score: 0.5,
-    }));
+    expect(
+      validateSearchHintsResult({ hints: [] }, ["REQ-a"], 1).hints,
+    ).toEqual([]);
+    expect(
+      validateSearchHintsResult(
+        { hints: [{ id: "REQ-a", score: 0.5 }] },
+        ["REQ-a"],
+        1,
+      ).hints,
+    ).toEqual([{ id: "REQ-a", score: 0.5 }]);
+    const many = Array.from(
+      { length: SEARCH_HINTS_MAX_LIMIT + 1 },
+      (_, index) => ({
+        id: `REQ-${String(index).padStart(6, "0")}`,
+        score: 0.5,
+      }),
+    );
     const ids = many.map((hint) => hint.id);
     expect(
-      validateSearchHintsResult({ hints: many.slice(0, 20) }, ids, 50).hints,
-    ).toHaveLength(20);
-    expect(() => validateSearchHintsResult({ hints: many }, ids, 50)).toThrow(
-      "searchHints returned 21 hints; at most 20 were requested",
+      validateSearchHintsResult(
+        { hints: many.slice(0, SEARCH_HINTS_MAX_LIMIT) },
+        ids,
+        SEARCH_HINTS_MAX_LIMIT + 10,
+      ).hints,
+    ).toHaveLength(SEARCH_HINTS_MAX_LIMIT);
+    expect(() =>
+      validateSearchHintsResult(
+        { hints: many },
+        ids,
+        SEARCH_HINTS_MAX_LIMIT + 10,
+      ),
+    ).toThrow(
+      `searchHints returned ${SEARCH_HINTS_MAX_LIMIT + 1} hints; at most ${SEARCH_HINTS_MAX_LIMIT} were requested`,
     );
   });
 });

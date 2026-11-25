@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-25f12cadfc89
+  - type: implements
+    from: SYM-retrieval-decision-coverage
+    to: REQ-search-weak-answer
+    created_at: 2026-11-25T19:43:45.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b1f5f12975
+  - type: covered_by
+    from: SYM-retrieval-decision-coverage
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:46.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18dfcaecbbbd

@@ -132,7 +132,7 @@ describe("registerFoundationCommands", () => {
     await run("status");
     await run("status", "--input", "-");
     expect(plainCalls(searchSpy)).toStrictEqual([
-      ["auth", { format: "table", limit: "20", offset: "0" }],
+      ["auth", { format: "table", offset: "0" }],
     ]);
     expect(plainCalls(statusSpy)).toStrictEqual([[{ format: "table" }]]);
     expect(plainCalls(json)).toStrictEqual([
@@ -197,7 +197,7 @@ describe("registerFoundationCommands", () => {
       ["req", { format: "json", limit: "100", offset: "0" }],
     ]);
     expect(plainCalls(searchSpy)).toStrictEqual([
-      ["auth", { format: "json", limit: "20", offset: "0" }],
+      ["auth", { format: "json", offset: "0" }],
     ]);
     expect(plainCalls(statusSpy)).toStrictEqual([[{ format: "json" }]]);
   });

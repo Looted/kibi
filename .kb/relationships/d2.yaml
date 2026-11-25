@@ -468,3 +468,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f930af6e7211
+  - type: constrains
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-search-hints-cap-subject
+    created_at: 2026-11-25T19:29:28.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d77ad91c32f9
+  - type: requires_property
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-search-hints-cap-only-supplied-ids
+    created_at: 2026-11-25T19:29:28.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c8579fb2033
+  - type: requires_property
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-capability-search-hints-v1-scores-max-hints
+    created_at: 2026-11-25T19:29:28.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76b09dbef2b9
+  - type: requires_property
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-search-hints-cap-score-range
+    created_at: 2026-11-25T19:29:28.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a7d06895bb7
+  - type: requires_property
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-search-hints-cap-ordered
+    created_at: 2026-11-25T19:29:28.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50fad0cb2f72
+  - type: requires_property
+    from: REQ-capability-search-hints-v1-scores
+    to: FACT-search-hints-cap-no-augment
+    created_at: 2026-11-25T19:29:28.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38804163f38d
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-capability-search-hints-v1-scores
+    created_at: 2026-11-25T19:29:28.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94404184a7c9
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-CASE-capability-search-hints-v1-scores-50001-hints
+    created_at: 2026-11-25T19:29:28.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7ceb16f5ecc
+  - type: verified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T19:29:28.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-046f2beee15f
+  - type: supersedes
+    from: REQ-capability-search-hints-v1-scores
+    to: REQ-capability-search-hints-v1
+    created_at: 2026-11-25T19:29:28.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa61cf57ef23
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-CASE-capability-search-hints-v1-scores-hint-counts
+    created_at: 2026-11-25T20:06:03.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45147b8cc44e
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-CASE-capability-search-hints-v1-unsupplied-id
+    created_at: 2026-11-25T20:06:03.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8757696c5b7
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-CASE-capability-search-hints-v1-score-outside-unit
+    created_at: 2026-11-25T20:06:03.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32f3ae0b5166
+  - type: specified_by
+    from: REQ-capability-search-hints-v1-scores
+    to: SCEN-CASE-capability-search-hints-v1-scores-1-hint
+    created_at: 2026-11-25T20:12:50.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-718bd0bb5f2a

@@ -531,7 +531,7 @@ printf '%s\n' '{"subjectKey":"user.role_assignment","propertyKey":"max_roles"}' 
 
 ## `kibi search <query>`
 
-Searches entity metadata and markdown body text for exploratory discovery. The JSON route defaults to deterministic intent-v1 ranking, which accepts natural-language questions, host-agent facets, and changed source locations, and adds an answer layer; pass `"rankingMode": "legacy"` for lexical ranking.
+Asks the KB a question. Without `--type` (or `type`) it answers with five one-line decision cards for the requirements and ADRs that match best, ranked by the question's words, scope and supersession and, when the search-hints plugin is installed, by meaning too, with up to seven more decisions related by meaning in `queryAnalysis.hints`. A weak answer names no governing requirement and lists the words no card holds in `queryAnalysis.uncoveredTerms`. With a type (`fact`, `scenario`, `test`, `symbol`) it ranks those entities, ten rows by default. Both routes accept natural-language questions, host-agent facets and changed source locations, and add an answer layer; pass `"rankingMode": "legacy"` for lexical ranking.
 
 **Syntax:**
 ```bash
@@ -553,7 +553,7 @@ printf '%s\n' '{
 }' | kibi search --input -
 ```
 
-Intent results include `queryAnalysis` (with `ambiguous` read from `topRivalMargin`, the margin to the best match the top match is not linked to), matched semantic facets, source-location evidence (the requirements a located symbol `implements` match too), bounded traceability graph paths (with `fields: "full"` only), `count` (the whole ranking), `returned` (this page), `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted, and a closed requirement ranks below a current one that matches as well (`demoted: closed`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+Typed intent results include `queryAnalysis` (with `ambiguous` read from `topRivalMargin`, the margin to the best match the top match is not linked to), matched semantic facets, source-location evidence (the requirements a located symbol `implements` match too), bounded traceability graph paths (with `fields: "full"` only), `count` (the whole ranking), `returned` (this page), `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted, and a closed requirement ranks below a current one that matches as well (`demoted: closed`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
 
 An abstained or weak first page that shows no hint also carries `nextActions` (a `kb_query` listing the requirement titles, `required: false`) and, when it abstained, `notes`; see the `kb_search` reference in [mcp-reference.md](mcp-reference.md).
 
