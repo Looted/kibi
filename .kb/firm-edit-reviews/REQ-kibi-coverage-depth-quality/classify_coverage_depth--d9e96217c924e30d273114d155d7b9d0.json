@@ -4,10 +4,10 @@
   "sourceFile": "packages/core/src/discovery.pl",
   "symbol": "classify_coverage_depth",
   "verdict": "keeps",
-  "note": "The coverage report adds the matched row count; depth classification and the shallow-coverage diagnostic are unchanged.",
+  "note": "Not edited: only moved by lines removed above it (the review_rows helper); the classification is the same.",
   "statementHash": "sha256:e62e5fb6211f9c39ae9d639599762c984cfa50bf0025623955569c6650cd2292",
-  "codeHash": "sha256:46f1cfb1cbfdc4b76eaf097a9832117280b923b06136ec94dceb8ec4177f4ed6",
+  "codeHash": "sha256:73fc3a51724e3a8910a1bc8269bc82c85c2096223d13600aadcd3ed1e0ffb831",
   "startLine": 1,
-  "endLine": 1789,
-  "recordedAt": "2026-11-19T15:20:19.988Z"
+  "endLine": 1791,
+  "recordedAt": "2026-11-25T08:28:15.701Z"
 }
