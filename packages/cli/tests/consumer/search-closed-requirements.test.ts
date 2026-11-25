@@ -20,7 +20,12 @@ afterEach(() => {
   workspace = undefined;
 });
 
-type Ranked = { entity: { id: string }; reasons: string[]; score: number };
+type Ranked = {
+  entity: { id: string };
+  reasons: string[];
+  score: number;
+  folded?: string[];
+};
 type Governing = { id: string; via?: string };
 type NotGoverning = { id: string; supersededBy?: string };
 
@@ -46,8 +51,9 @@ ${links}`,
   );
 }
 
-function search(ws: ConsumerWorkspace, query: string) {
-  const data = ws.json(["search"], { query }).data as Json;
+function search(ws: ConsumerWorkspace, query: string, fields?: "full") {
+  const data = ws.json(["search"], { query, ...(fields ? { fields } : {}) })
+    .data as Json;
   const answer = data.answer as Json;
   return {
     results: data.results as Ranked[],
@@ -70,21 +76,53 @@ describe("closed requirements in kibi search", () => {
     ws.sync();
 
     const { results, governing } = search(ws, "invoice export csv");
-    const ids = results.map((row) => row.entity.id);
-    expect(ids.indexOf("REQ-EXPORT-LIVE")).toBeLessThan(
-      ids.indexOf("REQ-EXPORT-DONE"),
+    // Near-identical decisions share one card: the current one leads it and
+    // the closed one is listed on it. The answer quotes the card's
+    // statement, so the summary row is its identity; the full row keeps the
+    // folded decision.
+    expect(results[0]?.entity.id).toBe("REQ-EXPORT-LIVE");
+    expect(search(ws, "invoice export csv", "full").results[0]?.folded).toEqual(
+      ["REQ-EXPORT-DONE"],
     );
-    const done = results.find((row) => row.entity.id === "REQ-EXPORT-DONE");
-    const live = results.find((row) => row.entity.id === "REQ-EXPORT-LIVE");
-    expect(done?.reasons).toContain("demoted: closed");
-    expect(live?.reasons).not.toContain("demoted: closed");
-    expect(done?.score).toBeCloseTo((live?.score ?? 0) * 0.75);
+    expect(results.map((row) => row.entity.id)).not.toContain(
+      "REQ-EXPORT-DONE",
+    );
     // Closed is not retired: the requirement still governs, after the
     // current one.
     expect(governing.map((req) => req.id)).toEqual([
       "REQ-EXPORT-LIVE",
       "REQ-EXPORT-DONE",
     ]);
+
+    // Told apart by their words, the closed one ranks below a current one
+    // that matches as well.
+    const apart = createConsumerWorkspace("kibi-search-closed-apart-");
+    workspace = apart;
+    ws.cleanup();
+    requirement(
+      apart,
+      "REQ-EXPORT-DONE",
+      "Invoice export writes a CSV",
+      "closed",
+    );
+    requirement(
+      apart,
+      "REQ-EXPORT-LIVE",
+      "Invoice export writes a CSV file per customer",
+      "open",
+    );
+    requirement(apart, "REQ-PAYMENTS", "Payments settle daily", "open");
+    requirement(apart, "REQ-LOGIN", "Staff sign in with a passkey", "open");
+    apart.sync();
+    const ranked = search(apart, "invoice export csv").results;
+    const ids = ranked.map((row) => row.entity.id);
+    expect(ids.indexOf("REQ-EXPORT-LIVE")).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf("REQ-EXPORT-LIVE")).toBeLessThan(
+      ids.indexOf("REQ-EXPORT-DONE"),
+    );
+    expect(
+      ranked.find((row) => row.entity.id === "REQ-EXPORT-DONE")?.reasons,
+    ).toContain("closed");
   }, 120_000);
 
   test("a weak match on a superseded requirement does not pull its replacement into the answer", () => {
@@ -111,12 +149,14 @@ describe("closed requirements in kibi search", () => {
     );
     ws.sync();
 
-    // The old requirement matches, but well below the export requirement.
+    // The old requirement matches, but well below the export requirement;
+    // it is listed on the card of the requirement that replaced it.
     const weak = search(ws, "invoice archive every year export file");
     expect(weak.results.map((row) => row.entity.id)).toEqual([
       "REQ-EXPORT",
-      "REQ-ARCHIVE-OLD",
+      "REQ-ARCHIVE-NEW",
     ]);
+    expect(weak.results[1]?.folded).toEqual(["REQ-ARCHIVE-OLD"]);
     expect(weak.governing.map((req) => req.id)).toEqual(["REQ-EXPORT"]);
     expect(weak.notGoverning).toEqual([
       expect.objectContaining({

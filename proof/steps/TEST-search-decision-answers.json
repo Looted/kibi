@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-search-decision-answers",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/decision-corpus.test.ts",
+      "./packages/cli/tests/decision-search.test.ts",
+      "./packages/cli/tests/public-mutation/operations/discovery-search.mutation.test.ts",
+      "./packages/cli/tests/consumer/search-answer-layer.test.ts",
+      "./packages/cli/tests/consumer/search-closed-requirements.test.ts"
+    ]
+  ]
+}

@@ -517,3 +517,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7f4cd3c067a
+  - type: covered_by
+    from: SYM-const-meaning-list-limit
+    to: TEST-proof-search-meaning-list-limit
+    created_at: 2026-11-25T19:26:58.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed6b2368f9da
+  - type: implements
+    from: SYM-const-meaning-list-limit
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:43:52.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65a748393317
+  - type: covered_by
+    from: SYM-const-meaning-list-limit
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:52.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06676f5cb5f9

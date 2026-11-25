@@ -482,3 +482,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-437959598ea0
+  - type: constrains
+    from: REQ-search-decisions-are-the-unit
+    to: FACT-search-decision-unit-subject
+    created_at: 2026-11-25T19:29:11.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aab6fc89cd52
+  - type: requires_property
+    from: REQ-search-decisions-are-the-unit
+    to: FACT-search-decisions-are-the-unit-ranks-decisions
+    created_at: 2026-11-25T19:29:11.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-babe854aa8f5
+  - type: requires_property
+    from: REQ-search-decisions-are-the-unit
+    to: FACT-search-decisions-are-the-unit-other-types-only-when-filtered
+    created_at: 2026-11-25T19:29:11.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71cda14603bf
+  - type: requires_property
+    from: REQ-search-decisions-are-the-unit
+    to: FACT-search-decisions-are-the-unit-unsupported-match-not-proof
+    created_at: 2026-11-25T19:29:11.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7167f92632b4
+  - type: specified_by
+    from: REQ-search-decisions-are-the-unit
+    to: SCEN-search-decisions-are-the-unit
+    created_at: 2026-11-25T19:29:11.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c24449d72bc
+  - type: specified_by
+    from: REQ-search-decisions-are-the-unit
+    to: SCEN-NEG-search-decisions-are-the-unit-ROWS
+    created_at: 2026-11-25T19:29:11.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77f98299a1e5
+  - type: verified_by
+    from: REQ-search-decisions-are-the-unit
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:29:11.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e512f7ceff9a
+  - type: supersedes
+    from: REQ-search-decisions-are-the-unit
+    to: REQ-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T19:29:11.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0055304fc348
+  - type: verified_by
+    from: REQ-search-decisions-are-the-unit
+    to: TEST-search-answer-hygiene
+    created_at: 2026-11-25T19:44:14.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5965c84448e7
+  - type: verified_by
+    from: REQ-search-decisions-are-the-unit
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T19:44:14.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e4e680ba61d
+  - type: requires_property
+    from: REQ-search-decisions-are-the-unit
+    to: FACT-search-decisions-are-the-unit-credits-linked-words
+    created_at: 2026-11-25T20:04:30.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-003bfd1a482c
+  - type: specified_by
+    from: REQ-search-decisions-are-the-unit
+    to: SCEN-NEG-search-decisions-are-the-unit-UNCREDITED
+    created_at: 2026-11-25T20:04:37.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-058a45db6be6

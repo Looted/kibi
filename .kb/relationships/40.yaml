@@ -136,13 +136,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68cbe6358bfe
-  - type: executable_for
-    from: SYM-proof-search-hint-shown-limit
-    to: TEST-proof-search-hint-shown-limit
-    created_at: 2026-10-29T21:29:16.222Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3b4e59e65fc
   - type: assumes
     from: SCEN-check-changed-commit-verdict
     to: FACT-check-changed-commit-verdict
@@ -262,20 +255,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce6fc5f9fc1d
-  - type: implements
-    from: SYM-requirement-lifting-query-typed-edges
-    to: REQ-search-answers-search-hints-lift-two
-    created_at: 2026-11-23T10:35:10.069Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-87d7c7db3c0b
-  - type: covered_by
-    from: SYM-requirement-lifting-query-typed-edges
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-11-23T10:35:10.077Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1a636cd9700
   - type: assumes
     from: SCEN-kb-upsert-capture-every-step-up-front
     to: FACT-kb-upsert-capture-every-step-up-front
@@ -332,3 +311,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51e1a5520574
+  - type: covered_by
+    from: SYM-requirement-lifting-query-typed-edges
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:32:15.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f89275a28ecc
+  - type: implements
+    from: SYM-requirement-lifting-query-typed-edges
+    to: REQ-search-answers-lift-two
+    created_at: 2026-11-25T19:32:15.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20df9eb82d53

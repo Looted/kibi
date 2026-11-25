@@ -444,3 +444,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f235850a16ae
+  - type: assumes
+    from: SCEN-CASE-capability-search-hints-v1-scores-hint-counts
+    to: FACT-CASE-capability-search-hints-v1-scores-0-hints
+    created_at: 2026-11-25T20:06:02.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b1a9eb7f396
+  - type: verified_by
+    from: SCEN-CASE-capability-search-hints-v1-scores-hint-counts
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T20:06:02.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea8dfc4369e9

@@ -88,9 +88,11 @@ describe("MCP tool handler error wrappers", () => {
   });
 
   test("wraps non-prefixed kb_search failures", async () => {
+    // Typed rows come from the engine; decisions are read from .kb files.
     await expect(
       handleKbSearch(createFailingProlog("backend unavailable"), {
         query: "oauth",
+        type: "fact",
       }),
     ).rejects.toThrow("Search execution failed: backend unavailable");
   });
@@ -101,6 +103,7 @@ describe("MCP tool handler error wrappers", () => {
         createFailingProlog("Search execution failed: backend unavailable"),
         {
           query: "oauth",
+          type: "fact",
         },
       ),
     ).rejects.toThrow("Search execution failed: backend unavailable");

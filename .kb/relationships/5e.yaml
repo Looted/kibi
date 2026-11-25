@@ -349,3 +349,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b01ac9e2163c
+  - type: executable_for
+    from: SYM-proof-search-meaning-weight
+    to: TEST-proof-search-meaning-weight
+    created_at: 2026-11-25T19:27:11.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df4543ae07bf
+  - type: covered_by
+    from: SYM-const-governing-coverage
+    to: TEST-proof-search-governing-coverage
+    created_at: 2026-11-25T19:27:32.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae65cb665617
+  - type: constrains
+    from: REQ-search-weak-answer
+    to: FACT-search-weak-answer-subject
+    created_at: 2026-11-25T19:28:58.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c41345e73e7
+  - type: requires_property
+    from: REQ-search-weak-answer
+    to: FACT-search-weak-answer-lists-uncovered-words
+    created_at: 2026-11-25T19:28:58.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-558a978fc159
+  - type: requires_property
+    from: REQ-search-weak-answer
+    to: FACT-search-weak-answer-never-says-nothing-governs
+    created_at: 2026-11-25T19:28:58.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-790d0012ec6d
+  - type: specified_by
+    from: REQ-search-weak-answer
+    to: SCEN-search-weak-answer
+    created_at: 2026-11-25T19:28:58.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15fcb7ca8111
+  - type: specified_by
+    from: REQ-search-weak-answer
+    to: SCEN-NEG-search-weak-answer-NOTHING-GOVERNS
+    created_at: 2026-11-25T19:28:58.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fe4c7819c5b
+  - type: verified_by
+    from: REQ-search-weak-answer
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:58.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e6022b1894f
+  - type: implements
+    from: SYM-search-hints-provider-meaning-ranker
+    to: REQ-search-meaning-fusion
+    created_at: 2026-11-25T19:43:39.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30c5c402e6e6
+  - type: covered_by
+    from: SYM-search-hints-provider-meaning-ranker
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:43:39.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a562845012a9
+  - type: implements
+    from: SYM-const-governing-coverage
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:44:12.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d15599dc73da
+  - type: covered_by
+    from: SYM-const-governing-coverage
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:44:12.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b607f3327be
+  - type: specified_by
+    from: REQ-search-weak-answer
+    to: SCEN-NEG-search-weak-answer-UNDER-COVERED
+    created_at: 2026-11-25T20:05:53.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9409ab93e5e
+  - type: requires_property
+    from: REQ-search-weak-answer
+    to: FACT-search-weak-answer-governs-only-when-covered
+    created_at: 2026-11-25T20:15:31.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b0e2611a90b

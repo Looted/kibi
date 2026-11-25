@@ -308,12 +308,14 @@ describe("proof reporting on a receipt store larger than the Prolog output cap",
     await seedLargeStore(root);
     const targetId = testId(7);
 
+    // Tests are rows of their own only when the search asks for them.
     const searchCases = [
-      { query: targetId, limit: 1 },
+      { query: targetId, type: "test", limit: 1 },
       { query: "large receipt store", type: "test", limit: 5 },
-      { query: targetId, limit: 1, fields: "full" as const },
+      { query: targetId, type: "test", limit: 1, fields: "full" as const },
       {
         query: "receipt store",
+        type: "test",
         rankingMode: "intent-v1" as const,
         semanticFacets: { objects: ["receipt"] },
         limit: 3,

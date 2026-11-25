@@ -1,16 +1,15 @@
 /**
- * kibi.search-hints.v1 — meaning-based suggestions for a weak search answer.
+ * kibi.search-hints.v1 — meaning-based similarity for kb_search.
  *
- * When `kb_search` ranks a question lexically and the answer is weak, the
- * host asks a provider which current entities the question is probably
- * about. The host sends the entities it already loaded (never file paths),
- * so a provider sees exactly the active branch store, and renders the hints
- * itself. Hints are advice for the agent's next question: they never enter
- * search results, the governing answer or any check.
+ * On every search the host sends the question and the texts of the
+ * decisions and of the scenarios, tests and facts they link (never file
+ * paths), and the provider scores each of them by similarity to the
+ * question. The host fuses those scores with its word ranking and shows the
+ * closest decisions; a provider never enters a check.
  */
 
-/** Most hints a host may request in one call. */
-export const SEARCH_HINTS_MAX_LIMIT = 20 as const;
+/** Most entities a host may ask a provider to score in one call. */
+export const SEARCH_HINTS_MAX_LIMIT = 50_000 as const;
 
 export interface SearchHintsEntity {
   readonly id: string;

@@ -531,3 +531,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4852a636e8e
+  - type: constrains
+    from: REQ-search-meaning-fusion
+    to: FACT-search-meaning-subject
+    created_at: 2026-11-25T19:29:15.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ffa41aaed12
+  - type: requires_property
+    from: REQ-search-meaning-fusion
+    to: FACT-search-meaning-fusion-words-alone-without-provider
+    created_at: 2026-11-25T19:29:15.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-856a7dcecb3e
+  - type: requires_property
+    from: REQ-search-meaning-fusion
+    to: FACT-search-meaning-fusion-failing-provider-words-alone
+    created_at: 2026-11-25T19:29:15.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-738eb653c22a
+  - type: requires_property
+    from: REQ-search-meaning-fusion
+    to: FACT-search-meaning-fusion-shadow-comparisons-only
+    created_at: 2026-11-25T19:29:15.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df2cc205496
+  - type: specified_by
+    from: REQ-search-meaning-fusion
+    to: SCEN-search-meaning-fusion
+    created_at: 2026-11-25T19:29:15.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce0768b51e66
+  - type: specified_by
+    from: REQ-search-meaning-fusion
+    to: SCEN-NEG-search-meaning-fusion-FAILING-PROVIDER
+    created_at: 2026-11-25T19:29:15.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4dedff5b2c4
+  - type: verified_by
+    from: REQ-search-meaning-fusion
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:29:15.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5994732a21b7
+  - type: supersedes
+    from: REQ-search-meaning-fusion
+    to: REQ-kibi-search-hints-when-asked
+    created_at: 2026-11-25T19:29:15.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddd8eb3670f1
+  - type: supersedes
+    from: REQ-search-meaning-fusion
+    to: REQ-kibi-search-hints-advisory
+    created_at: 2026-11-25T19:29:15.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0c11d24e8f6
+  - type: requires_property
+    from: REQ-search-meaning-fusion
+    to: FACT-search-meaning-fusion-fused-every-search
+    created_at: 2026-11-25T20:04:58.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e450ca5602da
+  - type: specified_by
+    from: REQ-search-meaning-fusion
+    to: SCEN-NEG-search-meaning-fusion-UNFUSED
+    created_at: 2026-11-25T20:05:04.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2e7f39bb85c
