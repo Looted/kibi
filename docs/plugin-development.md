@@ -375,7 +375,7 @@ takes effect from the next commit, like other analyzer settings.
 ## Search hints plugin
 
 `kibi-plugin-search-hints` implements `kibi.search-hints.v1` with the bundled,
-MIT-licensed potion-base-8M static embedding (int8, about 7.7 MB) and a pure
+MIT-licensed potion-retrieval-32M static embedding (int8, about 33 MB) and a pure
 JavaScript tokenizer checked against the upstream one. It needs no network,
 native code or model download. It ships with Kibi and is on by default: a
 project that names no `kibi.search-hints.v1` provider in `kibi.plugins` and has
@@ -397,11 +397,7 @@ when another provider is configured instead, by listing the package in
 }
 ```
 
-When a `kb_search` answer is weak, the host sends the question and the current
-entities (title, statement and body, up to 2000 characters each) and shows the
-closest ones as `queryAnalysis.hints`. Entity vectors are cached under Kibi's
-runtime directory and rebuilt only for entities whose text changed; on a KB of
-about 3,000 entities the first weak search builds them in under a second.
+On every decision search, the host sends the question and each decision with the scenarios, tests and facts it links (title, statement and body, up to 2000 characters each; up to 50,000 entities), fuses the scores of the decisions with the word ranking, and lists up to seven decisions related by meaning as `queryAnalysis.hints`. Entity vectors are cached under Kibi's runtime directory and rebuilt only for entities whose text changed. The first call in a process may take 3 seconds while vectors are built; later calls get 0.5 seconds, and a slower provider leaves that search ranked by words alone.
 Bootstrap does not offer it: it is already active. See [packages/plugin-search-hints/README.md](../packages/plugin-search-hints/README.md).
 
 ## Optional Jev provider

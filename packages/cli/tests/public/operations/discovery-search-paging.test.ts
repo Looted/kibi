@@ -167,7 +167,7 @@ describe("search candidate paging", () => {
       const total = SEARCH_CANDIDATE_PAGE_SIZE + 25;
       const { requests, fetchPage } = makeFakeSearchIndex(total);
       const result = await executeSearch(
-        { query: "requirement", limit: 5 },
+        { query: "requirement", limit: 5, rankingMode: "legacy" },
         context(root, {
           prolog: {
             query: async () => ({ success: true, bindings: {} }),
@@ -196,13 +196,13 @@ describe("search candidate paging", () => {
 });
 
 describe("search text for questions search cannot answer", () => {
-  async function searchText(query: string): Promise<string> {
+  async function searchText(query: string, type?: string): Promise<string> {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-search-hints-"));
     mkdirSync(path.join(root, ".kb"), { recursive: true });
     try {
       const { fetchPage } = makeFakeSearchIndex(20);
       const result = await executeSearch(
-        { query },
+        { query, ...(type ? { type } : {}) },
         context(root, {
           prolog: {
             query: async () => ({ success: true, bindings: {} }),
@@ -218,8 +218,17 @@ describe("search text for questions search cannot answer", () => {
     }
   }
 
-  test("an abstention says to ask again in the KB's own words and language", async () => {
+  test("a decision search without a match says to ask again in the KB's words", async () => {
     const text = await searchText("Jakie uprawnienia ma admin?");
+    expect(text).toContain(
+      "No decision in this workspace's scope shares the words",
+    );
+    expect(text).toContain("not evidence that nothing governs it");
+    expect(text).toContain("ask again in the KB's words");
+  });
+
+  test("an abstention says to ask again in the KB's own words and language", async () => {
+    const text = await searchText("Jakie uprawnienia ma admin?", "fact");
     expect(text).toContain("(abstained)");
     expect(text).toContain(
       "ask again in the words and language the KB is written in",

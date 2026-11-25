@@ -38,7 +38,7 @@ export async function searchCommand(
     {
       query,
       ...(options.type !== undefined ? { type: options.type } : {}),
-      limit: Number.parseInt(options.limit || "20", 10),
+      ...(options.limit ? { limit: Number.parseInt(options.limit, 10) } : {}),
       offset: Number.parseInt(options.offset || "0", 10),
     },
     { workspaceRoot: process.cwd() },

@@ -580,3 +580,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed24f098f5a5
+  - type: constrains
+    from: REQ-search-answers-lift-two
+    to: FACT-SUBJ-kibi-search-multi-hop-lifting
+    created_at: 2026-11-25T19:29:32.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e59b6f826532
+  - type: requires_property
+    from: REQ-search-answers-lift-two
+    to: FACT-search-answers-lift-two-answers-lift-two-hop
+    created_at: 2026-11-25T19:29:32.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476186bfe07f
+  - type: specified_by
+    from: REQ-search-answers-lift-two
+    to: SCEN-search-answers-lift-two
+    created_at: 2026-11-25T19:29:32.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38c8ddece775
+  - type: specified_by
+    from: REQ-search-answers-lift-two
+    to: SCEN-NEG-search-answers-lift-two-LEAKED
+    created_at: 2026-11-25T19:29:32.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26a240c5e5c
+  - type: verified_by
+    from: REQ-search-answers-lift-two
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:29:32.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a83196193247
+  - type: supersedes
+    from: REQ-search-answers-lift-two
+    to: REQ-search-answers-search-hints-lift-two
+    created_at: 2026-11-25T19:29:32.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f67eb744c6e

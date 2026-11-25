@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8126393c444
+  - type: assumes
+    from: SCEN-NEG-search-meaning-list-MISORDERED
+    to: FACT-NEG-search-meaning-list-MISORDERED
+    created_at: 2026-11-25T20:05:28.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4f220808f85
+  - type: verified_by
+    from: SCEN-NEG-search-meaning-list-MISORDERED
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T20:05:28.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad263b90bed6

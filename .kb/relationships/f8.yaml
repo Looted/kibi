@@ -337,13 +337,6 @@ relationships:
     id: rel-7cb2cd5ead26
   - type: specified_by
     from: REQ-capability-search-hints-v1
-    to: SCEN-CASE-capability-search-hints-v1-21-hints
-    created_at: 2026-10-30T14:54:07.002Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5607126413d5
-  - type: specified_by
-    from: REQ-capability-search-hints-v1
     to: SCEN-CASE-capability-search-hints-v1-unsupplied-id
     created_at: 2026-10-30T14:54:17.084Z
     created_by: kibi/upsert

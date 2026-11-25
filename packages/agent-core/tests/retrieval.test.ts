@@ -5,6 +5,7 @@ import {
   type RetrievalEdge,
   type RetrievalEntity,
   buildRetrievalIndex,
+  decisionCoverage,
   formatCardLine,
   retrieve,
 } from "../src/retrieval";
@@ -223,6 +224,31 @@ describe("retrieve", () => {
     expect(result.cards[0]?.evidence).toEqual([]);
   });
 
+  test("a lighter vector ranking moves cards less than the words", () => {
+    const vectorScores = index.cards.map((card) =>
+      card.id === "REQ-tag-trim" ? 0.9 : 0,
+    );
+    const text = "organization";
+    const full = retrieve(index, { text, vectorScores });
+    const light = retrieve(index, { text, vectorScores, vectorWeight: 0.1 });
+    const score = (result: typeof full) =>
+      result.cards.find((card) => card.id === "REQ-tag-trim")?.score ?? 0;
+    expect(score(full)).toBeGreaterThan(0);
+    expect(score(light)).toBeCloseTo(score(full) * 0.1);
+  });
+
+  test("a type filter keeps only decisions of that type, counted scopes too", () => {
+    const adrs = retrieve(index, {
+      text: "full text search tags",
+      types: ["adr"],
+    });
+    expect(adrs.cards.map((card) => card.id)).toEqual(["ADR-search"]);
+    expect(adrs.otherScopes.count).toBe(0);
+    const reqs = retrieve(index, { text: "desktop tag limit", types: ["req"] });
+    expect(reqs.cards.every((card) => card.type === "req")).toBe(true);
+    expect(reqs.otherScopes.ids).toContain("REQ-desktop-tags");
+  });
+
   test("an edit finds the owners of the symbol it names in the edited file", () => {
     const result = retrieve(index, {
       edits: [
@@ -387,6 +413,7 @@ describe("formatCardLine", () => {
     firm: true,
     scope: "in" as const,
     score: 1,
+    coverage: 1,
     evidence: ["linked to code here"],
     folded: ["REQ-y"],
   };
@@ -410,5 +437,28 @@ describe("formatCardLine", () => {
     const long = formatCardLine({ ...base, statement: "y".repeat(400) });
     expect(long.length).toBe(300);
     expect(long.endsWith("…")).toBe(true);
+  });
+});
+
+describe("decision coverage", () => {
+  const index = buildRetrievalIndex(
+    [
+      req("REQ-a", "Invoice export writes a CSV"),
+      req("REQ-b", "Refunds reach the card"),
+    ],
+    [],
+  );
+
+  test("is the share of the question's weight a decision's words hold", () => {
+    expect(decisionCoverage(index, "invoice export csv", "REQ-a")).toBe(1);
+    const part = decisionCoverage(index, "invoice refunds", "REQ-a");
+    expect(part).toBeGreaterThan(0);
+    expect(part).toBeLessThan(1);
+    expect(decisionCoverage(index, "invoice export csv", "REQ-b")).toBe(0);
+  });
+
+  test("is 0 for an unknown decision or a question without signal words", () => {
+    expect(decisionCoverage(index, "invoice", "REQ-missing")).toBe(0);
+    expect(decisionCoverage(index, "the of and", "REQ-a")).toBe(0);
   });
 });

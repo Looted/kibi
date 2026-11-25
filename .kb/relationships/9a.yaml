@@ -496,3 +496,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d8b579a9e80
+  - type: implements
+    from: SYM-decision-search-credited-score
+    to: REQ-search-meaning-list
+    created_at: 2026-11-25T19:43:32.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95f42feceaf0
+  - type: covered_by
+    from: SYM-decision-search-credited-score
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:43:32.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2c652dfdb17
+  - type: covered_by
+    from: SYM-decision-search-credited-score
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:32.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f108c453cb

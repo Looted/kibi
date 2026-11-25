@@ -179,7 +179,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+    "Ask the KB a question or search it. Default intent-v1 ranking returns five one-line decision cards (requirements and ADRs, ranked by words and, with a search-hints plugin, by meaning), up to seven more decisions related by meaning, and an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer names no governing requirement and lists the words no card holds. Pass type to search scenarios, tests, facts or symbols. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -201,11 +201,10 @@ export const searchSpec = {
       limit: {
         type: "integer",
         minimum: 0,
-        default: 10,
         description:
-          "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
+          "Optional max rows to return after ranking. Default: 5 decision cards, or 10 rows for a scenario, test, fact or symbol type; page with offset when the answer layer is not enough.",
         [ADVERTISED_DESCRIPTION]:
-          "Optional max rows after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
+          "Optional max rows after ranking. Default: 5 decision cards, or 10 rows of another type; page with offset for more.",
       },
       offset: {
         type: "integer",
@@ -218,7 +217,7 @@ export const searchSpec = {
         enum: ["legacy", "intent-v1"],
         default: "intent-v1",
         description:
-          "Optional deterministic ranking mode. Default intent-v1: question-aware ranking with semantic facets, source-aware evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking.",
+          "Optional ranking mode. Default intent-v1: decision cards ranked by the question's words, scope, supersession and, with a search-hints plugin, meaning; with a scenario, test, fact or symbol type, question-aware rows with semantic facets, source evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking.",
         [ADVERTISED_DESCRIPTION]:
           "Optional ranking mode: intent-v1 (default, question-aware) or legacy (older lexical ranking).",
       },
@@ -234,9 +233,9 @@ export const searchSpec = {
         type: "boolean",
         default: true,
         description:
-          "Intent-v1 only, first page only. When true (default), a weak or abstained answer adds queryAnalysis.hints from the bundled kibi-plugin-search-hints (or the kibi.search-hints.v1 provider the project configured): requirements the question may mean, to re-ask with. A project that lists kibi-plugin-search-hints in kibi.declinedPlugins gets none. Hints never change results or the answer layer.",
+          "Intent-v1 decision search only. When true (default), the bundled kibi-plugin-search-hints (or the kibi.search-hints.v1 provider the project configured) scores the decisions and the scenarios, tests and facts they link by meaning: the scores are fused into the card ranking, and on the first page queryAnalysis.hints lists up to seven more decisions related by meaning. A project that lists kibi-plugin-search-hints in kibi.declinedPlugins, or false here, ranks by words alone.",
         [ADVERTISED_DESCRIPTION]:
-          "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
+          "Intent-v1: true (default) fuses a search-hints plugin's meaning ranking and lists up to seven related decisions.",
       },
       semanticFacets: {
         type: "object",
@@ -253,9 +252,9 @@ export const searchSpec = {
           aliases: { type: "array", items: { type: "string" }, maxItems: 20 },
         },
         description:
-          "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.",
+          "Optional host-agent semantic interpretation. Kibi adds these strings to the question's words when it ranks decisions, and uses them as deterministic aliases and facets for other types.",
         [ADVERTISED_DESCRIPTION]:
-          "Optional host-agent interpretations Kibi uses as deterministic aliases and facets; ranking never calls a model.",
+          "Optional host-agent interpretations Kibi adds to the question's words and uses as facets.",
       },
       sourceLocations: {
         type: "array",
@@ -284,14 +283,14 @@ export const searchSpec = {
         maximum: 1,
         default: 0.18,
         description:
-          "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
+          "Intent-v1 threshold, 0 to 1, for scenario, test, fact or symbol rows; low-confidence queries abstain.",
       },
       fields: {
         type: "string",
         enum: ["summary", "full"],
         default: "summary",
         description:
-          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery; a result whose entity the answer already quotes (a requirement with its whole statement, a fact with its claim) gives only its id, type, title, score and reasons. Use 'full' to include complete entity bodies for every result, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
+          "Optional result detail. 'summary' returns identifying metadata plus the decision card line or match snippet for discovery; a result whose entity the answer already quotes (a requirement with its whole statement, a fact with its claim) gives only its id, type, title, score and reasons. Use 'full' to include complete entity bodies for every result, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
         [ADVERTISED_DESCRIPTION]:
           "'summary': metadata, snippet (bare rows for entities the answer quotes); 'full': bodies, graph paths, fact queries.",
       },

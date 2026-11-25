@@ -1,6 +1,6 @@
 ---
 title: kibi.search-hints.v1 providers return bounded, ordered hints for supplied entities only
-status: open
+status: closed
 priority: should
 tags:
   - plugins

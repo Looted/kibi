@@ -398,20 +398,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdd770b8937f
-  - type: implements
-    from: SYM-requirement-lifting-assumed-scenario-ids
-    to: REQ-search-answers-search-hints-lift-two
-    created_at: 2026-11-23T10:35:06.258Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72008ca240d6
-  - type: covered_by
-    from: SYM-requirement-lifting-assumed-scenario-ids
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-11-23T10:35:06.265Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7f369a53ba2f
   - type: executable_for
     from: SYM-test-kibi-levels-cli
     to: TEST-kibi-levels-cli
@@ -419,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4c5a9ce97e8
+  - type: covered_by
+    from: SYM-requirement-lifting-assumed-scenario-ids
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:32:35.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0be16d153987
+  - type: implements
+    from: SYM-requirement-lifting-assumed-scenario-ids
+    to: REQ-search-answers-lift-two
+    created_at: 2026-11-25T19:32:35.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f02a53e3a9f8

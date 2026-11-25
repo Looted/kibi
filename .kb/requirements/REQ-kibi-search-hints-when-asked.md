@@ -1,6 +1,6 @@
 ---
 title: kb_search asks for search hints only on a weak answer
-status: open
+status: closed
 semantic_text: Search hints must be requested from a provider only when the kb_search intent answer abstained or its top score is below 0.44.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

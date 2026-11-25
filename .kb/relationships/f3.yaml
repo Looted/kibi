@@ -276,3 +276,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a83c0f0c35fd
+  - type: implements
+    from: SYM-compose-search-hints
+    to: REQ-search-meaning-fusion
+    created_at: 2026-11-25T19:32:07.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660f293a679a
