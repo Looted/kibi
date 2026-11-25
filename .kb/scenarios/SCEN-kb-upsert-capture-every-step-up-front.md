@@ -13,4 +13,4 @@ origin:
 id: SCEN-kb-upsert-capture-every-step-up-front
 type: scenario
 ---
-Given a requirement with an unmodeled claim below a tested floor and a current requirement on the same subject, when it is written, then nextActions lists the pair review, the kb_model step, the scenario, the failure-side scenario, the test of both, the link and kibi prove in that one result.
+Given a project at Kibi level test and a requirement with an unmodeled claim below a tested floor and a current requirement on the same subject, when it is written, then nextActions lists the pair review, the kb_model step, the scenario, the failure-side scenario, the test of both, the link and kibi prove in that one result.

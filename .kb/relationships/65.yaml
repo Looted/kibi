@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-853b84c31013
+  - type: implements
+    from: SYM-kibi-level-read-kibi-level
+    to: REQ-kibi-level-setting
+    created_at: 2026-11-25T09:48:11.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1fe5d49094c
+  - type: covered_by
+    from: SYM-kibi-level-read-kibi-level
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:11.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476559a2d89d

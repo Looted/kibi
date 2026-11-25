@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Still runs the rules against the branch KB and the staged mode; a staged check now compiles only a never-compiled store instead of syncing working-tree drift first.",
+  "note": "kibi check still runs validation rules, still takes --rules and --staged, and still exits non-zero with violation logs; the change only picks the default rules from the project's level and reports new-requirement floor findings.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:597e223c6d3b05c9db39b08eb39d0ee82a282affe0cd6c29a0c785722c53774a",
-  "startLine": 827,
-  "endLine": 1838,
-  "recordedAt": "2026-11-24T05:01:12.100Z"
+  "codeHash": "sha256:364ad973897adab6e1f7a22341dd056bf8f0344f83ad24afd050477ca1c64d7f",
+  "startLine": 831,
+  "endLine": 1862,
+  "recordedAt": "2026-11-25T10:42:18.328Z"
 }

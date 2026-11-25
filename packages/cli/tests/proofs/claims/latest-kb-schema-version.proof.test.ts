@@ -10,20 +10,20 @@ import { LATEST_KB_SCHEMA_VERSION } from "../../../src/utils/schema-version.js";
  * The knowledge base schema version this Kibi writes and migrates to. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */
 
-/** The latest knowledge base schema version shall be 19. */
+/** The latest knowledge base schema version shall be 20. */
 export function latestKbSchemaVersionCertificate(): CodeCertificate {
   return arithmeticCertificate({
     testId: "TEST-proof-latest-kb-schema-version",
     variable: "latest_schema_version",
     valueType: "int",
     assumptions: [{ operator: "eq", value: LATEST_KB_SCHEMA_VERSION }],
-    claim: { operator: "eq", value: 19 },
+    claim: { operator: "eq", value: 20 },
   });
 }
 
 describe("Latest knowledge base schema version", () => {
-  test("The latest knowledge base schema version shall be 19", () => {
+  test("The latest knowledge base schema version shall be 20", () => {
     writeCodeCertificate(latestKbSchemaVersionCertificate());
-    expect(LATEST_KB_SCHEMA_VERSION).toBe(19);
+    expect(LATEST_KB_SCHEMA_VERSION).toBe(20);
   });
 });

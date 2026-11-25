@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b6326772140
+  - type: executable_for
+    from: SYM-test-kibi-check-rule-selection-by-level
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:51.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c067f471d46

@@ -8,6 +8,7 @@ import * as hookManagers from "../../src/commands/hook-managers.js";
 import * as hooksInstall from "../../src/commands/hooks-install.js";
 import * as initHelpers from "../../src/commands/init-helpers.js";
 import { MANAGED_HOOK_NAMES } from "../../src/commands/init-helpers.js";
+import * as initLevel from "../../src/commands/init-level.js";
 import { initCommand } from "../../src/commands/init.js";
 import * as setupChoices from "../../src/commands/setup-choices.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
@@ -81,6 +82,7 @@ let failOn = "";
 let recordedChoices: setupChoices.ResolvedSetupChoices;
 let written: string | null = null;
 let prepare = "present";
+let levelWritten: string | null = null;
 const failure = new Error("disk full");
 
 beforeEach(() => {
@@ -102,6 +104,7 @@ beforeEach(() => {
   } as setupChoices.ResolvedSetupChoices;
   written = null;
   prepare = "present";
+  levelWritten = null;
   // A mutant that skips an early return must not reach the real checkout.
   track(spyOn(process, "cwd").mockReturnValue(tempRoot()));
   track(
@@ -136,6 +139,11 @@ beforeEach(() => {
   record(setupChoices, "readSetupChoices", () => recordedChoices);
   record(setupChoices, "writeSetupChoices", () => written);
   record(hooksInstall, "syncPrepareScript", () => prepare);
+  track(spyOn(initLevel, "initCanAsk").mockReturnValue(false));
+  record(initLevel, "settleKibiLevel", async () => ({
+    level: "test",
+    written: levelWritten,
+  }));
   record(agentInstructions, "writeAgentInstructions", () => "instructions");
   record(agentInstructions, "reportAgentInstructions");
   record(nodeFilesystem, "glob", async () => ["a.md"]);
@@ -181,6 +189,17 @@ const DOCTOR =
   "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.";
 
 describe("initCommand option checks", () => {
+  test("--level must name a Kibi level", async () => {
+    resolveTo({ status: "not-a-repository" });
+    expect(await initCommand({ level: "prove" })).toStrictEqual({
+      exitCode: 1,
+    });
+    expect(errorLines()).toStrictEqual([
+      "Error: unknown --level 'prove'. Expected one of: remember, test.",
+    ]);
+    expect(named("resolveGitRepository")).toStrictEqual([]);
+  });
+
   test("--format needs --print-hook", async () => {
     resolveTo({ status: "not-a-repository" });
     expect(await initCommand({ format: "shell" })).toStrictEqual({
@@ -329,11 +348,13 @@ describe("initCommand infrastructure", () => {
       "ensureSymbolsManifestFile",
       "readSetupChoices",
       "writeSetupChoices",
+      "settleKibiLevel",
       "glob",
       "classifyActivation",
       "workspaceReferenceLanguageNote",
     ]);
     expect(named("readLegacyKbConfig")).toStrictEqual([[root]]);
+    expect(named("settleKibiLevel")).toStrictEqual([[root, undefined, false]]);
     expect(named("createKbDirectoryStructure")).toStrictEqual([[kb, "main"]]);
     expect(named("createManifestFile")).toStrictEqual([[kb]]);
     expect(named("updateGitIgnore")).toStrictEqual([[root]]);
@@ -366,6 +387,20 @@ describe("initCommand infrastructure", () => {
     expect((ctx.clock as () => unknown)()).toBeInstanceOf(Date);
     expect(logs).toStrictEqual([...DONE, BOOTSTRAP, DOCTOR]);
     expect(errors).toStrictEqual([]);
+  });
+
+  test("a level it records is reported; --level is passed on", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    levelWritten = "package.json";
+    expect(await initCommand({ level: "Remember" })).toStrictEqual({
+      exitCode: 0,
+    });
+    expect(named("settleKibiLevel")[0]?.slice(0, 2)).toStrictEqual([
+      root,
+      "Remember",
+    ]);
+    expect(logs).toContain("✓ Recorded Kibi level test in package.json");
   });
 
   test("falls back to the working directory outside a repository", async () => {

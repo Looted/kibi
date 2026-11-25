@@ -17,6 +17,7 @@
 */
 
 import * as path from "node:path";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import { EngineClient } from "../engine.js";
 import { isCliTraceOrDebugEnabled } from "../env.js";
@@ -107,8 +108,11 @@ import {
 import { collectIntroducedEntityContextViolations } from "../traceability/staged-entity-context.js";
 import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
+  addedRequirementIds,
   collectStagedEvidenceFloorViolations,
   floorChangedRequirementIds,
+  partitionStagedFloorFindings,
+  stagedRequirementProofRules,
 } from "../traceability/staged-evidence-floor.js";
 import {
   type StagedFileCoverageResult,
@@ -156,7 +160,7 @@ import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import { readKbManifest } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
-import type { Violation } from "../utils/rule-registry.js";
+import { type Violation, layerRunsAtLevel } from "../utils/rule-registry.js";
 import { getSchemaVersionStatus } from "../utils/schema-version.js";
 
 export type { Violation };
@@ -841,6 +845,8 @@ export async function checkCommand(
         };
 
     if (options.staged) {
+      // The project's Kibi level selects whether verification rules run.
+      const level = readKibiLevel(process.cwd()).level;
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
       let stagedCoverage: StagedFileCoverageResult | null = null;
       let tempCtx: {
@@ -1064,6 +1070,7 @@ export async function checkCommand(
             stagedRequirementRules(snapshot, {
               stagedPaths: markdownFiles.map((file) => file.path),
               knowledge: snapshotEntities,
+              level,
             }) ?? undefined,
           );
           if (consistency.length > 0) {
@@ -1133,8 +1140,10 @@ export async function checkCommand(
         }
         // A requirement whose floor the commit moves must reach that floor,
         // judged on its staged front matter and the evidence the synced
-        // store holds.
-        const floor =
+        // store holds. The floor is a verification rule: it runs at level
+        // test only, and a requirement the commit adds is reported there,
+        // not refused.
+        const floorFindings =
           "branch" in store
             ? await collectStagedEvidenceFloorViolations({
                 workspaceRoot: process.cwd(),
@@ -1145,8 +1154,21 @@ export async function checkCommand(
                 ),
                 schemaVersion: readTreeManifest(snapshot)?.schemaVersion,
                 stagedEntities: snapshotEntities,
+                rules: stagedRequirementProofRules(level),
               })
             : [];
+        const { blocking: floor, reported: reportedFloor } =
+          partitionStagedFloorFindings(
+            floorFindings,
+            addedRequirementIds(markdownFiles, readStagedBase),
+          );
+        if (reportedFloor.length > 0)
+          baselineNotes.push(
+            ...formatConsistencyViolations(
+              reportedFloor,
+              "non-blocking evidence floor",
+            ),
+          );
         if (floor.length > 0) {
           printSnapshotResult({
             format: options.format,
@@ -1526,9 +1548,9 @@ export async function checkCommand(
         );
 
         // Run the Prolog rules over the staged knowledge: the minLinks
-        // ownership gate for changed source symbols, and full-check
-        // symbol-coverage for every changed symbol (changed source symbols
-        // plus symbols whose staged manifest entry changed).
+        // ownership gate for changed source symbols, and, at level test,
+        // full-check symbol-coverage for every changed symbol (changed source
+        // symbols plus symbols whose staged manifest entry changed).
         let violationsRaw: Awaited<ReturnType<typeof validateStagedSymbols>> =
           [];
         let coverageViolations: Awaited<
@@ -1551,10 +1573,12 @@ export async function checkCommand(
             minLinks,
             prolog: tempCtx.prolog,
           });
-          coverageViolations = await validateStagedSymbolCoverage({
-            prolog: tempCtx.prolog,
-            extraSymbolIds: [...activeStagedSymbolEntityIds],
-          });
+          // symbol-coverage asks for linked tests: a verification rule.
+          if (layerRunsAtLevel("verification", level))
+            coverageViolations = await validateStagedSymbolCoverage({
+              prolog: tempCtx.prolog,
+              extraSymbolIds: [...activeStagedSymbolEntityIds],
+            });
           await cleanupTempKb(tempCtx.tempDir);
         }
 

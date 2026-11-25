@@ -19,6 +19,7 @@ import path from "node:path";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { resolveKbPlPath } from "../../prolog.js";
 import { getStagedFiles } from "../../traceability/git-staged.js";
 import { createStagedEntityIdStyleDiagnostics } from "../../traceability/staged-entity-id-style.js";
@@ -315,15 +316,17 @@ export function collectQueryPlanSafetyViolations(): Violation[] {
 /**
  * Resolve the rules for one check invocation.
  *
- * Enforcement policy is Kibi-owned: repositories cannot disable canonical
- * checks. `args.rules` is an invocation-time diagnostic selector that never
+ * Enforcement policy is Kibi-owned: repositories cannot disable a single
+ * check rule; the project's Kibi level selects whether the verification
+ * layer runs. `args.rules` is an invocation-time diagnostic selector that never
  * persists and never redefines project health.
  */
 export function resolveCheckRules(
   args: Pick<CheckInput, "rules">,
+  level: KibiLevel = "test",
 ): Set<string> {
-  // No selection runs the default rules; an empty one runs none.
-  return getEffectiveRules(args.rules);
+  // No selection runs the level's default rules; an empty one runs none.
+  return getEffectiveRules(args.rules, level);
 }
 
 /**
