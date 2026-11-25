@@ -462,6 +462,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b8590ccf8440
   - type: assumes
+    from: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    to: FACT-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    created_at: 2026-11-25T14:27:42.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08820baba39e
+  - type: verified_by
+    from: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:42.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc389a963e75
+  - type: assumes
     from: SCEN-kibi-no-git-attached-store
     to: FACT-kibi-no-git-attached-store
     created_at: 2026-11-25T09:16:05.609Z

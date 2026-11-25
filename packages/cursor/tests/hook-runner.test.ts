@@ -986,6 +986,10 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
         },
         pluginData,
       );
+    // A shell read names the requirement, once.
+    expect(
+      JSON.parse((await shell("cat src/checkout.ts")).stdout).agent_message,
+    ).toContain("- REQ-checkout-rounding [firm: ask before changing]");
     expect(JSON.parse((await shell("cat src/checkout.ts")).stdout)).toEqual({});
     const output = JSON.parse(
       (await shell("sed -i s/100/1000/ src/checkout.ts")).stdout,
@@ -1625,7 +1629,7 @@ describe("Cursor hook runner result contracts", () => {
       ]),
     ).toEqual([
       ["beforeSubmitPrompt", "prompt_silent", null, null],
-      ["beforeReadFile", "read_snippet", "source", null],
+      ["beforeReadFile", "read_snippet", "source", 1],
       ["beforeReadFile", "read_silent", "source", null],
       ["preToolUse", "kb_direct_note", "kb", null],
       ["preToolUse", "edit_snippet", "source", 1],
@@ -1827,5 +1831,82 @@ describe("Cursor hook runner result contracts", () => {
     expect(stop.followup_message ?? "").not.toContain(
       "recorded nothing in the knowledge base",
     );
+  });
+});
+
+describe("Cursor read, search and shell rows", () => {
+  function conversation() {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-rows-");
+    tempRoots.push(pluginData);
+    let id = 0;
+    const event = (payload: Record<string, unknown>, fresh = true) =>
+      runHook(
+        {
+          conversation_id: fresh ? `rows-${++id}` : `rows-${id}`,
+          workspace_roots: [workspace],
+          cwd: workspace,
+          hook_event_name: "preToolUse",
+          ...payload,
+        },
+        { pluginData, env: {} },
+      );
+    return { event, workspace };
+  }
+  const ROW = "- REQ-checkout-rounding [firm: ask before changing]";
+
+  test("a Grep whose matches fall in a linked symbol names its requirement", async () => {
+    const { event } = conversation();
+    const grep = (tool_input: Record<string, unknown>) =>
+      event({ tool_name: "Grep", tool_input });
+    expect(
+      (await grep({ pattern: "MATH.ROUND", "-i": true })).agent_message,
+    ).toContain(ROW);
+    expect(await grep({ pattern: "round", glob: "*.js" })).toEqual({});
+    expect(await grep({ pattern: "round", path: "nowhere" })).toEqual({});
+  });
+
+  test("a ranged Read names only the symbol in view; the same rows are not repeated", async () => {
+    const { event, workspace } = conversation();
+    const file = path.join(workspace, "src/checkout.ts");
+    const read = (input: Record<string, unknown>, fresh = true) =>
+      event(
+        { tool_name: "Read", tool_input: { file_path: file, ...input } },
+        fresh,
+      );
+    expect((await read({ offset: 4, limit: 2 })).agent_message).toContain(ROW);
+    expect(await read({ offset: 4, limit: 2 }, false)).toEqual({});
+    expect(await read({ offset: 20 })).toEqual({});
+    // A whole Read is left to beforeReadFile.
+    expect(await read({})).toEqual({});
+  });
+
+  test("after a Read, a linked file gets its rows once, and none once beforeReadFile showed them", async () => {
+    // A new conversation id per call unless fresh is false.
+    const { event, workspace } = conversation();
+    const file = path.join(workspace, "src/checkout.ts");
+    const after = { hook_event_name: "postToolUse", tool_name: "Read" };
+    const first = await event({ ...after, tool_input: { file_path: file } });
+    expect(first.additional_context).toContain(ROW);
+    expect(first.additional_context).not.toContain("Tests:");
+    expect(
+      await event({ ...after, tool_input: { file_path: file } }, false),
+    ).toEqual({});
+    const other = conversation();
+    const otherFile = path.join(other.workspace, "src/checkout.ts");
+    expect(
+      (
+        await other.event({
+          hook_event_name: "beforeReadFile",
+          file_path: otherFile,
+        })
+      ).agent_message,
+    ).toContain(ROW);
+    expect(
+      await other.event(
+        { ...after, tool_input: { file_path: otherFile } },
+        false,
+      ),
+    ).toEqual({});
   });
 });

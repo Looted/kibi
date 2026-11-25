@@ -13,10 +13,13 @@ import {
   afterEditInput,
   firmEditAfterNotice,
   isEditTool,
+  isReadTool,
   postEditNote,
   promptNote,
+  readRowsNote,
   sessionStartNote,
   sessionStateDir,
+  toolReads,
 } from "../src/guard.ts";
 
 const RULE_PROMPT =
@@ -286,6 +289,98 @@ test("guardNote runs a note only in a Kibi workspace and fails open", async () =
     );
     assert.equal(joinParts(["a", undefined, "", "b"]), "a\n\nb");
     assert.equal(joinParts([undefined]), "");
+  } finally {
+    ws.cleanup();
+  }
+});
+
+function read(root, toolName, toolInput, sessionId = "r1") {
+  return {
+    hook_event_name: "post_tool",
+    session_id: sessionId,
+    cwd: root,
+    tool_name: toolName,
+    tool_input: toolInput,
+    tool_status: "success",
+  };
+}
+
+test("isReadTool accepts read_file, grep and bash, with or without a prefix", () => {
+  assert.equal(isReadTool("read_file"), true);
+  assert.equal(isReadTool("file_system.grep"), true);
+  assert.equal(isReadTool("bash"), true);
+  assert.equal(isReadTool("edit"), false);
+  assert.equal(isReadTool(undefined), false);
+});
+
+test("toolReads reads each tool's file, window, pattern or command", () => {
+  const root = "/w";
+  assert.deepEqual(toolReads("read_file", { path: "src/a.ts" }, root), [
+    { absolute: "/w/src/a.ts", directory: false },
+  ]);
+  assert.deepEqual(
+    toolReads("read_file", { path: "a.ts", offset: 9, limit: 5 }, root),
+    [
+      {
+        absolute: "/w/a.ts",
+        directory: false,
+        focus: [{ start: 10, end: 14 }],
+      },
+    ],
+  );
+  assert.deepEqual(toolReads("read_file", { path: "a.ts", offset: 4 }, root), [
+    {
+      absolute: "/w/a.ts",
+      directory: false,
+      focus: [{ start: 5, end: Number.MAX_SAFE_INTEGER }],
+    },
+  ]);
+  assert.deepEqual(toolReads("read_file", {}, root), []);
+  assert.deepEqual(
+    toolReads("grep", { pattern: "x", path: "/nowhere" }, root),
+    [],
+  );
+  assert.deepEqual(toolReads(undefined, { command: "ls" }, root), []);
+});
+
+test("readRowsNote names the requirements of the code in view once per session", () => {
+  const ws = workspace();
+  try {
+    const first =
+      readRowsNote(
+        ws.root,
+        read(ws.root, "read_file", { path: "src/invoices.ts" }),
+        ws.env,
+      ) ?? "";
+    assert.match(first, /^Kibi requirements for the code in view:/);
+    assert.match(first, /REQ-keep-invoices \[firm: ask before changing\]/);
+    assert.equal(
+      readRowsNote(
+        ws.root,
+        read(ws.root, "bash", { command: "cat src/invoices.ts" }),
+        ws.env,
+      ),
+      undefined,
+    );
+    assert.equal(
+      readRowsNote(
+        ws.root,
+        read(ws.root, "edit", { path: "src/invoices.ts" }),
+        ws.env,
+      ),
+      undefined,
+    );
+    assert.equal(
+      readRowsNote(ws.root, read(ws.root, "grep", { pattern: "" }), ws.env),
+      undefined,
+    );
+    const {
+      session_id: _id,
+      cwd: _cwd,
+      ...unattributed
+    } = read(ws.root, "file_system.grep", { pattern: "deleteInvoice" });
+    // Without coordinates a match cannot be placed in a symbol: no row.
+    assert.equal(readRowsNote(ws.root, unattributed), undefined);
   } finally {
     ws.cleanup();
   }
