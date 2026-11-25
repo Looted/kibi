@@ -335,6 +335,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10d28137e8de
+  - type: covered_by
+    from: SYM-zcode-runHook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:16.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63120bbc8310
   - type: executable_for
     from: SYM-test-kibi-init-level-choice
     to: TEST-kibi-init-level-choice

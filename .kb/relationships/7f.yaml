@@ -517,6 +517,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-948e253c8c87
+  - type: assumes
+    from: SCEN-hook-busy-file-ids
+    to: FACT-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:16.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf2e07c0ab07
+  - type: verified_by
+    from: SCEN-hook-busy-file-ids
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:29:16.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-236c36ff5256
   - type: relates_to
     from: REQ-kibi-no-git-advisory-once-per-mcp-session
     to: ADR-kibi-workspaces-without-git
