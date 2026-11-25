@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { createHash } from "node:crypto";
 import {
   constants,
   type Stats,
@@ -619,6 +620,44 @@ export function outdatedManagedHooks(hooksDir: string): string[] {
     const section = managed.exec(readFileSync(hookPath).toString());
     return section !== null && section[1] !== managedHookBody(template);
   }).map(([hook]) => hook);
+}
+
+/**
+ * SHA-256 of the kibi-managed sections this CLI installs. Two builds that
+ * carry the same version string but different templates get different
+ * digests, so a refresh planned against one template is never applied by
+ * another.
+ */
+export function managedHookTemplatesDigest(): string {
+  const hash = createHash("sha256");
+  for (const [hook, template] of MANAGED_HOOK_TEMPLATES) {
+    hash.update(`${hook}\0${managedHookBody(template)}\0`);
+  }
+  return hash.digest("hex");
+}
+
+/**
+ * Rewrites the kibi-managed section of each named hook with this CLI's
+ * template, keeping user-authored lines around it. Hooks without a
+ * kibi-managed section are left alone: a refresh never installs a hook the
+ * project did not already let Kibi manage.
+ */
+export function refreshManagedHooks(
+  hooksDir: string,
+  hooks: readonly string[],
+): GitHookInstallResult[] {
+  const wanted = new Set(hooks);
+  return MANAGED_HOOK_TEMPLATES.filter(([hook]) => {
+    const hookPath = path.join(hooksDir, hook);
+    return (
+      wanted.has(hook) &&
+      existsSync(hookPath) &&
+      readFileSync(hookPath).toString().includes(KIBI_HOOK_BEGIN)
+    );
+  }).map(([hook, template]) => ({
+    hook,
+    result: installHook(path.join(hooksDir, hook), managedHookBody(template)),
+  }));
 }
 
 /** Whether any hook in the directory carries a kibi-managed section. */

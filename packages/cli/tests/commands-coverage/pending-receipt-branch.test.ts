@@ -14,6 +14,7 @@ import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
 import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
 import {
   committedOnLocalBranch,
+  pendingReceiptBinding,
   pendingReceiptBranch,
   pendingReceiptScope,
 } from "../../src/utils/pending-source-branch.js";
@@ -81,9 +82,18 @@ describe("pending-source receipts name their branch", () => {
     ]);
   });
 
-  test("a receipt written outside Git names no branch", () => {
+  test("outside Git no receipt is written: every source on disk is input", () => {
     const cwd = track(createTempDir());
     expect(pendingReceiptBranch(cwd)).toBeUndefined();
+    expect(pendingReceiptBinding(cwd)).toBeNull();
+    writePendingSourceReceipt(cwd, ".kb/requirements/REQ-A.md", sha("a"));
+    expect(existsSync(pendingRoot(cwd))).toBe(false);
+  });
+
+  test("a repository Git cannot name a branch for binds an unscoped receipt", () => {
+    const cwd = track(createTempDir());
+    mkdirSync(path.join(cwd, ".git"));
+    expect(pendingReceiptBinding(cwd)).toStrictEqual({ branch: undefined });
     writePendingSourceReceipt(cwd, ".kb/requirements/REQ-A.md", sha("a"));
     const [receipt] = receipts(cwd);
     expect(receipt?.path).toBe(".kb/requirements/REQ-A.md");

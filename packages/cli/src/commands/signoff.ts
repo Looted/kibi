@@ -33,6 +33,7 @@ import {
   type SignoffProof,
   type SignoffView,
 } from "../signoff/model.js";
+import { assertGitWorkspace } from "../vcs/git-boundary.js";
 import { openReport } from "./report.js";
 
 export type SignoffOptions = Readonly<{
@@ -201,6 +202,8 @@ export async function signoffCommand(
   const cwd = (deps.cwd ?? (() => process.cwd()))();
   const write = deps.write ?? ((text: string) => process.stdout.write(text));
   const scope: SignoffScope = options.staged ? "staged" : "working";
+  if (options.questions === undefined)
+    assertGitWorkspace(cwd, "change_signoff", "kibi signoff");
 
   const view: SignoffView =
     options.questions !== undefined

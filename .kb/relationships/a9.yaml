@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4280c613822
+  - type: assumes
+    from: SCEN-kibi-git-required
+    to: FACT-kibi-git-required-refusal-error-code
+    created_at: 2026-11-25T09:17:44.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d998cd631b1c
+  - type: assumes
+    from: SCEN-kibi-git-required
+    to: FACT-kibi-git-required-retryable
+    created_at: 2026-11-25T09:17:44.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95fc6294fd53

@@ -165,12 +165,18 @@ describe("executeStatus engine answer", () => {
     const calls = harness();
     await status(context({ branchAttachment: undefined }));
     expect(calls.resolve).toHaveBeenCalledWith("/ws");
-    calls.resolve.mockReturnValue({ error: "detached HEAD" });
+    calls.resolve.mockReturnValue({
+      error: "detached HEAD",
+      code: "DETACHED_HEAD",
+    });
+    // The coded refusal reaches the route unwrapped, with its code.
     await expect(
       executeStatus({}, context({ branchAttachment: undefined })),
-    ).rejects.toThrow(
-      /^Status execution failed: Failed to resolve active branch: detached HEAD$/,
-    );
+    ).rejects.toMatchObject({
+      code: "DETACHED_HEAD",
+      message: "Failed to resolve active branch: detached HEAD",
+      retryable: false,
+    });
     calls.resolve.mockImplementation(() => {
       throw "thrown text";
     });

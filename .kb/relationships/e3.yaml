@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b11bf5ba99e3
+  - type: assumes
+    from: SCEN-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    to: FACT-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    created_at: 2026-11-25T09:44:06.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afd42a1f6c40
+  - type: verified_by
+    from: SCEN-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:11.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15728e0b0365

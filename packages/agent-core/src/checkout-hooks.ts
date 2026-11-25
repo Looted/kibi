@@ -25,6 +25,12 @@
 import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { TelemetryVcs } from "./usage-telemetry.js";
+import {
+  type NoGitReason,
+  findRepositoryMarker,
+  noGitAdvisory,
+} from "./version-control.js";
 
 /** Config files of the hook managers `kibi init` leaves the hooks to. */
 const HOOK_MANAGER_FILES = [
@@ -94,4 +100,45 @@ export const MISSING_HOOKS_NOTE =
 /** The session-start line for a checkout without Kibi's hooks, or null. */
 export function missingHooksNote(workspaceRoot: string): string | null {
   return kibiHooksMissing(workspaceRoot) ? MISSING_HOOKS_NOTE : null;
+}
+
+/**
+ * Why this workspace has no Git repository, or null when it has one (or Git
+ * cannot read the one it has: that is not "no Git"). Only Git's own answer
+ * together with the absence of any `.git` entry at or above the root counts.
+ */
+export function workspaceWithoutGit(workspaceRoot: string): NoGitReason | null {
+  const probe = spawnSync("git", ["rev-parse", "--is-inside-work-tree"], {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    timeout: 2000,
+  });
+  if (probe.status === 0) return null;
+  if (findRepositoryMarker(workspaceRoot) !== null) return null;
+  return probe.error === undefined ? "not_a_repository" : "git_unavailable";
+}
+
+/**
+ * The one session-start note about this checkout's version control, or null:
+ * the no-Git advisory outside a repository, else the missing-hooks note.
+ */
+export function checkoutSessionNote(workspaceRoot: string): string | null {
+  if (!fs.existsSync(path.join(workspaceRoot, ".kb", "manifest.json")))
+    return null;
+  const noGit = workspaceWithoutGit(workspaceRoot);
+  if (noGit !== null) {
+    const branch = process.env.KIBI_BRANCH?.trim();
+    return noGitAdvisory(noGit, branch ? branch : undefined);
+  }
+  return missingHooksNote(workspaceRoot);
+}
+
+/**
+ * The workspace's version control as usage telemetry sends it. A `.git`
+ * entry settles it without spawning Git.
+ */
+export function workspaceTelemetryVcs(workspaceRoot: string): TelemetryVcs {
+  if (findRepositoryMarker(workspaceRoot) !== null) return { kind: "git" };
+  const reason = workspaceWithoutGit(workspaceRoot);
+  return reason === null ? { kind: "git" } : { kind: "none", reason };
 }

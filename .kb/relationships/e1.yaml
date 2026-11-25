@@ -433,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9adc2a8c459e
+  - type: implements
+    from: SYM-vcs-no-git-diagnostic-of-result
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:40.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3154f71e85f3
+  - type: covered_by
+    from: SYM-vcs-no-git-diagnostic-of-result
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:40.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-198271beaf2f
+  - type: implements
+    from: SYM-init-helpers-managed-hook-templates-digest
+    to: REQ-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:24.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-317d53a16053
+  - type: covered_by
+    from: SYM-init-helpers-managed-hook-templates-digest
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:24.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e3a9b2115db
