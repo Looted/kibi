@@ -66,6 +66,7 @@ logic_claims:
   - CLAIM-EFD05B445AAC3006
 id: REQ-contributions-require-cla
 type: req
+required_evidence: tested
 ---
 The CLA workflow must run the CLA check when a pull request is opened, updated or closed, and when a pull request comment is the CLA sign sentence or recheck, without checking out pull request code. The CLA check must exempt only the maintainer account and bot accounts. The CLA sign sentence must be the same in the CLA workflow, CONTRIBUTING.md and CLA.md. The CLA workflow must store signatures on the cla-signatures branch, not on develop or master.
 
