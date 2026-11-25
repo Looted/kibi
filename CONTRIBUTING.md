@@ -1,6 +1,23 @@
 # CONTRIBUTING.md
 
-> **Note:** We are not accepting contributions at this moment. Feel free to [post an issue](https://github.com/Looted/kibi/issues) if you have feedback or suggestions.
+Contributions are welcome: bug reports, ideas and pull requests. For anything larger than a small fix, [open an issue](https://github.com/Looted/kibi/issues) first so we can agree on the approach before you write the code.
+
+## Contributor License Agreement
+
+Before we can merge your first pull request, you need to accept the [Kibi Contributor License Agreement](CLA.md) (CLA). You sign it once, and it covers all your contributions to Kibi.
+
+- When you open a pull request, the CLA check comments with a link to the agreement and fails until you sign.
+- To sign, comment on the pull request with exactly:
+
+  ```
+  I have read the Kibi CLA Document and I hereby sign the CLA
+  ```
+
+- The check then passes, and your signature is recorded with your GitHub account. Comment `recheck` if the check does not update.
+
+Under the CLA you assign the copyright in your contributions to the Kibi maintainer, and you keep a license to use your own contributions for any purpose. This keeps Kibi under a single owner, so it can be offered under the AGPL as well as under other licenses, including commercial ones. Read the full text before signing. If you contribute as part of your job, make sure your employer agrees, or sign on its behalf if you are authorized to (section 7 of the CLA).
+
+Every commit in your pull request must be made from a GitHub account that has signed, so check that your git author email is linked to your GitHub account.
 
 ## Development Setup
 
