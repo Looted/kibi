@@ -48,12 +48,22 @@ export type RuleEnforcementClass =
    */
   | "migration";
 
+/**
+ * The layer of Kibi a rule belongs to. Knowledge rules guard the recorded
+ * intent itself: requirements, their links to code, capture and
+ * contradictions. Verification rules ask for scenarios, tests and proof
+ * receipts that show the code keeps that intent.
+ */
+export type RuleLayer = "knowledge" | "verification";
+
 export interface RuleDefinition {
   name: string;
   description: string;
   /** Kibi-owned role of this rule in the enforcement contract. */
   enforcementClass: RuleEnforcementClass;
   category: "coverage" | "integrity" | "lifecycle" | "traceability";
+  /** The layer of Kibi the rule belongs to. */
+  layer: RuleLayer;
   /**
    * Severity for non-canonical findings rendered as quality diagnostics.
    * Omitted means "warning"; "info" marks purely informational signals.
@@ -84,6 +94,17 @@ export const RULE_NAMES = new Set(RULES.map((r) => r.name));
 
 export function getRuleDefinition(name: string): RuleDefinition | undefined {
   return RULES_BY_NAME.get(name);
+}
+
+export function getRuleLayer(name: string): RuleLayer | undefined {
+  return RULES_BY_NAME.get(name)?.layer;
+}
+
+/** The names of the rules of one layer, in registry order. */
+export function getLayerRules(layer: RuleLayer): Set<string> {
+  return new Set(
+    RULES.filter((rule) => rule.layer === layer).map((rule) => rule.name),
+  );
 }
 
 export function getRuleEnforcementClass(

@@ -256,7 +256,9 @@ describe("approval floor and requirement review rules", () => {
         proofGaps: ["missing_scenario"],
       },
     ],
-    unapprovedImplemented: [
+  });
+  const unapprovedPayload = JSON.stringify({
+    rows: [
       {
         id: "REQ-OLD",
         recordedAt: "2026-01-01T00:00:00Z",
@@ -291,10 +293,17 @@ describe("approval floor and requirement review rules", () => {
     clock: () => new Date("2026-02-15T00:00:00.000Z"),
     prolog: {
       oneShotMode: true,
-      query: async () => ({
-        success: true,
-        bindings: { JsonString: payload },
-      }),
+      query: async (goal: string) => {
+        goals.push(goal);
+        return {
+          success: true,
+          bindings: {
+            JsonString: goal.includes("unapproved_implemented_json")
+              ? unapprovedPayload
+              : payload,
+          },
+        };
+      },
     } as never,
     git: {
       workspaceSnapshot: async () => ({
@@ -304,6 +313,7 @@ describe("approval floor and requirement review rules", () => {
       }),
     } as never,
   });
+  const goals: string[] = [];
   const allRules = new Set([
     EVIDENCE_FLOOR_RULE,
     AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
@@ -350,6 +360,22 @@ describe("approval floor and requirement review rules", () => {
       "agent-requirement-unapproved-implemented:REQ-OLD",
       "agent-requirement-unapproved-implemented:REQ-UNDATED",
     ]);
+  });
+
+  test("the unapproved rule alone evaluates no requirement proof", async () => {
+    const root = workspace({ ".kb/manifest.json": manifest(15), ...documents });
+    goals.length = 0;
+    await collectEvidenceFloorViolations(
+      context(root),
+      new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+      { requirementIds: ["REQ-OLD", "REQ-NEW"] },
+    );
+    expect(goals.some((goal) => goal.includes("evidence_floor_json"))).toBe(
+      false,
+    );
+    expect(
+      goals.find((goal) => goal.includes("unapproved_implemented_json")),
+    ).toContain("ids(['REQ-OLD', 'REQ-NEW'])");
   });
 
   test("an approval floor finding says it comes from the approval", () => {
