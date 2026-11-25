@@ -377,3 +377,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c59dcfaeb16d
+  - type: relates_to
+    from: REQ-kibi-git-required-refusal
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:17:33.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b077f7205513
+  - type: constrains
+    from: REQ-kibi-git-required-refusal
+    to: FACT-SUBJ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:17:33.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d35c4ecc632f
+  - type: requires_property
+    from: REQ-kibi-git-required-refusal
+    to: FACT-kibi-git-required-refusal-error-code
+    created_at: 2026-11-25T09:17:47.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca9eb857797b
+  - type: requires_property
+    from: REQ-kibi-git-required-refusal
+    to: FACT-kibi-git-required-retryable
+    created_at: 2026-11-25T09:17:47.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59b6153c16b
+  - type: specified_by
+    from: REQ-kibi-git-required-refusal
+    to: SCEN-kibi-git-required
+    created_at: 2026-11-25T09:17:47.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87437d3412a8
+  - type: specified_by
+    from: REQ-kibi-git-required-refusal
+    to: SCEN-NEG-kibi-git-required
+    created_at: 2026-11-25T09:17:47.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4584aaaa7d4

@@ -15,8 +15,8 @@ import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import { type HookInput, parseHookInput } from "./hook-input.js";
 
 import {
+  checkoutSessionNote,
   hasKibiPreCommitGate,
-  missingHooksNote,
 } from "kibi-agent-core/checkout-hooks";
 import {
   CONFIRM_FIRM_EDITS_ENV,
@@ -1137,7 +1137,7 @@ function dispatchHook(
         "SessionStart",
         [
           sessionStartContext(linkedFileCount(workspace.index())),
-          missingHooksNote(workspace.root),
+          checkoutSessionNote(workspace.root),
         ]
           .filter((line): line is string => line !== null)
           .join("\n"),

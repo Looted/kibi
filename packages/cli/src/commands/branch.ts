@@ -42,6 +42,7 @@ import {
   readBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
 import { inspectBranchStore } from "../utils/branch-store.js";
+import { assertGitWorkspace } from "../vcs/git-boundary.js";
 
 export interface BranchEnsureOptions {
   from?: string;
@@ -261,6 +262,7 @@ export async function branchEnsureCommand(
   options?: BranchEnsureOptions,
 ): Promise<void> {
   const workspaceRoot = path.resolve(options?.workspaceRoot ?? process.cwd());
+  assertGitWorkspace(workspaceRoot, "branch_stores", "kibi branch ensure");
   const branchResult = resolveBranchAttachment(workspaceRoot);
 
   if ("error" in branchResult) {
@@ -297,6 +299,7 @@ export async function branchMigrateCommand(
   options: BranchMigrateOptions = {},
 ): Promise<void> {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
+  assertGitWorkspace(workspaceRoot, "branch_stores", "kibi branch migrate");
   if (options.recoverJournal !== undefined) {
     recoverBranchMigration(
       workspaceRoot,

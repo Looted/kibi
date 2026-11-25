@@ -246,11 +246,14 @@ test("postEditNote stays quiet for reads, outside paths, .kb files and when turn
   }
 });
 
-test("sessionStartNote names missing git hooks only in a Git checkout without them", () => {
+test("sessionStartNote advises Git outside a repository and names missing git hooks inside one", () => {
   const ws = workspace();
   try {
     const payload = { session_id: "s1", cwd: ws.root };
-    assert.equal(sessionStartNote(ws.root, payload, ws.env), undefined);
+    assert.match(
+      String(sessionStartNote(ws.root, payload, ws.env)),
+      /^No Git repository: Kibi is working without version control/,
+    );
     execFileSync("git", ["init", "-q"], { cwd: ws.root });
     assert.match(String(sessionStartNote(ws.root, payload, ws.env)), /hook/i);
   } finally {

@@ -392,15 +392,16 @@ describe("small helpers", () => {
 });
 
 describe("branch and lifecycle preconditions", () => {
-  test("refuse outside git, on a failed branch and on a legacy attachment", async () => {
-    for (const code of ["NOT_A_GIT_REPO", "GIT_NOT_AVAILABLE"]) {
-      s.attach.mockReturnValue({ error: "x", code } as never);
-      errors = [];
-      expect(await yes()).toStrictEqual({ exitCode: 1 });
-      expect(errors).toStrictEqual([
-        "Not in a git repository; set KIBI_BRANCH explicitly for migration audit metadata.",
-      ]);
-    }
+  test("refuse on a failed branch and on a legacy attachment", async () => {
+    // Outside Git the resolver attaches the no-Git store, so every failure
+    // left is reported with the resolver's own diagnostic.
+    s.attach.mockReturnValue({
+      error: "x",
+      code: "GIT_NOT_AVAILABLE",
+    } as never);
+    errors = [];
+    expect(await yes()).toStrictEqual({ exitCode: 1 });
+    expect(errors).toStrictEqual(["Failed to resolve active branch: x"]);
     s.attach.mockReturnValue({ error: "boom", code: "OTHER" } as never);
     errors = [];
     expect(await yes()).toStrictEqual({ exitCode: 1 });

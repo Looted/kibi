@@ -20,6 +20,18 @@ import {
   withCwd,
 } from "../helpers/in-process-workspace.js";
 import { withSemanticInventory } from "../helpers/inventory-fixture.js";
+import { finishCliTelemetry } from "../../src/usage-telemetry.js";
+
+// A refusal notes its category for the exit event; drain it as the CLI's
+// exit does, so it never reaches the next test file in this process.
+afterEach(async () => {
+  await finishCliTelemetry({
+    commandPath: undefined,
+    packageVersion: "0.0.0",
+    startedAt: new Date(),
+    exitCode: 0,
+  });
+});
 
 const roots: string[] = [];
 const restores: Array<() => void> = [];
@@ -38,16 +50,16 @@ afterEach(async () => {
 });
 
 describe("checkCommand", () => {
-  test("returns an error when the workspace is not a git repository", async () => {
+  test("refuses the commit gate outside Git with GIT_REQUIRED", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createTempDir("kibi-check-nongit-");
     roots.push(cwd);
     const io = captureIo();
     restores.push(io.restore);
-    const result = await withCwd(cwd, () => checkCommand({}));
+    const result = await withCwd(cwd, () => checkCommand({ staged: true }));
     expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain("Error:");
+    expect(io.errorText()).toContain("Error [GIT_REQUIRED]:");
   });
 
   test("treats empty staged sets as success", async () => {

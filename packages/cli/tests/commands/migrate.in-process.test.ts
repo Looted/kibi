@@ -140,17 +140,18 @@ describe("migrateCommand", () => {
     expect(io.errorText()).toContain("Missing .kb/ lifecycle state");
   });
 
-  test("fails outside git without an explicit branch", async () => {
+  test("fails when Git cannot read the repository", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
-    const cwd = createTempDir("kibi-migrate-nongit-");
+    const cwd = createTempDir("kibi-migrate-unreadable-");
     roots.push(cwd);
+    mkdirSync(path.join(cwd, ".git"));
     writeManifest(cwd, 4);
     const io = captureIo();
     restores.push(io.restore);
     const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
     expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain("Not in a git repository");
+    expect(io.errorText()).toContain("Failed to resolve active branch");
   });
 
   test("dry-runs schema and storage cutover then applies with --yes", async () => {

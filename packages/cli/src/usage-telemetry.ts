@@ -4,10 +4,12 @@ import {
   flushTelemetry,
   recordOperationTelemetry,
   takeTelemetryNotice,
+  telemetryEnabled,
   telemetryErrorClass,
   telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
 
+import { workspaceTelemetryVcs } from "kibi-agent-core/checkout-hooks";
 import { resolveKibiWorkspaceRoot } from "./env/bootstrap.js";
 import { operationTelemetrySignals } from "./telemetry-details.js";
 
@@ -147,14 +149,15 @@ export async function finishCliTelemetry(input: {
   }
   const notice = takeTelemetryNotice(env);
   if (notice) process.stderr.write(`${notice}\n`);
+  // The workspace the command ran in, not the directory it was started
+  // from: a skill loaded from a subdirectory marks the whole workspace.
+  const workspaceRoot = resolveKibiWorkspaceRoot(process.cwd(), env);
   recordOperationTelemetry(
     {
       packageName: "kibi-cli",
       packageVersion: input.packageVersion,
       host: detectTelemetryHost(env),
-      // The workspace the command ran in, not the directory it was started
-      // from: a skill loaded from a subdirectory marks the whole workspace.
-      workspaceRoot: resolveKibiWorkspaceRoot(process.cwd(), env),
+      workspaceRoot,
     },
     {
       interface: "cli",
@@ -180,6 +183,10 @@ export async function finishCliTelemetry(input: {
         ...call,
         ...(thrown !== undefined ? { error: thrown } : {}),
       }),
+      // Asked only when the event is recorded at all.
+      ...(telemetryEnabled(env)
+        ? { vcs: workspaceTelemetryVcs(workspaceRoot) }
+        : {}),
     },
     env,
   );

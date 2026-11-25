@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-923b4cd70617
+  - type: executable_for
+    from: SYM-test-mcp-no-git-workspace
+    to: TEST-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:22.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e9ade6ce6b

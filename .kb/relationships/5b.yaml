@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dc9e9e17e39
+  - type: implements
+    from: SYM-vcs-refuse-without-git
+    to: REQ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:18:01.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b204f86c51
+  - type: covered_by
+    from: SYM-vcs-refuse-without-git
+    to: TEST-kibi-git-required
+    created_at: 2026-11-25T09:18:01.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cae84da7d267

@@ -22,6 +22,21 @@ export const SESSION_BRIEF_LINES: readonly string[] = [
 export const SESSION_BRIEF: string = SESSION_BRIEF_LINES.join("\n");
 
 /**
+ * The finishing step outside any Git repository: there is no commit, so no
+ * commit check either.
+ */
+export const NO_GIT_FINISH_LINE =
+  "- Before finishing, run `kibi check` (this directory has no Git repository, so there is no commit check).";
+
+/** The session brief for a workspace with Git, or one without. */
+export function sessionBriefFor(noGit: boolean): string {
+  if (!noGit) return SESSION_BRIEF;
+  return SESSION_BRIEF_LINES.map((line) =>
+    line.startsWith("- Before finishing,") ? NO_GIT_FINISH_LINE : line,
+  ).join("\n");
+}
+
+/**
  * The session brief followed by host-specific lines, one block per session
  * start. Empty host lines are dropped.
  */

@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-kibi-no-git-advisory-mcp-session",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/mcp/tests/no-git-workspace.test.ts",
+      "./packages/mcp/tests/server/add-tool-paths.test.ts"
+    ]
+  ]
+}

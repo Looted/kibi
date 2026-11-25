@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
+  BranchResolutionFailure,
+  GitRequired,
   InputError,
   KbRejection,
   OperationError,
@@ -187,5 +189,75 @@ describe("isKbRejection", () => {
       wrapped = new Error(`w${depth}`, { cause: wrapped });
     expect(isKbRejection(wrapped)).toBe(true);
     expect(isKbRejection(new Error("w4", { cause: wrapped }))).toBe(false);
+  });
+});
+
+describe("BranchResolutionFailure", () => {
+  test("a repository Git refuses says how to find out why, with a code", () => {
+    const failure = new BranchResolutionFailure({
+      error: "Git refuses the repository.",
+      code: "GIT_REPOSITORY_UNREADABLE",
+    });
+    expect(failure).toBeInstanceOf(OperationError);
+    // The name stays OperationError, so a bundled copy is still read.
+    expect(failure.name).toBe("OperationError");
+    expect(failure.code).toBe("GIT_REPOSITORY_UNREADABLE");
+    expect(failure.retryable).toBe(false);
+    expect(failure.exitCode).toBe(1);
+    expect(failure.message).toBe(
+      "Failed to resolve active branch: Git refuses the repository. Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.",
+    );
+    expect(failure.detail).toBe(failure.message);
+    expect(codedErrorOf(failure)).toStrictEqual({
+      code: "GIT_REPOSITORY_UNREADABLE",
+      message: failure.message,
+      retryable: false,
+    });
+  });
+
+  test("without Git it says to install Git", () => {
+    const failure = new BranchResolutionFailure({
+      error: "Git is unavailable.",
+      code: "GIT_NOT_AVAILABLE",
+    });
+    expect(failure.code).toBe("GIT_NOT_AVAILABLE");
+    expect(failure.message).toBe(
+      "Failed to resolve active branch: Git is unavailable. Install Git (or put it on PATH), then retry.",
+    );
+  });
+
+  test("any other failure keeps the resolver's diagnostic", () => {
+    const detached = new BranchResolutionFailure({
+      error: "why",
+      code: "DETACHED_HEAD",
+    });
+    expect([detached.code, detached.message]).toStrictEqual([
+      "DETACHED_HEAD",
+      "Failed to resolve active branch: why",
+    ]);
+    for (const code of [
+      "UNBORN_BRANCH",
+      "AMBIGUOUS_ATTACHMENT",
+      "UNKNOWN_ERROR",
+    ] as const) {
+      const failure = new BranchResolutionFailure({ error: "why", code });
+      expect([code, failure.code, failure.message]).toStrictEqual([
+        code,
+        "BRANCH_UNRESOLVED",
+        "Failed to resolve active branch: why",
+      ]);
+    }
+  });
+});
+
+describe("GitRequired", () => {
+  test("is a coded refusal that is not retryable", () => {
+    const failure = new GitRequired("kibi gc needs a Git repository.");
+    expect(failure).toBeInstanceOf(OperationError);
+    expect(codedErrorOf(failure)).toStrictEqual({
+      code: "GIT_REQUIRED",
+      message: "kibi gc needs a Git repository.",
+      retryable: false,
+    });
   });
 });

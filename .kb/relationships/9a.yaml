@@ -475,3 +475,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc389a963e75
+  - type: assumes
+    from: SCEN-kibi-no-git-attached-store
+    to: FACT-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:05.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2debb6c4a913
+  - type: implements
+    from: SYM-vcs-no-git-store-adopted-diagnostic
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:41.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fc2713c0721
+  - type: covered_by
+    from: SYM-vcs-no-git-store-adopted-diagnostic
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:41.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d8b579a9e80

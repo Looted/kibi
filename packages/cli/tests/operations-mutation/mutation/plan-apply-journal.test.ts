@@ -5,6 +5,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -65,7 +66,9 @@ type Workspace = Readonly<{
 function workspace(
   options: { storeReady?: boolean; fields?: Record<string, unknown> } = {},
 ): Workspace {
-  const ws = scratch({ ".kb/.keep": "" }, "kibi-journal-");
+  // An empty .git entry: a repository whose branch Git cannot name, so
+  // receipts are written and stay unscoped.
+  const ws = scratch({ ".kb/.keep": "", ".git/.keep": "" }, "kibi-journal-");
   cleanups.push(ws.cleanup);
   const storePath = path.join(ws.root, ".kb", "branches", "develop-store");
   if (options.storeReady) {
@@ -316,6 +319,23 @@ describe("journal location", () => {
       ).toThrow(
         "Apply plan failed before any write: the KB branch could not be resolved for the plan journal",
       );
+    } finally {
+      if (saved === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      else process.env.KIBI_BRANCH = saved;
+    }
+  });
+
+  test("outside Git the journal belongs to the no-Git store", () => {
+    const ws = workspace();
+    rmSync(path.join(ws.root, ".git"), { recursive: true });
+    const saved = process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    try {
+      const { branchAttachment: _branch, ...context } = ws.context;
+      expect(
+        openPlanApplyJournal(context as OperationContext, hashA).branch,
+      ).toBe("kibi-internal/no-git");
     } finally {
       if (saved === undefined)
         Reflect.deleteProperty(process.env, "KIBI_BRANCH");

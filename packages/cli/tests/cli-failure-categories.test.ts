@@ -6,7 +6,7 @@ import path from "node:path";
 import { Command } from "commander";
 
 import { isClosedOutputError } from "../src/cli";
-import { KbRejection } from "../src/cli-errors";
+import { BranchResolutionFailure, KbRejection } from "../src/cli-errors";
 import { executeOperation } from "../src/cli-protocol";
 import {
   missingInputMessage,
@@ -231,6 +231,84 @@ describe("CLI failure categories", () => {
       isClosedOutputError(Object.assign(new Error("x"), { code: "ENOENT" })),
     ).toBe(false);
     expect(isClosedOutputError("EPIPE")).toBe(false);
+  });
+
+  test("outside a Git repository init and status succeed and the commit gate is refused with GIT_REQUIRED", async () => {
+    const env = telemetryEnv();
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-cli-no-git-"));
+    temporaryRoots.push(cwd);
+    const previousCwd = process.cwd();
+    const previousBranch = process.env.KIBI_BRANCH;
+    const previousCeiling = process.env.GIT_CEILING_DIRECTORIES;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    // The temporary directory must not resolve to a repository above it.
+    process.env.GIT_CEILING_DIRECTORIES = path.dirname(cwd);
+    const errors = spyOn(console, "error").mockImplementation(() => {});
+    const logs = spyOn(console, "log").mockImplementation(() => {});
+    try {
+      process.chdir(cwd);
+      const { initCommand } = await import("../src/commands/init");
+      expect(await initCommand({})).toStrictEqual({ exitCode: 0 });
+      expect(fs.existsSync(path.join(cwd, ".kb", "manifest.json"))).toBe(true);
+      await finish(env, "init", 0);
+      const status = await executeOperation("kb_status", {}, {
+        workspaceRoot: cwd,
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+      } as never);
+      expect(status.exitCode).toBe(0);
+      expect(
+        JSON.parse(status.stdout ?? "").diagnostics.map(
+          (diagnostic: { code: string }) => diagnostic.code,
+        ),
+      ).toContain("no_git_repository");
+      const { checkCommand } = await import("../src/commands/check");
+      expect(await checkCommand({ staged: true })).toStrictEqual({
+        exitCode: 1,
+      });
+      expect(String(errors.mock.calls.at(-1)?.[0])).toStartWith(
+        "Error [GIT_REQUIRED]: kibi check --staged needs a Git repository",
+      );
+      await finish(env, "check", 1);
+      await finish(
+        env,
+        "status",
+        1,
+        new BranchResolutionFailure({
+          error: "x",
+          code: "GIT_REPOSITORY_UNREADABLE",
+        }),
+      );
+    } finally {
+      process.chdir(previousCwd);
+      errors.mockRestore();
+      logs.mockRestore();
+      if (previousBranch === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      else process.env.KIBI_BRANCH = previousBranch;
+      if (previousCeiling === undefined)
+        Reflect.deleteProperty(process.env, "GIT_CEILING_DIRECTORIES");
+      else process.env.GIT_CEILING_DIRECTORIES = previousCeiling;
+    }
+    expect(queuedOutcomes(env)).toEqual([
+      ["success", null, null],
+      ["rejected", "git_required", null],
+      ["rejected", "git_repository_unreadable", null],
+    ]);
+    // Every event says the workspace has no version control, never where.
+    const queue = fs
+      .readFileSync(
+        path.join(env.KIBI_TELEMETRY_DIR as string, "telemetry-queue.jsonl"),
+        "utf8",
+      )
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(queue.map(({ vcs, vcs_reason }) => [vcs, vcs_reason])).toEqual([
+      ["none", "not_a_repository"],
+      ["none", "not_a_repository"],
+      ["none", "not_a_repository"],
+    ]);
   });
 
   test("a reader that closes stdout early does not crash the CLI", async () => {

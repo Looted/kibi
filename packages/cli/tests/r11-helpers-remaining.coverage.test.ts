@@ -23,7 +23,6 @@ import { passingE2eStage } from "../src/public/impact/full-kb-quality.js";
 import { requireKnownSpec } from "../src/public/operations/catalog.js";
 import { failedEffectStatus } from "../src/public/operations/result-envelope.js";
 import { finishedAtPrecedesStartedAt } from "../src/public/proof-receipt.js";
-import { attachmentFailureMessage } from "../src/runtime/cli-runtime.js";
 import { isBehaviorSourceEdit } from "../src/traceability/staged-impact-contract.js";
 import { skipNonIntegerFactNumber } from "../src/traceability/temp-kb.js";
 import { unreadableMigrationJournalError } from "../src/utils/branch-resolver.js";
@@ -134,18 +133,6 @@ describe("cli remasure11 leftover helpers", () => {
     expect(terminated).toBe(true);
     const prolog = new PrologProcess({ oneShot: true });
     prolog.attachProcessExitHandler(() => undefined);
-    expect(
-      attachmentFailureMessage({
-        error: "not a git repository",
-        code: "NOT_A_GIT_REPO",
-      }),
-    ).toMatch(/set KIBI_BRANCH explicitly/);
-    expect(
-      attachmentFailureMessage({
-        error: "detached HEAD",
-        code: "DETACHED_HEAD",
-      }),
-    ).toBe("Failed to resolve active branch: detached HEAD");
     expect(unreadableMigrationJournalError("mig-1.json").code).toBe(
       "MIGRATION_RECOVERY_REQUIRED",
     );

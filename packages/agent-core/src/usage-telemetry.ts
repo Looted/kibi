@@ -117,7 +117,20 @@ export type OperationTelemetry = {
   exitCode?: number | undefined;
   /** Where the agent struggled; see telemetry-signals.ts. */
   signals?: OperationSignals | undefined;
+  /**
+   * The workspace's version control: `git`, or `none` with why. Absent when
+   * the operation never resolved a workspace.
+   */
+  vcs?: TelemetryVcs | undefined;
 };
+
+/** A workspace's version control as sent: fixed words, never a path. */
+export type TelemetryVcs =
+  | { readonly kind: "git" }
+  | {
+      readonly kind: "none";
+      readonly reason: "not_a_repository" | "git_unavailable";
+    };
 
 /**
  * How an operation ended as sent: `success`; `rejected` when Kibi worked and
@@ -138,14 +151,19 @@ export const TELEMETRY_EVENT_VERSION = 2;
  */
 const REJECTED_CATEGORIES: ReadonlySet<string> = new Set([
   "bootstrap_plan_rejected",
+  "branch_unresolved",
   "check_violations",
   "coarse_symbol_linkage",
   "conflicting_input",
+  "detached_head",
   "entity_not_found",
   "entity_validation_failed",
   "firm_decision_locked",
   "generated_artifacts_stale",
   "git_conflicts_unresolved",
+  "git_not_available",
+  "git_repository_unreadable",
+  "git_required",
   "incomplete_propositions",
   "input_read_failed",
   "integration_failed",
@@ -833,6 +851,9 @@ export function recordOperationTelemetry(
         error_class:
           status === "error" ? telemetryClassName(operation.errorClass) : null,
         exit_code: operation.exitCode ?? null,
+        vcs: operation.vcs?.kind ?? null,
+        vcs_reason:
+          operation.vcs?.kind === "none" ? operation.vcs.reason : null,
         ...signalProperties(source, operation, status, env),
       },
     },

@@ -36,6 +36,9 @@ function createTempRoot(prefix: string): string {
 }
 
 function optInWorkspace(root: string): void {
+  // Inside Git, so the session brief carries no no-Git advisory.
+  if (!fs.existsSync(path.join(root, ".git")))
+    fs.mkdirSync(path.join(root, ".git"));
   fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
 }
@@ -302,6 +305,8 @@ describe("Codex hook runner workspace opt-in", () => {
     optInWorkspace(mainCheckout);
     const worktree = createTempRoot("kibi-codex-wt-");
     optInWorkspace(worktree);
+    // A linked worktree has a .git file, not a directory.
+    fs.rmSync(path.join(worktree, ".git"), { recursive: true });
     fs.writeFileSync(
       path.join(worktree, ".git"),
       "gitdir: elsewhere/kibi/.git/worktrees/wt\n",

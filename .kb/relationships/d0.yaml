@@ -426,3 +426,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02eda1d67540
+  - type: relates_to
+    from: REQ-kibi-no-git-compiles-sources-on-disk
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:16:59.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-740b0774fc97
+  - type: constrains
+    from: REQ-kibi-no-git-compiles-sources-on-disk
+    to: FACT-SUBJ-kibi-source-inventory-outside-git
+    created_at: 2026-11-25T09:16:59.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58c837fe6e33
+  - type: requires_property
+    from: REQ-kibi-no-git-compiles-sources-on-disk
+    to: FACT-kibi-no-git-sources-on-disk-required-receipt-count
+    created_at: 2026-11-25T09:17:11.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39e891b54644
+  - type: specified_by
+    from: REQ-kibi-no-git-compiles-sources-on-disk
+    to: SCEN-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:11.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46884786a024
+  - type: specified_by
+    from: REQ-kibi-no-git-compiles-sources-on-disk
+    to: SCEN-NEG-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:11.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97c6539012f6

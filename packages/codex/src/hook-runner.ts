@@ -6,7 +6,7 @@ import {
   shellToolEditPaths,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -551,7 +551,7 @@ export async function runHook(
             hookEventName: "SessionStart",
             additionalContext: sessionBriefWith([
               CODEX_SESSION_NOTE,
-              missingHooksNote(workspace.root) ?? "",
+              checkoutSessionNote(workspace.root) ?? "",
             ]),
           },
         };
