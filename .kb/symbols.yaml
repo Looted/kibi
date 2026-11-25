@@ -39906,7 +39906,7 @@ symbols:
       - type: implements
         target: REQ-kibi-unapproved-implemented-requirement
   - id: SYM-core-requirement-review-row
-    title: requirement_review_row
+    title: unapproved_implemented_row
     status: active
     sourceFile: packages/core/src/requirement_proof.pl
     symbol_role: behavioral
@@ -49184,6 +49184,68 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cla-workflow-contract
+  - id: SYM-rule-registry-rule-layer
+    title: RuleLayer
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:28:38.502Z
+  - id: SYM-rule-registry-rule-definition
+    title: RuleDefinition
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:28:40.633Z
+  - id: SYM-evidence-floor-requirement-proof-payload
+    title: RequirementProofPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:28:42.920Z
+  - id: SYM-rule-registry-get-rule-layer
+    title: getRuleLayer
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:31:06.663Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-check-rule-layers
+      - type: implements
+        target: REQ-kibi-check-rule-layers
+  - id: SYM-rule-registry-get-layer-rules
+    title: getLayerRules
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:31:07.820Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-check-rule-layers
+      - type: implements
+        target: REQ-kibi-check-rule-layers
+  - id: SYM-test-kibi-check-rule-layers
+    title: Rule layers suite
+    status: active
+    sourceFile: packages/cli/tests/utils/rule-layers.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:31:58.181Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-check-rule-layers
   - id: SYM-managed-hooks-find-outdated-managed-hooks
     title: findOutdatedManagedHooks
     sourceFile: packages/cli/src/operations/migration/managed-hooks.ts
