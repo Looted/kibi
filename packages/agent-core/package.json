@@ -70,6 +70,10 @@
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"
     },
+    "./read-context": {
+      "types": "./dist/read-context.d.ts",
+      "default": "./dist/read-context.js"
+    },
     "./kibi-level": {
       "types": "./dist/kibi-level.d.ts",
       "default": "./dist/kibi-level.js"

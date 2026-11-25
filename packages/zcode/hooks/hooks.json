@@ -24,7 +24,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "^(Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*)$",
+        "matcher": "^(Edit|MultiEdit|Write|apply_patch|Read|Grep|Bash|mcp__.*__kb_.*)$",
         "hooks": [
           {
             "type": "command",

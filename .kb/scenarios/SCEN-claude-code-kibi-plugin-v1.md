@@ -19,9 +19,9 @@ origin:
 
 - **Given** a workspace whose root owns `.kb/manifest.json`, and a source file whose symbols implement requirements in the symbol manifest
 - **When** the agent first reads or edits that file in a Claude Code session
-- **Then** the hook adds one snippet naming each linked requirement and its title, the implementing symbols, the covering tests, and the follow-up `kb_query` / intent-mode `kb_search` calls
+- **Then** a read adds one row per requirement of the symbols in view (id, firmness, title and implementing symbol), and an edit adds one snippet naming each linked requirement and its title, the implementing symbols, the covering tests, and the follow-up `kb_query` / intent-mode `kb_search` calls
 - **And** an edit names the symbol the edit lands in
-- **And** a second read of the same file, or a read of a file the agent already explored through Kibi, adds nothing
+- **And** a second read of the same code, or a read of a file the agent already explored through Kibi, adds nothing
 
 ## Stop reminder for unchecked edits
 

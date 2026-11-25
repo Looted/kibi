@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import { readContext } from "kibi-agent-core/read-context";
 import { createEntitySummarizer } from "kibi-agent-core/snippets";
 import {
   CONFIRM_FIRM_EDITS_ENV,
@@ -476,10 +477,10 @@ describe("search tools", () => {
     const fixture = workspace();
     for (const tool of ["Grep", "Glob"]) {
       const h = hooks(fixture, `search-${tool}`);
-      expect(await h.pre(tool, { pattern: "x" })).toStrictEqual(
+      expect(await h.pre(tool, { pattern: "zzz-nothing" })).toStrictEqual(
         preContext(searchTip(6)),
       );
-      expect(await h.pre(tool, { pattern: "x" })).toStrictEqual({});
+      expect(await h.pre(tool, { pattern: "zzz-nothing" })).toStrictEqual({});
       expect(h.journal()).toStrictEqual([
         { kind: "notice", name: "search-tip" },
       ]);
@@ -490,7 +491,9 @@ describe("search tools", () => {
     }
     const used = hooks(fixture, "search-used");
     await used.post("mcp__kibi__kb_status", {});
-    expect(await used.pre("Grep", { pattern: "x" })).toStrictEqual({});
+    expect(await used.pre("Grep", { pattern: "zzz-nothing" })).toStrictEqual(
+      {},
+    );
     expect(used.lastRow()).toStrictEqual(
       row({ hook_action: "search_silent", kb_used_before: true }),
     );
@@ -529,16 +532,19 @@ describe("reads", () => {
     ]);
   });
 
-  test("the read snippet, once, unless every owner was already explored", async () => {
+  test("the read rows, once, without the requirements Kibi already showed", async () => {
     const fixture = workspace();
     const h = hooks(fixture);
     await h.post("mcp__kibi__kb_query", { id: "REQ-two-a" });
-    const expected = fileKnowledgeSnippet({
-      relativePath: "src/two.ts",
-      symbols: h.symbols("src/two.ts"),
-      surface: "read",
+    const expected = readContext({
+      views: [{ relativePath: "src/two.ts", symbols: h.symbols("src/two.ts") }],
       summarize: h.summarize,
-    }) as string;
+      stateDir: undefined,
+      sessionKey: undefined,
+      alreadyShown: new Set(["REQ-two-a"]),
+    })?.text as string;
+    expect(expected).toContain("- REQ-two-b");
+    expect(expected).not.toContain("REQ-two-a");
     expect(
       await h.pre("Read", { file_path: h.at("src/two.ts") }),
     ).toStrictEqual(preContext(expected));
@@ -547,7 +553,7 @@ describe("reads", () => {
         hook_action: "read_snippet",
         path: "src/two.ts",
         path_kind: "source",
-        requirement_ids: ["REQ-two-a", "REQ-two-b"],
+        requirement_ids: ["REQ-two-b"],
         kb_used_before: true,
       }),
     );
@@ -808,12 +814,14 @@ describe("shell reads and writes before they run", () => {
     const read = await h.pre("Bash", { command: "cat two.ts" }, { cwd });
     expect(read).toStrictEqual(
       preContext(
-        fileKnowledgeSnippet({
-          relativePath: "src/two.ts",
-          symbols: h.symbols("src/two.ts"),
-          surface: "read",
+        readContext({
+          views: [
+            { relativePath: "src/two.ts", symbols: h.symbols("src/two.ts") },
+          ],
           summarize: h.summarize,
-        }) as string,
+          stateDir: undefined,
+          sessionKey: undefined,
+        })?.text as string,
       ),
     );
     expect(h.lastRow()).toStrictEqual(
@@ -925,16 +933,18 @@ describe("shell reads and writes before they run", () => {
   test("a search command gets the tip unless the Grep tip was shown", async () => {
     const fixture = workspace();
     const h = hooks(fixture);
-    expect(await h.pre("Bash", { command: "rg total" })).toStrictEqual(
+    expect(await h.pre("Bash", { command: "rg nowhere" })).toStrictEqual(
       preContext(searchTip(6)),
     );
     expect(h.lastRow()).toStrictEqual(row({ hook_action: "search_tip" }));
     const other = hooks(fixture, "after-grep");
-    await other.pre("Grep", { pattern: "x" });
-    expect(await other.pre("Bash", { command: "rg total" })).toStrictEqual({});
+    await other.pre("Grep", { pattern: "nowhere" });
+    expect(await other.pre("Bash", { command: "rg nowhere" })).toStrictEqual(
+      {},
+    );
     const used = hooks(fixture, "after-kb");
     await used.post("mcp__kibi__kb_status", {});
-    expect(await used.pre("Bash", { command: "rg total" })).toStrictEqual({});
+    expect(await used.pre("Bash", { command: "rg nowhere" })).toStrictEqual({});
   });
 });
 
