@@ -6,7 +6,12 @@ export {
   resolveWorkspaceRoot,
   getWorkspaceFolderUri,
 } from "./workspace";
-export { validateMcpServerPath, findKibiMcpInPath } from "./mcp";
+export {
+  validateMcpServerPath,
+  findKibiMcpInPath,
+  resolveKibiMcpServerCommand,
+  registerMcpServerProvider,
+} from "./mcp";
 export {
   registerTreeView,
   type TreeViewRegistrationResult,

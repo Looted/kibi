@@ -49184,3 +49184,111 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cla-workflow-contract
+  - id: SYM-mcp-resolve-kibi-mcp-server-command
+    title: resolveKibiMcpServerCommand
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:51:25.682Z
+    relationships:
+      - type: covered_by
+        target: TEST-vs-code-extension-register-kibi-mcp
+      - type: implements
+        target: REQ-vs-code-extension-register-kibi-mcp
+  - id: SYM-mcp-register-mcp-server-provider
+    title: registerMcpServerProvider
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:51:27.726Z
+    relationships:
+      - type: covered_by
+        target: TEST-vs-code-extension-register-kibi-mcp
+      - type: implements
+        target: REQ-vs-code-extension-register-kibi-mcp
+  - id: SYM-mcp-mcp-deps
+    title: McpDeps
+    status: active
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:11.672Z
+  - id: SYM-mcp-resolved-mcp-server-command
+    title: ResolvedMcpServerCommand
+    status: active
+    sourceFile: packages/vscode/src/activation/mcp.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:15.150Z
+  - id: SYM-extension-ids-kibi-mcp-provider-id
+    title: KIBI_MCP_PROVIDER_ID
+    status: active
+    sourceFile: packages/vscode/src/extensionIds.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:18.619Z
+  - id: SYM-extension-ids-kibi-mcp-provider-label
+    title: KIBI_MCP_PROVIDER_LABEL
+    status: active
+    sourceFile: packages/vscode/src/extensionIds.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:22.016Z
+  - id: SYM-vscode-mock-vscode-mock-overrides
+    title: VscodeMockOverrides
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:25.485Z
+  - id: SYM-vscode-mock-default-mcp-stdio-server-definition-cwd
+    title: DefaultMcpStdioServerDefinition.cwd
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:31.268Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-mock-reset-vscode-mock
+    title: resetVscodeMock
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:52:34.884Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-mock-default-mcp-stdio-server-definition
+    title: DefaultMcpStdioServerDefinition
+    status: active
+    sourceFile: packages/vscode/tests/shared/vscode-mock.ts
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:53:11.777Z
+    relationships:
+      - type: executable_for
+        target: TEST-vscode-traceability
+  - id: SYM-test-vscode-mcp-provider
+    title: packages/vscode/tests/activation/mcp.test.ts
+    status: active
+    sourceFile: packages/vscode/tests/activation/mcp.test.ts
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:53:17.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-vs-code-extension-register-kibi-mcp
