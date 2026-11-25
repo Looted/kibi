@@ -21,6 +21,7 @@ import {
   describeMigrationRun,
   formatSchemaVersion,
   isBacklogAction,
+  kibiLevelNote,
   migrateCommand,
   planChangedMessage,
   warnMigrationRequiredWithoutYes,
@@ -71,6 +72,8 @@ import { LATEST_KB_SCHEMA_VERSION } from "../src/utils/schema-version.js";
 const LATEST = LATEST_KB_SCHEMA_VERSION;
 /** The schema the approval floor step (approval-floor-v15) starts from. */
 const APPROVAL_FLOOR_FROM = 14;
+/** What the schema 20 step prints for a project that sets no level. */
+const levelNote = (dryRun: boolean) => kibiLevelNote(cwd, dryRun);
 const roots: string[] = [];
 let cwd = "";
 let logs: string[] = [];
@@ -1017,6 +1020,7 @@ describe("schema upgrade dry run", () => {
       "Warning: Cannot edit t.md: worse.",
       "dry run: would acknowledge 2 supersede(s) recorded without a 'Why this changed' section (manifest only; no reason is written).",
       "dry run: would acknowledge 1 supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).",
+      levelNote(true),
       "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
       "dry run: 2 firm or approved requirement(s) keep the tested floor (R1, R2); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.",
       "Warning: Cannot edit f.md: locked.",
@@ -1060,6 +1064,7 @@ describe("schema upgrade dry run", () => {
     s.candidates.mockResolvedValue(null as never);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
+      levelNote(true),
       "dry run: 1 firm or approved requirement(s) keep the tested floor (R1) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
       "dry run: no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `dry run: would set schemaVersion from 0 to ${LATEST} in .kb/manifest.json.`,
@@ -1091,6 +1096,7 @@ describe("schema upgrade dry run", () => {
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(s.agentMusts).toHaveBeenCalledWith(cwd, expect.any(String));
     expect(logs).toStrictEqual([
+      levelNote(true),
       "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
       "dry run: 1 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-a (no origin.recorded_at or created_at). From schema 15 kibi check fails on each one production code implements (agent-requirement-unapproved-implemented): have a person review them and record origin.approved_by, or lower their priority.",
       `dry run: would set schemaVersion from ${APPROVAL_FLOOR_FROM} to ${LATEST} in .kb/manifest.json.`,
@@ -1173,7 +1179,8 @@ describe("schema upgrade dry run", () => {
         expect([name, at, logs.length]).toStrictEqual([
           name,
           at,
-          at === version ? 4 : 3,
+          // The step's own preview, then the schema 20 level note.
+          at === version ? 5 : 4,
         ]);
       }
     }
@@ -1328,6 +1335,7 @@ describe("schema 16-18 review work", () => {
       "Recorded 'Definition not stated:' as the body of 2 subject fact(s) without one (F1, F2); no definition is invented, and a person replaces the note with one.",
       "Warning: Cannot record 'Definition not stated' on f3.md: changed.",
       reviewNote(false),
+      levelNote(false),
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 15).`,
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Recompiled the branch store from the migrated sources (kibi sync).",
@@ -1468,6 +1476,7 @@ describe("schema upgrade", () => {
       "Warning: Cannot tag t.md: bad.",
       "Acknowledged 1 supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.",
       "Acknowledged 2 supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.",
+      levelNote(false),
       "Recorded required_evidence: asserted on 2 current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.",
       "1 firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
       "Warning: Cannot record required_evidence on e.md: nope.",
@@ -1520,6 +1529,7 @@ describe("schema upgrade", () => {
         "positive-scenarios-v17",
         "pair-reviews-v18",
         "quantity-duplicates-v19",
+        "kibi-level-v20",
       ],
     };
     expect(result).toStrictEqual({
@@ -1566,7 +1576,7 @@ describe("schema upgrade", () => {
   });
 
   test("note the requirements schema 18 can pair, in the dry run and the upgrade", async () => {
-    atVersion(LATEST - 2);
+    atVersion(17);
     const candidates = spyOn(
       pairReview,
       "planPairReviewCandidates",
@@ -1596,7 +1606,7 @@ describe("schema upgrade", () => {
   });
 
   test("note the value fact pairs schema 19 blocks, in the dry run and the upgrade", async () => {
-    atVersion(LATEST - 1);
+    atVersion(18);
     const pairs = spyOn(
       quantityDuplicate,
       "planQuantityDuplicateReviews",
@@ -1635,13 +1645,13 @@ describe("schema upgrade", () => {
       positiveScenario,
       "planPositiveScenarioAcknowledgements",
     ).mockReturnValue(["R2", "R1"]);
-    atVersion(LATEST - 2);
+    atVersion(17);
     await dry();
     await yes();
     expect(musts).not.toHaveBeenCalled();
-    atVersion(LATEST - 3);
+    atVersion(16);
     s.read.mockReturnValue({
-      schemaVersion: LATEST - 3,
+      schemaVersion: 16,
       positiveScenarioAcknowledged: ["R0", "R1"],
     } as never);
     logs = [];
@@ -1659,7 +1669,7 @@ describe("schema upgrade", () => {
     });
     expect(musts).toHaveBeenCalledWith(cwd);
     musts.mockReturnValue([]);
-    atVersion(LATEST - 3);
+    atVersion(16);
     logs = [];
     await dry();
     await yes();
@@ -1699,6 +1709,7 @@ describe("schema upgrade", () => {
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
     const result = await yes();
     expect(logs).toStrictEqual([
+      levelNote(false),
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${APPROVAL_FLOOR_FROM}).`,
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
@@ -1711,6 +1722,7 @@ describe("schema upgrade", () => {
       "positive-scenarios-v17",
       "pair-reviews-v18",
       "quantity-duplicates-v19",
+      "kibi-level-v20",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",
@@ -1819,6 +1831,7 @@ describe("schema upgrade", () => {
     s.gaps.mockReturnValue(null);
     await yes();
     expect(logs).toStrictEqual([
+      levelNote(false),
       "no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,
       "Marked semantic advisor backfill as pending in .kb/manifest.json.",
@@ -1868,6 +1881,7 @@ describe("schema upgrade", () => {
     s.gaps.mockReturnValue(null);
     await yes();
     expect(logs).toStrictEqual([
+      levelNote(false),
       "1 firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
       "no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,

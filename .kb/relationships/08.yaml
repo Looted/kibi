@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba29c2e4454d
+  - type: implements
+    from: SYM-kibi-level-kibi-level-setting-name
+    to: REQ-kibi-level-setting
+    created_at: 2026-11-25T09:48:12.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-defe17dd1502
+  - type: covered_by
+    from: SYM-kibi-level-kibi-level-setting-name
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:12.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3add3e629fd1
+  - type: assumes
+    from: SCEN-NEG-kibi-level-setting-c03-neq-0
+    to: FACT-NEG-kibi-level-setting-c03-neq-0
+    created_at: 2026-11-25T10:19:31.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30ff3f9a29e

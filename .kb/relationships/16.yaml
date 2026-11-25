@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-645c8a877110
+  - type: implements
+    from: SYM-level-evidence-guard-assert-required-evidence-fits-level
+    to: REQ-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:51.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0e6c855e03
+  - type: covered_by
+    from: SYM-level-evidence-guard-assert-required-evidence-fits-level
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:51.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad4c69e2630

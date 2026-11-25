@@ -271,7 +271,7 @@
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "kibi": {
-    "kbSchema": 19
+    "kbSchema": 20
   },
   "homepage": "https://looted.github.io/kibi/",
   "repository": {

@@ -391,3 +391,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11dbeedc5b48
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c01
+    created_at: 2026-11-25T09:44:47.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f1664328104
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c02
+    created_at: 2026-11-25T09:44:47.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d55b57f71767
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c03
+    created_at: 2026-11-25T09:44:47.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-133db1ea619a

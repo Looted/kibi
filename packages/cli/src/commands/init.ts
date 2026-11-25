@@ -19,6 +19,7 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { KIBI_LEVELS, isKibiLevel } from "kibi-agent-core/kibi-level";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
@@ -56,6 +57,7 @@ import {
   isRepositoryManagedHooksDir,
   updateGitIgnore,
 } from "./init-helpers.js";
+import { initCanAsk, settleKibiLevel } from "./init-level.js";
 import {
   SETUP_CHOICE_NAMES,
   type SetupChoices,
@@ -77,6 +79,8 @@ interface InitOptions {
   prepareHooks?: boolean;
   agentInstructions?: boolean;
   ciGate?: boolean;
+  /** The Kibi level to record; asked at a terminal when not given. */
+  level?: string;
 }
 
 /**
@@ -245,6 +249,16 @@ export async function initCommand(
     return { exitCode: 0 };
   }
 
+  if (
+    options.level !== undefined &&
+    !isKibiLevel(options.level.trim().toLowerCase())
+  ) {
+    console.error(
+      `Error: unknown --level '${options.level}'. Expected one of: ${KIBI_LEVELS.join(", ")}.`,
+    );
+    return { exitCode: 1 };
+  }
+
   if (options.badgeOnly === true && options.github !== true) {
     console.error(
       "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",
@@ -338,6 +352,14 @@ export async function initCommand(
     }
 
     const choices = settleSetupChoices(projectRoot, options);
+    const level = await settleKibiLevel(
+      projectRoot,
+      options.level,
+      initCanAsk(),
+    );
+    // --level was validated above, so the settlement holds a level.
+    if ("level" in level && level.written !== null)
+      console.log(`✓ Recorded Kibi level ${level.level} in ${level.written}`);
     if (choices.agentInstructions) {
       reportAgentInstructions(writeAgentInstructions(projectRoot));
     }

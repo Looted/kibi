@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3eee7acc1d92
+  - type: assumes
+    from: SCEN-NEG-kibi-level-setting-c01-eq-false
+    to: FACT-NEG-kibi-level-setting-c01-eq-false
+    created_at: 2026-11-25T10:19:25.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0281ab253e4b

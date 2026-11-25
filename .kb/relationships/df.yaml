@@ -363,3 +363,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fee3fb206951
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-kibi-level-setting
+    created_at: 2026-11-25T09:48:04.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f5898161616
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-rejected
+    created_at: 2026-11-25T09:48:04.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1babfc68db2
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:39.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12bc52c15ea8
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-rejected
+    created_at: 2026-11-25T09:49:39.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e9e09d38b3
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c02-eq-false
+    created_at: 2026-11-25T10:19:23.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0735f39d21fc
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c01-eq-false
+    created_at: 2026-11-25T10:19:28.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4d28a94495
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-neq-0
+    created_at: 2026-11-25T10:19:34.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6ea7ea35f99
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-gt-0
+    created_at: 2026-11-25T10:19:40.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc47f7999ab
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c01-eq-false
+    created_at: 2026-11-25T10:20:54.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc71c4db5b72
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c02-eq-false
+    created_at: 2026-11-25T10:20:59.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b7fbe893af9
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c03-eq-false
+    created_at: 2026-11-25T10:21:05.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175aa9537c03

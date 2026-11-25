@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-129ca7c92aa4
+  - type: assumes
+    from: SCEN-kb-upsert-capture-at-remember
+    to: FACT-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-25T09:42:27.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-592b01036cf2
+  - type: assumes
+    from: SCEN-kb-upsert-capture-at-remember
+    to: FACT-kb-upsert-capture-no-verification-at-remember
+    created_at: 2026-11-25T09:42:27.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fa77abc7d06

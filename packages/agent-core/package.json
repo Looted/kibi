@@ -65,6 +65,10 @@
     "./hook-input": {
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"
+    },
+    "./kibi-level": {
+      "types": "./dist/kibi-level.d.ts",
+      "default": "./dist/kibi-level.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

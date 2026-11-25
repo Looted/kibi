@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3105c8ca2e8
+  - type: executable_for
+    from: SYM-test-kibi-level-setting
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:06.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-532ca9863a67

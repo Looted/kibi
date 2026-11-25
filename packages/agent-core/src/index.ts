@@ -3,6 +3,7 @@ export * from "./decision-guard.js";
 export * from "./firm-edit-review.js";
 export * from "./hook-usage-log.js";
 export * from "./kb-mcp-tools.js";
+export * from "./kibi-level.js";
 export * from "./knowledge-index.js";
 export * from "./path-policy.js";
 export * from "./snippets.js";
