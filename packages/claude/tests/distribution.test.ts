@@ -112,7 +112,9 @@ describe("kibi-claude distribution artifacts", () => {
     for (const entry of [
       ".claude-plugin",
       ".mcp.json",
+      "assets",
       "bin",
+      "commands",
       "hooks",
       "skills",
     ]) {
@@ -141,6 +143,12 @@ describe("kibi-claude distribution artifacts", () => {
   test("manifests reference files that exist in the plugin root", () => {
     const manifest = readJson(".claude-plugin/plugin.json");
     expect(manifest.name).toBe("kibi-claude");
+    expect(manifest.displayName).toBe("Kibi");
+    expect(manifest.icon).toBe("./assets/logo.png");
+    expect(fs.existsSync(path.join(packageRoot, "assets/logo.png"))).toBe(true);
+    expect(
+      fs.existsSync(path.join(packageRoot, "commands/kibi-signoff.md")),
+    ).toBe(true);
     expect(manifest.version).toBe(readJson("package.json").version);
 
     const hooks = JSON.stringify(readJson("hooks/hooks.json"));

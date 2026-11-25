@@ -517,6 +517,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-645c8a877110
+  - type: covered_by
+    from: SYM-mcp-resolve-kibi-mcp-server-command
+    to: TEST-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:54:06.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b1ba6ab6211
   - type: implements
     from: SYM-level-evidence-guard-assert-required-evidence-fits-level
     to: REQ-kibi-required-evidence-at-remember
@@ -552,3 +559,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f95b54cd2b2c
+  - type: implements
+    from: SYM-mcp-resolve-kibi-mcp-server-command
+    to: REQ-vscode-mcp-server-provider
+    created_at: 2026-11-25T18:05:59.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb8c4d8533e5

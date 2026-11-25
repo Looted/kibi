@@ -419,6 +419,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bf54f7aee6c
+  - type: validates
+    from: TEST-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:53:21.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb9fe69dab7
+  - type: validates
+    from: TEST-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp-reject
+    created_at: 2026-11-25T15:00:46.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70f1b41b4d65
   - type: assumes
     from: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
     to: FACT-NEG-hook-read-row-budgets-REPEATED-ROW

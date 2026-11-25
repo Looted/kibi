@@ -46,24 +46,30 @@ describe("kibi-zcode ZCode marketplace", () => {
     expect(plugin?.description).toEqual(expect.stringContaining("Kibi"));
   });
 
-  test("every plugin entry carries an https icon that ships in the repo", () => {
+  test("kibi-zcode carries an https icon that ships in the repo, while kibi-claude uses its plugin.json icon", () => {
     const marketplace = JSON.parse(
       fs.readFileSync(marketplacePath, "utf8"),
     ) as {
       plugins: Array<{ name: string; icon?: string }>;
     };
-    // ZCode reads a plugin's icon only from its marketplace entry.
+    // ZCode reads a plugin's icon from its marketplace entry; Claude Code
+    // rejects unknown `icon` fields on marketplace entries and reads `icon`
+    // from `.claude-plugin/plugin.json`.
     const prefix = "https://raw.githubusercontent.com/Looted/kibi/master/";
-    expect(marketplace.plugins.length).toBeGreaterThan(0);
-    for (const entry of marketplace.plugins) {
-      expect(entry.icon?.startsWith(prefix), entry.name).toBe(true);
-      expect(
-        fs.existsSync(
-          path.join(repoRoot, (entry.icon as string).slice(prefix.length)),
-        ),
-        entry.name,
-      ).toBe(true);
-    }
+    const zcodeEntry = marketplace.plugins.find(
+      (entry) => entry.name === "kibi-zcode",
+    );
+    expect(zcodeEntry?.icon?.startsWith(prefix)).toBe(true);
+    expect(
+      fs.existsSync(
+        path.join(repoRoot, (zcodeEntry?.icon as string).slice(prefix.length)),
+      ),
+    ).toBe(true);
+
+    const claudeEntry = marketplace.plugins.find(
+      (entry) => entry.name === "kibi-claude",
+    );
+    expect(claudeEntry?.icon).toBeUndefined();
   });
 
   test("marketplace has no unsupported npm/pip source kinds", () => {

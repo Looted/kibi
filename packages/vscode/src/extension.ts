@@ -19,6 +19,7 @@ import * as vscode from "vscode";
 import {
   getWorkspaceFolderUri,
   registerContextOnOpen,
+  registerMcpServerProvider,
   registerNavigationCommands,
   registerSignoff,
   registerTraceability,
@@ -55,6 +56,11 @@ function initializeWorkspaceFeatures(
 
   // Keep validateMcpServerPath non-blocking - it logs warnings but doesn't fail activation
   validateMcpServerPath(output);
+
+  const mcpProviderRegistration = registerMcpServerProvider(
+    output,
+    workspaceRoot,
+  );
 
   const treeViewResult = registerTreeView(
     context,
@@ -97,6 +103,7 @@ function initializeWorkspaceFeatures(
     navigationCommands.openTreeItemSourceCommand,
     navigationCommands.focusKnowledgeBaseCommand,
     ...traceabilityRegistrations,
+    ...(mcpProviderRegistration ? [mcpProviderRegistration] : []),
   );
 
   output.appendLine("Kibi extension activation complete.");
