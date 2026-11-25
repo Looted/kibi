@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a4a3d75cabd
+  - type: assumes
+    from: SCEN-NEG-search-decision-card-line-one-line-at-most-300-ABOVE
+    to: FACT-NEG-search-decision-card-line-one-line-at-most-300-ABOVE
+    created_at: 2026-11-25T14:35:52.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54fd6efa8007
+  - type: verified_by
+    from: SCEN-NEG-search-decision-card-line-one-line-at-most-300-ABOVE
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:52.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-495d8b07ea71

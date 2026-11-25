@@ -517,3 +517,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53d298194350
+  - type: constrains
+    from: REQ-search-scope-candidates
+    to: FACT-search-decision-scope-subject
+    created_at: 2026-11-25T14:29:06.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dcb1e2da939
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-unscoped-kept-small-demotion
+    created_at: 2026-11-25T14:29:06.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2666ee3f46a
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-distant-kept-half-weight
+    created_at: 2026-11-25T14:29:06.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41c7d5a35ff3
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-other-scope-count-only
+    created_at: 2026-11-25T14:29:06.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e25ae0b3695
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-search-scope-tiers-stay-candidates
+    created_at: 2026-11-25T14:29:06.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae328cafa0cb
+  - type: verified_by
+    from: REQ-search-scope-candidates
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:29:06.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6024eae7881b
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-unscoped-kept-small-demotion-BELOW
+    created_at: 2026-11-25T14:37:05.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a8fed215181
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-search-scope-candidates-unscoped-kept-small-demotion-AT
+    created_at: 2026-11-25T14:37:05.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f492042746ad
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    created_at: 2026-11-25T14:37:05.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-498de97bdb7f
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-ABOVE
+    created_at: 2026-11-25T14:37:05.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-157adf3d6d90
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-other-scope-count-only-OFF
+    created_at: 2026-11-25T14:37:05.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f17b6fb6337e

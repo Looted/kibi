@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c11ef5109ac4
+  - type: assumes
+    from: SCEN-NEG-search-scope-candidates-other-scope-count-only-OFF
+    to: FACT-NEG-search-scope-candidates-other-scope-count-only-OFF
+    created_at: 2026-11-25T14:35:35.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8339b7591d19
+  - type: verified_by
+    from: SCEN-NEG-search-scope-candidates-other-scope-count-only-OFF
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:35.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a82ff7f8dd82

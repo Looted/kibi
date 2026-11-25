@@ -566,3 +566,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f979a67cc7a
+  - type: assumes
+    from: SCEN-NEG-search-scope-candidates-unscoped-kept-small-demotion-BELOW
+    to: FACT-NEG-search-scope-candidates-unscoped-kept-small-demotion-BELOW
+    created_at: 2026-11-25T14:35:22.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2792cddf32a0
+  - type: verified_by
+    from: SCEN-NEG-search-scope-candidates-unscoped-kept-small-demotion-BELOW
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:22.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd7fe6a4d8af
