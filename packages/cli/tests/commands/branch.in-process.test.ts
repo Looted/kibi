@@ -539,6 +539,6 @@ describe("branch commands", () => {
     roots.push(nongit);
     await expect(
       branchEnsureCommand({ workspaceRoot: nongit }),
-    ).rejects.toThrow(/Failed to resolve active branch/);
+    ).rejects.toMatchObject({ code: "GIT_REQUIRED" });
   });
 });

@@ -11,7 +11,10 @@ import {
 
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import type { ToolsRuntime } from "../../src/server/tools.js";
-import { addTool } from "../../src/server/tools.js";
+import {
+  _resetNoGitAdvisoryForTests,
+  addTool,
+} from "../../src/server/tools.js";
 import {
   type WorkspaceRouter,
   setWorkspaceRouter,
@@ -653,6 +656,78 @@ describe("operation runtime wiring", () => {
       (operationRuntime.afterSuccess as ReturnType<typeof mock>).mock
         .calls[0]?.[0],
     ).toBe(write);
+  });
+
+  test("outside Git the advisory comes with the first result of a store, and with every status and check", async () => {
+    _resetNoGitAdvisoryForTests();
+    let storePath = "/no-git-store";
+    const operationRuntime: OperationRuntime = {
+      open: mock(async (_spec: unknown, options: { signal?: AbortSignal }) => ({
+        workspaceRoot: "/w",
+        signal: options.signal,
+        branchAttachment: {
+          kbBranch: "kibi-internal/no-git",
+          storePath,
+          noGit: {
+            reason: "not_a_repository",
+            explicitOverride: false,
+            notice: "No Git repository.",
+          },
+        },
+      })) as never,
+      afterSuccess: mock(async () => {}),
+      close: mock(async () => {}),
+    };
+    const { tools } = runtime({ operationRuntime: operationRuntime as never });
+    const codes = async (name: string) =>
+      (
+        (await register(name, async () => ({ ok: true }), tools).call({}))
+          .structuredContent.diagnostics as { code: string }[]
+      ).map((diagnostic) => diagnostic.code);
+    expect(await codes("kb_query")).toContain("no_git_repository");
+    expect(await codes("kb_query")).not.toContain("no_git_repository");
+    expect(await codes("kb_check")).toContain("no_git_repository");
+    expect(await codes("kb_query")).not.toContain("no_git_repository");
+    // Another store (KIBI_BRANCH changed) is advised again.
+    storePath = "/other-store";
+    expect(await codes("kb_query")).toContain("no_git_repository");
+    _resetNoGitAdvisoryForTests();
+  });
+
+  test("a status that attached no store is advised from its versionControl, every time", async () => {
+    _resetNoGitAdvisoryForTests();
+    const operationRuntime: OperationRuntime = {
+      open: mock(async (_spec: unknown, options: { signal?: AbortSignal }) => ({
+        workspaceRoot: "/w",
+        signal: options.signal,
+      })) as never,
+      afterSuccess: mock(async () => {}),
+      close: mock(async () => {}),
+    };
+    const { tools } = runtime({ operationRuntime: operationRuntime as never });
+    const detail = {
+      versionControl: "none",
+      reason: "not_a_repository",
+      kbBranch: "kibi-internal/no-git",
+      storePath: "/s",
+      unavailable: [],
+      alternative: "kibi check",
+      suggestion: "git init && kibi init",
+    };
+    const status = register(
+      "kb_status",
+      async () => ({ versionControl: detail }),
+      tools,
+    );
+    for (let call = 0; call < 2; call++) {
+      const diagnostics = (await status.call({})).structuredContent
+        .diagnostics as { code: string; detail?: unknown }[];
+      expect(diagnostics.at(-1)).toMatchObject({
+        code: "no_git_repository",
+        detail,
+      });
+    }
+    _resetNoGitAdvisoryForTests();
   });
 
   test("a generated request id joins the tool, time and random suffix", async () => {

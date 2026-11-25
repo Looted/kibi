@@ -201,7 +201,7 @@ describe("branchErrorToDiagnostic", () => {
     "DETACHED_HEAD",
     "UNBORN_BRANCH",
     "GIT_NOT_AVAILABLE",
-    "NOT_A_GIT_REPO",
+    "GIT_REPOSITORY_UNREADABLE",
     "ENV_OVERRIDE",
     "UNKNOWN_ERROR",
   ] as const;

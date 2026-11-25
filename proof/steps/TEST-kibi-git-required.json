@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-kibi-git-required",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/vcs/workspace-vcs.test.ts",
+      "./packages/cli/tests/cli-errors.test.ts",
+      "./packages/cli/tests/commands-coverage/check-diff.test.ts",
+      "./packages/cli/tests/cli-failure-categories.test.ts",
+      "./packages/cli/tests/consumer/outside-git.test.ts",
+      "./packages/mcp/tests/no-git-workspace.test.ts"
+    ]
+  ]
+}

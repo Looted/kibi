@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4debefd8ff3
+  - type: validates
+    from: TEST-kibi-no-git-advisory-mcp-session
+    to: REQ-kibi-no-git-advisory-once-per-mcp-session
+    created_at: 2026-11-25T09:20:20.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bcfaee438d8
+  - type: validates
+    from: TEST-kibi-no-git-advisory-mcp-session
+    to: SCEN-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:20.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09fd4012cc04
+  - type: validates
+    from: TEST-kibi-no-git-advisory-mcp-session
+    to: SCEN-NEG-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:20.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb6493306cb1

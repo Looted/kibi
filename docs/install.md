@@ -8,6 +8,8 @@ exit with an error naming the Node they found. Both start through the first
 `node` on `PATH`, so Node.js 22+ must come first there for your shell, your Git
 hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
 
+Git is recommended, not required. In a Git repository Kibi keeps knowledge per branch and installs the commit gate; in a directory without one it works on a single knowledge store, with no commit gate or Git hooks, and says so. Running `git init` and then `kibi init` later turns those on and keeps what was recorded ([Working without Git](error-reference.md#working-without-git-no_git_repository-git_required)).
+
 ### Bundled SWI-Prolog
 
 `kibi-cli` (and `kibi-runtime`, which `kibi-mcp` uses) depend on `kibi-swipl`, which lists one platform package per target as an optional dependency. Your package manager installs only the one that matches your machine:

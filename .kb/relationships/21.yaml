@@ -447,3 +447,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4372ac3c3d6b
+  - type: relates_to
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:21:46.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22e115f04c28
+  - type: constrains
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: FACT-SUBJ-kibi-telemetry-no-git-operation
+    created_at: 2026-11-25T09:21:46.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03af360dab81
+  - type: requires_property
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: FACT-kibi-no-git-telemetry-recorded-status
+    created_at: 2026-11-25T09:22:01.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3f8cb25408
+  - type: requires_property
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: FACT-kibi-no-git-telemetry-vcs
+    created_at: 2026-11-25T09:22:01.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7253ad6eb9d
+  - type: specified_by
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: SCEN-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:01.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e61c506c6707
+  - type: specified_by
+    from: REQ-kibi-no-git-telemetry-outcome
+    to: SCEN-NEG-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:22:01.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f25332b8a30

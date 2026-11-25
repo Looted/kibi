@@ -122,6 +122,8 @@ async function exercisePlugin(
   const pluginData = path.join(fixtureRoot, "plugin data");
   fs.mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(workspaceRoot, ".kb", "manifest.json"), "{}\n");
+  // Inside Git, so the session brief carries no no-Git advisory.
+  fs.mkdirSync(path.join(workspaceRoot, ".git"), { recursive: true });
   fs.mkdirSync(pluginData, { recursive: true });
 
   const config = JSON.parse(fs.readFileSync(hooksPath, "utf8")) as HookConfig;
