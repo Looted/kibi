@@ -336,8 +336,8 @@
       },
       {
         "flags": "--limit <n>",
-        "description": "Limit results",
-        "default": "20",
+        "description": "Limit results (default: 5 decision cards, or 10 rows with --type)",
+        "default": null,
         "mandatory": false
       },
       {
