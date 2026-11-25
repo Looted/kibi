@@ -708,12 +708,13 @@ describe("tracked relationship files", () => {
     ]);
   });
 
-  test("outside git or without the folder there are none", () => {
+  test("outside git the shards on disk are inputs; without the folder there are none", () => {
     const root = tempDir();
     write(root, ".kb/relationships/a.yaml", "a\n");
+    write(root, ".kb/relationships/notes.txt", "x\n");
     expect(
       trackedRelationshipFiles(root, path.join(root, ".kb/relationships")),
-    ).toEqual([]);
+    ).toEqual([path.join(root, ".kb/relationships/a.yaml")]);
     const { repo } = repoWithShards();
     expect(trackedRelationshipFiles(repo, path.join(repo, "missing"))).toEqual(
       [],

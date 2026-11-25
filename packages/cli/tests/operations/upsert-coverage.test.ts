@@ -458,6 +458,9 @@ describe("upsert helpers and executeUpsert guards", () => {
   test("executeUpsert keeps a concurrently rewritten shard and writes pending receipts on success", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-shard-ok-"));
     workspaces.push(root);
+    // Pending receipts are written inside Git only; an empty .git entry
+    // stands in for a repository whose branch is not resolved.
+    mkdirSync(path.join(root, ".git"), { recursive: true });
     const result = await executeUpsert(
       {
         type: "req",
@@ -629,6 +632,9 @@ describe("upsert helpers and executeUpsert guards", () => {
   test("executeUpsert rolls back published source when the pending receipt fails", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-receipt-"));
     workspaces.push(root);
+    // Pending receipts are written inside Git only; an empty .git entry
+    // stands in for a repository whose branch is not resolved.
+    mkdirSync(path.join(root, ".git"), { recursive: true });
     mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
     // A file where the pending-source receipt directory belongs makes the
     // advisory receipt publication fail after the new source bytes were

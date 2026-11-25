@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e6895197880
+  - type: validates
+    from: TEST-kibi-git-required
+    to: REQ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:17:52.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c96b1752a01
+  - type: validates
+    from: TEST-kibi-git-required
+    to: SCEN-kibi-git-required
+    created_at: 2026-11-25T09:17:52.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eec38e28cf88
+  - type: validates
+    from: TEST-kibi-git-required
+    to: SCEN-NEG-kibi-git-required
+    created_at: 2026-11-25T09:17:52.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e16d627909e

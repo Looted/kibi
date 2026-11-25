@@ -678,3 +678,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07104246dc83
+  - type: implements
+    from: SYM-cli-errors-git-required
+    to: REQ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:18:07.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae0a8a2f374c
+  - type: covered_by
+    from: SYM-cli-errors-git-required
+    to: TEST-kibi-git-required
+    created_at: 2026-11-25T09:18:07.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53d298194350

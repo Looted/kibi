@@ -716,6 +716,8 @@ describe("executeDelete guards and relationship preflight", () => {
   test("reports an ordinary postcommit failure as non-retryable when release succeeds", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-rel-postcommit-"));
     workspaces.push(root);
+    // Pending receipts are written inside Git only.
+    await mkdir(path.join(root, ".git"), { recursive: true });
     const relative = ".kb/requirements/REQ-POST.md";
     await mkdir(path.join(root, ".kb", "requirements"), { recursive: true });
     await mkdir(path.join(root, ".kb", "recovery"), { recursive: true });

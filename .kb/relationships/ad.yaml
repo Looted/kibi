@@ -346,3 +346,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af710c7008f6
+  - type: assumes
+    from: SCEN-kibi-no-git-unreadable-repository
+    to: FACT-kibi-no-git-unreadable-repository-refusal-error-code
+    created_at: 2026-11-25T09:16:39.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e98ee9a51b3

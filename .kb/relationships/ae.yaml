@@ -482,3 +482,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9b167064874
+  - type: relates_to
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:21:00.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fce120c053b8
+  - type: constrains
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: FACT-SUBJ-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:00.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81e8997df22b
+  - type: requires_property
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: FACT-kibi-no-git-adoption-unadopted-source-count
+    created_at: 2026-11-25T09:21:24.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1634c098fa89
+  - type: requires_property
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: FACT-kibi-no-git-adoption-retired-store-location
+    created_at: 2026-11-25T09:21:24.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9a917ec4ea3
+  - type: specified_by
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: SCEN-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:24.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf2f3aa3b6b5
+  - type: specified_by
+    from: REQ-kibi-no-git-store-adopted-on-git-init
+    to: SCEN-NEG-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:24.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5c49660b186

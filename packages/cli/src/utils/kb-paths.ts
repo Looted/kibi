@@ -25,6 +25,8 @@
  * state are derived runtime data. Nothing in this module is user-configurable.
  */
 
+import * as path from "node:path";
+
 export const KB_ROOT = ".kb";
 
 /** Kibi-owned entity-source lanes (Git-tracked authored knowledge). */
@@ -169,5 +171,25 @@ export function isDerivedKbPath(repoRelativePath: string): boolean {
   const posix = toPosixRepoPath(repoRelativePath);
   return DERIVED_KB_PREFIXES.some(
     (prefix) => posix === prefix || posix.startsWith(`${prefix}/`),
+  );
+}
+
+/**
+ * Whether a repo-relative posix path is an authored source sync compiles: an
+ * entity document in a lane (not a README), the symbols manifest, or a
+ * relationship shard.
+ */
+export function isSyncableKbSourcePath(posix: string): boolean {
+  if (
+    isEntityLanePath(posix) &&
+    posix.endsWith(".md") &&
+    path.posix.basename(posix) !== "README.md"
+  ) {
+    return true;
+  }
+  if (posix === KB_PATHS.symbolsManifest) return true;
+  return (
+    posix.startsWith(`${KB_PATHS.relationships}/`) &&
+    (posix.endsWith(".yaml") || posix.endsWith(".yml"))
   );
 }

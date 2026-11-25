@@ -110,9 +110,12 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
       execSync: (() => {
         throw "not-an-error";
       }) as unknown as typeof execSync,
+      // Inside a readable repository the thrown value is the diagnostic.
+      probeVcs: () => ({ kind: "git" }) as never,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({
       code: "UNKNOWN_ERROR",
+      error: expect.stringContaining("not-an-error"),
     });
   });
 

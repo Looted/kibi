@@ -12,6 +12,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   statSync,
   utimesSync,
   writeFileSync,
@@ -29,6 +30,18 @@ import {
   removeTempDir,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import { finishCliTelemetry } from "../../src/usage-telemetry.js";
+
+// A refusal notes its category for the exit event; drain it as the CLI's
+// exit does, so it never reaches the next test file in this process.
+afterEach(async () => {
+  await finishCliTelemetry({
+    commandPath: undefined,
+    packageVersion: "0.0.0",
+    startedAt: new Date(),
+    exitCode: 0,
+  });
+});
 
 const restores: Array<() => void> = [];
 let logs: string[] = [];
@@ -47,6 +60,8 @@ beforeEach(() => {
   previousExitCode = process.exitCode;
   process.exitCode = 0;
   root = createTempDir("kibi-gc-mut-");
+  // A `.git` marker puts the workspace inside Git; the fake runner answers.
+  mkdirSync(path.join(root, ".git"));
   track(
     spyOn(console, "log").mockImplementation((...args) => {
       logs.push(args.map(String).join(" "));
@@ -114,6 +129,21 @@ const gc = (options: Parameters<typeof gcCommand>[0], git: GcGitRunner) =>
 function staleLines(): string[] {
   return logs.slice(1).sort();
 }
+
+describe("gc outside Git", () => {
+  test("refuses with GIT_REQUIRED and never runs Git", async () => {
+    rmSync(path.join(root, ".git"), { recursive: true });
+    const calls: unknown[][] = [];
+    await gc({}, fakeGit(ok("main\n"), ok(""), calls));
+    expect(calls).toStrictEqual([]);
+    expect(logs).toStrictEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toStartWith("Error [GIT_REQUIRED]: ");
+    expect(process.exitCode).toBe(1);
+    // Restoring an undefined exit code does not clear it in Bun.
+    process.exitCode = 0;
+  });
+});
 
 describe("gc without branch stores", () => {
   test("says there is nothing to collect", async () => {

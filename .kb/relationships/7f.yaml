@@ -531,3 +531,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-236c36ff5256
+  - type: relates_to
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:20:03.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-843b415f3574
+  - type: constrains
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: FACT-SUBJ-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:03.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f3484ef0f69
+  - type: requires_property
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: FACT-kibi-no-git-advisory-mcp-session-advised-other-result-count
+    created_at: 2026-11-25T09:20:14.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-495855497b83
+  - type: specified_by
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: SCEN-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:15.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce820eee9f50
+  - type: specified_by
+    from: REQ-kibi-no-git-advisory-once-per-mcp-session
+    to: SCEN-NEG-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:15.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ebf580c42b

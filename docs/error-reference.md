@@ -239,7 +239,19 @@ A write that names a dependency is refused: MCP tools without a `kb` input fail 
 
 ## Write refused on a detached HEAD
 
-`<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+`<operation> writes the branch KB, but HEAD is detached at <sha> ...` (code `DETACHED_HEAD`, not retryable) means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+
+## Working without Git (`no_git_repository`, `GIT_REQUIRED`)
+
+Kibi works in a directory that is not inside any Git repository. It keeps one knowledge store for the directory (the reserved store `kibi-internal/no-git`, which `KIBI_BRANCH` cannot name), treats every file under `.kb/` on disk as authored input, and search, query, record, upsert, check and sync work as usual. `kibi init`, `kibi doctor`, the host session-start notes, `kibi status`, `kibi check` and the first MCP result of a session carry the advisory `no_git_repository` (a warning, not a failure): it names what is off until there is a repository and recommends `git init`, then `kibi init`. Until then, finish a change with `kibi check`. When Git itself is not installed, the advisory says to install it first.
+
+The features that read Git refuse with `GIT_REQUIRED` (`retryable: false`), naming the Git-free alternative: the commit gate (`kibi check --staged`, `kibi check-generated --staged`), `kibi check-diff`, `kibi hooks install`, `kibi branch ensure` and `kibi branch migrate`, `kibi gc`, impact review and `kibi signoff`.
+
+After `git init`, the first Kibi call carries the knowledge over: every `.kb` source Git does not track yet gets a pending-source receipt for the new branch, so the branch store compiles the same bytes, and the old store is kept under `.kb/recovery/no-git-adoption/` (nothing is deleted). Kibi prints one notice; run `kibi init` to install the hooks and refresh the agent instructions, then commit `.kb/`.
+
+## Git cannot read the repository (`GIT_REPOSITORY_UNREADABLE`, `GIT_NOT_AVAILABLE`, `BRANCH_UNRESOLVED`)
+
+A `.git` entry that Git refuses (for example `safe.directory` ownership, or a broken `.git` file) is not treated as "no repository": Kibi fails with `GIT_REPOSITORY_UNREADABLE`, because working without Git there would split the knowledge from the branch it belongs to. Run `git status` to see why Git refuses it and fix that. `GIT_NOT_AVAILABLE` means a `.git` entry exists but Git is not installed or not on `PATH`: install it, then retry. `DETACHED_HEAD` is the [detached HEAD refusal](#write-refused-on-a-detached-head), and `BRANCH_UNRESOLVED` covers every other case (an unborn or ambiguous branch) and carries the resolver's own diagnostic. All of these are `retryable: false`.
 
 ## Plan application journal (`kb_apply_plan`)
 

@@ -3,7 +3,7 @@
 // src/hook-runner.ts
 import { createHash as createHash9 } from "node:crypto";
 import os2 from "node:os";
-import path16 from "node:path";
+import path17 from "node:path";
 import { pathToFileURL } from "node:url";
 
 // ../agent-core/dist/bash-command.js
@@ -523,7 +523,49 @@ function parseHookInput(raw) {
 // ../agent-core/dist/checkout-hooks.js
 import { spawnSync as spawnSync2 } from "node:child_process";
 import * as fs2 from "node:fs";
+import * as path3 from "node:path";
+
+// ../agent-core/dist/version-control.js
+import { lstatSync } from "node:fs";
 import * as path2 from "node:path";
+function ceilingDirectories(env) {
+  return new Set((env.GIT_CEILING_DIRECTORIES ?? "").split(path2.delimiter).filter((entry) => entry.length > 0).map((entry) => path2.resolve(entry)));
+}
+function findRepositoryMarker(start, env = process.env) {
+  const ceilings = ceilingDirectories(env);
+  let current = path2.resolve(start);
+  for (;; ) {
+    const entry = path2.join(current, ".git");
+    try {
+      lstatSync(entry);
+      return entry;
+    } catch (error) {
+      const code = error.code;
+      if (code !== "ENOENT" && code !== "ENOTDIR")
+        return entry;
+    }
+    const parent = path2.dirname(current);
+    if (parent === current || ceilings.has(parent))
+      return null;
+    current = parent;
+  }
+}
+function noGitAdvisory(reason, kibiBranch) {
+  const opening = reason === "git_unavailable" ? "Git is not installed (or not on PATH) and this directory has no repository: Kibi is working without version control." : "No Git repository: Kibi is working without version control in this directory.";
+  const recommendation = reason === "git_unavailable" ? "Recommended: install Git, run `git init`, then `kibi init`; the knowledge recorded here carries over." : "Recommended: run `git init`, then `kibi init`; the knowledge recorded here carries over.";
+  const sentences = [
+    opening,
+    "Search, query, record, upsert, check and sync work on one knowledge store.",
+    "Off until there is a repository: the commit gate (`kibi check --staged`), Git hooks, impact review and per-branch knowledge.",
+    recommendation,
+    "Until then, finish a change with `kibi check`."
+  ];
+  if (kibiBranch !== undefined)
+    sentences.push(`KIBI_BRANCH=${kibiBranch} selects this store only in processes that set it; unset it to use this directory's own store.`);
+  return sentences.join(" ");
+}
+
+// ../agent-core/dist/checkout-hooks.js
 var HOOK_MANAGER_FILES = [
   "lefthook.yml",
   "lefthook.yaml",
@@ -547,20 +589,20 @@ function hasKibiPreCommitGate(workspaceRoot) {
     "--git-path",
     "hooks/pre-commit"
   ]);
-  const hookPath = resolved !== null ? path2.resolve(workspaceRoot, resolved) : path2.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  const hookPath = resolved !== null ? path3.resolve(workspaceRoot, resolved) : path3.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
     return /kibi[^\n]*\bcheck\b/i.test(String(fs2.readFileSync(hookPath)));
   } catch {}
   return false;
 }
 function kibiHooksMissing(workspaceRoot) {
-  if (!fs2.existsSync(path2.join(workspaceRoot, ".kb", "manifest.json")))
+  if (!fs2.existsSync(path3.join(workspaceRoot, ".kb", "manifest.json")))
     return false;
   if (git(workspaceRoot, ["rev-parse", "--is-inside-work-tree"]) !== "true")
     return false;
   if (git(workspaceRoot, ["config", "--get", "core.hooksPath"]) !== null)
     return false;
-  if (HOOK_MANAGER_FILES.some((file) => fs2.existsSync(path2.join(workspaceRoot, file))))
+  if (HOOK_MANAGER_FILES.some((file) => fs2.existsSync(path3.join(workspaceRoot, file))))
     return false;
   return !hasKibiPreCommitGate(workspaceRoot);
 }
@@ -568,11 +610,33 @@ var MISSING_HOOKS_NOTE = "Kibi git hooks are not installed in this checkout (a c
 function missingHooksNote(workspaceRoot) {
   return kibiHooksMissing(workspaceRoot) ? MISSING_HOOKS_NOTE : null;
 }
+function workspaceWithoutGit(workspaceRoot) {
+  const probe = spawnSync2("git", ["rev-parse", "--is-inside-work-tree"], {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    timeout: 2000
+  });
+  if (probe.status === 0)
+    return null;
+  if (findRepositoryMarker(workspaceRoot) !== null)
+    return null;
+  return probe.error === undefined ? "not_a_repository" : "git_unavailable";
+}
+function checkoutSessionNote(workspaceRoot) {
+  if (!fs2.existsSync(path3.join(workspaceRoot, ".kb", "manifest.json")))
+    return null;
+  const noGit = workspaceWithoutGit(workspaceRoot);
+  if (noGit !== null) {
+    const branch = process.env.KIBI_BRANCH?.trim();
+    return noGitAdvisory(noGit, branch ? branch : undefined);
+  }
+  return missingHooksNote(workspaceRoot);
+}
 
 // ../agent-core/dist/decision-guard.js
 import { createHash as createHash3 } from "node:crypto";
 import fs6 from "node:fs";
-import path7 from "node:path";
+import path8 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord(value) {
@@ -631,7 +695,7 @@ function kibiCliOperation(command) {
 var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 
 // ../agent-core/dist/path-policy.js
-import path3 from "node:path";
+import path4 from "node:path";
 var codeExtensions = new Set([
   ".c",
   ".cc",
@@ -733,9 +797,9 @@ function extractPatchTexts(toolInput) {
 function canonicalizeWorkspacePath(workspaceRoot, options) {
   const trimmed = normalizeWorkspacePath(options.rawPath);
   const base = options.base ?? options.eventCwd ?? workspaceRoot;
-  const absolute = path3.isAbsolute(trimmed) ? path3.resolve(trimmed) : path3.resolve(base, trimmed);
-  const workspaceRelative = path3.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path3.isAbsolute(workspaceRelative)) {
+  const absolute = path4.isAbsolute(trimmed) ? path4.resolve(trimmed) : path4.resolve(base, trimmed);
+  const workspaceRelative = path4.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path4.isAbsolute(workspaceRelative)) {
     return;
   }
   return { workspaceRelative, absolute };
@@ -759,7 +823,7 @@ function classifyPath(relativePath) {
   const basename = segments.at(-1);
   if (basename === undefined)
     return "other";
-  const extension = path3.extname(basename).toLowerCase();
+  const extension = path4.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension))
     return "other";
   if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
@@ -770,12 +834,12 @@ function classifyPath(relativePath) {
 
 // ../agent-core/dist/requirement-candidates.js
 import fs4 from "node:fs";
-import path5 from "node:path";
+import path6 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
 import fs3 from "node:fs";
-import path4 from "node:path";
+import path5 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
@@ -1183,7 +1247,7 @@ function readText2(filePath) {
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs3.mkdirSync(path4.dirname(cachePath), { recursive: true });
+    fs3.mkdirSync(path5.dirname(cachePath), { recursive: true });
     const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     fs3.writeFileSync(temporary, payload);
     fs3.renameSync(temporary, cachePath);
@@ -1204,13 +1268,13 @@ function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
   return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path4.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path4.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path5.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path5.join(workspaceRoot, SYMBOL_COORDINATES);
   if (!cacheDir)
     return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = path4.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cachePath = path5.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
   const cached = readCachedIndex(cachePath, signature);
   if (cached !== undefined)
     return cached;
@@ -1338,7 +1402,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path4.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path5.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -1386,13 +1450,13 @@ function currentSuccessors(workspaceRoot) {
   const edges = [];
   const list = (dir, suffix) => {
     try {
-      return fs3.readdirSync(path4.join(workspaceRoot, dir)).filter((name) => name.endsWith(suffix)).sort();
+      return fs3.readdirSync(path5.join(workspaceRoot, dir)).filter((name) => name.endsWith(suffix)).sort();
     } catch {}
     return [];
   };
   for (const name of list(".kb/requirements", ".md")) {
     const id = name.slice(0, -3);
-    const text = readText2(path4.join(workspaceRoot, ".kb/requirements", name));
+    const text = readText2(path5.join(workspaceRoot, ".kb/requirements", name));
     if (text === undefined || !text.includes("supersedes"))
       continue;
     for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
@@ -1400,7 +1464,7 @@ function currentSuccessors(workspaceRoot) {
         edges.push({ from: id, to: link.target });
   }
   for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
-    const text = readText2(path4.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    const text = readText2(path5.join(workspaceRoot, RELATIONSHIPS_DIR, name));
     if (text === undefined || !text.includes("supersedes"))
       continue;
     for (const { from, to } of shardSupersedes(text))
@@ -1445,7 +1509,7 @@ function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
   let head;
   let whole;
   try {
-    const descriptor = fs3.openSync(path4.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs3.openSync(path5.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(requirement ? REQUIREMENT_READ_BYTES : ENTITY_READ_BYTES);
       const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
@@ -1603,7 +1667,7 @@ function readSummaryHead(workspaceRoot, entityId, withShardLinks = true) {
 }
 
 // ../agent-core/dist/requirement-candidates.js
-var REQUIREMENTS_DIR = path5.join(".kb", "requirements");
+var REQUIREMENTS_DIR = path6.join(".kb", "requirements");
 var HEAD_BYTES = 4096;
 var MAX_SCANNED = 2000;
 var MAX_REQUIREMENT_CANDIDATES = 3;
@@ -1845,7 +1909,7 @@ function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUI
 function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
   if (pathTopicWords(relativePath).length === 0 && (requestWords?.length ?? 0) < 2)
     return [];
-  const directory = path5.join(workspaceRoot, REQUIREMENTS_DIR);
+  const directory = path6.join(workspaceRoot, REQUIREMENTS_DIR);
   let names;
   try {
     names = fs4.readdirSync(directory).filter((name) => name.endsWith(".md"));
@@ -1854,7 +1918,7 @@ function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_R
   }
   if (names.length > MAX_SCANNED)
     return [];
-  const heads = names.map((name) => readHead(path5.join(directory, name))).filter((head) => head !== undefined);
+  const heads = names.map((name) => readHead(path6.join(directory, name))).filter((head) => head !== undefined);
   const closed = new Set(rankRequirementCandidates(relativePath, heads, heads.length, requestWords).filter(isClosed).map((head) => head.id));
   const replaced = closed.size > 0 ? replacedRequirements(workspaceRoot, heads, closed) : NOTHING_REPLACED;
   return rankRequirementCandidates(relativePath, heads, limit, requestWords, replaced);
@@ -1873,7 +1937,7 @@ function restatedRequirement(workspaceRoot, sentence) {
   if (asked.size < MIN_RESTATED_WORDS)
     return;
   const negated = NEGATION.test(sentence);
-  const directory = path5.join(workspaceRoot, REQUIREMENTS_DIR);
+  const directory = path6.join(workspaceRoot, REQUIREMENTS_DIR);
   let names;
   try {
     names = fs4.readdirSync(directory).filter((name) => name.endsWith(".md"));
@@ -1883,7 +1947,7 @@ function restatedRequirement(workspaceRoot, sentence) {
   if (names.length > MAX_SCANNED)
     return;
   for (const name of names.sort()) {
-    const head = readHead(path5.join(directory, name));
+    const head = readHead(path6.join(directory, name));
     if (head === undefined || isClosed(head))
       continue;
     if (RETIRED_STATUS2.test(String(head.status)))
@@ -1907,7 +1971,7 @@ function restatedRequirement(workspaceRoot, sentence) {
 // ../agent-core/dist/snippets.js
 import { createHash as createHash2 } from "node:crypto";
 import fs5 from "node:fs";
-import path6 from "node:path";
+import path7 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -2360,9 +2424,9 @@ function focusUpdate(relativePath, symbols, focus) {
 function claimSnippetSlot(stateDir, key) {
   if (!stateDir)
     return true;
-  const marker = path6.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
+  const marker = path7.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
   try {
-    fs5.mkdirSync(path6.dirname(marker), { recursive: true });
+    fs5.mkdirSync(path7.dirname(marker), { recursive: true });
     fs5.writeFileSync(marker, "", { flag: "wx" });
     return true;
   } catch {
@@ -2523,13 +2587,13 @@ function patchSectionRemovesOnlyDeadComments(section) {
   return removed > 0;
 }
 function patchesRemoveOnlyDeadComments(absolutePath, patches, base) {
-  const target = path7.resolve(absolutePath);
+  const target = path8.resolve(absolutePath);
   const relevant = [];
   for (const patch of patches) {
     const sections = parsePatchSections(patch);
     if (sections === undefined)
       return false;
-    relevant.push(...base === undefined ? sections : sections.filter((section) => path7.resolve(base, section.path) === target));
+    relevant.push(...base === undefined ? sections : sections.filter((section) => path8.resolve(base, section.path) === target));
   }
   return relevant.length > 0 && relevant.every(patchSectionRemovesOnlyDeadComments);
 }
@@ -2725,10 +2789,10 @@ function sessionKey(session) {
 function guardRoot(session) {
   if (!session.stateDir)
     throw new Error;
-  return path7.join(session.stateDir, "decision-guard");
+  return path8.join(session.stateDir, "decision-guard");
 }
 function sessionPath(session, name) {
-  return path7.join(guardRoot(session), sessionKey(session), name);
+  return path8.join(guardRoot(session), sessionKey(session), name);
 }
 function newestOf(files) {
   let newest = Number.NaN;
@@ -2743,7 +2807,7 @@ function newestOf(files) {
 }
 function markerFiles(dir) {
   try {
-    return fs6.readdirSync(dir).map((name) => path7.join(dir, name));
+    return fs6.readdirSync(dir).map((name) => path8.join(dir, name));
   } catch {
     return [];
   }
@@ -2765,7 +2829,7 @@ function startDecisionSession(session, cause, options = {}) {
   const own = sessionKey(session);
   let dropped = false;
   if (!session.sessionId?.trim() && cause !== "resume") {
-    const files = [...markerFiles(path7.join(root, own)), ...hostFiles];
+    const files = [...markerFiles(path8.join(root, own)), ...hostFiles];
     dropped = cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
     if (dropped) {
       for (const file of files)
@@ -2781,7 +2845,7 @@ function startDecisionSession(session, cause, options = {}) {
   for (const key of keys) {
     if (key === own)
       continue;
-    const dir = path7.join(root, key);
+    const dir = path8.join(root, key);
     if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
       removeQuietly(dir);
     }
@@ -2789,7 +2853,7 @@ function startDecisionSession(session, cause, options = {}) {
   return dropped;
 }
 function touchMarker(file, flag) {
-  fs6.mkdirSync(path7.dirname(file), { recursive: true });
+  fs6.mkdirSync(path8.dirname(file), { recursive: true });
   fs6.closeSync(fs6.openSync(file, flag));
 }
 function markDecisionFlag(session, flag) {
@@ -2805,7 +2869,7 @@ function claimDecisionFlag(session, flag) {
     return false;
   }
 }
-var SIGNOFF_LATEST_JSON = path7.join(".kb", "briefs", "signoff", "latest.json");
+var SIGNOFF_LATEST_JSON = path8.join(".kb", "briefs", "signoff", "latest.json");
 function record(value) {
   return typeof value === "object" && !Array.isArray(value) ? value : undefined;
 }
@@ -2835,7 +2899,7 @@ function claimSignoffReminder(session, workspaceRoot) {
   const recorded = mtimeMs(() => sessionPath(session, "requirement-recorded"));
   if (Number.isNaN(recorded))
     return false;
-  const shown = mtimeMs(() => path7.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  const shown = mtimeMs(() => path8.join(workspaceRoot, SIGNOFF_LATEST_JSON));
   if (shown >= recorded)
     return false;
   return claimDecisionFlag(session, "signoff-asked");
@@ -2851,7 +2915,7 @@ function signoffReminder() {
 // ../agent-core/dist/firm-edit-review.js
 import { createHash as createHash4 } from "node:crypto";
 import fs7 from "node:fs";
-import path8 from "node:path";
+import path9 from "node:path";
 var FIRM_EDIT_REVIEWS_DIR = ".kb/firm-edit-reviews";
 var FIRM_EDIT_RECEIPT_VERSION = 1;
 var REQUIREMENT_ID = /^REQ-[A-Za-z0-9._-]+$/;
@@ -2997,7 +3061,7 @@ function requirementStatementFromDocument(text) {
 function readRequirementStatement(workspaceRoot, requirementId) {
   if (!REQUIREMENT_ID.test(requirementId))
     return;
-  const text = readText3(path8.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`));
+  const text = readText3(path9.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`));
   return requirementStatementFromDocument(text);
 }
 function firmEditReviewed(workspaceRoot, sourceFile, askedAt) {
@@ -3006,13 +3070,13 @@ function firmEditReviewed(workspaceRoot, sourceFile, askedAt) {
     const asked = askedAt(requirementId);
     if (asked === undefined)
       return false;
-    const receipt = readFirmEditReceipt(requirementId, sourceFile, symbol.title, (relativePath) => readText3(path8.join(workspaceRoot, relativePath)));
+    const receipt = readFirmEditReceipt(requirementId, sourceFile, symbol.title, (relativePath) => readText3(path9.join(workspaceRoot, relativePath)));
     if (receipt?.verdict !== "keeps" || !(Date.parse(receipt.recordedAt) >= asked))
       return false;
     const statement = readRequirementStatement(workspaceRoot, requirementId);
     if (statement === undefined)
       return false;
-    content ??= readText3(path8.join(workspaceRoot, sourceFile));
+    content ??= readText3(path9.join(workspaceRoot, sourceFile));
     return firmEditReceiptMismatch(receipt, { statement, content }) === undefined;
   };
 }
@@ -3026,7 +3090,7 @@ function readText3(file) {
 // ../agent-core/dist/read-context.js
 import { createHash as createHash5 } from "node:crypto";
 import fs8 from "node:fs";
-import path9 from "node:path";
+import path10 from "node:path";
 var MAX_ROWS_PER_EVENT = 3;
 var MAX_WHOLE_FILE_ROWS = 5;
 var MAX_EVENT_CHARS = 700;
@@ -3099,7 +3163,7 @@ function wholeFileCandidates(view, summarize) {
 }
 function ledgerFile(stateDir, sessionKey) {
   const key = createHash5("sha256").update(String(sessionKey)).digest("hex").slice(0, 32);
-  return path9.join(stateDir, "read-rows", `${key}.jsonl`);
+  return path10.join(stateDir, "read-rows", `${key}.jsonl`);
 }
 function readLedger(stateDir, sessionKey) {
   const total = { rows: 0, chars: 0 };
@@ -3126,7 +3190,7 @@ function appendLedger(stateDir, sessionKey, entry) {
     return;
   const file = ledgerFile(stateDir, sessionKey);
   try {
-    fs8.mkdirSync(path9.dirname(file), { recursive: true });
+    fs8.mkdirSync(path10.dirname(file), { recursive: true });
     fs8.appendFileSync(file, `${JSON.stringify(entry)}
 `);
   } catch {}
@@ -3137,7 +3201,7 @@ function slotKey(sessionKey, ...parts) {
 function slotTaken(stateDir, key) {
   if (!stateDir)
     return false;
-  const marker = path9.join(stateDir, "shown-snippets", createHash5("sha256").update(key).digest("hex").slice(0, 32));
+  const marker = path10.join(stateDir, "shown-snippets", createHash5("sha256").update(key).digest("hex").slice(0, 32));
   return fs8.existsSync(marker);
 }
 function rowText(candidate, summarize, withPath) {
@@ -3284,8 +3348,8 @@ function linkedFilesUnder(files, relativeDirectory) {
   return Object.keys(files).filter((file) => file.startsWith(prefix) && implementedRequirementIds(files[file] ?? []).length > 0).sort().slice(0, MAX_SEARCH_FILES);
 }
 function relativeTo(root, absolute) {
-  const relative = path9.relative(root, absolute).split(path9.sep).join("/");
-  if (relative.startsWith("..") || path9.isAbsolute(relative))
+  const relative = path10.relative(root, absolute).split(path10.sep).join("/");
+  if (relative.startsWith("..") || path10.isAbsolute(relative))
     return;
   return relative;
 }
@@ -3303,7 +3367,7 @@ function resolveReadViews(reads, input) {
         const symbols = input.files[file] ?? [];
         if (implementedRequirementIds(symbols).length === 0)
           continue;
-        const matches = matchingLines(path9.join(input.workspaceRoot, file), read.grep);
+        const matches = matchingLines(path10.join(input.workspaceRoot, file), read.grep);
         if (matches.length === 0)
           continue;
         views.set(file, { relativePath: file, symbols, matches });
@@ -3373,7 +3437,7 @@ function hookReadRows(reads, input) {
 function searchToolRead(search) {
   if (typeof search.pattern !== "string" || search.pattern.length === 0)
     return;
-  const absolute = typeof search.path === "string" && search.path.trim().length > 0 ? path9.resolve(search.cwd, search.path) : search.cwd;
+  const absolute = typeof search.path === "string" && search.path.trim().length > 0 ? path10.resolve(search.cwd, search.path) : search.cwd;
   let directory;
   try {
     directory = fs8.statSync(absolute).isDirectory();
@@ -3396,12 +3460,12 @@ function searchToolRead(search) {
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs11 from "node:fs";
-import path12 from "node:path";
+import path13 from "node:path";
 
 // ../agent-core/dist/telemetry-signals.js
 import { createHash as createHash6, randomUUID as randomUUID2 } from "node:crypto";
 import fs9 from "node:fs";
-import path10 from "node:path";
+import path11 from "node:path";
 var RETRY_WINDOW_MS = 10 * 60 * 1000;
 var SEARCH_REPEAT_WINDOW_MS = 2 * 60 * 1000;
 var SKILL_WINDOW_MS = 30 * 60 * 1000;
@@ -3472,7 +3536,7 @@ function kibiSkillLoad(toolName, toolInput) {
   return skillInStrings(toolInput, 3);
 }
 function recentPath(directory) {
-  return path10.join(directory, RECENT_FILE);
+  return path11.join(directory, RECENT_FILE);
 }
 function entries(value) {
   return Array.isArray(value) ? value : [];
@@ -3512,7 +3576,7 @@ function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
 import { createHash as createHash7, randomUUID as randomUUID3 } from "node:crypto";
 import fs10 from "node:fs";
 import os from "node:os";
-import path11 from "node:path";
+import path12 from "node:path";
 import { fileURLToPath } from "node:url";
 var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
 var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
@@ -3531,14 +3595,19 @@ var DEFAULT_FLUSH_TIMEOUT_MS = 1500;
 var TELEMETRY_EVENT_VERSION = 2;
 var REJECTED_CATEGORIES = new Set([
   "bootstrap_plan_rejected",
+  "branch_unresolved",
   "check_violations",
   "coarse_symbol_linkage",
   "conflicting_input",
+  "detached_head",
   "entity_not_found",
   "entity_validation_failed",
   "firm_decision_locked",
   "generated_artifacts_stale",
   "git_conflicts_unresolved",
+  "git_not_available",
+  "git_repository_unreadable",
+  "git_required",
   "incomplete_propositions",
   "input_read_failed",
   "integration_failed",
@@ -3652,7 +3721,7 @@ function realDirectory(directory) {
   try {
     return fs10.realpathSync(directory);
   } catch {
-    return path11.resolve(directory);
+    return path12.resolve(directory);
   }
 }
 function sandboxedHome(env) {
@@ -3661,7 +3730,7 @@ function sandboxedHome(env) {
     return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved.startsWith(`${temp}${path11.sep}`);
+  return resolved.startsWith(`${temp}${path12.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
 function moduleFileFromUrl(readUrl) {
@@ -3680,15 +3749,15 @@ function insideKibiCheckout(file) {
   const resolved = realDirectory(file);
   if (resolved.split(/[\\/]/).includes("node_modules"))
     return false;
-  let current = path11.dirname(resolved);
+  let current = path12.dirname(resolved);
   for (;; ) {
     try {
-      const manifest = JSON.parse(fs10.readFileSync(path11.join(current, "package.json"), "utf8"));
-      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs10.existsSync(path11.join(current, "packages", "agent-core"))) {
+      const manifest = JSON.parse(fs10.readFileSync(path12.join(current, "package.json"), "utf8"));
+      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs10.existsSync(path12.join(current, "packages", "agent-core"))) {
         return true;
       }
     } catch {}
-    const parent = path11.dirname(current);
+    const parent = path12.dirname(current);
     if (parent === current)
       return false;
     current = parent;
@@ -3719,14 +3788,14 @@ function telemetryDirectory(env = process.env) {
   if (explicit)
     return explicit;
   if (process.platform === "win32" && env.LOCALAPPDATA) {
-    return path11.join(env.LOCALAPPDATA, "kibi");
+    return path12.join(env.LOCALAPPDATA, "kibi");
   }
   const stateHome = env.XDG_STATE_HOME?.trim();
-  return path11.join(stateHome || path11.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
+  return path12.join(stateHome || path12.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(String(fs10.readFileSync(path11.join(telemetryDirectory(env), CONFIG_FILE))));
+    const parsed = JSON.parse(String(fs10.readFileSync(path12.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -3735,7 +3804,7 @@ function readTelemetryConfig(env = process.env) {
 function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
   fs10.mkdirSync(directory, { recursive: true });
-  fs10.writeFileSync(path11.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+  fs10.writeFileSync(path12.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
 `);
 }
 function telemetryStatus(env = process.env) {
@@ -3805,7 +3874,7 @@ function runtimeName() {
   return typeof globalThis.Bun === "undefined" ? "node" : "bun";
 }
 function sessionMarkersPath(env) {
-  return path11.join(telemetryDirectory(env), SESSIONS_FILE);
+  return path12.join(telemetryDirectory(env), SESSIONS_FILE);
 }
 function readSessionMarkers(env) {
   try {
@@ -3830,7 +3899,7 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
   try {
     const file = sessionMarkersPath(env);
-    fs10.mkdirSync(path11.dirname(file), { recursive: true });
+    fs10.mkdirSync(path12.dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.${randomUUID3()}.tmp`;
     fs10.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
     fs10.renameSync(temporary, file);
@@ -3839,13 +3908,13 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
 function workspaceSessionHash(startDirectory, env = process.env) {
   const markers = readSessionMarkers(env);
   const now = Date.now();
-  let current = path11.resolve(startDirectory);
+  let current = path12.resolve(startDirectory);
   for (;; ) {
     const marker = markers[workspaceKey(current)];
     if (marker && typeof marker.session === "string" && typeof marker.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS) {
       return marker.session;
     }
-    const parent = path11.dirname(current);
+    const parent = path12.dirname(current);
     if (parent === current)
       return;
     current = parent;
@@ -3877,12 +3946,12 @@ function baseProperties(source, env) {
   };
 }
 function queuePath(env) {
-  return path11.join(telemetryDirectory(env), QUEUE_FILE);
+  return path12.join(telemetryDirectory(env), QUEUE_FILE);
 }
 function appendEvent(event, env) {
   try {
     const file = queuePath(env);
-    fs10.mkdirSync(path11.dirname(file), { recursive: true });
+    fs10.mkdirSync(path12.dirname(file), { recursive: true });
     try {
       if (fs10.statSync(file).size > MAX_QUEUE_BYTES)
         return;
@@ -3964,7 +4033,7 @@ function claimBatches(directory, now) {
   for (const name of names) {
     if (!name.endsWith(SENDING_SUFFIX))
       continue;
-    const file = path11.join(directory, name);
+    const file = path12.join(directory, name);
     try {
       if (now - fs10.statSync(file).mtimeMs < STALE_CLAIM_MS)
         continue;
@@ -3973,8 +4042,8 @@ function claimBatches(directory, now) {
       claimed.push(reclaimed);
     } catch {}
   }
-  const queue = path11.join(directory, QUEUE_FILE);
-  const target = path11.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
+  const queue = path12.join(directory, QUEUE_FILE);
+  const target = path12.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
   try {
     fs10.renameSync(queue, target);
     claimed.push(target);
@@ -4086,8 +4155,8 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path12.join(row.workspaceRoot, ".kb", "usage.log");
-    fs11.mkdirSync(path12.dirname(logPath), { recursive: true });
+    const logPath = path13.join(row.workspaceRoot, ".kb", "usage.log");
+    fs11.mkdirSync(path13.dirname(logPath), { recursive: true });
     fs11.appendFileSync(logPath, `${JSON.stringify(record)}
 `);
   } catch {}
@@ -4118,31 +4187,31 @@ function readPackageVersion(packageJsonPath) {
 
 // ../agent-core/dist/workspace-optin.js
 import fs12 from "node:fs";
-import path13 from "node:path";
+import path14 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path13.dirname(current);
+  const parent = path14.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs12.existsSync(path13.join(directory, ".kb", "manifest.json"));
+  return fs12.existsSync(path14.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs12.existsSync(path13.join(directory, ".git"));
+  return fs12.existsSync(path14.join(directory, ".git"));
 }
 function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      const root = path13.resolve(value);
+      const root = path14.resolve(value);
       return { root, optedIn: hasKibiManifest(root) };
     }
   }
-  const start = path13.resolve(startDir?.trim() ? startDir : process.cwd());
+  const start = path14.resolve(startDir?.trim() ? startDir : process.cwd());
   let current = start;
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
@@ -4244,20 +4313,20 @@ function classifyPath2(relativePath) {
 // src/session-state.ts
 import { createHash as createHash8 } from "node:crypto";
 import fs13 from "node:fs";
-import path14 from "node:path";
+import path15 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash8("sha256").update(path14.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path14.join(pluginData, "workspaces", key);
+  const key = createHash8("sha256").update(path15.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path15.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
   const key = trimmed.length > 0 ? createHash8("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path14.join(workspaceDir, "sessions", key);
+  return path15.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -4364,7 +4433,7 @@ function applyEvent(state, event) {
   }
 }
 function sessionJournal(dir) {
-  return dir ? [path14.join(dir, JOURNAL)] : [];
+  return dir ? [path15.join(dir, JOURNAL)] : [];
 }
 function loadSessionState(dir) {
   const state = emptySessionState();
@@ -4372,7 +4441,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs13.readFileSync(path14.join(dir, JOURNAL), "utf8");
+    journal = fs13.readFileSync(path15.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -4389,7 +4458,7 @@ function appendSessionEvents(dir, events) {
     return;
   try {
     fs13.mkdirSync(dir, { recursive: true });
-    fs13.appendFileSync(path14.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs13.appendFileSync(path15.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -4429,9 +4498,9 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path15 from "node:path";
+import path16 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var pluginVersion = readPackageVersion(path15.join(path15.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+var pluginVersion = readPackageVersion(path16.join(path16.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 function appendHookUsage2(row, env = process.env) {
   appendHookUsage({
     ...row,
@@ -4500,7 +4569,7 @@ function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace, edi
     symbols,
     focus,
     wholeFile,
-    absolutePath: path16.join(workspace.root, relativePath),
+    absolutePath: path17.join(workspace.root, relativePath),
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed
   };
@@ -4965,7 +5034,7 @@ function userPromptSubmit(input, workspace, trace) {
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path16.join(os2.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path17.join(os2.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
@@ -5010,7 +5079,7 @@ function dispatchHook(input, workspace, trace) {
       }
       return context("SessionStart", [
         sessionStartContext(linkedFileCount(workspace.index())),
-        missingHooksNote(workspace.root)
+        checkoutSessionNote(workspace.root)
       ].filter((line) => line !== null).join(`
 `));
     }
@@ -5037,7 +5106,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path16.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path17.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

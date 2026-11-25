@@ -482,3 +482,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd6446bb0554
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-advisory-mcp-session
+    to: FACT-NEG-kibi-no-git-advisory-mcp-session
+    created_at: 2026-11-25T09:20:12.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-787e5074be97

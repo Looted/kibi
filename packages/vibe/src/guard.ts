@@ -13,7 +13,7 @@ import {
   type ShellRead,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   claimRuleCaptureTemplate,
@@ -111,7 +111,7 @@ export function sessionStartNote(
 ): string | undefined {
   const input = parseHookInput(payload);
   startDecisionSession(session(workspaceRoot, input, env), "startup");
-  return missingHooksNote(workspaceRoot) ?? undefined;
+  return checkoutSessionNote(workspaceRoot) ?? undefined;
 }
 
 /** pre_agent: the rule note (with its Why line) for a rule-like prompt. */

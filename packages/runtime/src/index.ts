@@ -206,6 +206,8 @@ export {
   getBranchDiagnostic,
 } from "kibi-cli/public/branch-resolver";
 export {
+  BranchResolutionFailure,
+  GitRequired,
   KIBI_PROTOCOL_VERSION,
   KbRejection,
   RESULT_BUDGET_CHARS,

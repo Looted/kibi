@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import * as entry from "../src/index.js";
 import {
+  NO_GIT_FINISH_LINE,
   SESSION_BRIEF,
   SESSION_BRIEF_LINES,
+  sessionBriefFor,
   sessionBriefWith,
 } from "../src/session-brief.js";
 
@@ -16,7 +18,9 @@ describe("session brief", () => {
     expect(search).toStartWith("- Before changing behaviour, kb_search");
     expect(search).toContain("kb_query the requirement that governs it");
     expect(record).toStartWith("- When the person states a rule");
-    expect(record).toContain("with their reason (kb_record); a decision goes through kb_upsert");
+    expect(record).toContain(
+      "with their reason (kb_record); a decision goes through kb_upsert",
+    );
     expect(check).toStartWith("- Before finishing, stage the change");
     expect(check).toContain("`kibi check --staged`");
     expect(conflict).toContain(
@@ -47,5 +51,18 @@ describe("session brief", () => {
   test("is exported from the package entry point", () => {
     expect(entry.SESSION_BRIEF).toBe(SESSION_BRIEF);
     expect(entry.sessionBriefWith).toBe(sessionBriefWith);
+  });
+});
+
+describe("sessionBriefFor", () => {
+  test("is the session brief in a Git workspace", () => {
+    expect(sessionBriefFor(false)).toBe(SESSION_BRIEF);
+  });
+
+  test("finishes with kibi check outside Git", () => {
+    const brief = sessionBriefFor(true).split("\n");
+    expect(brief).toHaveLength(SESSION_BRIEF_LINES.length);
+    expect(brief[3]).toBe(NO_GIT_FINISH_LINE);
+    expect(brief.join("\n")).not.toContain("--staged");
   });
 });

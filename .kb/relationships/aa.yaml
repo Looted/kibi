@@ -402,3 +402,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-892ff6fc16f2
+  - type: implements
+    from: SYM-vcs-kb-files-on-disk
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:27.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8be8b457b3ed
+  - type: covered_by
+    from: SYM-vcs-kb-files-on-disk
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:27.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3b5c31d1159

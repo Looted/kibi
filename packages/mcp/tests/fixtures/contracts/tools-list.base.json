@@ -806,6 +806,11 @@
               },
               "syncState": {
                 "type": "string"
+              },
+              "versionControl": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "type": "object"

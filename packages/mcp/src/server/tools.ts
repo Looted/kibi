@@ -20,14 +20,20 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import {
   type DetachedReadOnlyDiagnostic,
+  type NoGitRepositoryDiagnostic,
+  type NoGitStoreAdoptedDiagnostic,
   type OperationRuntime,
   type ProgressReporter,
   QUERY_LIMIT_EXCEEDED_CODE,
   type RuntimeOperationSpec,
+  alwaysAdvisesNoGit,
   codedErrorOf,
   detachedReadOnlyDiagnostic,
   executeOperation,
   isKbRejection,
+  noGitDiagnosticOfResult,
+  noGitRepositoryDiagnostic,
+  noGitStoreAdoptedDiagnostic,
   queryLimitExceededOf,
 } from "kibi-runtime";
 import {
@@ -374,7 +380,12 @@ function acceptsKbDependency(inputSchema: object): boolean {
 /** A result's diagnostics carry a routing or detached-HEAD notice when one applies. */
 function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
   envelope: T,
-  notice: WorkspaceMismatchDiagnostic | DetachedReadOnlyDiagnostic | undefined,
+  notice:
+    | WorkspaceMismatchDiagnostic
+    | DetachedReadOnlyDiagnostic
+    | NoGitRepositoryDiagnostic
+    | NoGitStoreAdoptedDiagnostic
+    | undefined,
 ): T {
   if (!notice) return envelope;
   return { ...envelope, diagnostics: [...envelope.diagnostics, notice] };
@@ -387,8 +398,10 @@ function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
 function observeDetachedReads(base: OperationRuntime): {
   readonly runtime: OperationRuntime;
   readonly notice: () => DetachedReadOnlyDiagnostic | undefined;
+  readonly noGit: () => NoGitRepositoryDiagnostic | undefined;
 } {
   let notice: DetachedReadOnlyDiagnostic | undefined;
+  let noGit: NoGitRepositoryDiagnostic | undefined;
   return {
     runtime: {
       // Read the attachment at close (success or error) so opening the
@@ -397,11 +410,37 @@ function observeDetachedReads(base: OperationRuntime): {
       afterSuccess: (spec, context) => base.afterSuccess(spec, context),
       close: (context, outcome) => {
         notice = detachedReadOnlyDiagnostic(context.branchAttachment);
+        noGit = noGitRepositoryDiagnostic(context.branchAttachment);
         return base.close(context, outcome);
       },
     },
     notice: () => notice,
+    noGit: () => noGit,
   };
+}
+
+/** The no-Git store this server session last advised about. */
+let noGitAdvisedStore: string | undefined;
+
+/**
+ * The no-Git advisory for a result, at most once per server session for a
+ * store (again after the attachment changes), and on every result the
+ * missing repository changes (status, check).
+ */
+export function sessionNoGitNotice(
+  operation: string,
+  diagnostic: NoGitRepositoryDiagnostic | undefined,
+): NoGitRepositoryDiagnostic | undefined {
+  if (diagnostic === undefined) return undefined;
+  const store = diagnostic.detail.storePath;
+  if (!alwaysAdvisesNoGit(operation) && noGitAdvisedStore === store)
+    return undefined;
+  noGitAdvisedStore = store;
+  return diagnostic;
+}
+
+export function _resetNoGitAdvisoryForTests(): void {
+  noGitAdvisedStore = undefined;
 }
 
 export function addTool<TProlog>(
@@ -587,13 +626,22 @@ export function addTool<TProlog>(
         const data = operationData(result);
         const envelope = withWorkspaceNotice(
           withWorkspaceNotice(
-            toKibiResult(operationSpec, data, {
-              appendDiagnostics: fitted.diagnostics,
-              appendNextActions: fitted.nextActions,
-            }),
-            workspaceNotice,
+            withWorkspaceNotice(
+              withWorkspaceNotice(
+                toKibiResult(operationSpec, data, {
+                  appendDiagnostics: fitted.diagnostics,
+                  appendNextActions: fitted.nextActions,
+                }),
+                workspaceNotice,
+              ),
+              observed.notice(),
+            ),
+            sessionNoGitNotice(
+              operationSpec.name,
+              observed.noGit() ?? noGitDiagnosticOfResult(data),
+            ),
           ),
-          observed.notice(),
+          noGitStoreAdoptedDiagnostic(),
         );
 
         recordMcpToolTelemetry({

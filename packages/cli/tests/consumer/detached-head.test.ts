@@ -181,7 +181,7 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
         { kind: "kb-write", status: "not_applicable" },
         { kind: "workspace-write", status: "not_applicable" },
       ],
-      error: { code: "OPERATION_FAILED", retryable: false },
+      error: { code: "DETACHED_HEAD", retryable: false },
     });
     const message = (refusal.error as Json).message as string;
     expect(message).toContain(
@@ -191,7 +191,7 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
     expect(message).toContain("KIBI_BRANCH");
     // stderr names the code and points to that message, printed once.
     expect(upsert.stderr).toContain(
-      "Error [OPERATION_FAILED]: see error.message in the JSON result on stdout",
+      "Error [DETACHED_HEAD]: see error.message in the JSON result on stdout",
     );
     expect(upsert.stderr).not.toContain(message);
     expect(
@@ -259,7 +259,7 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
       operation: "kb_upsert",
       status: "error",
       data: null,
-      error: { code: "OPERATION_FAILED", retryable: false },
+      error: { code: "DETACHED_HEAD", retryable: false },
     });
     const message = (refusal.error as Json).message as string;
     expect(message).toContain("'git switch main' (or another branch at HEAD)");

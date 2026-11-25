@@ -246,6 +246,10 @@
       },
       "sessionBrief": {
         "type": "string"
+      },
+      "versionControl": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
