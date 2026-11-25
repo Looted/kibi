@@ -261,7 +261,7 @@ describe("CLI failure categories", () => {
         clock: () => new Date(0),
       } as never);
       expect(status.exitCode).toBe(1);
-      expect(JSON.parse(status.stdout).error).toMatchObject({
+      expect(JSON.parse(status.stdout ?? "").error).toMatchObject({
         code: "NOT_A_GIT_REPOSITORY",
         retryable: false,
       });
