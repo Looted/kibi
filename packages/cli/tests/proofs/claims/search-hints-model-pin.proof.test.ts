@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+  MODEL_ID,
+  MODEL_REVISION,
+} from "../../../../plugin-search-hints/src/model.js";
+import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  MODEL_ID,
-  MODEL_REVISION,
-} from "../../../../plugin-search-hints/src/model.js";
 
 /**
  * The upstream embedding model kibi-plugin-search-hints bundles and the revision of it. Kibi reads every value itself at ingest, so the certificate is checked against the code.

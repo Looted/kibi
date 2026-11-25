@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { SIGNOFF_FORMAT_ENV } from "../../../src/commands/signoff.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SIGNOFF_FORMAT_ENV } from "../../../src/commands/signoff.js";
 
 /**
  * The environment variable that picks the kibi signoff output format. Kibi reads

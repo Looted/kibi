@@ -4,10 +4,10 @@
   "sourceFile": "packages/codex/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "A Kibi MCP call that names its own workspace now returns the plain pass-through instead of an allow decision with an input rewrite; the hook still never denies a tool call and still writes nothing to .kb.",
+  "note": "The new Kibi level and required_evidence notices only add context for the agent; no path denies a tool call or writes to .kb.",
   "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
-  "codeHash": "sha256:aa30e236f9432cebf4da59517536f82661449154a54581146c5a2583b0b11f56",
+  "codeHash": "sha256:011f28855440ae1aed8e8f80b8aa45f4819de8ae913ab43cb1f4dce94e282009",
   "startLine": 1,
-  "endLine": 805,
-  "recordedAt": "2026-11-23T18:17:51.201Z"
+  "endLine": 888,
+  "recordedAt": "2026-11-25T15:41:19.278Z"
 }

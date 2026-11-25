@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { NON_GOVERNING_STATUSES } from "../../../src/intent-search.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { NON_GOVERNING_STATUSES } from "../../../src/intent-search.js";
 
 /**
  * The statuses that mark a search match as no longer governing. Kibi reads every value itself at ingest, so the certificate is checked against the code.

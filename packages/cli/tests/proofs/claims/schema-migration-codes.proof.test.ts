@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
+import { POLARITY_VALUE_BACKFILL_CODE } from "../../../src/operations/migration/polarity-values.js";
 import {
   ENTITY_ORIGIN_BACKFILL_ACTION_ID,
   ENTITY_ORIGIN_BACKFILL_CODE,
@@ -13,7 +8,12 @@ import {
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   SEMANTIC_INVENTORY_REVIEW_CODE,
 } from "../../../src/operations/migration/schema6.js";
-import { POLARITY_VALUE_BACKFILL_CODE } from "../../../src/operations/migration/polarity-values.js";
+import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The action ids and codes kibi migrate reports for its schema steps. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

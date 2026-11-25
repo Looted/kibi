@@ -5,8 +5,8 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SIGNOFF_BRIEF_DIR } from "../../../src/signoff/model.js";
 import { SIGNOFF_MARKDOWN_LIMIT } from "../../../src/signoff/markdown.js";
+import { SIGNOFF_BRIEF_DIR } from "../../../src/signoff/model.js";
 
 /**
  * Where kibi signoff writes its views and how many rows it shows in chat. Kibi

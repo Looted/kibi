@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   KIBI_PERF_TIMINGS_ENV,
   KIBI_PERF_TRACE_DIR_ENV,
   KIBI_PERF_TRACE_MAX_BYTES,
   KIBI_PERF_TRACE_MAX_EVENTS,
 } from "../../../src/performance-trace.js";
+import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The environment variables that turn on Kibi performance traces and the bounds

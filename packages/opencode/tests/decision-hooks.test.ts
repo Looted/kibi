@@ -311,3 +311,68 @@ describe("the plugin's decision hooks", () => {
     expect(hooks["tool.execute.before"]).toBeUndefined();
   });
 });
+
+describe("OpenCode Kibi level and required evidence guard", () => {
+  function guardedWorkspace(): string {
+    const root = linkedWorkspace();
+    write(root, "package.json", `${JSON.stringify({ name: "app" })}\n`);
+    write(
+      root,
+      ".kb/requirements/REQ-floor.md",
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    return root;
+  }
+
+  test("a change of the level is stopped once per session, then goes through", () => {
+    const root = guardedWorkspace();
+    // The firm-edit opt-out does not turn this guard off.
+    const { decisions } = hooks(root, { KIBI_CONFIRM_FIRM_EDITS: "0" });
+    const args = {
+      filePath: "package.json",
+      content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+    };
+    expect(() => decisions.beforeTool("write", "s1", args)).toThrow(
+      "changes the Kibi level from test to remember (package.json). That is the person's decision, not yours",
+    );
+    expect(() => decisions.beforeTool("write", "s1", args)).not.toThrow();
+    expect(() => decisions.beforeTool("write", "s2", args)).toThrow();
+    expect(() =>
+      decisions.beforeTool("write", "s3", {
+        filePath: "package.json",
+        content: JSON.stringify({ name: "renamed" }),
+      }),
+    ).not.toThrow();
+    expect(() => decisions.beforeTool("read", "s3", args)).not.toThrow();
+  });
+
+  test("a requirement edit or kb_upsert that lowers a floor is stopped once", () => {
+    const root = guardedWorkspace();
+    const { decisions } = hooks(root);
+    const edit = {
+      filePath: ".kb/requirements/REQ-floor.md",
+      oldString: "required_evidence: tested",
+      newString: "required_evidence: asserted",
+    };
+    expect(() => decisions.beforeTool("edit", "s1", edit)).toThrow(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+    const call = {
+      type: "req",
+      id: "REQ-floor",
+      properties: { required_evidence: "unverified" },
+    };
+    expect(() => decisions.beforeTool("kibi_kb_upsert", "s1", call)).toThrow(
+      "from tested to unverified",
+    );
+    expect(() =>
+      decisions.beforeTool("kibi_kb_upsert", "s1", call),
+    ).not.toThrow();
+    expect(() =>
+      decisions.beforeTool("kibi_kb_upsert", "s1", {
+        ...call,
+        properties: { required_evidence: "proved" },
+      }),
+    ).not.toThrow();
+  });
+});

@@ -52,6 +52,10 @@ import {
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
 import {
+  guardedChangeNotice,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
+import {
   canonicalizeWorkspacePath,
   classifyPath,
   extractEditedPaths,
@@ -205,6 +209,44 @@ function editTargets(
       absolute: target.absolute,
       base: input.cwd ?? workspaceRoot,
     }));
+}
+
+/**
+ * Codex's pre-tool hook cannot put a call to the person, so an edit that
+ * changes the Kibi level or lowers a requirement's required_evidence, or a
+ * Kibi call that lowers one, gets a notice telling the agent to ask first.
+ * The choice is the person's, so it is given every time.
+ */
+export function guardedNotice(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const changes = isKibiMcpToolName(input.toolName)
+    ? [
+        guardedChangeOf({
+          workspaceRoot,
+          toolName: input.toolName,
+          toolInput: input.toolInput,
+        }),
+      ]
+    : isEditLikeTool(input.toolName)
+      ? editTargets(workspaceRoot, input).map((target) =>
+          guardedChangeOf({
+            workspaceRoot,
+            toolName: input.toolName,
+            toolInput: input.toolInput,
+            relativePath: target.relative,
+          }),
+        )
+      : [];
+  const change = changes.find((candidate) => candidate !== undefined);
+  if (change === undefined) return undefined;
+  trace.action =
+    change.kind === "level"
+      ? "level_change_notice"
+      : "evidence_lowering_notice";
+  return guardedChangeNotice(change);
 }
 
 /**
@@ -550,6 +592,28 @@ export async function runHook(
         // Name the session's workspace on a Kibi MCP call that carries none,
         // so the launcher answers from it, even after the thread moves into a
         // git worktree. A call that names its own workspace passes through.
+        // The notice is advisory like the requirement context: input that
+        // cannot be read leaves the call without it.
+        const guardedNow = (): string | undefined => {
+          try {
+            return guardedNotice(workspace.root, input, trace);
+          } catch {
+            return undefined;
+          }
+        };
+        const mcpGuarded = isKibiMcpToolName(input.toolName)
+          ? guardedNow()
+          : undefined;
+        if (mcpGuarded) {
+          // No permission decision: Codex's own approval still applies.
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              additionalContext: mcpGuarded,
+            },
+          };
+        }
         if (isKibiMcpToolName(input.toolName)) {
           const stamped = stampKibiWorkspace(
             input.toolName,
@@ -570,12 +634,22 @@ export async function runHook(
         // Paths come from explicit fields and from `apply_patch` headers, so a
         // patch to .kb/ is warned about like an explicit-path edit.
         const explicitPaths = extractEditedPaths(input.toolInput);
+        const guarded = guardedNow();
         const hasDirectKbEdit =
           isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
-          trace.action = "kb_direct_note";
           trace.pathKind = "kb";
+          if (guarded)
+            return {
+              continue: true,
+              systemMessage: DIRECT_KB_EDIT_WARNING,
+              hookSpecificOutput: {
+                hookEventName: "PreToolUse",
+                additionalContext: guarded,
+              },
+            };
+          trace.action = "kb_direct_note";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
 
@@ -588,9 +662,14 @@ export async function runHook(
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
         }
-        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+        if (
+          !guarded &&
+          isKnownEditTool(input.toolName) &&
+          trace.pathKind !== undefined
+        ) {
           trace.action = context ? "edit_snippet" : "edit_silent";
         }
+        if (guarded) context = context ? `${guarded}\n\n${context}` : guarded;
         if (context) {
           return {
             continue: true,

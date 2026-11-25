@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { MAX_TABLE_ROWS } from "../../../src/operations/proof/code-models.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
@@ -6,10 +7,9 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { CODE_CERTIFICATE_VERSION } from "../../../src/public/proof-protocol.js";
 import { PROOF_CERTIFICATES_ENV } from "../../../src/public/proof-certificates.js";
+import { CODE_CERTIFICATE_VERSION } from "../../../src/public/proof-protocol.js";
 import { REFERENCE_EXTRACTS } from "../../../src/public/proof-sources.js";
-import { MAX_TABLE_ROWS } from "../../../src/operations/proof/code-models.js";
 
 /**
  * The version of a code certificate, the variable that turns certificates on, the reference extracts a source proof may read and the table row bound. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

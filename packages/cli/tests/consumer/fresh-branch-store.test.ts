@@ -311,7 +311,13 @@ describe("stale branch store auto-sync and staleness surfacing", () => {
         "",
       ].join("\n"),
     );
-    ws.git("add", ".kb/requirements/REQ-demo-mfa.md", ".kb/relationships/extra.yaml", ".kb/symbols.yaml", "src/mfa.ts");
+    ws.git(
+      "add",
+      ".kb/requirements/REQ-demo-mfa.md",
+      ".kb/relationships/extra.yaml",
+      ".kb/symbols.yaml",
+      "src/mfa.ts",
+    );
     const symbolsEdited = ws.read(".kb/symbols.yaml");
 
     const query = ws.json(["query"], { id: "REQ-demo-mfa" }) as {

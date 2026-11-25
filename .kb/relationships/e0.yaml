@@ -430,3 +430,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6be3d80699d
+  - type: implements
+    from: SYM-decision-hooks-guarded-change-stop
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:07.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c44bb9472ce8
+  - type: covered_by
+    from: SYM-decision-hooks-guarded-change-stop
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:07.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d6f178029a3

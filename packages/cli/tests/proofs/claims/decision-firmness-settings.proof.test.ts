@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
+  FIRMNESS_TYPES,
+  MIN_WHY_CHANGED_WORDS,
+  WHY_THIS_CHANGED_HEADING,
+} from "../../../src/decision-firmness.js";
+import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  FIRMNESS_TYPES,
-  MIN_WHY_CHANGED_WORDS,
-  WHY_THIS_CHANGED_HEADING,
-} from "../../../src/decision-firmness.js";
 
 /**
  * Which entities carry firmness and how a supersede explains itself. Kibi reads

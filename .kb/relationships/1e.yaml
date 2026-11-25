@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4e1fbc28613
+  - type: assumes
+    from: SCEN-NEG-kibi-signoff-level-c02-count-gt-0
+    to: FACT-NEG-kibi-signoff-level-c02-count-gt-0
+    created_at: 2026-11-25T13:57:30.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07463d6ccf74

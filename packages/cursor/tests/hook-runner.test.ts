@@ -1829,3 +1829,92 @@ describe("Cursor hook runner result contracts", () => {
     );
   });
 });
+
+describe("Cursor Kibi level and required evidence notices", () => {
+  function guardedWorkspace() {
+    const cwd = kibiWorkspaceRoot();
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    fs.writeFileSync(
+      path.join(cwd, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    fs.writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-floor.md"),
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    return { cwd, pluginData };
+  }
+
+  test("a write that changes the level tells the agent to ask, with no permission", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+        },
+      },
+      { pluginData },
+    );
+    expect(result.permission).toBeUndefined();
+    expect(result.agent_message).toContain(
+      "changes the Kibi level from test to remember (package.json). That is the person's decision, not yours",
+    );
+    const kbEdit = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Edit",
+        tool_input: {
+          file_path: ".kb/requirements/REQ-floor.md",
+          old_string: "required_evidence: tested",
+          new_string: "required_evidence: asserted",
+        },
+      },
+      { pluginData },
+    );
+    expect(kbEdit.agent_message).toContain("from tested to asserted");
+  });
+
+  test("a kb_upsert that lowers a floor keeps the workspace stamp and gets the notice", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "MCP:kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+        },
+      },
+      { pluginData },
+    );
+    expect(result.agent_message).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+    expect(result.updated_input?.workspaceRoot).toBe(cwd);
+    const named = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "MCP:kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+          workspaceRoot: cwd,
+        },
+      },
+      { pluginData },
+    );
+    expect(named.updated_input).toBeUndefined();
+    expect(named.agent_message).toBeDefined();
+  });
+});

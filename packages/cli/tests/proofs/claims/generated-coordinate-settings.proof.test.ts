@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { SYMBOL_COORDINATES_FORMAT_VERSION } from "../../../src/extractors/symbol-coordinates.js";
+import { GENERATED_SYMBOL_FIELDS } from "../../../src/operations/mutation/source-authoring.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SYMBOL_COORDINATES_FORMAT_VERSION } from "../../../src/extractors/symbol-coordinates.js";
-import { GENERATED_SYMBOL_FIELDS } from "../../../src/operations/mutation/source-authoring.js";
 
 /**
  * The derived coordinate fields of a symbol and their file format version. Kibi

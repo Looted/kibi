@@ -125,6 +125,7 @@ export type {
   SuccessPolicy,
 } from "./proof-protocol-types.js";
 
+import { ADVERTISED_DESCRIPTION } from "./operations/advertised-schema.js";
 import type {
   ProducerProvenance,
   ProofAttempts,
@@ -139,7 +140,6 @@ import {
   normalizeSourceSpec,
   sourceSpecErrors,
 } from "./proof-sources.js";
-import { ADVERTISED_DESCRIPTION } from "./operations/advertised-schema.js";
 
 export const PROOF_RESULT_SCHEMA = {
   type: "object",

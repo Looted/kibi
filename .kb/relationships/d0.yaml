@@ -461,3 +461,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97c6539012f6
+  - type: requires_property
+    from: REQ-vibe-guarded-change-after-notice
+    to: FACT-PROP-vibe-guarded-change-after-notice-c01
+    created_at: 2026-11-25T14:07:13.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bffc18b0aac
+  - type: constrains
+    from: REQ-vibe-guarded-change-after-notice
+    to: FACT-SUBJ-kibi-agent-hooks-guarded-change
+    created_at: 2026-11-25T14:07:13.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3d0f138155
+  - type: specified_by
+    from: REQ-vibe-guarded-change-after-notice
+    to: SCEN-vibe-guarded-change-after-notice
+    created_at: 2026-11-25T14:07:19.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79731400eb4f
+  - type: specified_by
+    from: REQ-vibe-guarded-change-after-notice
+    to: SCEN-NEG-vibe-guarded-change-after-notice-rejected
+    created_at: 2026-11-25T14:07:19.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe0efe0c476
+  - type: verified_by
+    from: REQ-vibe-guarded-change-after-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:19.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-051e9a54ab06
+  - type: supersedes
+    from: REQ-vibe-guarded-change-after-notice
+    to: REQ-agent-hosts-level-ask
+    created_at: 2026-11-25T14:07:51.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a7ffd4922dc
+  - type: supersedes
+    from: REQ-vibe-guarded-change-after-notice
+    to: REQ-agent-hosts-required-evidence-lowering-ask
+    created_at: 2026-11-25T14:07:51.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a909ddb70cf5
+  - type: specified_by
+    from: REQ-vibe-guarded-change-after-notice
+    to: SCEN-NEG-vibe-guarded-change-after-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:56.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2564bf1e2a73

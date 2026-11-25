@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+  KIBI_LEGACY_ENV_FILE,
+  KIBI_PROJECT_ENV_FILE,
+} from "../../../src/env/bootstrap.js";
+import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  KIBI_LEGACY_ENV_FILE,
-  KIBI_PROJECT_ENV_FILE,
-} from "../../../src/env/bootstrap.js";
 
 /**
  * The environment files Kibi reads at startup. Kibi reads each constant itself at

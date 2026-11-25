@@ -140,9 +140,7 @@ describe("platformKey", () => {
   });
 
   test("has no bundle for other platforms", () => {
-    expect(
-      platformKey({ platform: "win32", arch: "arm64" }),
-    ).toBeUndefined();
+    expect(platformKey({ platform: "win32", arch: "arm64" })).toBeUndefined();
     expect(platformKey({ platform: "freebsd", arch: "arm64" })).toBeUndefined();
   });
 });
@@ -327,7 +325,10 @@ describe("validateBuildManifest", () => {
     // The POSIX path is wrong for win32 and the win32 path is wrong for linux.
     expect(
       reason(
-        manifest({ target: "win32-x64", binary: { path: "bin/swipl", sha256: SHA } }),
+        manifest({
+          target: "win32-x64",
+          binary: { path: "bin/swipl", sha256: SHA },
+        }),
         winExpected,
       ),
     ).toBe("manifest binary.path must be lib/swipl/bin/swipl.exe");

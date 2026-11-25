@@ -8,8 +8,8 @@ import {
   type SuggestPredicatesResult,
   executeSuggestPredicates,
 } from "../../../operations/modeling/suggest-predicates.js";
-import type { OperationSpec } from "../types.js";
 import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+import type { OperationSpec } from "../types.js";
 
 export const modelRequirementSpec = {
   name: "kb_model_requirement",

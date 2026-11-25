@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b575d6b3ce4f
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    to: FACT-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:40.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b8832acfe0d

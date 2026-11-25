@@ -4,10 +4,10 @@
   "sourceFile": "packages/zcode/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "Only the Kibi MCP call branch of PreToolUse changed; hooks.json still points every lifecycle hook at the tracked bin/hook-runner.mjs, which is regenerated and committed with this change.",
+  "note": "The hooks still invoke the tracked bin/hook-runner.mjs, rebuilt from this source in the same change; only the notice for a level change or lowered floor was added.",
   "statementHash": "sha256:31f1666c85438febbff1b19c790d778d29c56bac8b5c71b81ae80714a9b93913",
-  "codeHash": "sha256:489f6146435dd724ca7278ba0401b04fa9f890373e855cc044b8a90b353e4ba6",
+  "codeHash": "sha256:d9468d656cc077c2f4932978da5fb2c5b03f84e8e38263b644ad7e1e01bb3a86",
   "startLine": 1,
-  "endLine": 761,
-  "recordedAt": "2026-11-23T18:17:51.201Z"
+  "endLine": 811,
+  "recordedAt": "2026-11-25T15:41:19.278Z"
 }

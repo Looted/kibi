@@ -73,6 +73,10 @@
     "./kibi-level": {
       "types": "./dist/kibi-level.d.ts",
       "default": "./dist/kibi-level.js"
+    },
+    "./level-guard": {
+      "types": "./dist/level-guard.d.ts",
+      "default": "./dist/level-guard.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

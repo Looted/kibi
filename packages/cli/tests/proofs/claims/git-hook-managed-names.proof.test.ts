@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
+  KIBI_HOOK_BEGIN,
+  MANAGED_HOOK_NAMES,
+} from "../../../src/commands/init-helpers.js";
+import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  KIBI_HOOK_BEGIN,
-  MANAGED_HOOK_NAMES,
-} from "../../../src/commands/init-helpers.js";
 
 /**
  * The git hooks kibi init manages and the marker that opens its block in each. Kibi reads every value itself at ingest, so the certificate is checked against the code.

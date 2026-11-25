@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   LOGIC_IR_VERSION,
   LOGIC_RULE_MAX_ATOMS,
   LOGIC_RULE_MAX_DEPTH,
   LOGIC_RULE_MAX_VARIABLES,
 } from "../../../src/logic/ir.js";
+import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The version and size bounds of a logical requirement rule. Kibi reads every

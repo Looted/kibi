@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-133db1ea619a
+  - type: implements
+    from: SYM-src-hook-runner-guarded-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:04.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40bf1b95c20d
+  - type: covered_by
+    from: SYM-src-hook-runner-guarded-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:04.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ed904988dd5

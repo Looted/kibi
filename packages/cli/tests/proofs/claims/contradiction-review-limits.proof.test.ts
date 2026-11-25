@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+  MAX_REVIEW_CANDIDATES,
+  REVIEW_CANDIDATE_MIN_SCORE,
+} from "../../../src/operations/planning/conflict-review.js";
+import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  MAX_REVIEW_CANDIDATES,
-  REVIEW_CANDIDATE_MIN_SCORE,
-} from "../../../src/operations/planning/conflict-review.js";
 
 /**
  * How many contradiction review candidates compile-intent lists and how similar

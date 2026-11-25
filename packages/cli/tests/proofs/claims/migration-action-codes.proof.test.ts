@@ -1,18 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
+  ENTITY_TYPE_BACKFILL_ACTION_ID,
+  ENTITY_TYPE_BACKFILL_CODE,
+} from "../../../src/operations/migration/entity-type.js";
 import { DELIVERED_REQUIREMENT_TAG } from "../../../src/operations/migration/requirement-status.js";
 import {
   REQ_STATUS_DELIVERED_MAP_ACTION_ID,
   REQ_STATUS_DELIVERED_MAP_CODE,
 } from "../../../src/operations/migration/schema6.js";
 import {
-  ENTITY_TYPE_BACKFILL_ACTION_ID,
-  ENTITY_TYPE_BACKFILL_CODE,
-} from "../../../src/operations/migration/entity-type.js";
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The tag and action codes kibi migrate uses for legacy requirement status and

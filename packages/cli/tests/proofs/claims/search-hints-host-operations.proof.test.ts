@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { EXTERNAL_SEARCH_HINTS_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { EXTERNAL_SEARCH_HINTS_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 
 /**
  * The operations that may call an external search-hints provider. Kibi reads every value itself at ingest, so the certificate is checked against the code.

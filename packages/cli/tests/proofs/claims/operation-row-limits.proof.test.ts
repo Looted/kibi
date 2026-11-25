@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { ENTITY_ROW_BATCH_LIMIT } from "../../../src/public/operations/discovery-entities.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { ENTITY_ROW_BATCH_LIMIT } from "../../../src/public/operations/discovery-entities.js";
 
 /**
  * The entity row batch limit. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
