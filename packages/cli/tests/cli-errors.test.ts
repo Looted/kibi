@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  BranchResolutionFailure,
   InputError,
   KbRejection,
   OperationError,
@@ -187,5 +188,66 @@ describe("isKbRejection", () => {
       wrapped = new Error(`w${depth}`, { cause: wrapped });
     expect(isKbRejection(wrapped)).toBe(true);
     expect(isKbRejection(new Error("w4", { cause: wrapped }))).toBe(false);
+  });
+});
+
+describe("BranchResolutionFailure", () => {
+  const STANDALONE =
+    "To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.";
+
+  test("outside a repository it says to run git init, with a code", () => {
+    const failure = new BranchResolutionFailure({
+      error: "Branch Resolution Failed ...",
+      code: "NOT_A_GIT_REPO",
+    });
+    expect(failure).toBeInstanceOf(OperationError);
+    // The name stays OperationError, so a bundled copy is still read.
+    expect(failure.name).toBe("OperationError");
+    expect(failure.code).toBe("NOT_A_GIT_REPOSITORY");
+    expect(failure.retryable).toBe(false);
+    expect(failure.exitCode).toBe(1);
+    expect(failure.message).toBe(
+      `Failed to resolve active branch: this directory is not inside a Git repository, and Kibi keeps its knowledge per Git branch. Run 'git init' here (or run Kibi from inside the repository), then retry. ${STANDALONE}`,
+    );
+    expect(failure.detail).toBe(failure.message);
+    expect(codedErrorOf(failure)).toStrictEqual({
+      code: "NOT_A_GIT_REPOSITORY",
+      message: failure.message,
+      retryable: false,
+    });
+  });
+
+  test("without Git it says to install Git", () => {
+    const failure = new BranchResolutionFailure({
+      error: "Branch Resolution Failed ...",
+      code: "GIT_NOT_AVAILABLE",
+    });
+    expect(failure.code).toBe("GIT_NOT_AVAILABLE");
+    expect(failure.message).toBe(
+      `Failed to resolve active branch: Git is not installed or not on PATH, and Kibi keeps its knowledge per Git branch. Install Git, then retry. ${STANDALONE}`,
+    );
+  });
+
+  test("any other failure keeps the resolver's diagnostic", () => {
+    const detached = new BranchResolutionFailure({
+      error: "why",
+      code: "DETACHED_HEAD",
+    });
+    expect([detached.code, detached.message]).toStrictEqual([
+      "DETACHED_HEAD",
+      "Failed to resolve active branch: why",
+    ]);
+    for (const code of [
+      "UNBORN_BRANCH",
+      "AMBIGUOUS_ATTACHMENT",
+      "UNKNOWN_ERROR",
+    ] as const) {
+      const failure = new BranchResolutionFailure({ error: "why", code });
+      expect([code, failure.code, failure.message]).toStrictEqual([
+        code,
+        "BRANCH_UNRESOLVED",
+        "Failed to resolve active branch: why",
+      ]);
+    }
   });
 });

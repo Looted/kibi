@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { initCommand } from "../../src/commands/init.js";
+import { finishCliTelemetry } from "../../src/usage-telemetry.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -32,8 +33,20 @@ describe("initCommand remaining branches", () => {
     restores.push(io.restore);
     const result = await withCwd(cwd, () => initCommand({}));
     expect(result.exitCode).toBe(1);
-    expect(io.errorText()).toContain("Failed to resolve the active git branch");
-    expect(io.errorText()).toContain("KIBI_BRANCH");
+    expect(io.errorText()).toContain(
+      "this directory is not inside a Git repository",
+    );
+    expect(io.errorText()).toContain("Run 'git init' here");
+    expect(io.errorText()).toContain("KIBI_BRANCH=<name>");
+    // Nothing is written outside a repository.
+    expect(existsSync(path.join(cwd, ".kb"))).toBe(false);
+    // Drop the category init noted, as the CLI's exit does.
+    await finishCliTelemetry({
+      commandPath: undefined,
+      packageVersion: "0.0.0",
+      startedAt: new Date(),
+      exitCode: 1,
+    });
   });
 
   test("blocks init when legacy branch storage still owns the attachment", async () => {
@@ -81,6 +94,10 @@ describe("initCommand remaining branches", () => {
     const result = await withCwd(cwd, () => initCommand({ hooks: true }));
     expect(result.exitCode).toBe(0);
     expect(io.errorText()).toContain("No git repository found, skipping hooks");
+    // KIBI_BRANCH stood in for Git on this run only, and init says so.
+    expect(io.logText()).toContain(
+      "! No Git repository here: this workspace's knowledge is attached to KIBI_BRANCH=main for this run only. Set the same KIBI_BRANCH for every later Kibi command, Git hook and MCP server, or run 'git init' and then 'kibi init' again.",
+    );
   });
 
   test("scaffolds GitHub integration after a fresh init", async () => {
@@ -97,6 +114,7 @@ describe("initCommand remaining branches", () => {
     );
     expect(result.exitCode).toBe(0);
     expect(io.logText()).toContain("Kibi initialized");
+    expect(io.logText()).not.toContain("No Git repository here");
     expect(io.logText()).toContain("Added .github/workflows/kibi-report.yml");
     expect(readFileSync(path.join(cwd, "README.md"), "utf8")).toContain(
       "https://acme.github.io/Widgets/kibi-report/badge.svg",

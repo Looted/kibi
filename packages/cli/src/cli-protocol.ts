@@ -133,11 +133,14 @@ export function openFailureResult(
 ): CliProtocolResult {
   return errorResult(
     catalogName,
-    new OperationError(
-      "OPERATION_FAILED",
-      error instanceof Error ? error.message : String(error),
-      false,
-    ),
+    // A coded refusal (no Git repository to attach to) keeps its code.
+    error instanceof OperationError
+      ? error
+      : new OperationError(
+          "OPERATION_FAILED",
+          error instanceof Error ? error.message : String(error),
+          false,
+        ),
     spec,
     false,
   );

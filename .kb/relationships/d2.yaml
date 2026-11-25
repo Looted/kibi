@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f930af6e7211
+  - type: assumes
+    from: SCEN-NEG-kibi-outside-git-unclear-refusal
+    to: FACT-NEG-kibi-outside-git-generic-failure
+    created_at: 2026-11-25T07:11:55.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97c4190049b8
+  - type: assumes
+    from: SCEN-NEG-kibi-outside-git-unclear-refusal
+    to: FACT-NEG-kibi-outside-git-init-writes
+    created_at: 2026-11-25T07:11:55.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fd0c7e4c117

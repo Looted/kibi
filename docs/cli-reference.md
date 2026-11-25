@@ -121,6 +121,12 @@ A failed route writes its JSON result with `status: "error"` and `error.code`, `
 Initializes Kibi repository infrastructure in the current directory. It does
 not infer or write product knowledge.
 
+Kibi keeps its knowledge per Git branch, so `kibi init` outside a Git
+repository writes nothing and exits 1 with `NOT_A_GIT_REPOSITORY`: run
+`git init` first. With `KIBI_BRANCH` set it initializes a workspace without
+Git, and every later command needs the same `KIBI_BRANCH`; see
+[No Git repository](error-reference.md#no-git-repository-not_a_git_repository-git_not_available-branch_unresolved).
+
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. When the repository uses a hook manager (lefthook, husky or the pre-commit framework), init installs no hooks at all and prints the manager configuration for every hook it does not visibly run Kibi's commands for yet; see [existing Git hooks and hook managers](install.md#existing-git-hooks-and-hook-managers). Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.

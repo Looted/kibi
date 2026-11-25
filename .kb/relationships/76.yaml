@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6735068d5eb9
+  - type: implements
+    from: SYM-cli-init-command
+    to: REQ-kibi-refuse-operation-workspace-outside-any
+    created_at: 2026-11-25T07:07:20.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bb3f810fde0
+  - type: covered_by
+    from: SYM-cli-init-command
+    to: TEST-kibi-refuse-operation-workspace-outside-any
+    created_at: 2026-11-25T07:07:20.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82f43d68cdd6

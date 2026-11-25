@@ -13,7 +13,9 @@ import * as setupChoices from "../../src/commands/setup-choices.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
 import * as languageNote from "../../src/plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import * as telemetry from "../../src/usage-telemetry.js";
 import * as branchResolver from "../../src/utils/branch-resolver.js";
+import type { BranchErrorCode } from "../../src/utils/branch-resolver.js";
 import * as config from "../../src/utils/config.js";
 import * as gitContext from "../../src/utils/git-repository-context.js";
 import type { GitRepositoryContext } from "../../src/utils/git-repository-context.js";
@@ -265,31 +267,43 @@ describe("initCommand repository checks", () => {
 
   test("explains a branch it cannot resolve", async () => {
     const root = tempRoot();
-    const cases: Array<[string, string]> = [
+    const cases: Array<[BranchErrorCode, string, string]> = [
       [
         "NOT_A_GIT_REPO",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
+        "NOT_A_GIT_REPOSITORY",
+        "this directory is not inside a Git repository, and Kibi keeps its knowledge per Git branch. Run 'git init' here (or run Kibi from inside the repository), then retry. To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.",
       ],
       [
         "GIT_NOT_AVAILABLE",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
+        "GIT_NOT_AVAILABLE",
+        "Git is not installed or not on PATH, and Kibi keeps its knowledge per Git branch. Install Git, then retry. To use Kibi without Git, set KIBI_BRANCH=<name> for this and every later Kibi command, Git hook and MCP server in this workspace.",
       ],
-      ["DETACHED_HEAD", "boom."],
+      ["DETACHED_HEAD", "DETACHED_HEAD", "boom."],
+      ["UNBORN_BRANCH", "BRANCH_UNRESOLVED", "boom."],
     ];
-    for (const [code, detail] of cases) {
-      errors = [];
-      resolveTo(
-        { status: "ok", context: context(root) },
-        { error: "boom.", code },
-      );
-      expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
-      expect(errorLines()).toStrictEqual([
-        "Error: Failed to resolve the active git branch.",
-        detail,
-      ]);
-      expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
-      restores.pop()?.();
-      restores.pop()?.();
+    // Not called through: a note left behind would reach the next test file.
+    const category = spyOn(
+      telemetry,
+      "noteCliErrorCategory",
+    ).mockImplementation(() => {});
+    try {
+      for (const [code, noted, detail] of cases) {
+        errors = [];
+        resolveTo(
+          { status: "ok", context: context(root) },
+          { error: "boom.", code },
+        );
+        expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+        expect(errorLines()).toStrictEqual([
+          `Error: Failed to resolve active branch: ${detail}`,
+        ]);
+        expect(category.mock.calls.at(-1)).toStrictEqual([noted]);
+        expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
+        restores.pop()?.();
+        restores.pop()?.();
+      }
+    } finally {
+      category.mockRestore();
     }
   });
 

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
+import { BranchResolutionFailure, OperationError } from "../../cli-errors.js";
 import {
   compilerFingerprintReason,
   sourceExtractionFailureReasons,
@@ -1790,7 +1791,7 @@ export async function executeStatus(
       context.branchAttachment ??
       resolveBranchAttachment(context.workspaceRoot);
     if ("error" in attachment) {
-      throw new Error(`Failed to resolve active branch: ${attachment.error}`);
+      throw new BranchResolutionFailure(attachment);
     }
     let payload: StatusPayload;
     const store = inspectBranchStore(
@@ -2144,6 +2145,8 @@ export async function executeStatus(
       structuredContent: statusWithPlan,
     };
   } catch (error) {
+    // A coded refusal reaches the caller with its code and its own message.
+    if (error instanceof OperationError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Status execution failed: ${message}`);
   }

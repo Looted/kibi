@@ -309,9 +309,9 @@ describe("runJsonInvocation", () => {
     expect(printed).toMatchObject({
       operation: "kb_query",
       status: "error",
-      error: { code: "OPERATION_FAILED", retryable: false },
+      error: { code: "NOT_A_GIT_REPOSITORY", retryable: false },
     });
-    expect(printed.error.message).toMatch(/Git branch|git|Kibi requires/i);
+    expect(printed.error.message).toContain("Run 'git init' here");
     const rows = readUsageLog(path.join(cwd, ".kb", "usage.log"));
     expect(rows[0]).toMatchObject({
       tool: "kb_query",

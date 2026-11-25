@@ -5,6 +5,7 @@ import {
   retryAttachAfterBreakingStaleLock,
 } from "../prolog/store-lock.js";
 
+import { BranchResolutionFailure } from "../cli-errors.js";
 import { EngineClient } from "../engine.js";
 import {
   type CapabilityRegistry,
@@ -79,17 +80,6 @@ export function legacyMigratingContext(
     },
   };
   return context;
-}
-
-export function attachmentFailureMessage(
-  attachment: BranchResolutionError,
-): string {
-  const isNonGitContext =
-    attachment.code === "NOT_A_GIT_REPO" ||
-    attachment.code === "GIT_NOT_AVAILABLE";
-  return isNonGitContext
-    ? "Kibi requires an active Git branch outside a repository; set KIBI_BRANCH explicitly for a standalone workspace."
-    : `Failed to resolve active branch: ${attachment.error}`;
 }
 
 type ManagedPrologPort = PrologPort & {
@@ -250,9 +240,7 @@ export function createCliRuntime(
             detachedAttachment ??
             (await resolveOperationAttachment(root, spec));
           if ("error" in attachment) {
-            throw new Error(
-              `Failed to resolve active branch: ${attachment.error}`,
-            );
+            throw new BranchResolutionFailure(attachment);
           }
           const engine = createDefaultProlog(root, attachment.kbBranch);
           await engine.start();
@@ -287,7 +275,7 @@ export function createCliRuntime(
       }
       if ("error" in attachment) {
         await (merged.prolog as ManagedPrologPort | undefined)?.terminate?.();
-        throw new Error(attachmentFailureMessage(attachment));
+        throw new BranchResolutionFailure(attachment);
       }
       if (attachment.readOnly !== undefined) {
         console.warn(`[KIBI] ${attachment.readOnly.notice}`);
@@ -313,7 +301,7 @@ export function createCliRuntime(
           async () => {
             const current = await resolveOperationAttachment(root, spec);
             if ("error" in current) {
-              throw new Error(attachmentFailureMessage(current));
+              throw new BranchResolutionFailure(current);
             }
             return current;
           },

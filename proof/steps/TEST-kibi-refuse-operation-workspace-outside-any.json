@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-kibi-refuse-operation-workspace-outside-any",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/outside-git.test.ts",
+      "./packages/cli/tests/cli-errors.test.ts",
+      "./packages/cli/tests/commands/init-command-mutation.test.ts",
+      "./packages/cli/tests/commands/init-coverage.test.ts",
+      "./packages/cli/tests/cli-failure-categories.test.ts",
+      "./packages/cli/tests/public-mutation/operations/discovery-status.mutation.test.ts",
+      "./packages/cli/tests/cli-protocol-mutation.test.ts",
+      "./packages/mcp/tests/server/session-coverage.test.ts",
+      "./packages/agent-core/tests/usage-telemetry-outcomes.test.ts"
+    ]
+  ]
+}

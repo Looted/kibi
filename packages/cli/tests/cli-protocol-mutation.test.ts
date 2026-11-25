@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { InputError, KbRejection, OperationError } from "../src/cli-errors.js";
+import { BranchResolutionFailure } from "../src/cli-errors.js";
 import * as loader from "../src/cli-operation-loader.js";
 import {
   type CliContext,
@@ -388,5 +389,28 @@ describe("openFailureResult", () => {
         ),
       );
     }
+  });
+
+  test("keeps the code of a coded refusal", () => {
+    const spec = { name: "kb_upsert", effects: ["kb-write" as never] };
+    const failure = new BranchResolutionFailure({
+      error: "not a git repository",
+      code: "NOT_A_GIT_REPO",
+    });
+    const result = openFailureResult("kb_upsert", spec, failure);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe(envelopeErrorLine("NOT_A_GIT_REPOSITORY"));
+    expect(json(result.stdout)).toStrictEqual(
+      errorEnvelope(
+        "kb_upsert",
+        {
+          code: "NOT_A_GIT_REPOSITORY",
+          message: failure.message,
+          retryable: false,
+        },
+        "not_applicable",
+        ["kb-write"],
+      ),
+    );
   });
 });

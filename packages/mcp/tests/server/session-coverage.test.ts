@@ -307,6 +307,41 @@ describe.serial("session uncovered branch coverage", () => {
     }
   });
 
+  test("refuses a workspace outside Git with a coded instruction", async () => {
+    mockResolveBranchAttachment.mockImplementation(
+      (): BranchAttachmentResult => ({
+        error: "Branch Resolution Failed",
+        code: "NOT_A_GIT_REPO",
+      }),
+    );
+    mockGetBranchDiagnostic.mockImplementation(
+      (_cwd?: string, error?: string) => `diagnostic for ${error}`,
+    );
+
+    const session = await importSessionModule("branch-resolution-not-git");
+    session.resetSessionStateForTests();
+    const originalConsoleError = console.error;
+    const consoleErrorMock = mock((_message?: unknown) => {});
+    console.error = consoleErrorMock as typeof console.error;
+
+    try {
+      const failure = await session.ensureProlog().then(
+        () => null,
+        (error: unknown) => error as Error & { code?: string },
+      );
+      // The tool answers this with the CLI JSON route's error envelope.
+      expect(failure?.code).toBe("NOT_A_GIT_REPOSITORY");
+      expect(failure?.message).toContain("Run 'git init' here");
+      expect(consoleErrorMock).toHaveBeenCalledWith(
+        `[KIBI-MCP] ${failure?.message}`,
+      );
+      expect(mockGetBranchDiagnostic).not.toHaveBeenCalled();
+      expect(mockPrologProcessInstance.start).not.toHaveBeenCalled();
+    } finally {
+      console.error = originalConsoleError;
+    }
+  });
+
   test("surfaces branch resolution diagnostics when git branch lookup fails", async () => {
     mockResolveBranchAttachment.mockImplementation(
       (): BranchAttachmentResult => ({
