@@ -23,7 +23,8 @@ afterEach(() => {
     rmSync(root, { recursive: true, force: true });
 });
 
-const context = {} as OperationContext;
+// A workspace that records no Kibi level is at test.
+const context = { workspaceRoot: "/kibi-skills-none" } as OperationContext;
 
 function skillsDir(withSkills: boolean): string {
   const dir = mkdtempSync(join(tmpdir(), "kibi-skills-spec-"));

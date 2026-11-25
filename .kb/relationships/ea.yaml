@@ -496,3 +496,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee4ce56db7f7
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:42.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7be0ee6b186c
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-rejected
+    created_at: 2026-11-25T09:48:43.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74e332a11d52
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c02-neq-0
+    created_at: 2026-11-25T10:20:08.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5418a68089b
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    created_at: 2026-11-25T10:20:14.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebcd5e1cfecb
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c02-gt-0
+    created_at: 2026-11-25T10:20:19.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e818221e3f6
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    to: FACT-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    created_at: 2026-11-25T10:21:34.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddbec0409b81

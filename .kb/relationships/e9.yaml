@@ -531,6 +531,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d189991c58f6
+  - type: assumes
+    from: SCEN-kibi-staged-floor-reports-new-requirement
+    to: FACT-PROP-kibi-staged-floor-reports-new-requirement-c01
+    created_at: 2026-11-25T09:48:58.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9de22fae0f4f
   - type: implements
     from: SYM-pending-receipt-binding
     to: REQ-kibi-no-git-compiles-sources-on-disk

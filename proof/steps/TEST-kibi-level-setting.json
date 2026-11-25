@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-kibi-level-setting",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/agent-core/tests/kibi-level.test.ts",
+      "./packages/cli/tests/kibi-levels/level-setting.test.ts"
+    ]
+  ]
+}

@@ -9,6 +9,7 @@ import {
   validateSkillBundle,
 } from "kibi-cli/skills";
 import type { CommandResult } from "../cli.js";
+import { offeredSkills } from "../public/operations/specs/skills.js";
 
 interface FormatOptions<TFormat extends string> {
   format?: TFormat;
@@ -23,7 +24,7 @@ export async function skillsListCommand(
   options: FormatOptions<ListFormat>,
 ): Promise<CommandResult | undefined> {
   return handleSkillCommand(() => {
-    const skills = listBundledSkills();
+    const skills = offeredSkills(listBundledSkills(), process.cwd());
     if (options.format === "json") {
       console.log(JSON.stringify(skills, null, 2));
       return;

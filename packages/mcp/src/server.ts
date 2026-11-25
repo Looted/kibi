@@ -19,6 +19,7 @@
 import { readFileSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import { initializeDiagnosticMode } from "./diagnostics.js";
 import { loadDefaultEnvFile } from "./env.js";
@@ -37,6 +38,7 @@ import {
 } from "./server/workspace-router.js";
 import {
   OPTIONAL_TOOL_NAMES,
+  REMEMBER_UNLISTED_TOOLS,
   TOOLS,
   knowledgeBaseIsEmpty,
   profileToolNames,
@@ -61,6 +63,8 @@ const VERSION = packageJson.version;
 export function serverInstructions(
   listed?: ReadonlySet<string>,
   tools: readonly { name: string }[] = TOOLS,
+  // Tools the Kibi level leaves out: not named as reachable through the CLI.
+  unlisted: ReadonlySet<string> = new Set(),
 ): string {
   return sessionBriefWith([
     "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_record records a stated rule; kb_upsert writes and models; kb_check validates; kb_status reports freshness.",
@@ -73,6 +77,7 @@ export function serverInstructions(
             .filter(
               (name) =>
                 !listed.has(name) &&
+                !unlisted.has(name) &&
                 !(OPTIONAL_TOOL_NAMES as readonly string[]).includes(name),
             )
             .join(
@@ -95,9 +100,11 @@ export async function startServer(): Promise<void> {
   // The tool profile decides what the session lists; the knowledge base
   // being empty adds the bootstrap tools to the core profile.
   const workspaceRoot = resolveWorkspaceRoot();
+  const level = readKibiLevel(workspaceRoot).level;
   const listed = profileToolNames(
     resolveToolProfile(workspaceRoot),
     knowledgeBaseIsEmpty(workspaceRoot),
+    level,
   );
 
   // Create MCP server
@@ -111,7 +118,13 @@ export async function startServer(): Promise<void> {
       version: VERSION,
       icons: KIBI_ICONS,
     },
-    { instructions: serverInstructions(listed) },
+    {
+      instructions: serverInstructions(
+        listed,
+        TOOLS,
+        level === "remember" ? REMEMBER_UNLISTED_TOOLS : new Set(),
+      ),
+    },
   );
 
   // Answer each call from the caller's workspace (worktrees, parallel agents).

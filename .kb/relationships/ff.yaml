@@ -545,3 +545,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-553c56baac13
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:49.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee7ce6d2b3f
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-c03-eq-false
+    created_at: 2026-11-25T10:21:13.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12f00c0cc18b
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    created_at: 2026-11-25T10:21:19.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b980d6b42ab
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c02-eq-false
+    created_at: 2026-11-25T10:21:24.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd39c28066a6
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c01-eq-false
+    created_at: 2026-11-25T10:21:30.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb03c0bdb97c
