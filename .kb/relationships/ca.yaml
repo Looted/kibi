@@ -468,13 +468,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5670b321bbdd
-  - type: requires_property
-    from: REQ-vs-code-extension-register-kibi-mcp
-    to: FACT-vscode-mcp-provider-registration
-    created_at: 2026-11-25T14:58:57.494Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30b84e049c34
   - type: specified_by
     from: REQ-vs-code-extension-register-kibi-mcp
     to: SCEN-vs-code-extension-register-kibi-mcp-reject

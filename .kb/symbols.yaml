@@ -49238,7 +49238,7 @@ symbols:
       - type: covered_by
         target: TEST-vs-code-extension-register-kibi-mcp
       - type: implements
-        target: REQ-vs-code-extension-register-kibi-mcp
+        target: REQ-vscode-mcp-server-provider
   - id: SYM-mcp-register-mcp-server-provider
     title: registerMcpServerProvider
     sourceFile: packages/vscode/src/activation/mcp.ts
@@ -49251,7 +49251,7 @@ symbols:
       - type: covered_by
         target: TEST-vs-code-extension-register-kibi-mcp
       - type: implements
-        target: REQ-vs-code-extension-register-kibi-mcp
+        target: REQ-vscode-mcp-server-provider
   - id: SYM-mcp-mcp-deps
     title: McpDeps
     status: active

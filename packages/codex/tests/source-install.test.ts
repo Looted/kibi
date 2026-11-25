@@ -77,7 +77,13 @@ function resultOf(output: {
 }
 
 function copyPluginAssets(pluginRoot: string): void {
-  for (const asset of ["plugin.json", "assets", ".mcp.json", "hooks", "bin"]) {
+  for (const asset of [
+    ".codex-plugin",
+    "assets",
+    ".mcp.json",
+    "hooks",
+    "bin",
+  ]) {
     const source = path.join(packageRoot, asset);
     const target = path.join(pluginRoot, asset);
     if (fs.statSync(source).isDirectory()) {

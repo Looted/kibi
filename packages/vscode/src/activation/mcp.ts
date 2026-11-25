@@ -129,7 +129,7 @@ export function registerMcpServerProvider(
         return [];
       }
       const env: Record<string, string> = {
-        KIBI_WORKSPACE: workspaceRoot,
+        KIBI_MCP_ATTACH_ROOT: workspaceRoot,
         KIBI_MCP_HOST: "vscode",
       };
       const StdioCtor = api.McpStdioServerDefinition;

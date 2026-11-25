@@ -90,7 +90,10 @@ describe("kibi-codex local marketplace fixture", () => {
       });
 
       for (const source of [
-        ["plugin.json", "plugins/kibi-codex/plugin.json"],
+        [
+          ".codex-plugin/plugin.json",
+          "plugins/kibi-codex/.codex-plugin/plugin.json",
+        ],
         ["assets", "plugins/kibi-codex/assets"],
         [".mcp.json", "plugins/kibi-codex/.mcp.json"],
         ["hooks/hooks.json", "plugins/kibi-codex/hooks/hooks.json"],
@@ -108,9 +111,11 @@ describe("kibi-codex local marketplace fixture", () => {
 
       expect(path.basename(simulatedPluginRoot)).toBe("kibi-codex");
       expect(fs.existsSync(simulatedPluginRoot)).toBe(true);
-      expect(fs.existsSync(path.join(simulatedPluginRoot, "plugin.json"))).toBe(
-        true,
-      );
+      expect(
+        fs.existsSync(
+          path.join(simulatedPluginRoot, ".codex-plugin", "plugin.json"),
+        ),
+      ).toBe(true);
       expect(fs.existsSync(path.join(simulatedPluginRoot, ".mcp.json"))).toBe(
         true,
       );
@@ -162,7 +167,9 @@ describe("kibi-codex local marketplace fixture", () => {
     expect(plugin?.category).toBe("Productivity");
 
     const pluginRoot = path.join(repoRoot, "packages", "codex");
-    expect(fs.existsSync(path.join(pluginRoot, "plugin.json"))).toBe(true);
+    expect(
+      fs.existsSync(path.join(pluginRoot, ".codex-plugin", "plugin.json")),
+    ).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "assets", "logo.png"))).toBe(
       true,
     );

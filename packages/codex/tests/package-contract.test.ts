@@ -32,7 +32,7 @@ describe("kibi-codex package contract", () => {
     expect(packageJson.main).toBe("dist/index.js");
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.files).toEqual([
-      "plugin.json",
+      ".codex-plugin",
       "assets",
       ".mcp.json",
       "hooks",

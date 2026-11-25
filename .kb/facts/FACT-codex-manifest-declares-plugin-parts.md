@@ -1,5 +1,5 @@
 ---
-title: The kibi-codex manifest declares its hooks, interface and MCP servers
+title: The kibi-codex manifest declares its skills, hooks and MCP servers
 status: active
 fact_kind: property_value
 subject_key: codex.kibi_plugin
@@ -8,15 +8,14 @@ operator: includes
 value_type: set
 value_set:
   - hooks
-  - interface
   - mcpServers
-claim_text: The kibi-codex plugin manifest must declare the hooks, interface and mcpServers fields under extensions["com.openai"]
-claim_key: CLAIM-FE9E314873A11112
+  - skills
+claim_text: The kibi-codex plugin manifest must declare the skills, hooks and mcpServers fields
+claim_key: CLAIM-AEF7587DBC190FD1
 text_ref: REQ-codex-plugin-package
 origin:
-  kind: human
-  ref: Maintainer approval, 2026-11-25, migrating kibi-codex to root plugin.json with extensions["com.openai"]
-  recorded_at: '2026-11-25T11:40:02.664Z'
+  kind: agent
+  recorded_at: '2026-10-27T07:48:28.176Z'
 id: FACT-codex-manifest-declares-plugin-parts
 type: fact
 ---
