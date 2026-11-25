@@ -492,6 +492,7 @@ const BASE_DATA_SCHEMAS: Readonly<
     migrationPlan: recordValue,
     bootstrap: recordValue,
     sessionBrief: stringValue,
+    versionControl: recordValue,
   }),
   kb_find_gaps: objectData({
     rows: recordArray,

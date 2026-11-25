@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   type AutoUpdateInput,
@@ -134,7 +134,7 @@ function checkoutHooksNote(worktreeRoot: string): string | null {
   const cached = checkoutHooksCache.get(worktreeRoot);
   const now = Date.now();
   if (cached && now - cached.at < CHECKOUT_HOOKS_TTL_MS) return cached.note;
-  const note = missingHooksNote(worktreeRoot);
+  const note = checkoutSessionNote(worktreeRoot);
   checkoutHooksCache.set(worktreeRoot, { note, at: now });
   return note;
 }

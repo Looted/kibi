@@ -79,15 +79,14 @@ describe("init-helpers", () => {
     expect(branch).toBe("test-branch");
   });
 
-  test("getCurrentBranch throws error if git fails and KIBI_BRANCH not set", async () => {
-    try {
-      await getCurrentBranch(tmpDir);
-      throw new Error("Expected getCurrentBranch to throw");
-    } catch (error) {
-      expect((error as Error).message).toContain(
-        "Failed to resolve active branch",
-      );
-    }
+  test("getCurrentBranch names the no-Git store outside Git", async () => {
+    expect(await getCurrentBranch(tmpDir)).toBe("kibi-internal/no-git");
+  });
+
+  test("getCurrentBranch throws when the branch cannot be resolved", async () => {
+    await expect(
+      getCurrentBranch(path.join(tmpDir, "missing")),
+    ).rejects.toThrow("Failed to resolve active branch");
   });
 
   test("getCurrentBranch uses KIBI_BRANCH when git fails", async () => {

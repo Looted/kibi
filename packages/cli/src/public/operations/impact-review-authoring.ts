@@ -12,6 +12,7 @@ import {
   type ImpactDecision,
   canonicalJson,
 } from "../../traceability/impact-review.js";
+import { assertGitWorkspace } from "../../vcs/git-boundary.js";
 import {
   captureImpactReview,
   withoutAnalysisReviews,
@@ -223,6 +224,7 @@ export async function executeAuthorImpactReview(
   context: OperationContext,
 ): Promise<OperationResult<Record<string, unknown>>> {
   const workspaceRoot = context.workspaceRoot;
+  assertGitWorkspace(workspaceRoot, "impact_review", "kb_author_impact_review");
   const { snapshot, prepared, assertUnchanged } = await captureImpactReview(
     input.scope,
     workspaceRoot,
