@@ -451,6 +451,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0ba0c9cd849
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T10:41:51.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7555a09c0661
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T10:41:51.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18e91c90a632
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T10:41:51.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860a8ac8ffa3
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T10:41:51.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25d0ed6c8091
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T10:41:51.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e83f45f62f6e
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T10:41:51.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c38945b6efb
   - type: relates_to
     from: REQ-kibi-no-git-workspace-attaches-reserved-store
     to: ADR-kibi-workspaces-without-git

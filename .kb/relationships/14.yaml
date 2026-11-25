@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8573828e5711
+  - type: implements
+    from: SYM-cli-rule-registry-getCanonicalRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:03.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d4423bde11e
+  - type: covered_by
+    from: SYM-cli-rule-registry-getCanonicalRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:03.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12a21cb3ea8a

@@ -409,3 +409,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53294222f7a8
+  - type: executable_for
+    from: SYM-test-kibi-schema-20-level
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:27.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ee4356abd93
+  - type: assumes
+    from: SCEN-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    to: FACT-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    created_at: 2026-11-25T10:20:11.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da4569aabf46
+  - type: assumes
+    from: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    to: FACT-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    created_at: 2026-11-25T10:20:24.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a6cdb40cf23

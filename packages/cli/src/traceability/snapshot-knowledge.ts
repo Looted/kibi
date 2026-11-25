@@ -115,7 +115,14 @@ export function readSnapshotKnowledge(
       throw new Error(
         `Snapshot relationship has a missing endpoint: ${relation.from} -> ${relation.to}`,
       );
-    owner.relationships.push(relation);
+    // A link the entity's own document declares may also sit in a shard;
+    // sync stores it once, so the snapshot keeps one copy too.
+    if (
+      !owner.relationships.some(
+        (known) => known.type === relation.type && known.to === relation.to,
+      )
+    )
+      owner.relationships.push(relation);
   }
   for (const result of results) {
     for (const relation of result.relationships) {

@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a87c98b2c58
+  - type: executable_for
+    from: SYM-test-kibi-required-evidence-at-remember
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:44.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d250c7035540
