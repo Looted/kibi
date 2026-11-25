@@ -377,13 +377,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28dbb8e3675d
-  - type: implements
-    from: SYM-hook-runner-run-hook
-    to: REQ-hook-read-rows-every-harness
-    created_at: 2026-11-25T14:30:13.488Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cce03cec127d
   - type: covered_by
     from: SYM-hook-runner-run-hook
     to: TEST-agent-hooks-read-rows
@@ -391,10 +384,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb0dfa98ec98
-  - type: implements
-    from: SYM-hook-runner-run-hook
-    to: REQ-hook-search-tip-after-rows
-    created_at: 2026-11-25T14:30:37.288Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d7d35b006a52

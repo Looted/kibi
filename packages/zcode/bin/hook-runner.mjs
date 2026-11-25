@@ -4828,6 +4828,7 @@ export {
   hookRunnerPath,
   isInvokedAsCli,
   main,
+  readRows,
   runHook,
   runHookCli,
   runHookCliIfMain

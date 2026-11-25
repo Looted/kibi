@@ -141,7 +141,7 @@ function knowledgeFor(
  * (see kibi-agent-core/read-context), each requirement once per
  * conversation.
  */
-function readRows(
+export function readRows(
   workspaceRoot: string,
   reads: readonly ShellRead[],
   stateDir: string | undefined,

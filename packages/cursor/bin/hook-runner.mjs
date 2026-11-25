@@ -5155,6 +5155,7 @@ export {
   isInvokedAsCli,
   kibiWorkspaceFor,
   main,
+  readRows,
   runHook,
   runHookCli,
   runHookCliIfMain

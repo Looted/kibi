@@ -4645,8 +4645,7 @@ function preToolUse(input, workspace, trace = {}) {
     trace.action = "search_silent";
     const rows = toolName === "Grep" ? grepToolRows(input, state, workspace, trace, events) : undefined;
     if (rows) {
-      if (!state.notices.has("search-tip"))
-        events.push({ kind: "notice", name: "search-tip" });
+      spendSearchTip(state, events);
       return emit(rows, "read_snippet");
     }
     if (state.kbUsed || state.notices.has("search-tip"))
@@ -4753,6 +4752,10 @@ function editPreToolUse(relativePath, kind, symbols, focus, state, workspace, ev
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
+function spendSearchTip(state, events) {
+  if (!state.notices.has("search-tip"))
+    events.push({ kind: "notice", name: "search-tip" });
+}
 function requirementRows(reads, state, workspace, trace, events, admits) {
   const rows = hookReadRows(reads, {
     workspaceRoot: workspace.root,
@@ -4845,8 +4848,8 @@ function bashContext(input, workspace, state, trace, command, edited, events, em
   }
   const rows = requirementRows(reads.filter(({ absolute }) => !edited.has(absolute)), state, workspace, trace, events);
   if (rows) {
-    if (isSearchCommand(command) && !state.notices.has("search-tip"))
-      events.push({ kind: "notice", name: "search-tip" });
+    if (isSearchCommand(command))
+      spendSearchTip(state, events);
     return emit(rows, "read_snippet");
   }
   if (namesKb && !state.notices.has("kb-direct")) {
@@ -5131,7 +5134,9 @@ export {
   isInvokedAsCli,
   main,
   readFocus,
+  requirementRows,
   runHook,
   runHookCli,
-  runHookCliIfMain
+  runHookCliIfMain,
+  spendSearchTip
 };

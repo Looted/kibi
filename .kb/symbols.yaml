@@ -3258,8 +3258,6 @@ symbols:
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
       - type: implements
-        target: REQ-hook-read-rows-every-harness
-      - type: implements
         target: REQ-session-brief-on-every-surface
   - id: SYM-cursor-stopFollowupMessage
     title: stopFollowupMessage
@@ -14138,8 +14136,6 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-hook-read-rows-every-harness
-      - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
   - id: SYM-zcode-mcp-registration-config
     title: ZCode MCP registration config
@@ -18875,10 +18871,6 @@ symbols:
         target: REQ-claude-adapter-isolation
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
-      - type: implements
-        target: REQ-hook-read-rows-every-harness
-      - type: implements
-        target: REQ-hook-search-tip-after-rows
   - id: SYM-claude-adapterKind
     title: adapterKind
     status: active
@@ -43599,8 +43591,6 @@ symbols:
       - type: covered_by
         target: TEST-session-brief
       - type: implements
-        target: REQ-hook-read-rows-every-harness
-      - type: implements
         target: REQ-session-brief-on-every-surface
   - id: SYM-codex-CODEX_SESSION_NOTE
     title: CODEX_SESSION_NOTE
@@ -47856,10 +47846,6 @@ symbols:
         target: TEST-antigravity-plugin
       - type: implements
         target: REQ-antigravity-hook-lifecycle-and-scoping
-      - type: implements
-        target: REQ-hook-read-rows-every-harness
-      - type: implements
-        target: REQ-hook-search-tip-after-rows
   - id: SYM-snippets-search-tip
     title: searchTip
     sourceFile: packages/antigravity/src/snippets.ts
@@ -49842,8 +49828,6 @@ symbols:
       - type: covered_by
         target: TEST-agent-hooks-read-rows
       - type: implements
-        target: REQ-hook-busy-file-ids
-      - type: implements
         target: REQ-hook-read-row-budgets
       - type: implements
         target: REQ-hook-read-rows-in-view
@@ -50011,45 +49995,6 @@ symbols:
         target: TEST-agent-hooks-read-rows
       - type: implements
         target: REQ-hook-search-rows
-  - id: SYM-source-linked-requirements-linked-files
-    title: linkedFiles
-    sourceFile: packages/cursor/src/source-linked-requirements.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T14:45:57.190Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hooks-read-rows
-      - type: implements
-        target: REQ-hook-read-rows-every-harness
-  - id: SYM-guard-is-read-tool
-    title: isReadTool
-    sourceFile: packages/vibe/src/guard.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T14:45:58.481Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hooks-read-rows
-      - type: implements
-        target: REQ-hook-read-rows-every-harness
-  - id: SYM-guard-tool-reads
-    title: toolReads
-    sourceFile: packages/vibe/src/guard.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-25T14:45:59.495Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hooks-read-rows
-      - type: implements
-        target: REQ-hook-read-rows-every-harness
   - id: SYM-bash-command-shell-line-range
     title: ShellLineRange
     status: active
@@ -50170,3 +50115,107 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-25T14:46:57.115Z
+  - id: SYM-hook-runner-requirement-rows
+    title: requirementRows
+    sourceFile: packages/claude/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:39.645Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-src-hook-runner-requirement-rows
+    title: requirementRows
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:41.050Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-read-rows
+    title: readRows
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:42.056Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-shell-read-rows
+    title: shellReadRows
+    sourceFile: packages/codex/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:43.114Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-src-hook-runner-read-rows
+    title: readRows
+    sourceFile: packages/zcode/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:44.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-hook-runner-spend-search-tip
+    title: spendSearchTip
+    sourceFile: packages/claude/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:48.069Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
+  - id: SYM-src-hook-runner-spend-search-tip
+    title: spendSearchTip
+    sourceFile: packages/antigravity/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:49.383Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
+  - id: SYM-read-context-busy-line
+    title: busyLine
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T15:04:53.433Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-busy-file-ids
