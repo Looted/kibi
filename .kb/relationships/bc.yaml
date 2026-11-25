@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21a74cad9394
+  - type: implements
+    from: SYM-read-context-grep-reg-exp
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:45:51.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d26cb3b0c7
+  - type: covered_by
+    from: SYM-read-context-grep-reg-exp
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:45:51.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eedb7b2653d

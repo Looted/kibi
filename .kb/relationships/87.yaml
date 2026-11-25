@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4debefd8ff3
+  - type: implements
+    from: SYM-read-context-matching-lines
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:28:10.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb2dcb318f96
+  - type: covered_by
+    from: SYM-read-context-matching-lines
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:10.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-137ffb4a0233

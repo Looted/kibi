@@ -734,3 +734,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfa610e23bf4
+  - type: implements
+    from: SYM-guard-is-read-tool
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:45:59.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5e5c705e0c
+  - type: covered_by
+    from: SYM-guard-is-read-tool
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:45:59.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29ac1f487216

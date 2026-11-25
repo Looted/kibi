@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import fs12 from "node:fs";
-import path13 from "node:path";
+import fs13 from "node:fs";
+import path15 from "node:path";
 import { fileURLToPath as fileURLToPath2, pathToFileURL } from "node:url";
 
 // ../agent-core/dist/bash-command.js
@@ -174,15 +174,298 @@ var SHELL_TOOLS = new Set([
   "exec_command",
   "run_shell_command"
 ]);
-function shellToolEditPaths(toolName, toolInput, cwd) {
+function shellToolCommand(toolName, toolInput) {
   if (toolName === undefined || !SHELL_TOOLS.has(toolName))
-    return [];
+    return;
   const raw = toolInput !== null && typeof toolInput === "object" ? toolInput.command : undefined;
   const argv = Array.isArray(raw) ? raw.filter((part) => typeof part === "string") : undefined;
   const command = argv === undefined ? raw : shellScript(argv) ?? argv.join(" ");
-  if (typeof command !== "string")
+  return typeof command === "string" ? command : undefined;
+}
+function shellToolEditPaths(toolName, toolInput, cwd) {
+  const command = shellToolCommand(toolName, toolInput);
+  return command === undefined ? [] : commandEditPaths(command, cwd);
+}
+function shellToolReadViews(toolName, toolInput, cwd) {
+  const command = shellToolCommand(toolName, toolInput);
+  if (command === undefined)
     return [];
-  return commandEditPaths(command, cwd);
+  const edited = new Set(commandEditPaths(command, cwd));
+  return commandReadViews(command, cwd).filter((view) => !edited.has(view.absolute));
+}
+var SEARCH_PROGRAMS = new Set(["grep", "egrep", "fgrep", "rg"]);
+var WHOLE_FILE_PROGRAMS = new Set(["cat", "nl", "bat", "less", "more"]);
+var GREP_VALUE_FLAGS = new Set([
+  "-A",
+  "-B",
+  "-C",
+  "-m",
+  "-g",
+  "-t",
+  "-T",
+  "-f",
+  "--glob",
+  "--type",
+  "--max-count",
+  "--context",
+  "--after-context",
+  "--before-context",
+  "--include",
+  "--exclude",
+  "--exclude-dir"
+]);
+var SED_PRINT = /^(\d+)(?:,(\d+|\$))?p$/;
+var DEFAULT_HEAD_LINES = 10;
+function lineCount(args, index) {
+  const arg = args[index];
+  if (arg === "-n" || arg === "--lines") {
+    const value = args[index + 1];
+    return value === undefined ? undefined : { value, used: 2 };
+  }
+  const attached = /^(?:-n|--lines=)(\+?\d+)$/.exec(arg) ?? /^-(\d+)$/.exec(arg);
+  return attached ? { value: attached[1], used: 1 } : undefined;
+}
+function readText(absolute) {
+  try {
+    return fs.readFileSync(absolute, "utf8");
+  } catch {
+    return;
+  }
+}
+function fileLineCount(absolute) {
+  const content = readText(absolute) ?? "";
+  const lines = content.split(`
+`).length;
+  return content.endsWith(`
+`) || content === "" ? lines - 1 : lines;
+}
+function readStage(words) {
+  const [name, ...args] = words;
+  const program = path.basename(String(name));
+  if (program === "sed") {
+    if (!args.includes("-n"))
+      return;
+    const rest = args.filter((arg) => arg !== "-n");
+    const scriptIndex = rest.findIndex((arg) => !arg.startsWith("-"));
+    if (scriptIndex === -1)
+      return;
+    const print = SED_PRINT.exec(unquote(rest[scriptIndex]));
+    if (!print)
+      return;
+    const start = Number(print[1]);
+    const endText = print[2] ?? print[1];
+    return {
+      operands: rest.slice(scriptIndex + 1).filter((arg) => !arg.startsWith("-")),
+      range: (absolute) => ({
+        start,
+        end: endText === "$" ? fileLineCount(absolute) : Number(endText)
+      }),
+      recursive: false,
+      whole: false
+    };
+  }
+  if (program === "head" || program === "tail") {
+    let count = String(DEFAULT_HEAD_LINES);
+    const operands = [];
+    for (let index = 0;index < args.length; index++) {
+      const found = lineCount(args, index);
+      if (found) {
+        count = found.value;
+        index += found.used - 1;
+      } else if (!args[index].startsWith("-"))
+        operands.push(args[index]);
+    }
+    const lines = Number(count.replace(/^\+/, ""));
+    return {
+      operands,
+      range: (absolute) => {
+        if (program === "head")
+          return { start: 1, end: lines };
+        const total = fileLineCount(absolute);
+        return count.startsWith("+") ? { start: lines, end: total } : { start: Math.max(1, total - lines + 1), end: total };
+      },
+      recursive: false,
+      whole: false
+    };
+  }
+  if (SEARCH_PROGRAMS.has(program))
+    return searchStage(program, args);
+  if (WHOLE_FILE_PROGRAMS.has(program))
+    return {
+      operands: args.filter((arg) => !arg.startsWith("-")),
+      recursive: false,
+      whole: true
+    };
+  return;
+}
+function searchStage(program, args) {
+  let pattern;
+  let ignoreCase = false;
+  let fixed = program === "fgrep";
+  let basic = program === "grep";
+  let word = false;
+  let recursive = program === "rg";
+  const operands = [];
+  for (let index = 0;index < args.length; index++) {
+    const arg = args[index];
+    if (arg === "--") {
+      for (const rest of args.slice(index + 1)) {
+        if (pattern === undefined)
+          pattern = unquote(rest);
+        else
+          operands.push(rest);
+      }
+      break;
+    }
+    if (arg === "-e" || arg === "--regexp") {
+      pattern = unquote(String(args[++index]));
+      continue;
+    }
+    if (GREP_VALUE_FLAGS.has(arg)) {
+      index++;
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      if (arg === "--ignore-case")
+        ignoreCase = true;
+      else if (arg === "--fixed-strings")
+        fixed = true;
+      else if (arg === "--extended-regexp" || arg === "--perl-regexp")
+        basic = false;
+      else if (arg === "--word-regexp")
+        word = true;
+      else if (arg === "--recursive")
+        recursive = true;
+      continue;
+    }
+    if (arg.startsWith("-") && arg.length > 1) {
+      for (const flag of arg.slice(1)) {
+        if (flag === "i")
+          ignoreCase = true;
+        else if (flag === "F")
+          fixed = true;
+        else if (flag === "E" || flag === "P")
+          basic = false;
+        else if (flag === "w")
+          word = true;
+        else if (flag === "r" || flag === "R")
+          recursive = true;
+      }
+      continue;
+    }
+    if (pattern === undefined)
+      pattern = unquote(arg);
+    else
+      operands.push(arg);
+  }
+  return {
+    operands,
+    ...pattern === undefined || pattern.length === 0 ? {} : { grep: { pattern, ignoreCase, fixed, basic: basic && !fixed, word } },
+    recursive,
+    whole: false
+  };
+}
+function* pipelines(command) {
+  const masked = maskQuoted(command);
+  const separator = /&&|\|\||[;\n]/g;
+  let start = 0;
+  const pieces = [];
+  for (const match of masked.matchAll(separator)) {
+    pieces.push([start, match.index]);
+    start = match.index + match[0].length;
+  }
+  pieces.push([start, masked.length]);
+  for (const [from, to] of pieces) {
+    const stages = [];
+    let stageStart = from;
+    const cut = (end) => {
+      const words = [...masked.slice(stageStart, end).matchAll(/\S+/g)].map((word) => {
+        const at = stageStart + word.index;
+        return command.slice(at, at + word[0].length);
+      });
+      const plain = unbracketed(words);
+      stages.push(plain.slice(Math.max(0, commandStart(plain))));
+    };
+    for (let index = from;index < to; index++) {
+      if (masked[index] === "|") {
+        cut(index);
+        stageStart = index + 1;
+      }
+    }
+    cut(to);
+    yield stages;
+  }
+}
+function commandReadViews(command, cwd) {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const views = new Map;
+  const resolve = (word) => {
+    const name = unquote(word);
+    for (const base of bases) {
+      const absolute = path.resolve(base, name);
+      try {
+        const stat = fs.statSync(absolute);
+        if (stat.isFile() || stat.isDirectory())
+          return { absolute, directory: stat.isDirectory() };
+      } catch {}
+    }
+    return;
+  };
+  const add = (view) => {
+    const known = views.get(view.absolute);
+    if (!known || !known.focus && !known.grep)
+      views.set(view.absolute, view);
+  };
+  const visit = (line, depth) => {
+    for (const stages of pipelines(line)) {
+      let source;
+      for (const words of stages) {
+        const script = shellScript(words);
+        if (script !== undefined && depth < 2) {
+          visit(unquote(script), depth + 1);
+          continue;
+        }
+        const stage = readStage(words);
+        if (!stage) {
+          source = undefined;
+          continue;
+        }
+        const operands = stage.operands.map(resolve).filter((target) => target !== undefined);
+        if (stage.grep) {
+          const targets = operands.length === 0 && stage.recursive ? [
+            {
+              absolute: path.resolve(bases.at(-1)),
+              directory: true
+            }
+          ] : operands;
+          for (const target of targets)
+            if (!target.directory || stage.recursive)
+              add({ ...target, grep: stage.grep });
+          if (operands.length === 0 && source)
+            add({ absolute: source, directory: false, grep: stage.grep });
+          source = undefined;
+          continue;
+        }
+        const files = operands.filter((target) => !target.directory);
+        if (stage.range) {
+          const targets = files.length === 0 && source ? [{ absolute: source, directory: false }] : files;
+          for (const target of targets)
+            add({ ...target, focus: [stage.range(target.absolute)] });
+          source = undefined;
+          continue;
+        }
+        for (const target of files)
+          add(target);
+        source = files.length === 1 ? files[0].absolute : undefined;
+      }
+    }
+  };
+  visit(scanned, 0);
+  for (const absolute of commandFilePaths(scanned, cwd))
+    if (!views.has(absolute))
+      views.set(absolute, { absolute, directory: false });
+  return [...views.values()];
 }
 
 // ../agent-core/dist/checkout-hooks.js
@@ -235,9 +518,9 @@ function missingHooksNote(workspaceRoot) {
 }
 
 // ../agent-core/dist/decision-guard.js
-import { createHash as createHash2 } from "node:crypto";
+import { createHash as createHash3 } from "node:crypto";
 import fs6 from "node:fs";
-import path6 from "node:path";
+import path7 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord(value) {
@@ -971,7 +1254,7 @@ function fileSignature(filePath) {
     return "missing";
   }
 }
-function readText(filePath) {
+function readText2(filePath) {
   try {
     return fs3.readFileSync(filePath, "utf8");
   } catch {}
@@ -994,8 +1277,8 @@ function readCachedIndex(cachePath, signature) {
   return;
 }
 function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
-  const symbolsText = readText(symbolsPath);
-  const coordinatesText = readText(coordinatesPath);
+  const symbolsText = readText2(symbolsPath);
+  const coordinatesText = readText2(coordinatesPath);
   const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
   return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
 }
@@ -1142,7 +1425,7 @@ function shardLinksFrom(workspaceRoot, entityId) {
   let cached = shardCache.get(shardPath);
   if (cached?.signature !== signature) {
     const byFrom = new Map;
-    const text = readText(shardPath);
+    const text = readText2(shardPath);
     if (text !== undefined) {
       for (const { type, from, to } of scanRecordSequence(text, "relationships")) {
         if (typeof type !== "string" || typeof to !== "string")
@@ -1188,7 +1471,7 @@ function currentSuccessors(workspaceRoot) {
   };
   for (const name of list(".kb/requirements", ".md")) {
     const id = name.slice(0, -3);
-    const text = readText(path4.join(workspaceRoot, ".kb/requirements", name));
+    const text = readText2(path4.join(workspaceRoot, ".kb/requirements", name));
     if (text === undefined || !text.includes("supersedes"))
       continue;
     for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
@@ -1196,7 +1479,7 @@ function currentSuccessors(workspaceRoot) {
         edges.push({ from: id, to: link.target });
   }
   for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
-    const text = readText(path4.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    const text = readText2(path4.join(workspaceRoot, RELATIONSHIPS_DIR, name));
     if (text === undefined || !text.includes("supersedes"))
       continue;
     for (const { from, to } of shardSupersedes(text))
@@ -1641,7 +1924,9 @@ function restatedRequirement(workspaceRoot, sentence) {
 }
 
 // ../agent-core/dist/snippets.js
+import { createHash as createHash2 } from "node:crypto";
 import fs5 from "node:fs";
+import path6 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -2029,6 +2314,18 @@ function fileKnowledgeSnippet(input) {
   };
   return fitLayouts(compose, input.maxChars ?? MAX_SNIPPET_CHARS);
 }
+function claimSnippetSlot(stateDir, key) {
+  if (!stateDir)
+    return true;
+  const marker = path6.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
+  try {
+    fs5.mkdirSync(path6.dirname(marker), { recursive: true });
+    fs5.writeFileSync(marker, "", { flag: "wx" });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // ../agent-core/dist/decision-guard.js
 var CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
@@ -2183,13 +2480,13 @@ function patchSectionRemovesOnlyDeadComments(section) {
   return removed > 0;
 }
 function patchesRemoveOnlyDeadComments(absolutePath, patches, base) {
-  const target = path6.resolve(absolutePath);
+  const target = path7.resolve(absolutePath);
   const relevant = [];
   for (const patch of patches) {
     const sections = parsePatchSections(patch);
     if (sections === undefined)
       return false;
-    relevant.push(...base === undefined ? sections : sections.filter((section) => path6.resolve(base, section.path) === target));
+    relevant.push(...base === undefined ? sections : sections.filter((section) => path7.resolve(base, section.path) === target));
   }
   return relevant.length > 0 && relevant.every(patchSectionRemovesOnlyDeadComments);
 }
@@ -2375,15 +2672,15 @@ var UNATTRIBUTED = "unattributed";
 var UNATTRIBUTED_IDLE_MS = 2 * 60 * 60 * 1000;
 var STALE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 function sessionKey(session) {
-  return createHash2("sha256").update(session.sessionId?.trim() || UNATTRIBUTED).digest("hex").slice(0, 32);
+  return createHash3("sha256").update(session.sessionId?.trim() || UNATTRIBUTED).digest("hex").slice(0, 32);
 }
 function guardRoot(session) {
   if (!session.stateDir)
     throw new Error;
-  return path6.join(session.stateDir, "decision-guard");
+  return path7.join(session.stateDir, "decision-guard");
 }
 function sessionPath(session, name) {
-  return path6.join(guardRoot(session), sessionKey(session), name);
+  return path7.join(guardRoot(session), sessionKey(session), name);
 }
 function newestOf(files) {
   let newest = Number.NaN;
@@ -2398,7 +2695,7 @@ function newestOf(files) {
 }
 function markerFiles(dir) {
   try {
-    return fs6.readdirSync(dir).map((name) => path6.join(dir, name));
+    return fs6.readdirSync(dir).map((name) => path7.join(dir, name));
   } catch {
     return [];
   }
@@ -2420,7 +2717,7 @@ function startDecisionSession(session, cause, options = {}) {
   const own = sessionKey(session);
   let dropped = false;
   if (!session.sessionId?.trim() && cause !== "resume") {
-    const files = [...markerFiles(path6.join(root, own)), ...hostFiles];
+    const files = [...markerFiles(path7.join(root, own)), ...hostFiles];
     dropped = cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
     if (dropped) {
       for (const file of files)
@@ -2436,7 +2733,7 @@ function startDecisionSession(session, cause, options = {}) {
   for (const key of keys) {
     if (key === own)
       continue;
-    const dir = path6.join(root, key);
+    const dir = path7.join(root, key);
     if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
       removeQuietly(dir);
     }
@@ -2444,11 +2741,11 @@ function startDecisionSession(session, cause, options = {}) {
   return dropped;
 }
 function writeMarker(file, content) {
-  fs6.mkdirSync(path6.dirname(file), { recursive: true });
+  fs6.mkdirSync(path7.dirname(file), { recursive: true });
   fs6.writeFileSync(file, content);
 }
 function touchMarker(file, flag) {
-  fs6.mkdirSync(path6.dirname(file), { recursive: true });
+  fs6.mkdirSync(path7.dirname(file), { recursive: true });
   fs6.closeSync(fs6.openSync(file, flag));
 }
 function readMarker(session, name) {
@@ -2516,7 +2813,7 @@ function claimRuleCaptureTemplate(session, editingSource = false) {
 function claimCaptureReminder(session) {
   return hasDecisionFlag(session, "source-edited") && !hasDecisionFlag(session, "kb-recorded") && claimDecisionFlag(session, "capture-asked");
 }
-var SIGNOFF_LATEST_JSON = path6.join(".kb", "briefs", "signoff", "latest.json");
+var SIGNOFF_LATEST_JSON = path7.join(".kb", "briefs", "signoff", "latest.json");
 function record(value) {
   return typeof value === "object" && !Array.isArray(value) ? value : undefined;
 }
@@ -2546,7 +2843,7 @@ function claimSignoffReminder(session, workspaceRoot) {
   const recorded = mtimeMs(() => sessionPath(session, "requirement-recorded"));
   if (Number.isNaN(recorded))
     return false;
-  const shown = mtimeMs(() => path6.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  const shown = mtimeMs(() => path7.join(workspaceRoot, SIGNOFF_LATEST_JSON));
   if (shown >= recorded)
     return false;
   return claimDecisionFlag(session, "signoff-asked");
@@ -2607,12 +2904,12 @@ function parseStdinJson(rawInput) {
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs9 from "node:fs";
-import path9 from "node:path";
+import path10 from "node:path";
 
 // ../agent-core/dist/telemetry-signals.js
-import { createHash as createHash3, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";
 import fs7 from "node:fs";
-import path7 from "node:path";
+import path8 from "node:path";
 var RETRY_WINDOW_MS = 10 * 60 * 1000;
 var SEARCH_REPEAT_WINDOW_MS = 2 * 60 * 1000;
 var SKILL_WINDOW_MS = 30 * 60 * 1000;
@@ -2683,7 +2980,7 @@ function kibiSkillLoad(toolName, toolInput) {
   return skillInStrings(toolInput, 3);
 }
 function recentPath(directory) {
-  return path7.join(directory, RECENT_FILE);
+  return path8.join(directory, RECENT_FILE);
 }
 function entries(value) {
   return Array.isArray(value) ? value : [];
@@ -2720,10 +3017,10 @@ function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
 }
 
 // ../agent-core/dist/usage-telemetry.js
-import { createHash as createHash4, randomUUID as randomUUID3 } from "node:crypto";
+import { createHash as createHash5, randomUUID as randomUUID3 } from "node:crypto";
 import fs8 from "node:fs";
 import os from "node:os";
-import path8 from "node:path";
+import path9 from "node:path";
 import { fileURLToPath } from "node:url";
 var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
 var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
@@ -2863,7 +3160,7 @@ function realDirectory(directory) {
   try {
     return fs8.realpathSync(directory);
   } catch {
-    return path8.resolve(directory);
+    return path9.resolve(directory);
   }
 }
 function sandboxedHome(env) {
@@ -2872,7 +3169,7 @@ function sandboxedHome(env) {
     return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved.startsWith(`${temp}${path8.sep}`);
+  return resolved.startsWith(`${temp}${path9.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
 function moduleFileFromUrl(readUrl) {
@@ -2891,15 +3188,15 @@ function insideKibiCheckout(file) {
   const resolved = realDirectory(file);
   if (resolved.split(/[\\/]/).includes("node_modules"))
     return false;
-  let current = path8.dirname(resolved);
+  let current = path9.dirname(resolved);
   for (;; ) {
     try {
-      const manifest = JSON.parse(fs8.readFileSync(path8.join(current, "package.json"), "utf8"));
-      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs8.existsSync(path8.join(current, "packages", "agent-core"))) {
+      const manifest = JSON.parse(fs8.readFileSync(path9.join(current, "package.json"), "utf8"));
+      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs8.existsSync(path9.join(current, "packages", "agent-core"))) {
         return true;
       }
     } catch {}
-    const parent = path8.dirname(current);
+    const parent = path9.dirname(current);
     if (parent === current)
       return false;
     current = parent;
@@ -2930,14 +3227,14 @@ function telemetryDirectory(env = process.env) {
   if (explicit)
     return explicit;
   if (process.platform === "win32" && env.LOCALAPPDATA) {
-    return path8.join(env.LOCALAPPDATA, "kibi");
+    return path9.join(env.LOCALAPPDATA, "kibi");
   }
   const stateHome = env.XDG_STATE_HOME?.trim();
-  return path8.join(stateHome || path8.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
+  return path9.join(stateHome || path9.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(String(fs8.readFileSync(path8.join(telemetryDirectory(env), CONFIG_FILE))));
+    const parsed = JSON.parse(String(fs8.readFileSync(path9.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2946,7 +3243,7 @@ function readTelemetryConfig(env = process.env) {
 function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
   fs8.mkdirSync(directory, { recursive: true });
-  fs8.writeFileSync(path8.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+  fs8.writeFileSync(path9.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
 `);
 }
 function telemetryStatus(env = process.env) {
@@ -3010,13 +3307,13 @@ function installId(env) {
   return created;
 }
 function hashTelemetryId(value) {
-  return createHash4("sha256").update("kibi-telemetry\x00").update(value).digest("hex").slice(0, 16);
+  return createHash5("sha256").update("kibi-telemetry\x00").update(value).digest("hex").slice(0, 16);
 }
 function runtimeName() {
   return typeof globalThis.Bun === "undefined" ? "node" : "bun";
 }
 function sessionMarkersPath(env) {
-  return path8.join(telemetryDirectory(env), SESSIONS_FILE);
+  return path9.join(telemetryDirectory(env), SESSIONS_FILE);
 }
 function readSessionMarkers(env) {
   try {
@@ -3041,7 +3338,7 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
   try {
     const file = sessionMarkersPath(env);
-    fs8.mkdirSync(path8.dirname(file), { recursive: true });
+    fs8.mkdirSync(path9.dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.${randomUUID3()}.tmp`;
     fs8.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
     fs8.renameSync(temporary, file);
@@ -3050,13 +3347,13 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
 function workspaceSessionHash(startDirectory, env = process.env) {
   const markers = readSessionMarkers(env);
   const now = Date.now();
-  let current = path8.resolve(startDirectory);
+  let current = path9.resolve(startDirectory);
   for (;; ) {
     const marker = markers[workspaceKey(current)];
     if (marker && typeof marker.session === "string" && typeof marker.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS) {
       return marker.session;
     }
-    const parent = path8.dirname(current);
+    const parent = path9.dirname(current);
     if (parent === current)
       return;
     current = parent;
@@ -3088,12 +3385,12 @@ function baseProperties(source, env) {
   };
 }
 function queuePath(env) {
-  return path8.join(telemetryDirectory(env), QUEUE_FILE);
+  return path9.join(telemetryDirectory(env), QUEUE_FILE);
 }
 function appendEvent(event, env) {
   try {
     const file = queuePath(env);
-    fs8.mkdirSync(path8.dirname(file), { recursive: true });
+    fs8.mkdirSync(path9.dirname(file), { recursive: true });
     try {
       if (fs8.statSync(file).size > MAX_QUEUE_BYTES)
         return;
@@ -3175,7 +3472,7 @@ function claimBatches(directory, now) {
   for (const name of names) {
     if (!name.endsWith(SENDING_SUFFIX))
       continue;
-    const file = path8.join(directory, name);
+    const file = path9.join(directory, name);
     try {
       if (now - fs8.statSync(file).mtimeMs < STALE_CLAIM_MS)
         continue;
@@ -3184,8 +3481,8 @@ function claimBatches(directory, now) {
       claimed.push(reclaimed);
     } catch {}
   }
-  const queue = path8.join(directory, QUEUE_FILE);
-  const target = path8.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
+  const queue = path9.join(directory, QUEUE_FILE);
+  const target = path9.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
   try {
     fs8.renameSync(queue, target);
     claimed.push(target);
@@ -3302,8 +3599,8 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path9.join(row.workspaceRoot, ".kb", "usage.log");
-    fs9.mkdirSync(path9.dirname(logPath), { recursive: true });
+    const logPath = path10.join(row.workspaceRoot, ".kb", "usage.log");
+    fs9.mkdirSync(path10.dirname(logPath), { recursive: true });
     fs9.appendFileSync(logPath, `${JSON.stringify(record)}
 `);
   } catch {}
@@ -3357,6 +3654,376 @@ function readPackageVersion(packageJsonPath) {
   return null;
 }
 
+// ../agent-core/dist/read-context.js
+import { createHash as createHash6 } from "node:crypto";
+import fs10 from "node:fs";
+import path11 from "node:path";
+var MAX_ROWS_PER_EVENT = 3;
+var MAX_WHOLE_FILE_ROWS = 5;
+var MAX_EVENT_CHARS = 700;
+var MAX_WHOLE_FILE_EVENT_CHARS = 1100;
+var MAX_SESSION_ROWS = 10;
+var MAX_SESSION_CHARS = 2300;
+var MAX_SEARCH_REQUIREMENTS = 6;
+var MAX_SEARCH_FILES = 300;
+var MAX_SEARCH_FILE_BYTES = 1024 * 1024;
+var MAX_TITLE_SYMBOL = 60;
+var MAX_BUSY_LINE = 600;
+var HEADER = "Kibi requirements for the code in view:";
+var HINT = `kb_query({id:"<id>", includeBody:true}) gives a requirement's full text and why it exists.`;
+function truncate2(text, limit) {
+  return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
+}
+function isCurrent(summarize, id) {
+  const summary = summarize(id);
+  return !isRetiredStatus(summary.status) && summary.supersededBy === undefined;
+}
+function isFirm(summarize, id) {
+  return summarize(id).firmness === "firm";
+}
+function matchedSymbols(symbols, lines) {
+  return focusedSymbols(symbols, lines.map((line) => ({ start: line, end: line }))).map((symbol) => ({
+    symbol,
+    count: lines.filter((line) => line >= Number(symbol.line) && line <= Number(symbol.endLine ?? symbol.line)).length
+  })).sort((left, right) => right.count - left.count);
+}
+function rankedCandidates(view, summarize) {
+  const ordered = view.matches !== undefined ? matchedSymbols(view.symbols, view.matches).map(({ symbol, count }) => ({
+    symbol,
+    weight: count
+  })) : focusedSymbols(view.symbols, view.focus).map((symbol, index) => ({
+    symbol,
+    weight: -index
+  }));
+  const best = new Map;
+  for (const { symbol, weight } of ordered) {
+    for (const id of symbol.implements) {
+      if (!isCurrent(summarize, id))
+        continue;
+      if (best.has(id))
+        continue;
+      best.set(id, {
+        id,
+        symbol: symbol.title,
+        relativePath: view.relativePath,
+        firmFocus: isFirm(summarize, id),
+        weight
+      });
+    }
+  }
+  return [...best.values()].sort((left, right) => right.weight - left.weight || Number(right.firmFocus) - Number(left.firmFocus) || left.id.localeCompare(right.id)).map(({ weight: _weight, ...candidate }) => candidate);
+}
+function wholeFileCandidates(view, summarize) {
+  const symbolsOf = new Map;
+  for (const symbol of view.symbols)
+    for (const id of symbol.implements) {
+      if (!isCurrent(summarize, id))
+        continue;
+      symbolsOf.set(id, [...symbolsOf.get(id) ?? [], symbol.title]);
+    }
+  return [...symbolsOf.entries()].sort(([leftId, left], [rightId, right]) => right.length - left.length || Number(isFirm(summarize, rightId)) - Number(isFirm(summarize, leftId)) || leftId.localeCompare(rightId)).map(([id, symbols]) => ({
+    id,
+    symbol: symbols[0],
+    relativePath: view.relativePath,
+    firmFocus: false
+  }));
+}
+function ledgerFile(stateDir, sessionKey) {
+  const key = createHash6("sha256").update(String(sessionKey)).digest("hex").slice(0, 32);
+  return path11.join(stateDir, "read-rows", `${key}.jsonl`);
+}
+function readLedger(stateDir, sessionKey) {
+  const total = { rows: 0, chars: 0 };
+  if (!stateDir)
+    return total;
+  let text;
+  try {
+    text = fs10.readFileSync(ledgerFile(stateDir, sessionKey), "utf8");
+  } catch {
+    return total;
+  }
+  for (const line of text.split(`
+`)) {
+    try {
+      const entry = JSON.parse(line);
+      total.rows += Number(entry.rows) || 0;
+      total.chars += Number(entry.chars) || 0;
+    } catch {}
+  }
+  return total;
+}
+function appendLedger(stateDir, sessionKey, entry) {
+  if (!stateDir)
+    return;
+  const file = ledgerFile(stateDir, sessionKey);
+  try {
+    fs10.mkdirSync(path11.dirname(file), { recursive: true });
+    fs10.appendFileSync(file, `${JSON.stringify(entry)}
+`);
+  } catch {}
+}
+function slotKey(sessionKey, ...parts) {
+  return [String(sessionKey), "read-row", ...parts].join("\x00");
+}
+function slotTaken(stateDir, key) {
+  if (!stateDir)
+    return false;
+  const marker = path11.join(stateDir, "shown-snippets", createHash6("sha256").update(key).digest("hex").slice(0, 32));
+  return fs10.existsSync(marker);
+}
+function rowText(candidate, summarize, withPath) {
+  const where = withPath ? `${truncate2(candidate.symbol, MAX_TITLE_SYMBOL)} (${candidate.relativePath})` : truncate2(candidate.symbol, MAX_TITLE_SYMBOL);
+  return `- ${describeEntity(summarize(candidate.id))} — ${where}`;
+}
+function busyLine(view, ids) {
+  const line = `- ${view.relativePath} implements ${ids.length} requirements: ${ids.join(", ")}; reading a line range narrows them to the code in view.`;
+  return truncate2(line, MAX_BUSY_LINE);
+}
+function readContext(input) {
+  const { summarize, stateDir, sessionKey } = input;
+  const alreadyShown = input.alreadyShown ?? new Set;
+  const ledger = readLedger(stateDir, sessionKey);
+  if (ledger.rows >= MAX_SESSION_ROWS || ledger.chars >= MAX_SESSION_CHARS)
+    return;
+  const search = input.views.filter((view) => view.matches !== undefined);
+  const reads = input.views.filter((view) => view.matches === undefined);
+  const candidates = [];
+  const busy = [];
+  let wholeFile = false;
+  if (search.length > 0) {
+    const ranked = search.flatMap((view) => rankedCandidates(view, summarize).map((candidate, rank) => ({
+      candidate,
+      count: matchedSymbols(view.symbols, view.matches ?? []).find((entry) => entry.symbol.implements.includes(candidate.id))?.count ?? 0,
+      rank
+    }))).sort((left, right) => right.count - left.count || left.rank - right.rank);
+    const distinct = new Set(ranked.map((entry) => entry.candidate.id));
+    if (distinct.size <= MAX_SEARCH_REQUIREMENTS)
+      candidates.push(...ranked.map((entry) => entry.candidate));
+  }
+  for (const view of reads) {
+    if (view.focus !== undefined) {
+      candidates.push(...rankedCandidates(view, summarize));
+      continue;
+    }
+    const all = wholeFileCandidates(view, summarize);
+    if (all.length <= MAX_WHOLE_FILE_ROWS) {
+      wholeFile = wholeFile || all.length > 0;
+      candidates.push(...all);
+    } else
+      busy.push({ view, ids: all.map((candidate) => candidate.id) });
+  }
+  const perEvent = wholeFile && search.length === 0 && !reads.some((view) => view.focus) ? MAX_WHOLE_FILE_ROWS : MAX_ROWS_PER_EVENT;
+  const eventChars = perEvent === MAX_WHOLE_FILE_ROWS ? MAX_WHOLE_FILE_EVENT_CHARS : MAX_EVENT_CHARS;
+  const hintKey = slotKey(sessionKey, "hint");
+  const hint = slotTaken(stateDir, hintKey) ? undefined : HINT;
+  const withPath = new Set(input.views.map((view) => view.relativePath)).size > 1;
+  const lines = [HEADER];
+  const ids = [];
+  const paths = new Set;
+  const seen = new Set;
+  const fixed = (extra) => lines.join(`
+`).length + extra;
+  let rows = 0;
+  for (const candidate of candidates) {
+    if (rows >= perEvent || ledger.rows + rows >= MAX_SESSION_ROWS)
+      break;
+    if (seen.has(candidate.id))
+      continue;
+    seen.add(candidate.id);
+    if (alreadyShown.has(candidate.id) && !candidate.firmFocus)
+      continue;
+    const row = rowText(candidate, summarize, withPath);
+    const length = fixed(row.length + 1);
+    if (length > eventChars || ledger.chars + length > MAX_SESSION_CHARS)
+      continue;
+    if (!claimSnippetSlot(stateDir, slotKey(sessionKey, candidate.id)))
+      continue;
+    lines.push(row);
+    ids.push(candidate.id);
+    paths.add(candidate.relativePath);
+    rows++;
+  }
+  for (const { view, ids: busyIds } of busy) {
+    if (ledger.rows + rows >= MAX_SESSION_ROWS)
+      break;
+    const line = busyLine(view, busyIds);
+    const length = fixed(line.length + 1);
+    if (length > MAX_WHOLE_FILE_EVENT_CHARS || ledger.chars + length > MAX_SESSION_CHARS)
+      continue;
+    if (!claimSnippetSlot(stateDir, slotKey(sessionKey, "busy", view.relativePath)))
+      continue;
+    lines.push(line);
+    paths.add(view.relativePath);
+    rows++;
+  }
+  if (rows === 0)
+    return;
+  const withHint = fixed((hint?.length ?? 0) + 1);
+  if (hint && withHint <= eventChars && ledger.chars + withHint <= MAX_SESSION_CHARS && claimSnippetSlot(stateDir, hintKey))
+    lines.push(hint);
+  const text = lines.join(`
+`);
+  appendLedger(stateDir, sessionKey, { rows, chars: text.length });
+  return { text, ids, paths: [...paths] };
+}
+function grepRegExp(grep) {
+  const flags = grep.ignoreCase ? "i" : "";
+  const literal = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  let source;
+  if (grep.fixed)
+    source = literal(grep.pattern);
+  else if (grep.basic) {
+    source = "";
+    for (let index = 0;index < grep.pattern.length; index++) {
+      const char = grep.pattern[index];
+      const next = grep.pattern[index + 1];
+      if (char === "\\" && next !== undefined && "|()+?{}".includes(next)) {
+        source += next;
+        index++;
+      } else if (char === "\\" && next !== undefined) {
+        source += `\\${next}`;
+        index++;
+      } else if ("|()+?{}".includes(char))
+        source += `\\${char}`;
+      else
+        source += char;
+    }
+  } else
+    source = grep.pattern;
+  if (grep.word)
+    source = `\\b(?:${source})\\b`;
+  try {
+    return new RegExp(source, flags);
+  } catch {
+    return new RegExp(literal(grep.pattern), flags);
+  }
+}
+function matchingLines(absolute, grep) {
+  const pattern = grepRegExp(grep);
+  const content = readText(absolute);
+  if (content === undefined || content.length > MAX_SEARCH_FILE_BYTES)
+    return [];
+  const lines = [];
+  for (const [index, line] of content.split(`
+`).entries())
+    if (pattern.test(line))
+      lines.push(index + 1);
+  return lines;
+}
+function linkedFilesUnder(files, relativeDirectory) {
+  const prefix = relativeDirectory === "" ? "" : `${relativeDirectory}/`;
+  return Object.keys(files).filter((file) => file.startsWith(prefix) && implementedRequirementIds(files[file] ?? []).length > 0).sort().slice(0, MAX_SEARCH_FILES);
+}
+function relativeTo(root, absolute) {
+  const relative = path11.relative(root, absolute).split(path11.sep).join("/");
+  if (relative.startsWith("..") || path11.isAbsolute(relative))
+    return;
+  return relative;
+}
+function resolveReadViews(reads, input) {
+  const views = new Map;
+  for (const read of reads) {
+    const relative = relativeTo(input.workspaceRoot, read.absolute);
+    if (relative === undefined)
+      continue;
+    if (read.grep) {
+      const targets = read.directory ? linkedFilesUnder(input.files, relative) : [relative];
+      for (const file of targets) {
+        if (!input.isSource(file) || !(input.admits?.(file) ?? true))
+          continue;
+        const symbols = input.files[file] ?? [];
+        if (implementedRequirementIds(symbols).length === 0)
+          continue;
+        const matches = matchingLines(path11.join(input.workspaceRoot, file), read.grep);
+        if (matches.length === 0)
+          continue;
+        views.set(file, { relativePath: file, symbols, matches });
+      }
+      continue;
+    }
+    if (read.directory || !input.isSource(relative))
+      continue;
+    const symbols = input.files[relative] ?? [];
+    if (implementedRequirementIds(symbols).length === 0)
+      continue;
+    if (views.has(relative))
+      continue;
+    views.set(relative, {
+      relativePath: relative,
+      symbols,
+      ...read.focus ? { focus: read.focus } : {}
+    });
+  }
+  return [...views.values()];
+}
+function globFilter(glob) {
+  let source = "";
+  let depth = 0;
+  for (let index = 0;index < glob.length; index++) {
+    const char = glob[index];
+    if (char === "*" && glob[index + 1] === "*") {
+      source += ".*";
+      index++;
+      if (glob[index + 1] === "/")
+        index++;
+    } else if (char === "*")
+      source += "[^/]*";
+    else if (char === "?")
+      source += "[^/]";
+    else if (char === "{") {
+      source += "(?:";
+      depth++;
+    } else if (char === "}" && depth > 0) {
+      source += ")";
+      depth--;
+    } else if (char === "," && depth > 0)
+      source += "|";
+    else
+      source += char.replace(/[.+^$()|[\]\\]/g, "\\$&");
+  }
+  const anchored = glob.includes("/") ? new RegExp(`^${source}$`) : new RegExp(`(?:^|/)${source}$`);
+  return (relativePath) => anchored.test(relativePath);
+}
+function hookReadRows(reads, input) {
+  const views = resolveReadViews(reads, input);
+  if (views.length === 0)
+    return;
+  const alreadyShown = new Set(input.shownIds ?? []);
+  for (const view of views)
+    if (input.shownPaths?.has(view.relativePath) || slotTaken(input.stateDir, `${String(input.sessionKey)}\x00edit\x00${view.relativePath}`))
+      for (const id of implementedRequirementIds(view.symbols))
+        alreadyShown.add(id);
+  return readContext({
+    views,
+    summarize: input.summarize,
+    stateDir: input.stateDir,
+    sessionKey: input.sessionKey,
+    alreadyShown
+  });
+}
+function searchToolRead(search) {
+  if (typeof search.pattern !== "string" || search.pattern.length === 0)
+    return;
+  const absolute = typeof search.path === "string" && search.path.trim().length > 0 ? path11.resolve(search.cwd, search.path) : search.cwd;
+  let directory;
+  try {
+    directory = fs10.statSync(absolute).isDirectory();
+  } catch {
+    return;
+  }
+  return {
+    absolute,
+    directory,
+    grep: {
+      pattern: search.pattern,
+      ignoreCase: search.ignoreCase === true,
+      fixed: search.fixed === true,
+      basic: false,
+      word: false
+    }
+  };
+}
+
 // ../agent-core/dist/session-brief.js
 var SESSION_BRIEF_LINES = [
   "Kibi records this repository's requirements and decisions with their reasons.",
@@ -3373,32 +4040,32 @@ function sessionBriefWith(hostLines) {
 }
 
 // ../agent-core/dist/workspace-optin.js
-import fs10 from "node:fs";
-import path10 from "node:path";
+import fs11 from "node:fs";
+import path12 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path10.dirname(current);
+  const parent = path12.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs10.existsSync(path10.join(directory, ".kb", "manifest.json"));
+  return fs11.existsSync(path12.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs10.existsSync(path10.join(directory, ".git"));
+  return fs11.existsSync(path12.join(directory, ".git"));
 }
 function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      const root = path10.resolve(value);
+      const root = path12.resolve(value);
       return { root, optedIn: hasKibiManifest(root) };
     }
   }
-  const start = path10.resolve(startDir?.trim() ? startDir : process.cwd());
+  const start = path12.resolve(startDir?.trim() ? startDir : process.cwd());
   let current = start;
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
@@ -3669,9 +4336,9 @@ function parseHookInput(input) {
 
 // src/hook-state-storage.ts
 import { randomUUID as randomUUID5 } from "node:crypto";
-import fs11 from "node:fs";
+import fs12 from "node:fs";
 import os2 from "node:os";
-import path11 from "node:path";
+import path13 from "node:path";
 var stateFileName = "hook-state.json";
 var lockFileName = "hook-state.lock";
 var maxDirtyPaths = 50;
@@ -3681,10 +4348,10 @@ var lockRetryCount = 100;
 var lockRetryDelayMs = 5;
 var staleLockAgeMs = 30000;
 function statePath(pluginData) {
-  return path11.join(pluginData, stateFileName);
+  return path13.join(pluginData, stateFileName);
 }
 function lockPath(pluginData) {
-  return path11.join(pluginData, lockFileName);
+  return path13.join(pluginData, lockFileName);
 }
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -3698,7 +4365,7 @@ function sleepSync(milliseconds) {
   Atomics.wait(view, 0, 0, milliseconds);
 }
 function uniqueTempPath(pluginData) {
-  return path11.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
+  return path13.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
 }
 function mergeStringPaths(existingPaths, nextPaths) {
   const merged = [...existingPaths, ...nextPaths].map(normalizePath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -3722,7 +4389,7 @@ function acquireLock(pluginData) {
   const targetLockPath = lockPath(pluginData);
   for (let attempt = 0;attempt < lockRetryCount; attempt++) {
     try {
-      return fs11.openSync(targetLockPath, "wx");
+      return fs12.openSync(targetLockPath, "wx");
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "EEXIST") {
         if (removeStaleLock(targetLockPath)) {
@@ -3739,7 +4406,7 @@ function acquireLock(pluginData) {
 function removeStaleLock(targetLockPath) {
   let stats;
   try {
-    stats = fs11.statSync(targetLockPath);
+    stats = fs12.statSync(targetLockPath);
   } catch {
     return false;
   }
@@ -3747,7 +4414,7 @@ function removeStaleLock(targetLockPath) {
     return false;
   }
   try {
-    fs11.unlinkSync(targetLockPath);
+    fs12.unlinkSync(targetLockPath);
     return true;
   } catch {
     return false;
@@ -3755,14 +4422,14 @@ function removeStaleLock(targetLockPath) {
 }
 function releaseLock(pluginData, fileDescriptor) {
   try {
-    fs11.closeSync(fileDescriptor);
+    fs12.closeSync(fileDescriptor);
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
     }
   }
   try {
-    fs11.unlinkSync(lockPath(pluginData));
+    fs12.unlinkSync(lockPath(pluginData));
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
@@ -3800,14 +4467,14 @@ function resolveStateDir(pluginData, conversationId) {
   if (!conversationId) {
     return;
   }
-  return path11.join(os2.tmpdir(), "kibi-cursor-hook-state", conversationId.replaceAll(/[^a-zA-Z0-9._-]/g, "_"));
+  return path13.join(os2.tmpdir(), "kibi-cursor-hook-state", conversationId.replaceAll(/[^a-zA-Z0-9._-]/g, "_"));
 }
 function loadHookState(stateDir) {
   if (!stateDir) {
     return emptyHookState();
   }
   try {
-    return coerceHookState(JSON.parse(fs11.readFileSync(statePath(stateDir), "utf8")));
+    return coerceHookState(JSON.parse(fs12.readFileSync(statePath(stateDir), "utf8")));
   } catch {
     return emptyHookState();
   }
@@ -3816,19 +4483,19 @@ function saveHookState(stateDir, state) {
   if (!stateDir) {
     return;
   }
-  fs11.mkdirSync(stateDir, { recursive: true });
+  fs12.mkdirSync(stateDir, { recursive: true });
   const boundedState = coerceHookState(state);
   const tempPath = uniqueTempPath(stateDir);
-  fs11.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs12.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs11.renameSync(tempPath, statePath(stateDir));
+  fs12.renameSync(tempPath, statePath(stateDir));
 }
 function updateHookState(stateDir, updater) {
   const initialState = loadHookState(stateDir);
   if (!stateDir) {
     return updater(initialState);
   }
-  fs11.mkdirSync(stateDir, { recursive: true });
+  fs12.mkdirSync(stateDir, { recursive: true });
   const lockFileDescriptor = acquireLock(stateDir);
   if (lockFileDescriptor === undefined) {
     return updater(initialState);
@@ -3923,32 +4590,79 @@ function clearSessionHookState(stateDir) {
 }
 
 // src/source-linked-requirements.ts
-import path12 from "node:path";
+import path14 from "node:path";
 var CURSOR_INDEX_OPTIONS = {
   legacyLinksAsImplements: false,
   cacheFileName: "cursor-knowledge-index.json"
 };
 function toManifestPath(workspaceRoot, filePath) {
-  const absolute = path12.isAbsolute(filePath) ? filePath : path12.resolve(workspaceRoot, filePath);
-  return path12.relative(workspaceRoot, absolute).split(path12.sep).join("/");
+  const absolute = path14.isAbsolute(filePath) ? filePath : path14.resolve(workspaceRoot, filePath);
+  return path14.relative(workspaceRoot, absolute).split(path14.sep).join("/");
 }
 function getSourceLinkedSymbols(workspaceRoot, filePath, cacheDir) {
   const relativePath = toManifestPath(workspaceRoot, filePath);
   const symbols = loadKnowledgeIndex(workspaceRoot, cacheDir, CURSOR_INDEX_OPTIONS).files[relativePath] ?? [];
   return { relativePath, symbols };
 }
+function linkedFiles(workspaceRoot, cacheDir) {
+  return loadKnowledgeIndex(workspaceRoot, cacheDir, CURSOR_INDEX_OPTIONS).files;
+}
 
 // src/hook-runner.ts
-function knowledgeFor(workspaceRoot, linked, surface, focus) {
+function knowledgeFor(workspaceRoot, linked, focus) {
   if (implementedRequirementIds(linked.symbols).length === 0)
     return;
   return fileKnowledgeSnippet({
     relativePath: linked.relativePath,
     symbols: linked.symbols,
-    surface,
+    surface: "edit",
     focus,
     summarize: createEntitySummarizer(workspaceRoot)
   });
+}
+function readRows(workspaceRoot, reads, stateDir, conversationId, admits) {
+  return hookReadRows(reads, {
+    workspaceRoot,
+    files: linkedFiles(workspaceRoot, stateDir),
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    admits,
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: conversationId
+  });
+}
+function readWindow(toolInput) {
+  const fields = toolInput ?? {};
+  const offset = typeof fields.offset === "number" ? fields.offset : undefined;
+  const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+  if (offset === undefined && limit === undefined)
+    return;
+  const start = Math.max(1, offset ?? 1);
+  return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
+}
+function toolReads(toolName, toolInput, cwd, primaryPath) {
+  const fields = toolInput ?? {};
+  if (toolName === "Grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd,
+      ignoreCase: fields["-i"] === true
+    });
+    const glob = typeof fields.glob === "string" ? fields.glob : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...glob ? { admits: globFilter(glob) } : {}
+    };
+  }
+  const focus = isReadLikeTool(toolName) ? readWindow(toolInput) : undefined;
+  if (focus && primaryPath)
+    return {
+      reads: [
+        { absolute: path15.resolve(cwd, primaryPath), directory: false, focus }
+      ]
+    };
+  return { reads: shellToolReadViews(toolName, toolInput, cwd) };
 }
 function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
   if (!confirmFirmEdits(env))
@@ -3958,7 +4672,7 @@ function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
-    absolutePath: path13.join(workspaceRoot, linked.relativePath),
+    absolutePath: path15.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly
@@ -3969,7 +4683,7 @@ function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
   return firmEditNotice(symbol ? `${symbol.title} in ${linked.relativePath}` : linked.relativePath, ids.map(summarize));
 }
 function packageVersion() {
-  return readPackageVersion(path13.join(path13.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+  return readPackageVersion(path15.join(path15.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 }
 function recordToolTelemetry(input, workspaceRoot, stateDir, startedAt, env) {
   if (!hookTracesWanted(env))
@@ -4007,14 +4721,14 @@ function cursorKibiWorkspace(directory, env) {
 function kibiWorkspaceFor(directory) {
   if (!directory)
     return;
-  let current = path13.resolve(directory);
+  let current = path15.resolve(directory);
   for (;; ) {
-    if (fs12.existsSync(path13.join(current, ".kb", "manifest.json"))) {
+    if (fs13.existsSync(path15.join(current, ".kb", "manifest.json"))) {
       return current;
     }
-    if (fs12.existsSync(path13.join(current, ".git")))
+    if (fs13.existsSync(path15.join(current, ".git")))
       return;
-    const parent = path13.dirname(current);
+    const parent = path15.dirname(current);
     if (parent === current)
       return;
     current = parent;
@@ -4102,6 +4816,15 @@ async function runHook(rawInput, environment = {}) {
           }
         }
         const primaryPath = resolvePrimaryPath(input);
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const { reads, admits } = toolReads(input.toolName, input.toolInput, input.cwd ?? cwd, primaryPath);
+          const rows = readRows(cwd, reads, stateDir, input.conversationId, admits);
+          if (rows) {
+            trace.action = "read_snippet";
+            trace.requirementIds = rows.ids;
+            return { permission: "allow", agent_message: rows.text };
+          }
+        }
         if (!primaryPath || !kibiReady || !isKnownEditableTool(input.toolName)) {
           return emptyResult();
         }
@@ -4110,16 +4833,16 @@ async function runHook(rawInput, environment = {}) {
         const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
         trace.pathKind = classifyPath(relativePath);
         trace.requirementIds = implementedRequirementIds(linked.symbols);
-        const focus = editFocus(path13.resolve(cwd, primaryPath), input.toolInput);
+        const focus = editFocus(path15.resolve(cwd, primaryPath), input.toolInput);
         const ruleNote = takeRuleNote(session);
         const captureTemplate = claimRuleCaptureTemplate(session, isSourceImpactRelevantPath2(relativePath));
-        const notice = firmNotice(cwd, linked, focus, session, environment.env ?? process.env, removesOnlyDeadImplementsComments(path13.resolve(cwd, primaryPath), input.toolInput, cwd));
+        const notice = firmNotice(cwd, linked, focus, session, environment.env ?? process.env, removesOnlyDeadImplementsComments(path15.resolve(cwd, primaryPath), input.toolInput, cwd));
         const guidance = hasGuidedPath(state, "pre-edit", relativePath) ? undefined : preEditGuidance(primaryPath, {
           cwd,
           hasKibi: kibiReady,
           mcpState: state.mcpState,
           workspaceTrusted,
-          knowledge: knowledgeFor(cwd, linked, "edit", focus)
+          knowledge: knowledgeFor(cwd, linked, focus)
         });
         if (guidance) {
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
@@ -4153,12 +4876,19 @@ async function runHook(rawInput, environment = {}) {
         if (hasGuidedPath(state, "read", relativePath)) {
           return { permission: "allow" };
         }
+        const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        const owned = implementedRequirementIds(linked.symbols).length > 0;
+        const rows = owned ? readRows(cwd, [{ absolute: path15.resolve(cwd, primaryPath), directory: false }], stateDir, input.conversationId) : undefined;
+        if (owned && !rows)
+          return { permission: "allow" };
+        if (rows)
+          trace.requirementIds = rows.ids;
         const guidance = readGuidance(primaryPath, {
           cwd,
           hasKibi: kibiReady,
           mcpState: state.mcpState,
           workspaceTrusted,
-          knowledge: knowledgeFor(cwd, getSourceLinkedSymbols(cwd, primaryPath, stateDir), "read")
+          knowledge: rows?.text
         });
         if (!guidance) {
           return { permission: "allow" };
@@ -4233,12 +4963,22 @@ async function runHook(rawInput, environment = {}) {
           if (hasGuidedPath(state, "read", relativePath)) {
             return emptyResult();
           }
+          const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+          const owned = implementedRequirementIds(linked.symbols).length > 0;
+          const rows = owned ? readRows(cwd, [
+            {
+              absolute: path15.resolve(cwd, primaryPath),
+              directory: false
+            }
+          ], stateDir, input.conversationId) : undefined;
+          if (owned && !rows)
+            return emptyResult();
           const guidance = readGuidance(primaryPath, {
             cwd,
             hasKibi: kibiReady,
             mcpState: state.mcpState,
             workspaceTrusted,
-            knowledge: knowledgeFor(cwd, getSourceLinkedSymbols(cwd, primaryPath, stateDir), "read")
+            knowledge: rows?.text
           });
           if (!guidance) {
             return emptyResult();
@@ -4319,7 +5059,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path13.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path15.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

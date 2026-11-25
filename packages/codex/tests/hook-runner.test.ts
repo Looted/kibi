@@ -843,7 +843,14 @@ describe("Codex decision guard", () => {
       tool_name: "Bash",
       tool_input: { command },
     });
+    // A shell read names the requirement of the code in view, once.
+    expect(contextOf(await event(shell("cat src/checkout.ts")))).toContain(
+      "- REQ-checkout-rounding [firm: ask before changing]",
+    );
     expect(contextOf(await event(shell("cat src/checkout.ts")))).toBe("");
+    expect(contextOf(await event(shell("sed -n '1,2p' src/checkout.ts")))).toBe(
+      "",
+    );
     expect(
       contextOf(await event(shell("sed -i s/100/1000/ src/checkout.ts"))),
     ).toStartWith(

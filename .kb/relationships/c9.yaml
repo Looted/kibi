@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1064cb4a494
+  - type: implements
+    from: SYM-read-context-read-context
+    to: REQ-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:26.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c10e6b47f7e7
+  - type: covered_by
+    from: SYM-read-context-read-context
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:26.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3f472378e5f
+  - type: implements
+    from: SYM-read-context-read-context
+    to: REQ-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:08.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99ca157418b
+  - type: implements
+    from: SYM-read-context-read-context
+    to: REQ-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:26.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd6446bb0554

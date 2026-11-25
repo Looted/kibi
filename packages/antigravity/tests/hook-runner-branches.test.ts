@@ -741,3 +741,57 @@ describe("kibi-antigravity edge edits", () => {
     await hook.drain();
   });
 });
+
+describe("kibi-antigravity search and shell read rows", () => {
+  const ROW =
+    "- REQ-checkout-rounding: Checkout totals must round half-up to two decimals — roundTotal";
+
+  test("grep_search names the requirement of the symbol it matches and skips the tip", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const hook = hookRunner(root, pluginData, "conv-grep");
+    await hook.pre("grep_search", {
+      Query: "MATH.ROUND",
+      CaseInsensitive: true,
+      Includes: ["*.ts"],
+    });
+    expect(injected(await hook.drain())).toContain(ROW);
+    await hook.pre("grep_search", { Query: "nothing-here" });
+    expect(await hook.drain()).toEqual({});
+  });
+
+  test("a literal query, an excluding glob or a missing path gets the tip instead", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const literal = hookRunner(root, pluginData, "conv-literal");
+    await literal.pre("grep_search", { Query: "Math.round(.*)" });
+    expect(injected(await literal.drain())).toContain("Kibi tip");
+    const glob = hookRunner(root, pluginData, "conv-glob");
+    await glob.pre("grep_search", { Query: "round", Includes: ["*.js", 3] });
+    expect(injected(await glob.drain())).toContain("Kibi tip");
+    const missing = hookRunner(root, pluginData, "conv-missing");
+    await missing.pre("grep_search", {
+      Query: "round",
+      SearchPath: path.join(root, "nowhere"),
+    });
+    expect(injected(await missing.drain())).toContain("Kibi tip");
+  });
+
+  test("a shell search or several named files are described in one block", async () => {
+    const { root, pluginData } = createKibiWorkspace();
+    const hook = hookRunner(root, pluginData, "conv-shell");
+    await hook.pre("run_command", {
+      CommandLine: "grep -rn 'Math.round' src",
+    });
+    expect(injected(await hook.drain())).toContain(ROW);
+    const files = hookRunner(root, pluginData, "conv-files");
+    await files.pre("run_command", {
+      CommandLine: "cat src/unowned.ts src/checkout.ts",
+    });
+    expect(injected(await files.drain())).toContain(ROW);
+    // helperNote (lines 5-7) implements nothing.
+    const range = hookRunner(root, pluginData, "conv-range");
+    await range.pre("run_command", {
+      CommandLine: "sed -n '5,7p' src/checkout.ts",
+    });
+    expect(await range.drain()).toEqual({});
+  });
+});

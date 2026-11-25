@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06633719b03c
+  - type: implements
+    from: SYM-decision-hooks-tool-reads
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:17.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4076cadf741b
+  - type: covered_by
+    from: SYM-decision-hooks-tool-reads
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:17.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9807da1f07fb

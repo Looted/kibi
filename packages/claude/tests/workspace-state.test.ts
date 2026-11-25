@@ -212,6 +212,7 @@ describe("session journal replay", () => {
       firmConfirmed: new Set(),
       sourceEdited: false,
       kbRecorded: false,
+      contextResets: 0,
     });
   });
 

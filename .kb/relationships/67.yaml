@@ -503,3 +503,178 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-128d8dda9571
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:29.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3959d75927e5
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:29.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92a40c414cdf
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    created_at: 2026-11-25T14:27:29.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e62a37ae70c
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:54.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b6805e6b07
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:54.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0229fb362273
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    created_at: 2026-11-25T14:27:54.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3864afb1aafa
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:28:12.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6c6af30598b
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-search-rows
+    created_at: 2026-11-25T14:28:12.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b4316db39e
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    created_at: 2026-11-25T14:28:12.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17c7359fbfef
+  - type: assumes
+    from: SCEN-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets
+    created_at: 2026-11-25T14:28:17.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b2f1d90f823
+  - type: verified_by
+    from: SCEN-hook-read-row-budgets
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:17.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c4f0f83f49e
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:11.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd6731391433
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:11.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a649e054b986
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:29:11.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1efb20c01eb
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:28.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30dd040b9d27
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:28.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49c7275685d7
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    created_at: 2026-11-25T14:29:28.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fe268d59186
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:20.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3318dc87d66b
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:21.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b3cd68ffc97
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
+    created_at: 2026-11-25T14:30:21.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12e370ad4022
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-search-tip-after-rows
+    created_at: 2026-11-25T14:30:39.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-360b944758d8
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-search-tip-after-rows
+    created_at: 2026-11-25T14:30:39.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a913d67863
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-search-tip-after-rows-TIP-AFTER-ROWS
+    created_at: 2026-11-25T14:30:39.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ce0d068cbac
+  - type: assumes
+    from: SCEN-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets-repeated-requirement-rows
+    created_at: 2026-11-25T14:39:30.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8dbf8699098
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    created_at: 2026-11-25T14:39:36.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07104246dc83
