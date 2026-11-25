@@ -45,6 +45,10 @@ import {
   type IndexedSymbol,
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
+import {
+  guardedChangeNotice,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import {
   claimSnippetSlot,
@@ -388,6 +392,47 @@ function contextResult(event: ZcodeHookEvent, message: string): HookResult {
   };
 }
 
+/**
+ * ZCode's pre-tool hook cannot put a call to the person, so an edit that
+ * changes the Kibi level or lowers a requirement's required_evidence, or a
+ * Kibi call that lowers one, gets a notice telling the agent to ask first,
+ * every time, since the choice is the person's.
+ */
+export function guardedNotice(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const targets: { relativePath?: string }[] = isKibiMcpToolName(input.toolName)
+    ? [{}]
+    : isEditLikeTool(input.toolName)
+      ? extractExplicitPathFields(input.toolInput)
+          .map((rawPath) =>
+            canonicalizeWorkspacePath(workspaceRoot, {
+              eventCwd: input.cwd,
+              rawPath,
+            }),
+          )
+          .filter((target) => target !== undefined)
+          .map((target) => ({ relativePath: target.workspaceRelative }))
+      : [];
+  for (const target of targets) {
+    const change = guardedChangeOf({
+      workspaceRoot,
+      toolName: input.toolName,
+      toolInput: input.toolInput,
+      ...target,
+    });
+    if (change === undefined) continue;
+    trace.action =
+      change.kind === "level"
+        ? "level_change_notice"
+        : "evidence_lowering_notice";
+    return guardedChangeNotice(change);
+  }
+  return undefined;
+}
+
 function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
 }
@@ -475,22 +520,25 @@ export async function runHook(
         // Name the session's workspace on a Kibi MCP call that carries none,
         // so the launcher answers from it, also after the session moves into
         // a git worktree. A call that names its own workspace passes through.
+        const guarded = guardedNotice(workspace.root, input, trace);
         if (isKibiMcpToolName(input.toolName)) {
           const stamped = stampKibiWorkspace(
             input.toolName,
             input.toolInput,
             workspace.root,
           );
-          return stamped === undefined
+          return stamped === undefined && guarded === undefined
             ? defaultResult()
             : {
                 continue: true,
                 hookSpecificOutput: {
                   hookEventName: "PreToolUse",
-                  updatedInput: stamped,
+                  ...(stamped ? { updatedInput: stamped } : {}),
+                  ...(guarded ? { additionalContext: guarded } : {}),
                 },
               };
         }
+        if (guarded) return contextResult(input.event, guarded);
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
           isEditLikeTool(input.toolName) &&

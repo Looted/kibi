@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  exhaustiveCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   PROOF_TEST_REPORT_ENV,
   PROOF_TEST_REPORT_OUTCOMES,
   PROOF_TEST_REPORT_VERSION,
@@ -14,6 +8,12 @@ import {
   DEFAULT_PROOF_STEPS_DIR,
   DEFAULT_PROOF_STEPS_PATH,
 } from "../../../src/proof/step-runner.js";
+import {
+  type CodeCertificate,
+  exhaustiveCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * Where proof steps live and how a command integration reports per-test results.

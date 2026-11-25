@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b1aa19df2c4
+  - type: covered_by
+    from: SYM-cli-signoff-collect-summary
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:42:56.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e371b4121d8

@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   FRESHNESS_RESYNC,
   MIGRATION_PLAN_VERSION,
   PREDICATE_SCHEMA_ALIGNMENT_CODE,
   UNTRACKED_KNOWLEDGE_SOURCES_CODE,
 } from "../../../src/public/operations/migration-plan.js";
+import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The version and step codes of a guided migration plan. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

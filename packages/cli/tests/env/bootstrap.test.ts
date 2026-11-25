@@ -72,7 +72,10 @@ function writeUserEnv(content: string): string {
 describe("bootstrapKibiEnvironment in a KB dependency checkout", () => {
   test("loads the user env file but not the checkout's own env files", () => {
     writeUserEnv("BOOT_USER_TOKEN=user-only\n");
-    fs.writeFileSync(path.join(tmpDir, ".env.kibi"), "BOOT_PROJECT_TOKEN=project\n");
+    fs.writeFileSync(
+      path.join(tmpDir, ".env.kibi"),
+      "BOOT_PROJECT_TOKEN=project\n",
+    );
     fs.writeFileSync(path.join(tmpDir, ".env"), "BOOT_LEGACY_TOKEN=legacy\n");
     trackEnv("KIBI_KB_DEPENDENCY", `lib@${"a".repeat(40)}`);
     const result = bootstrapKibiEnvironment();
@@ -88,9 +91,11 @@ describe("bootstrapKibiEnvironment precedence", () => {
   test("process overrides files; project overrides user; attribution labels are correct", () => {
     trackEnv("BOOT_PROCESS_TOKEN", "from-process");
     writeUserEnv(
-      ["BOOT_PROCESS_TOKEN=from-user", "BOOT_USER_TOKEN=user-only", "BOOT_BOTH_TOKEN=user"].join(
-        "\n",
-      ),
+      [
+        "BOOT_PROCESS_TOKEN=from-user",
+        "BOOT_USER_TOKEN=user-only",
+        "BOOT_BOTH_TOKEN=user",
+      ].join("\n"),
     );
     fs.writeFileSync(
       path.join(tmpDir, ".env.kibi"),
@@ -142,7 +147,9 @@ describe("bootstrapKibiEnvironment precedence", () => {
     });
     expect(second.sources.BOOT_PROCESS_TOKEN).toBe("process");
     expect(process.env.BOOT_PROCESS_TOKEN).toBe("from-process");
-    expect(secretSourceFromBootstrap("BOOT_PROCESS_TOKEN", second)).toBe("process");
+    expect(secretSourceFromBootstrap("BOOT_PROCESS_TOKEN", second)).toBe(
+      "process",
+    );
   });
 
   test("blank project value does not overwrite user value", () => {
@@ -189,8 +196,14 @@ describe("bootstrapKibiEnvironment precedence", () => {
   });
 
   test("KIBI_ENV_FILE replaces the project slot", () => {
-    fs.writeFileSync(path.join(tmpDir, ".env.kibi"), "BOOT_PROJECT_TOKEN=default\n");
-    fs.writeFileSync(path.join(tmpDir, "custom.env"), "BOOT_PROJECT_TOKEN=custom\n");
+    fs.writeFileSync(
+      path.join(tmpDir, ".env.kibi"),
+      "BOOT_PROJECT_TOKEN=default\n",
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, "custom.env"),
+      "BOOT_PROJECT_TOKEN=custom\n",
+    );
     trackEnv("KIBI_ENV_FILE", "custom.env");
     bootstrapKibiEnvironment({
       startDir: tmpDir,

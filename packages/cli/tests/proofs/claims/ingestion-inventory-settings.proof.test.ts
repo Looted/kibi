@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
+  SYNC_CACHE_TTL_MS,
+  SYNC_CACHE_VERSION,
+} from "../../../src/commands/sync/cache.js";
+import { SEMANTIC_INVENTORY_VERSION } from "../../../src/operations/semantic-advisor/shared.js";
+import {
   type CodeCertificate,
   arithmeticCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SEMANTIC_INVENTORY_VERSION } from "../../../src/operations/semantic-advisor/shared.js";
 import { STAGED_INVENTORY_DRIFT_RULE } from "../../../src/traceability/staged-inventory-drift.js";
-import {
-  SYNC_CACHE_TTL_MS,
-  SYNC_CACHE_VERSION,
-} from "../../../src/commands/sync/cache.js";
 
 /**
  * The semantic inventory version, its drift rule and the sync cache bounds. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5987e81623af
+  - type: implements
+    from: SYM-model-level-label
+    to: REQ-kibi-signoff-level
+    created_at: 2026-11-25T13:42:58.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e56b3b0b4f19
+  - type: covered_by
+    from: SYM-model-level-label
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:42:58.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f38afd10ed5a

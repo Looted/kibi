@@ -39,6 +39,12 @@ import {
   type KnowledgeIndex,
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
+import {
+  type GuardedChange,
+  guardedChangeConfirmation,
+  guardedChangeContext,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
 import { classifyPath, toWorkspacePath } from "kibi-agent-core/path-policy";
 import { type AntigravityHookInput, parseHookInput } from "./hook-input.js";
 import {
@@ -412,6 +418,29 @@ function passthroughPreToolDecision(
   return { decision: "ask" };
 }
 
+/**
+ * Put a change of the Kibi level, or a lowered required_evidence, to the
+ * user via `force_ask`, and queue the agent-facing context for the next turn.
+ */
+export function guardedChangeAsk(
+  change: GuardedChange,
+  workspace: Workspace,
+  trace: HookTrace,
+  overwrite?: Record<string, unknown>,
+): AntigravityHookOutput {
+  appendSessionEvents(workspace.stateDir, [
+    queueContextEvent(guardedChangeContext(change)),
+  ]);
+  trace.action =
+    change.kind === "level" ? "level_change_ask" : "evidence_lowering_ask";
+  if (change.kind === "evidence") trace.requirementIds = [change.requirementId];
+  return {
+    decision: "force_ask",
+    reason: guardedChangeConfirmation(change),
+    ...(overwrite ? { overwrite } : {}),
+  };
+}
+
 function preToolUse(
   input: AntigravityHookInput,
   workspace: Workspace,
@@ -424,6 +453,15 @@ function preToolUse(
     input.toolArgs,
     workspace.root,
   );
+  const call = unwrapKibiMcpCall(toolName, input.toolArgs);
+  const lowering = call
+    ? guardedChangeOf({
+        workspaceRoot: workspace.root,
+        toolName: call.operation,
+        toolInput: call.payload,
+      })
+    : undefined;
+  if (lowering) return guardedChangeAsk(lowering, workspace, trace, overwrite);
   if (overwrite) {
     return {
       decision: passthrough.decision ?? "ask",
@@ -466,6 +504,16 @@ function preToolUse(
   const kind = classifyPath(target.relative);
   trace.path = target.relative;
   trace.pathKind = kind;
+
+  if (isEdit) {
+    const change = guardedChangeOf({
+      workspaceRoot: workspace.root,
+      toolName,
+      toolInput: normalizeEditArgs(toolName, input.toolArgs),
+      relativePath: target.relative,
+    });
+    if (change) return guardedChangeAsk(change, workspace, trace);
+  }
 
   if (kind === "kb") {
     trace.action = "kb_direct_silent";

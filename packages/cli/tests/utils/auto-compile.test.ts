@@ -1,10 +1,4 @@
-import {
-  afterEach,
-  describe,
-  expect,
-  spyOn,
-  test,
-} from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -24,7 +18,8 @@ const restores: Array<() => void> = [];
 
 afterEach(() => {
   for (const restore of restores.splice(0).reverse()) restore();
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const dir of dirs.splice(0))
+    rmSync(dir, { recursive: true, force: true });
 });
 
 function sha256(text: string): string {
@@ -39,7 +34,9 @@ function makeRepoWithHealthyStore(): {
   const root = mkdtempSync(path.join(os.tmpdir(), "kibi-auto-compile-"));
   dirs.push(root);
   execFileSync("git", ["init", "-q", "-b", "main"], { cwd: root });
-  execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: root });
+  execFileSync("git", ["config", "user.email", "test@example.com"], {
+    cwd: root,
+  });
   execFileSync("git", ["config", "user.name", "Test"], { cwd: root });
 
   mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });

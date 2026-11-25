@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   CHECK_POLICY_CAPABILITY_ID,
   KIBI_PLUGIN_API_VERSION,
   ONTOLOGY_PACK_CAPABILITY_ID,
 } from "kibi-plugin-sdk";
+import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The protocol version and capability ids of the plugin SDK.

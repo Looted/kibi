@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   ENGINE_READ_INFERENCE_LIMIT_ENV,
   ENGINE_READ_TIME_LIMIT_CAP_MS,
   ENGINE_READ_TIME_LIMIT_ENV,
   QUERY_LIMIT_EXCEEDED_CODE,
 } from "../../../src/engine-limits.js";
+import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The names and cap of the engine read limits. Kibi reads each constant itself

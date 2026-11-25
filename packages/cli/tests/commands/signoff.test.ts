@@ -456,6 +456,8 @@ describe("rewritten statements", () => {
     const summary: SignoffSummary = {
       version: "kibi.signoff.v1",
       kind: "summary",
+      level: { level: "test", setting: "the default" },
+      decisions: [],
       scope: "working",
       generatedAt: "2026-10-23T09:00:00.000Z",
       notes: [],
@@ -580,6 +582,8 @@ describe("signoff HTML", () => {
     const view: SignoffView = {
       version: "kibi.signoff.v1",
       kind: "summary",
+      level: { level: "test", setting: "the default" },
+      decisions: [],
       scope: "working",
       generatedAt: "2026-10-22T09:00:00.000Z",
       requirements: [
@@ -645,6 +649,8 @@ describe("signoff evidence floors and certificates", () => {
     const view: SignoffView = {
       version: "kibi.signoff.v1",
       kind: "summary",
+      level: { level: "test", setting: "the default" },
+      decisions: [],
       scope: "working",
       generatedAt: "2026-10-22T09:00:00.000Z",
       requirements: [

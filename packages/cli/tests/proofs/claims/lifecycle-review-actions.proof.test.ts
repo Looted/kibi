@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   AGENT_REQUIREMENTS_REVIEW_ACTION_ID,
   AGENT_REQUIREMENTS_REVIEW_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
@@ -14,6 +9,11 @@ import {
   RATIONALE_REVIEW_ACTION_ID,
   SCENARIO_FEASIBILITY_REVIEW_CODE,
 } from "../../../src/public/operations/schema6-check-actions.js";
+import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The action ids and codes of the review and repair steps kb_check proposes. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

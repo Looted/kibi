@@ -1839,3 +1839,92 @@ describe("hook command pre-edit snippet (end to end)", () => {
     );
   }, 30_000);
 });
+
+describe("Kibi level and required evidence confirmation", () => {
+  const requirementDoc = (evidence: string) =>
+    `---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: ${evidence}\norigin:\n  kind: agent\n---\nBody.\n`;
+
+  function guarded() {
+    const fixture = createKibiWorkspace();
+    fs.writeFileSync(
+      path.join(fixture.root, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb/requirements/REQ-floor.md"),
+      requirementDoc("tested"),
+    );
+    const { call } = session(fixture, "guard");
+    const raw = (toolName: string, toolInput: Record<string, unknown>) =>
+      call({
+        hook_event_name: "PreToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+    return { fixture, raw };
+  }
+
+  test("an edit that changes the level is put to the person every time", async () => {
+    const { raw } = guarded();
+    const write = {
+      file_path: "package.json",
+      content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+    };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const specific = (await raw("Write", write)).hookSpecificOutput;
+      expect(specific?.permissionDecision).toBe("ask");
+      expect(specific?.permissionDecisionReason).toBe(
+        "Kibi: this edit changes the Kibi level from test to remember (package.json). At remember, Kibi stops asking for the scenarios, tests and proofs that show each requirement holds. Allow it only if you chose this level.",
+      );
+      expect(specific?.additionalContext).toContain(
+        "That is the person's decision",
+      );
+    }
+    // An edit that keeps the level is not asked.
+    expect(
+      (
+        await raw("Write", {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "renamed" }),
+        })
+      ).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+  });
+
+  test("an edit of a requirement that lowers its floor is put to the person", async () => {
+    const { raw } = guarded();
+    const specific = (
+      await raw("Edit", {
+        file_path: ".kb/requirements/REQ-floor.md",
+        old_string: "required_evidence: tested",
+        new_string: "required_evidence: asserted",
+      })
+    ).hookSpecificOutput;
+    expect(specific?.permissionDecision).toBe("ask");
+    expect(specific?.permissionDecisionReason).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
+  test("a kb_upsert that lowers a floor is asked, with the workspace still stamped", async () => {
+    const { fixture, raw } = guarded();
+    const specific = (
+      await raw("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "unverified" },
+      })
+    ).hookSpecificOutput;
+    expect(specific?.permissionDecision).toBe("ask");
+    expect(specific?.updatedInput?.workspaceRoot).toBe(fixture.root);
+    const raised = (
+      await raw("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "proved" },
+        workspaceRoot: fixture.root,
+      })
+    ).hookSpecificOutput;
+    expect(raised).toBeUndefined();
+  });
+});

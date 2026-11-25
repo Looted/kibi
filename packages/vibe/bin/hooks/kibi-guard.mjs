@@ -4,7 +4,7 @@
 // src/guard.ts
 import { createHash as createHash3 } from "node:crypto";
 import os from "node:os";
-import path6 from "node:path";
+import path8 from "node:path";
 
 // ../agent-core/dist/checkout-hooks.js
 import { spawnSync } from "node:child_process";
@@ -125,6 +125,12 @@ import fs5 from "node:fs";
 import path5 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
 var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 
 // ../agent-core/dist/path-policy.js
@@ -1705,6 +1711,16 @@ function claimDecisionFlag(session, flag) {
     return false;
   }
 }
+function claimGuardedChangeNotice(session, change) {
+  const key = change.kind === "level" ? `level:${change.path}:${change.from}:${change.to}` : `evidence:${change.requirementId}:${change.from}:${change.to}`;
+  const name = `guarded-${createHash2("sha256").update(key).digest("hex").slice(0, 32)}`;
+  try {
+    touchMarker(sessionPath(session, name), "wx");
+    return true;
+  } catch {
+    return false;
+  }
+}
 function recordRequest(session, prompt, options = {}) {
   const { now = Date.now(), workspaceRoot } = typeof options === "number" ? { now: options } : options;
   startDecisionSession(session, "prompt", { now });
@@ -1813,17 +1829,231 @@ function parseHookInput(input) {
   return parsed;
 }
 
+// ../agent-core/dist/level-guard.js
+import { spawnSync as spawnSync2 } from "node:child_process";
+import fs6 from "node:fs";
+import path7 from "node:path";
+
+// ../agent-core/dist/kibi-level.js
+import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
+import * as path6 from "node:path";
+var DEFAULT_KIBI_LEVEL = "test";
+function isKibiLevel(value) {
+  return value === "remember" || value === "test";
+}
+function readText2(file) {
+  try {
+    return readFileSync2(file, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function resolved(value, source) {
+  if (value === undefined)
+    return { level: DEFAULT_KIBI_LEVEL, source: "default" };
+  if (isKibiLevel(value))
+    return { level: value, source };
+  return { level: DEFAULT_KIBI_LEVEL, source, invalid: value };
+}
+function parseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return;
+  }
+}
+function kibiLevelInSettings(text, source) {
+  const parsed = parseJson(text);
+  if (source === "setup.json")
+    return resolved(isRecord3(parsed) ? parsed.level : undefined, source);
+  const kibi = isRecord3(parsed) ? parsed.kibi : undefined;
+  return resolved(isRecord3(kibi) ? kibi.level : undefined, source);
+}
+function readKibiLevel(workspaceRoot) {
+  const packagePath = path6.join(workspaceRoot, "package.json");
+  if (existsSync2(packagePath))
+    return kibiLevelInSettings(readText2(packagePath), "package.json");
+  return kibiLevelInSettings(readText2(path6.join(workspaceRoot, ".kb", "setup.json")), "setup.json");
+}
+
+// ../agent-core/dist/level-guard.js
+var EVIDENCE_LEVELS = [
+  "unverified",
+  "asserted",
+  "tested",
+  "proved"
+];
+var MAX_READ_BYTES = 2 * 1024 * 1024;
+function readText3(absolutePath) {
+  try {
+    if (fs6.statSync(absolutePath).size > MAX_READ_BYTES)
+      return;
+    return fs6.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isEvidenceLevel(value) {
+  return EVIDENCE_LEVELS.includes(value);
+}
+function rank(level) {
+  return EVIDENCE_LEVELS.indexOf(level);
+}
+function proposedContent(absolutePath, toolInput) {
+  if (!isRecord4(toolInput))
+    return;
+  for (const key of ["content", "contents", "file_text"]) {
+    const value = toolInput[key];
+    if (typeof value === "string")
+      return value;
+  }
+  const records = [
+    toolInput,
+    ...Array.isArray(toolInput.edits) ? toolInput.edits : []
+  ].filter(isRecord4);
+  const replacements = [];
+  for (const record of records) {
+    const before = record.old_string ?? record.oldString;
+    const after = record.new_string ?? record.newString;
+    if (typeof before !== "string" || typeof after !== "string")
+      continue;
+    replacements.push({
+      before,
+      after,
+      all: record.replace_all === true || record.replaceAll === true
+    });
+  }
+  if (replacements.length === 0)
+    return;
+  let text = readText3(absolutePath);
+  if (text === undefined)
+    return;
+  for (const { before, after, all } of replacements) {
+    if (before === "" || !text.includes(before))
+      return;
+    text = all ? text.split(before).join(after) : text.replace(before, () => after);
+  }
+  return text;
+}
+function levelInJson(text, settings) {
+  return kibiLevelInSettings(text, settings === "package" ? "package.json" : "setup.json").level;
+}
+var REQUIREMENT_PATH = /^\.kb\/requirements\/([^/]+)\.md$/;
+function frontmatter(text) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
+  if (!match?.[1])
+    return;
+  const fields = new Map;
+  let section;
+  for (const line of match[1].split(/\r?\n/)) {
+    const top = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (top?.[1] !== undefined) {
+      section = top[1];
+      fields.set(top[1], unquote3(top[2] ?? ""));
+      continue;
+    }
+    const nested = /^\s+([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (section !== undefined && nested?.[1] !== undefined)
+      fields.set(`${section}.${nested[1]}`, unquote3(nested[2] ?? ""));
+  }
+  return fields;
+}
+function unquote3(value) {
+  const trimmed = value.trim();
+  return /^(['"]).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function evidenceFloor(fields) {
+  if (isEvidenceLevel(fields.required_evidence))
+    return fields.required_evidence;
+  const firmness = typeof fields.firmness === "string" && fields.firmness !== "" ? fields.firmness : undefined;
+  if (firmness === "firm")
+    return "tested";
+  if (firmness === undefined) {
+    if (fields.originKind !== "agent")
+      return "tested";
+    if (typeof fields.approvedBy === "string" && fields.approvedBy !== "")
+      return "tested";
+  }
+  return "unverified";
+}
+function floorOfDocument(fields) {
+  return evidenceFloor({
+    required_evidence: fields.get("required_evidence"),
+    firmness: fields.get("firmness"),
+    originKind: fields.get("origin.kind"),
+    approvedBy: fields.get("origin.approved_by")
+  });
+}
+function lowering(requirementId, from, to) {
+  return rank(to) < rank(from) ? { kind: "evidence", requirementId, from, to } : undefined;
+}
+function contentBeforeEdit(absolutePath, toolInput) {
+  if (!isRecord4(toolInput))
+    return;
+  const reverse = (record) => ({
+    old_string: record.new_string ?? record.newString,
+    new_string: record.old_string ?? record.oldString,
+    replace_all: record.replace_all ?? record.replaceAll
+  });
+  const edits = Array.isArray(toolInput.edits) ? toolInput.edits.filter(isRecord4).map(reverse).reverse() : [];
+  return proposedContent(absolutePath, { ...reverse(toolInput), edits });
+}
+function committedContent(workspaceRoot, relativePath) {
+  const result = spawnSync2("git", ["show", `HEAD:${normalizeWorkspacePath(relativePath)}`], {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    maxBuffer: MAX_READ_BYTES,
+    stdio: ["ignore", "pipe", "ignore"],
+    timeout: 5000
+  });
+  return result.status === 0 ? result.stdout : undefined;
+}
+function guardedChangeSince(workspaceRoot, relativePath, before) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  const now = readText3(path7.join(workspaceRoot, normalized));
+  if (now === undefined)
+    return;
+  const settings = normalized === "package.json" ? "package" : normalized === ".kb/setup.json" && !fs6.existsSync(path7.join(workspaceRoot, "package.json")) ? "setup" : undefined;
+  if (settings !== undefined) {
+    const from = levelInJson(before, settings);
+    const to = readKibiLevel(workspaceRoot).level;
+    return from === to ? undefined : { kind: "level", path: normalized, from, to };
+  }
+  const requirementId = REQUIREMENT_PATH.exec(normalized)?.[1];
+  if (requirementId === undefined)
+    return;
+  const earlier = frontmatter(before);
+  const current = frontmatter(now);
+  if (earlier === undefined || current === undefined)
+    return;
+  return lowering(requirementId, floorOfDocument(earlier), floorOfDocument(current));
+}
+function describe(change) {
+  if (change.kind === "level")
+    return `changes the Kibi level from ${change.from} to ${change.to} (${change.path})`;
+  return `lowers the evidence ${change.requirementId} must reach from ${change.from} to ${change.to}`;
+}
+function guardedChangeAfterNotice(change) {
+  return `Kibi: the change you just made ${describe(change)}. That is the person's decision, not yours: ask the person now whether to keep it, and undo it unless they agree.`;
+}
+
 // src/guard.ts
 var EDIT_TOOLS = new Set(["edit", "write_file", "search_replace"]);
 function isEditTool(toolName) {
   return EDIT_TOOLS.has(String(toolName ?? "").replace(/^file_system\./, ""));
 }
 function sessionStateDir(workspaceRoot, sessionId, env = process.env) {
-  const base = env.KIBI_VIBE_STATE_DIR?.trim() || path6.join(os.tmpdir(), `kibi-vibe-${process.getuid?.() ?? "user"}`);
-  const workspaceKey = createHash3("sha256").update(path6.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  const base = env.KIBI_VIBE_STATE_DIR?.trim() || path8.join(os.tmpdir(), `kibi-vibe-${process.getuid?.() ?? "user"}`);
+  const workspaceKey = createHash3("sha256").update(path8.resolve(workspaceRoot)).digest("hex").slice(0, 32);
   const trimmed = sessionId?.trim();
   const sessionKey = trimmed ? createHash3("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path6.join(base, workspaceKey, "sessions", sessionKey);
+  return path8.join(base, workspaceKey, "sessions", sessionKey);
 }
 function firmEditAfterNotice(where, requirements) {
   const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
@@ -1856,8 +2086,8 @@ function promptNote(workspaceRoot, payload, env = process.env) {
   return rule === undefined ? undefined : rulePromptNote(rule, statedReason(input.prompt, workspaceRoot));
 }
 function workspaceRelative(workspaceRoot, absolute) {
-  const rel = path6.relative(workspaceRoot, absolute);
-  return rel === "" || rel.startsWith("..") || path6.isAbsolute(rel) ? undefined : rel.split(path6.sep).join("/");
+  const rel = path8.relative(workspaceRoot, absolute);
+  return rel === "" || rel.startsWith("..") || path8.isAbsolute(rel) ? undefined : rel.split(path8.sep).join("/");
 }
 function asFields(value) {
   return typeof value === "object" && value !== null ? value : {};
@@ -1873,20 +2103,48 @@ function afterEditInput(toolInput) {
     edits: Array.isArray(input.edits) ? input.edits.map((edit) => swap(asFields(edit))) : []
   };
 }
+var SEARCH_REPLACE_BLOCK = /<{5,} SEARCH\r?\n([\s\S]*?)\r?\n={5,}\r?\n([\s\S]*?)\r?\n>{5,} REPLACE/g;
+function searchReplaceEdits(toolInput) {
+  const fields = asFields(toolInput);
+  if (typeof fields.content !== "string")
+    return toolInput;
+  const edits = [...fields.content.matchAll(SEARCH_REPLACE_BLOCK)].map((block) => ({ old_string: block[1], new_string: block[2] }));
+  return edits.length === 0 ? toolInput : { edits };
+}
+function guardedChangeAfter(workspaceRoot, input, targets) {
+  const fields = asFields(input.toolInput);
+  const candidates = canonicalKbToolName(input.toolName) === "kb_upsert" ? typeof fields.id === "string" && fields.dryRun !== true ? [{ relative: `.kb/requirements/${fields.id}.md`, before: undefined }] : [] : targets.map((target) => ({
+    relative: target.relative,
+    before: contentBeforeEdit(target.absolute, String(input.toolName).endsWith("search_replace") ? searchReplaceEdits(input.toolInput) : input.toolInput)
+  }));
+  for (const candidate of candidates) {
+    const before = candidate.before ?? committedContent(workspaceRoot, candidate.relative);
+    if (before === undefined)
+      continue;
+    const change = guardedChangeSince(workspaceRoot, candidate.relative, before);
+    if (change !== undefined)
+      return change;
+  }
+  return;
+}
 function postEditNote(workspaceRoot, payload, env = process.env) {
   const input = parseHookInput(payload);
-  if (!isEditTool(input.toolName))
+  const kbWrite = canonicalKbToolName(input.toolName) === "kb_upsert";
+  if (!kbWrite && !isEditTool(input.toolName))
     return;
   const base = input.cwd ?? workspaceRoot;
-  const targets = extractEditedPaths(input.toolInput).map((raw) => path6.resolve(base, raw)).map((absolute) => ({
+  const edited = kbWrite ? [] : extractEditedPaths(input.toolInput).map((raw) => path8.resolve(base, raw)).map((absolute) => ({
     absolute,
     relative: workspaceRelative(workspaceRoot, absolute)
-  })).filter((target) => target.relative !== undefined && !target.relative.startsWith(".kb/"));
-  if (targets.length === 0)
-    return;
+  })).filter((target) => target.relative !== undefined);
   const decision = session(workspaceRoot, input, env);
+  const guarded = guardedChangeAfter(workspaceRoot, input, edited);
+  const guardedNote = guarded !== undefined && claimGuardedChangeNotice(decision, guarded) ? guardedChangeAfterNotice(guarded) : undefined;
+  const targets = edited.filter((target) => !target.relative.startsWith(".kb/"));
+  if (targets.length === 0)
+    return guardedNote;
   markDecisionFlag(decision, "source-edited");
-  const notes = [];
+  const notes = guardedNote === undefined ? [] : [guardedNote];
   if (confirmFirmEdits(env)) {
     const files = loadKnowledgeIndex(workspaceRoot, decision.stateDir).files;
     const summarize = createEntitySummarizer(workspaceRoot);
@@ -1918,9 +2176,11 @@ function postEditNote(workspaceRoot, payload, env = process.env) {
 export {
   afterEditInput,
   firmEditAfterNotice,
+  guardedChangeAfter,
   isEditTool,
   postEditNote,
   promptNote,
+  searchReplaceEdits,
   sessionStartNote,
   sessionStateDir
 };

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { MINIMUM_SWIPL_MAJOR } from "../../../src/prolog/swipl-resolver.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { MINIMUM_SWIPL_MAJOR } from "../../../src/prolog/swipl-resolver.js";
 
 /**
  * The oldest SWI-Prolog major version Kibi accepts from PATH. Kibi reads

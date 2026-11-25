@@ -1,0 +1,32 @@
+{
+  "test_id": "TEST-agent-hosts-guarded-change-ask",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/agent-core/tests/level-guard.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "--test-name-pattern",
+      "Kibi level and required evidence",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/antigravity/tests/hook-runner.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts",
+      "./packages/opencode/tests/decision-hooks.test.ts"
+    ],
+    [
+      "node",
+      "--test",
+      "packages/vibe/tests/guard.test.mjs",
+      "packages/vibe/tests/hooks.test.mjs"
+    ]
+  ]
+}

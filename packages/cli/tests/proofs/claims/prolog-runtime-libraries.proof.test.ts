@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { PROLOG_ERROR_TERM_PREFIX } from "../../../src/prolog/error-terms.js";
+import { REQUIRED_SWIPL_LIBRARIES } from "../../../src/prolog/swipl-resolver.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { REQUIRED_SWIPL_LIBRARIES } from "../../../src/prolog/swipl-resolver.js";
-import { PROLOG_ERROR_TERM_PREFIX } from "../../../src/prolog/error-terms.js";
 
 /**
  * The SWI-Prolog libraries a runtime must load and the prefix of an engine error line. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

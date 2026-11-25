@@ -15,6 +15,7 @@ import {
   isEditTool,
   postEditNote,
   promptNote,
+  searchReplaceEdits,
   sessionStartNote,
   sessionStateDir,
 } from "../src/guard.ts";
@@ -237,6 +238,145 @@ test("postEditNote stays quiet for reads, outside paths, .kb files and when turn
     assert.equal(
       postEditNote(ws.root, edit(ws.root, "src/free.ts"), ws.env),
       undefined,
+    );
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("searchReplaceEdits reads SEARCH/REPLACE blocks as replacements", () => {
+  assert.deepEqual(
+    searchReplaceEdits({
+      file_path: "a",
+      content:
+        "<<<<<<< SEARCH\none\n=======\nuno\n>>>>>>> REPLACE\n<<<<<<< SEARCH\ntwo\n=======\ndos\n>>>>>>> REPLACE",
+    }),
+    {
+      edits: [
+        { old_string: "one", new_string: "uno" },
+        { old_string: "two", new_string: "dos" },
+      ],
+    },
+  );
+  assert.deepEqual(searchReplaceEdits({ content: "plain" }), {
+    content: "plain",
+  });
+  assert.equal(searchReplaceEdits("x"), "x");
+});
+
+test("postEditNote tells the agent once to ask the person about a level change", () => {
+  const ws = workspace();
+  try {
+    const pkg = (level) =>
+      `${JSON.stringify({ name: "app", kibi: { level } }, null, 2)}\n`;
+    writeFileSync(join(ws.root, "package.json"), pkg("remember"));
+    const change = edit(ws.root, "package.json", {
+      old_string: '"level": "test"',
+      new_string: '"level": "remember"',
+    });
+    const note = postEditNote(ws.root, change, ws.env);
+    assert.equal(
+      note,
+      "Kibi: the change you just made changes the Kibi level from test to remember (package.json). That is the person's decision, not yours: ask the person now whether to keep it, and undo it unless they agree.",
+    );
+    assert.equal(postEditNote(ws.root, change, ws.env), undefined);
+    // A whole-file write has no earlier text and outside Git no commit, so
+    // nothing tells what the level was.
+    assert.equal(
+      postEditNote(
+        ws.root,
+        {
+          ...edit(ws.root, "package.json", { content: pkg("remember") }),
+          session_id: "s2",
+          tool_name: "write_file",
+        },
+        ws.env,
+      ),
+      undefined,
+    );
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("postEditNote compares a whole-file write with the last commit", () => {
+  const ws = workspace();
+  try {
+    const file = join(ws.root, ".kb", "requirements", "REQ-floor.md");
+    const doc = (evidence) =>
+      `---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: ${evidence}\n---\n`;
+    writeFileSync(file, doc("tested"));
+    const git = (...args) =>
+      execFileSync("git", args, { cwd: ws.root, stdio: "ignore" });
+    git("init", "-q");
+    git("add", ".");
+    git(
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@example.invalid",
+      "commit",
+      "-qm",
+      "init",
+    );
+    writeFileSync(file, doc("asserted"));
+    const note = postEditNote(
+      ws.root,
+      {
+        ...edit(ws.root, ".kb/requirements/REQ-floor.md", {
+          content: doc("asserted"),
+        }),
+        tool_name: "write_file",
+      },
+      ws.env,
+    );
+    assert.match(
+      note ?? "",
+      /lowers the evidence REQ-floor must reach from tested to asserted/,
+    );
+    // A kb_upsert that lowered the floor is compared with the commit too.
+    const upsert = (input) => ({
+      ...edit(ws.root, "x"),
+      session_id: "s3",
+      tool_name: "kibi_kb_upsert",
+      tool_input: input,
+    });
+    assert.match(
+      postEditNote(
+        ws.root,
+        upsert({ id: "REQ-floor", properties: {} }),
+        ws.env,
+      ) ?? "",
+      /ask the person now whether to keep it/,
+    );
+    assert.equal(
+      postEditNote(
+        ws.root,
+        { ...upsert({ id: "REQ-floor", dryRun: true }), session_id: "s4" },
+        ws.env,
+      ),
+      undefined,
+    );
+    assert.equal(
+      postEditNote(ws.root, { ...upsert({}), session_id: "s5" }, ws.env),
+      undefined,
+    );
+    // A search_replace is turned back through its blocks, not the commit.
+    writeFileSync(file, doc("asserted"));
+    assert.match(
+      postEditNote(
+        ws.root,
+        {
+          ...edit(ws.root, ".kb/requirements/REQ-floor.md", {
+            content:
+              "<<<<<<< SEARCH\nrequired_evidence: proved\n=======\nrequired_evidence: asserted\n>>>>>>> REPLACE",
+          }),
+          session_id: "s6",
+          tool_name: "search_replace",
+        },
+        ws.env,
+      ) ?? "",
+      /from proved to asserted/,
     );
   } finally {
     ws.cleanup();

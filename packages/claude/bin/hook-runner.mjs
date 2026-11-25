@@ -3,7 +3,7 @@
 // src/hook-runner.ts
 import { createHash as createHash7 } from "node:crypto";
 import os2 from "node:os";
-import path15 from "node:path";
+import path17 from "node:path";
 import { pathToFileURL } from "node:url";
 
 // ../agent-core/dist/bash-command.js
@@ -2799,15 +2799,311 @@ function readText2(file) {
   return "";
 }
 
+// ../agent-core/dist/level-guard.js
+import fs8 from "node:fs";
+import path10 from "node:path";
+
+// ../agent-core/dist/kibi-level.js
+import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
+import * as path9 from "node:path";
+var DEFAULT_KIBI_LEVEL = "test";
+function isKibiLevel(value) {
+  return value === "remember" || value === "test";
+}
+function readText3(file) {
+  try {
+    return readFileSync2(file, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function resolved(value, source) {
+  if (value === undefined)
+    return { level: DEFAULT_KIBI_LEVEL, source: "default" };
+  if (isKibiLevel(value))
+    return { level: value, source };
+  return { level: DEFAULT_KIBI_LEVEL, source, invalid: value };
+}
+function parseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return;
+  }
+}
+function kibiLevelInSettings(text, source) {
+  const parsed = parseJson(text);
+  if (source === "setup.json")
+    return resolved(isRecord3(parsed) ? parsed.level : undefined, source);
+  const kibi = isRecord3(parsed) ? parsed.kibi : undefined;
+  return resolved(isRecord3(kibi) ? kibi.level : undefined, source);
+}
+function readKibiLevel(workspaceRoot) {
+  const packagePath = path9.join(workspaceRoot, "package.json");
+  if (existsSync2(packagePath))
+    return kibiLevelInSettings(readText3(packagePath), "package.json");
+  return kibiLevelInSettings(readText3(path9.join(workspaceRoot, ".kb", "setup.json")), "setup.json");
+}
+
+// ../agent-core/dist/level-guard.js
+var EVIDENCE_LEVELS = [
+  "unverified",
+  "asserted",
+  "tested",
+  "proved"
+];
+var MAX_READ_BYTES = 2 * 1024 * 1024;
+function readText4(absolutePath) {
+  try {
+    if (fs8.statSync(absolutePath).size > MAX_READ_BYTES)
+      return;
+    return fs8.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isEvidenceLevel(value) {
+  return EVIDENCE_LEVELS.includes(value);
+}
+function rank(level) {
+  return EVIDENCE_LEVELS.indexOf(level);
+}
+function proposedContent(absolutePath, toolInput) {
+  if (!isRecord4(toolInput))
+    return;
+  for (const key of ["content", "contents", "file_text"]) {
+    const value = toolInput[key];
+    if (typeof value === "string")
+      return value;
+  }
+  const records = [
+    toolInput,
+    ...Array.isArray(toolInput.edits) ? toolInput.edits : []
+  ].filter(isRecord4);
+  const replacements = [];
+  for (const record of records) {
+    const before = record.old_string ?? record.oldString;
+    const after = record.new_string ?? record.newString;
+    if (typeof before !== "string" || typeof after !== "string")
+      continue;
+    replacements.push({
+      before,
+      after,
+      all: record.replace_all === true || record.replaceAll === true
+    });
+  }
+  if (replacements.length === 0)
+    return;
+  let text = readText4(absolutePath);
+  if (text === undefined)
+    return;
+  for (const { before, after, all } of replacements) {
+    if (before === "" || !text.includes(before))
+      return;
+    text = all ? text.split(before).join(after) : text.replace(before, () => after);
+  }
+  return text;
+}
+var PATCH_SECTION_HEADER2 = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
+function patchLinesFor(toolInput, relativePath) {
+  const target = normalizeWorkspacePath(relativePath);
+  const found = { added: [], removed: [] };
+  let matched = false;
+  for (const patch of extractPatchTexts(toolInput)) {
+    let current;
+    for (const line of patch.split(/\r?\n/)) {
+      const header = PATCH_SECTION_HEADER2.exec(line.trim());
+      if (header?.[2]) {
+        current = normalizeWorkspacePath(header[2]);
+        if (current === target)
+          matched = true;
+        continue;
+      }
+      if (current !== target)
+        continue;
+      if (line.startsWith("+"))
+        found.added.push(line.slice(1));
+      else if (line.startsWith("-"))
+        found.removed.push(line.slice(1));
+    }
+  }
+  return matched ? found : undefined;
+}
+var LEVEL_LINE = /"level"\s*:\s*("([^"]*)")?/;
+function levelInJson(text, settings) {
+  return kibiLevelInSettings(text, settings === "package" ? "package.json" : "setup.json").level;
+}
+function asLevel(value) {
+  return isKibiLevel(value) ? value : DEFAULT_KIBI_LEVEL;
+}
+function levelChangeOfEdit(workspaceRoot, relativePath, toolInput) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  const hasPackage = fs8.existsSync(path10.join(workspaceRoot, "package.json"));
+  const settings = normalized === "package.json" ? "package" : normalized === ".kb/setup.json" && !hasPackage ? "setup" : undefined;
+  if (settings === undefined)
+    return;
+  const from = readKibiLevel(workspaceRoot).level;
+  const absolutePath = path10.join(workspaceRoot, normalized);
+  const after = proposedContent(absolutePath, toolInput);
+  let to;
+  if (after !== undefined) {
+    to = levelInJson(after, settings);
+  } else {
+    const lines = patchLinesFor(toolInput, normalized);
+    if (lines === undefined)
+      return;
+    const added = lines.added.map((line) => LEVEL_LINE.exec(line)).find((match) => match !== null);
+    const removed = lines.removed.some((line) => LEVEL_LINE.test(line));
+    if (added)
+      to = asLevel(added[2]);
+    else if (removed)
+      to = DEFAULT_KIBI_LEVEL;
+  }
+  if (to === undefined || to === from)
+    return;
+  return { kind: "level", path: normalized, from, to };
+}
+var REQUIREMENT_PATH = /^\.kb\/requirements\/([^/]+)\.md$/;
+function frontmatter(text) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
+  if (!match?.[1])
+    return;
+  const fields = new Map;
+  let section;
+  for (const line of match[1].split(/\r?\n/)) {
+    const top = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (top?.[1] !== undefined) {
+      section = top[1];
+      fields.set(top[1], unquote4(top[2] ?? ""));
+      continue;
+    }
+    const nested = /^\s+([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (section !== undefined && nested?.[1] !== undefined)
+      fields.set(`${section}.${nested[1]}`, unquote4(nested[2] ?? ""));
+  }
+  return fields;
+}
+function unquote4(value) {
+  const trimmed = value.trim();
+  return /^(['"]).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function evidenceFloor(fields) {
+  if (isEvidenceLevel(fields.required_evidence))
+    return fields.required_evidence;
+  const firmness = typeof fields.firmness === "string" && fields.firmness !== "" ? fields.firmness : undefined;
+  if (firmness === "firm")
+    return "tested";
+  if (firmness === undefined) {
+    if (fields.originKind !== "agent")
+      return "tested";
+    if (typeof fields.approvedBy === "string" && fields.approvedBy !== "")
+      return "tested";
+  }
+  return "unverified";
+}
+function floorOfDocument(fields) {
+  return evidenceFloor({
+    required_evidence: fields.get("required_evidence"),
+    firmness: fields.get("firmness"),
+    originKind: fields.get("origin.kind"),
+    approvedBy: fields.get("origin.approved_by")
+  });
+}
+function currentRequirement(workspaceRoot, requirementId) {
+  const text = readText4(path10.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`));
+  return text === undefined ? undefined : frontmatter(text);
+}
+function lowering(requirementId, from, to) {
+  return rank(to) < rank(from) ? { kind: "evidence", requirementId, from, to } : undefined;
+}
+function evidenceLoweringOfEdit(workspaceRoot, relativePath, toolInput) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  const requirementId = REQUIREMENT_PATH.exec(normalized)?.[1];
+  if (requirementId === undefined)
+    return;
+  const current = currentRequirement(workspaceRoot, requirementId);
+  if (current === undefined)
+    return;
+  const from = floorOfDocument(current);
+  const after = proposedContent(path10.join(workspaceRoot, normalized), toolInput);
+  if (after !== undefined) {
+    const proposed = frontmatter(after);
+    return proposed === undefined ? undefined : lowering(requirementId, from, floorOfDocument(proposed));
+  }
+  const lines = patchLinesFor(toolInput, normalized);
+  if (lines === undefined)
+    return;
+  const field = /^required_evidence:\s*(.*)$/;
+  const added = lines.added.map((line) => field.exec(line)).find((match) => match !== null);
+  if (added) {
+    const next = new Map(current);
+    next.set("required_evidence", unquote4(added[1] ?? ""));
+    return lowering(requirementId, from, floorOfDocument(next));
+  }
+  if (lines.removed.some((line) => field.test(line))) {
+    const next = new Map(current);
+    next.delete("required_evidence");
+    return lowering(requirementId, from, floorOfDocument(next));
+  }
+  return;
+}
+var REQUIREMENT_WRITE = "kb_upsert";
+function evidenceLoweringOfKbCall(workspaceRoot, operation, toolInput) {
+  if (operation !== REQUIREMENT_WRITE || !isRecord4(toolInput))
+    return;
+  if (toolInput.dryRun === true)
+    return;
+  const { id, properties } = toolInput;
+  if (typeof id !== "string" || !isRecord4(properties))
+    return;
+  const type = toolInput.type;
+  if (type !== undefined && type !== "req")
+    return;
+  const requested = properties.required_evidence;
+  if (!isEvidenceLevel(requested))
+    return;
+  const current = currentRequirement(workspaceRoot, id);
+  if (current === undefined)
+    return;
+  return lowering(id, floorOfDocument(current), requested);
+}
+function guardedChangeOf(input) {
+  const operation = canonicalKbToolName(input.toolName);
+  if (operation !== undefined)
+    return evidenceLoweringOfKbCall(input.workspaceRoot, operation, input.toolInput);
+  if (input.relativePath === undefined)
+    return;
+  return levelChangeOfEdit(input.workspaceRoot, input.relativePath, input.toolInput) ?? evidenceLoweringOfEdit(input.workspaceRoot, input.relativePath, input.toolInput);
+}
+function describe(change) {
+  if (change.kind === "level")
+    return `changes the Kibi level from ${change.from} to ${change.to} (${change.path})`;
+  return `lowers the evidence ${change.requirementId} must reach from ${change.from} to ${change.to}`;
+}
+function guardedChangeConfirmation(change) {
+  if (change.kind === "level")
+    return `Kibi: this edit ${describe(change)}. ${change.to === "remember" ? "At remember, Kibi stops asking for the scenarios, tests and proofs that show each requirement holds." : "At test, Kibi asks for the scenarios and linked tests that show each requirement holds, and blocks commits that leave them out."} Allow it only if you chose this level.`;
+  return `Kibi: this change ${describe(change)}, so kibi check stops asking for the evidence it asked for before. Allow it only if you agree the requirement needs less evidence.`;
+}
+function guardedChangeContext(change) {
+  return `Kibi asked the person to confirm this change because it ${describe(change)}. That is the person's decision: do not make it again a different way if they decline, and say in your reply what you changed.`;
+}
+
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
-import fs10 from "node:fs";
-import path11 from "node:path";
+import fs11 from "node:fs";
+import path13 from "node:path";
 
 // ../agent-core/dist/telemetry-signals.js
 import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";
-import fs8 from "node:fs";
-import path9 from "node:path";
+import fs9 from "node:fs";
+import path11 from "node:path";
 var RETRY_WINDOW_MS = 10 * 60 * 1000;
 var SEARCH_REPEAT_WINDOW_MS = 2 * 60 * 1000;
 var SKILL_WINDOW_MS = 30 * 60 * 1000;
@@ -2843,7 +3139,7 @@ var SMALL_COUNT_BUCKETS = [
 ];
 var KIBI_SOURCE_PACKAGES = "agent-core|cli|mcp|core|runtime|claude|codex|cursor|opencode|zcode|vscode|plugin-[a-z0-9-]+|lang-[a-z0-9-]+";
 var SOURCE_FRAME = new RegExp(`(?:^|/)packages/(${KIBI_SOURCE_PACKAGES})/((?:src|dist|bin)/.+)$`);
-function isRecord3(value) {
+function isRecord5(value) {
   return typeof value === "object" && value !== null;
 }
 var SKILL_FILE = /(?:^|[\\/])(kibi-[a-z0-9-]+)[\\/]SKILL\.md\b/i;
@@ -2865,7 +3161,7 @@ function skillInStrings(value, depth) {
   return;
 }
 function kibiSkillLoad(toolName, toolInput) {
-  if (/^skill$/i.test(String(toolName).trim()) && isRecord3(toolInput)) {
+  if (/^skill$/i.test(String(toolName).trim()) && isRecord5(toolInput)) {
     for (const key of ["skill", "name", "command"]) {
       const value = toolInput[key];
       if (typeof value !== "string")
@@ -2878,18 +3174,18 @@ function kibiSkillLoad(toolName, toolInput) {
   return skillInStrings(toolInput, 3);
 }
 function recentPath(directory) {
-  return path9.join(directory, RECENT_FILE);
+  return path11.join(directory, RECENT_FILE);
 }
 function entries(value) {
   return Array.isArray(value) ? value : [];
 }
 function fresh(entry, now, windowMs) {
-  return isRecord3(entry) && typeof entry.t === "number" && now - entry.t <= windowMs;
+  return isRecord5(entry) && typeof entry.t === "number" && now - entry.t <= windowMs;
 }
 function readRecent(directory, now) {
   let parsed = {};
   try {
-    parsed = JSON.parse(String(fs8.readFileSync(recentPath(directory)))) ?? parsed;
+    parsed = JSON.parse(String(fs9.readFileSync(recentPath(directory)))) ?? parsed;
   } catch {}
   return {
     calls: entries(parsed.calls).filter((entry) => fresh(entry, now, RETRY_WINDOW_MS) && typeof entry.o === "string"),
@@ -2898,14 +3194,14 @@ function readRecent(directory, now) {
 }
 function writeRecent(directory, recent) {
   try {
-    fs8.mkdirSync(directory, { recursive: true });
+    fs9.mkdirSync(directory, { recursive: true });
     const file = recentPath(directory);
     const temporary = `${file}.${process.pid}.${randomUUID2()}.tmp`;
-    fs8.writeFileSync(temporary, JSON.stringify({
+    fs9.writeFileSync(temporary, JSON.stringify({
       calls: recent.calls.slice(-MAX_RECENT_ENTRIES),
       skills: recent.skills.slice(-MAX_RECENT_ENTRIES)
     }));
-    fs8.renameSync(temporary, file);
+    fs9.renameSync(temporary, file);
   } catch {}
 }
 function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
@@ -2916,9 +3212,9 @@ function rememberSkillLoad(directory, workspaceHash, now = Date.now()) {
 
 // ../agent-core/dist/usage-telemetry.js
 import { createHash as createHash5, randomUUID as randomUUID3 } from "node:crypto";
-import fs9 from "node:fs";
+import fs10 from "node:fs";
 import os from "node:os";
-import path10 from "node:path";
+import path12 from "node:path";
 import { fileURLToPath } from "node:url";
 var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
 var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
@@ -3061,9 +3357,9 @@ function remoteEnvironment(env) {
 }
 function realDirectory(directory) {
   try {
-    return fs9.realpathSync(directory);
+    return fs10.realpathSync(directory);
   } catch {
-    return path10.resolve(directory);
+    return path12.resolve(directory);
   }
 }
 function sandboxedHome(env) {
@@ -3072,7 +3368,7 @@ function sandboxedHome(env) {
     return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved.startsWith(`${temp}${path10.sep}`);
+  return resolved.startsWith(`${temp}${path12.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
 function moduleFileFromUrl(readUrl) {
@@ -3091,15 +3387,15 @@ function insideKibiCheckout(file) {
   const resolved = realDirectory(file);
   if (resolved.split(/[\\/]/).includes("node_modules"))
     return false;
-  let current = path10.dirname(resolved);
+  let current = path12.dirname(resolved);
   for (;; ) {
     try {
-      const manifest = JSON.parse(fs9.readFileSync(path10.join(current, "package.json"), "utf8"));
-      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs9.existsSync(path10.join(current, "packages", "agent-core"))) {
+      const manifest = JSON.parse(fs10.readFileSync(path12.join(current, "package.json"), "utf8"));
+      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs10.existsSync(path12.join(current, "packages", "agent-core"))) {
         return true;
       }
     } catch {}
-    const parent = path10.dirname(current);
+    const parent = path12.dirname(current);
     if (parent === current)
       return false;
     current = parent;
@@ -3130,14 +3426,14 @@ function telemetryDirectory(env = process.env) {
   if (explicit)
     return explicit;
   if (process.platform === "win32" && env.LOCALAPPDATA) {
-    return path10.join(env.LOCALAPPDATA, "kibi");
+    return path12.join(env.LOCALAPPDATA, "kibi");
   }
   const stateHome = env.XDG_STATE_HOME?.trim();
-  return path10.join(stateHome || path10.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
+  return path12.join(stateHome || path12.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(String(fs9.readFileSync(path10.join(telemetryDirectory(env), CONFIG_FILE))));
+    const parsed = JSON.parse(String(fs10.readFileSync(path12.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -3145,8 +3441,8 @@ function readTelemetryConfig(env = process.env) {
 }
 function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
-  fs9.mkdirSync(directory, { recursive: true });
-  fs9.writeFileSync(path10.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+  fs10.mkdirSync(directory, { recursive: true });
+  fs10.writeFileSync(path12.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
 `);
 }
 function telemetryStatus(env = process.env) {
@@ -3216,11 +3512,11 @@ function runtimeName() {
   return typeof globalThis.Bun === "undefined" ? "node" : "bun";
 }
 function sessionMarkersPath(env) {
-  return path10.join(telemetryDirectory(env), SESSIONS_FILE);
+  return path12.join(telemetryDirectory(env), SESSIONS_FILE);
 }
 function readSessionMarkers(env) {
   try {
-    const parsed = JSON.parse(String(fs9.readFileSync(sessionMarkersPath(env))));
+    const parsed = JSON.parse(String(fs10.readFileSync(sessionMarkersPath(env))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -3241,22 +3537,22 @@ function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
   try {
     const file = sessionMarkersPath(env);
-    fs9.mkdirSync(path10.dirname(file), { recursive: true });
+    fs10.mkdirSync(path12.dirname(file), { recursive: true });
     const temporary = `${file}.${process.pid}.${randomUUID3()}.tmp`;
-    fs9.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
-    fs9.renameSync(temporary, file);
+    fs10.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
+    fs10.renameSync(temporary, file);
   } catch {}
 }
 function workspaceSessionHash(startDirectory, env = process.env) {
   const markers = readSessionMarkers(env);
   const now = Date.now();
-  let current = path10.resolve(startDirectory);
+  let current = path12.resolve(startDirectory);
   for (;; ) {
     const marker = markers[workspaceKey(current)];
     if (marker && typeof marker.session === "string" && typeof marker.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS) {
       return marker.session;
     }
-    const parent = path10.dirname(current);
+    const parent = path12.dirname(current);
     if (parent === current)
       return;
     current = parent;
@@ -3288,17 +3584,17 @@ function baseProperties(source, env) {
   };
 }
 function queuePath(env) {
-  return path10.join(telemetryDirectory(env), QUEUE_FILE);
+  return path12.join(telemetryDirectory(env), QUEUE_FILE);
 }
 function appendEvent(event, env) {
   try {
     const file = queuePath(env);
-    fs9.mkdirSync(path10.dirname(file), { recursive: true });
+    fs10.mkdirSync(path12.dirname(file), { recursive: true });
     try {
-      if (fs9.statSync(file).size > MAX_QUEUE_BYTES)
+      if (fs10.statSync(file).size > MAX_QUEUE_BYTES)
         return;
     } catch {}
-    fs9.appendFileSync(file, `${JSON.stringify(event)}
+    fs10.appendFileSync(file, `${JSON.stringify(event)}
 `);
   } catch {}
 }
@@ -3347,7 +3643,7 @@ function parseQueued(text, now) {
 function flushDue(file, now) {
   let text;
   try {
-    text = fs9.readFileSync(file, "utf8");
+    text = fs10.readFileSync(file, "utf8");
   } catch {
     return false;
   }
@@ -3368,26 +3664,26 @@ function claimBatches(directory, now) {
   const claimed = [];
   let names;
   try {
-    names = fs9.readdirSync(directory);
+    names = fs10.readdirSync(directory);
   } catch {
     return claimed;
   }
   for (const name of names) {
     if (!name.endsWith(SENDING_SUFFIX))
       continue;
-    const file = path10.join(directory, name);
+    const file = path12.join(directory, name);
     try {
-      if (now - fs9.statSync(file).mtimeMs < STALE_CLAIM_MS)
+      if (now - fs10.statSync(file).mtimeMs < STALE_CLAIM_MS)
         continue;
       const reclaimed = `${file}.${randomUUID3()}${SENDING_SUFFIX}`;
-      fs9.renameSync(file, reclaimed);
+      fs10.renameSync(file, reclaimed);
       claimed.push(reclaimed);
     } catch {}
   }
-  const queue = path10.join(directory, QUEUE_FILE);
-  const target = path10.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
+  const queue = path12.join(directory, QUEUE_FILE);
+  const target = path12.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
   try {
-    fs9.renameSync(queue, target);
+    fs10.renameSync(queue, target);
     claimed.push(target);
   } catch {}
   return claimed;
@@ -3403,12 +3699,12 @@ async function flushTelemetry(options = {}, env = process.env) {
   const events = [];
   for (const file of claimed) {
     try {
-      events.push(...parseQueued(fs9.readFileSync(file, "utf8"), now));
+      events.push(...parseQueued(fs10.readFileSync(file, "utf8"), now));
     } catch {}
   }
   const release = () => {
     for (const file of claimed)
-      fs9.rmSync(file, { force: true });
+      fs10.rmSync(file, { force: true });
   };
   if (events.length === 0) {
     release();
@@ -3497,9 +3793,9 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path11.join(row.workspaceRoot, ".kb", "usage.log");
-    fs10.mkdirSync(path11.dirname(logPath), { recursive: true });
-    fs10.appendFileSync(logPath, `${JSON.stringify(record)}
+    const logPath = path13.join(row.workspaceRoot, ".kb", "usage.log");
+    fs11.mkdirSync(path13.dirname(logPath), { recursive: true });
+    fs11.appendFileSync(logPath, `${JSON.stringify(record)}
 `);
   } catch {}
 }
@@ -3519,7 +3815,7 @@ async function finishHookTelemetry(input, env = process.env) {
 }
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(String(fs10.readFileSync(packageJsonPath)));
+    const parsed = JSON.parse(String(fs11.readFileSync(packageJsonPath)));
     const version = parsed.version;
     if (typeof version === "string")
       return version;
@@ -3528,32 +3824,32 @@ function readPackageVersion(packageJsonPath) {
 }
 
 // ../agent-core/dist/workspace-optin.js
-import fs11 from "node:fs";
-import path12 from "node:path";
+import fs12 from "node:fs";
+import path14 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path12.dirname(current);
+  const parent = path14.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs11.existsSync(path12.join(directory, ".kb", "manifest.json"));
+  return fs12.existsSync(path14.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs11.existsSync(path12.join(directory, ".git"));
+  return fs12.existsSync(path14.join(directory, ".git"));
 }
 function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      const root = path12.resolve(value);
+      const root = path14.resolve(value);
       return { root, optedIn: hasKibiManifest(root) };
     }
   }
-  const start = path12.resolve(startDir?.trim() ? startDir : process.cwd());
+  const start = path14.resolve(startDir?.trim() ? startDir : process.cwd());
   let current = start;
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
@@ -3568,7 +3864,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
 }
 
 // src/kb-tools.ts
-function isRecord4(value) {
+function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function strings(value) {
@@ -3581,10 +3877,10 @@ function canonicalKbOperation(toolName) {
   return /^kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 function payloadOf(toolInput) {
-  if (!isRecord4(toolInput))
+  if (!isRecord6(toolInput))
     return {};
   const nested = toolInput.arguments ?? toolInput.args;
-  return isRecord4(nested) ? nested : toolInput;
+  return isRecord6(nested) ? nested : toolInput;
 }
 function usageFromPayload(operation, payload) {
   const paths = [
@@ -3593,7 +3889,7 @@ function usageFromPayload(operation, payload) {
   ];
   if (Array.isArray(payload.sourceLocations)) {
     for (const location of payload.sourceLocations) {
-      if (isRecord4(location))
+      if (isRecord6(location))
         paths.push(...strings(location.path));
     }
   }
@@ -3654,21 +3950,21 @@ function classifyPath2(relativePath) {
 
 // src/session-state.ts
 import { createHash as createHash6 } from "node:crypto";
-import fs12 from "node:fs";
-import path13 from "node:path";
+import fs13 from "node:fs";
+import path15 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash6("sha256").update(path13.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path13.join(pluginData, "workspaces", key);
+  const key = createHash6("sha256").update(path15.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path15.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
   const key = trimmed.length > 0 ? createHash6("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path13.join(workspaceDir, "sessions", key);
+  return path15.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -3773,7 +4069,7 @@ function applyEvent(state, event) {
   }
 }
 function sessionJournal(dir) {
-  return dir ? [path13.join(dir, JOURNAL)] : [];
+  return dir ? [path15.join(dir, JOURNAL)] : [];
 }
 function loadSessionState(dir) {
   const state = emptySessionState();
@@ -3781,7 +4077,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs12.readFileSync(path13.join(dir, JOURNAL), "utf8");
+    journal = fs13.readFileSync(path15.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -3797,8 +4093,8 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs12.mkdirSync(dir, { recursive: true });
-    fs12.appendFileSync(path13.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs13.mkdirSync(dir, { recursive: true });
+    fs13.appendFileSync(path15.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -3838,9 +4134,9 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path14 from "node:path";
+import path16 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var pluginVersion = readPackageVersion(path14.join(path14.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+var pluginVersion = readPackageVersion(path16.join(path16.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 function appendHookUsage2(row, env = process.env) {
   appendHookUsage({
     ...row,
@@ -3909,7 +4205,7 @@ function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace, edi
     symbols,
     focus,
     wholeFile,
-    absolutePath: path15.join(workspace.root, relativePath),
+    absolutePath: path17.join(workspace.root, relativePath),
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed
   };
@@ -3959,10 +4255,31 @@ function withFirmConfirmation(output, firm, workspace, trace) {
     }
   };
 }
+function guardedChangeAsk(change, trace, updatedInput) {
+  trace.action = change.kind === "level" ? "level_change_ask" : "evidence_lowering_ask";
+  if (change.kind === "evidence")
+    trace.requirementIds = [change.requirementId];
+  return {
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: guardedChangeConfirmation(change),
+      additionalContext: guardedChangeContext(change),
+      ...updatedInput ? { updatedInput } : {}
+    }
+  };
+}
 function preToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName;
   if (isKibiMcpToolName(toolName)) {
     const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
+    const lowering = guardedChangeOf({
+      workspaceRoot: workspace.root,
+      toolName,
+      toolInput: input.toolInput
+    });
+    if (lowering)
+      return guardedChangeAsk(lowering, trace, stamped);
     return stamped === undefined ? {} : {
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
@@ -4002,6 +4319,16 @@ function preToolUse(input, workspace, trace = {}) {
   const kind = classifyPath2(target.relative);
   trace.path = target.relative;
   trace.pathKind = kind;
+  if (isEdit) {
+    const change = guardedChangeOf({
+      workspaceRoot: workspace.root,
+      toolName,
+      toolInput: input.toolInput,
+      relativePath: target.relative
+    });
+    if (change)
+      return guardedChangeAsk(change, trace);
+  }
   if (kind === "kb") {
     trace.action = "kb_direct_silent";
     if (state.notices.has("kb-direct"))
@@ -4343,7 +4670,7 @@ function userPromptSubmit(input, workspace, trace) {
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path15.join(os2.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path17.join(os2.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
@@ -4415,7 +4742,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path15.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path17.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {
@@ -4437,6 +4764,7 @@ runHookCliIfMain();
 export {
   CONFIRM_FIRM_EDITS_ENV,
   editFocus2 as editFocus,
+  guardedChangeAsk,
   isInvokedAsCli,
   main,
   readFocus,

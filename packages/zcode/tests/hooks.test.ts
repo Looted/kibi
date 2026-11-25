@@ -78,9 +78,13 @@ describe("kibi-zcode hooks.json", () => {
     for (const [event, entries] of Object.entries(config.hooks ?? {})) {
       for (const entry of entries) {
         for (const hook of entry.hooks ?? []) {
-          const match =
-            /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(hook.command ?? "");
-          expect(match, `unexpected ${event} hook command: ${hook.command}`).toBeTruthy();
+          const match = /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(
+            hook.command ?? "",
+          );
+          expect(
+            match,
+            `unexpected ${event} hook command: ${hook.command}`,
+          ).toBeTruthy();
           const relative = match?.[1] ?? "";
           expect(
             fs.existsSync(path.join(packageRoot, relative)),

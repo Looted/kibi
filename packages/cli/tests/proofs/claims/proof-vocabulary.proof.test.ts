@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
+  CERTIFICATE_PROOF_KINDS,
+  PROOF_KINDS,
+} from "../../../../cli/src/public/proof-protocol.js";
+import { CLAIM_BINDING_VERDICTS } from "../../../../cli/src/public/proof-receipt.js";
+import { SOURCE_READERS } from "../../../../cli/src/public/proof-sources.js";
+import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  CERTIFICATE_PROOF_KINDS,
-  PROOF_KINDS,
-} from "../../../../cli/src/public/proof-protocol.js";
-import { SOURCE_READERS } from "../../../../cli/src/public/proof-sources.js";
-import { CLAIM_BINDING_VERDICTS } from "../../../../cli/src/public/proof-receipt.js";
 
 /**
  * The proof kinds a contract may declare, the kinds Kibi re-checks with a certificate, the readers a source proof may use and the verdicts a claim binding can get. Kibi reads every value itself at ingest, so the certificate is checked against the code.

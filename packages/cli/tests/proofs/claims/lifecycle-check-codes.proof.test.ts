@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   ADR_PROPOSED_REVIEW_CODE,
   ADR_UNLINKED_REVIEW_CODE,
   EXCEPTION_UNAPPROVED_REVIEW_CODE,
@@ -19,6 +14,11 @@ import {
   SYMBOL_OWNER_REVIEW_CODE,
 } from "../../../src/public/operations/schema6-check-actions.js";
 import { SOURCE_PATH_DANGLING_RULE } from "../../../src/public/operations/source-path-dangling.js";
+import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The codes kb_check gives the lifecycle findings and repair actions it reports.

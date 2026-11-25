@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { MAX_BULLETS } from "../../../../opencode/src/prompt.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { MAX_BULLETS } from "../../../../opencode/src/prompt.js";
 
 /**
  * How many bullets one OpenCode Kibi guidance block holds. Kibi reads every value itself at ingest, so the certificate is checked against the code.

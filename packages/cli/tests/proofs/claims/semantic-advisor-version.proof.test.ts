@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { SEMANTIC_ADVISOR_VERSION } from "../../../src/operations/semantic-advisor/analyze-prose.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SEMANTIC_ADVISOR_VERSION } from "../../../src/operations/semantic-advisor/analyze-prose.js";
 
 /**
  * The version the semantic advisor stamps on its analysis. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

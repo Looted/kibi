@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { RELATIONSHIP_TYPES } from "../../../src/operations/mutation/relationships.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { RELATIONSHIP_TYPES } from "../../../src/operations/mutation/relationships.js";
 
 /**
  * The relationship types kb_upsert accepts. Kibi reads RELATIONSHIP_TYPES itself at

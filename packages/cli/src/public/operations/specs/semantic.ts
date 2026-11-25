@@ -8,9 +8,9 @@ import type {
 } from "../../../operations/semantic-advisor/types.js";
 import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classifier.js";
 import { firstSentence } from "../../../utils/first-sentence.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import type { OperationContext, PrologPort } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 type AnalysisInput = Parameters<
   typeof analyzeSemanticAdvisorInputWithPlugins

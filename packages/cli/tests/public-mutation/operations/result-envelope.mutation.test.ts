@@ -773,9 +773,9 @@ describe("envelopeDiagnostic", () => {
       }),
     );
 
-    expect(toKibiResult(querySpec, { entities: [], count: 0 }).diagnostics).toEqual(
-      [],
-    );
+    expect(
+      toKibiResult(querySpec, { entities: [], count: 0 }).diagnostics,
+    ).toEqual([]);
     expect(
       toKibiResult(statusSpec, { meta: stalePayload.meta }).diagnostics,
     ).toEqual([]);

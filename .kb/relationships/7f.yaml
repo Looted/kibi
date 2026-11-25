@@ -552,3 +552,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67ebf580c42b
+  - type: executable_for
+    from: SYM-test-agent-hosts-guarded-change-ask
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:31.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f14ce7fd026

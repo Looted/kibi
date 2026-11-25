@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import path14 from "node:path";
+import path16 from "node:path";
 import { fileURLToPath as fileURLToPath2, pathToFileURL } from "node:url";
 
 // ../agent-core/dist/bash-command.js
@@ -3622,6 +3622,297 @@ function readPackageVersion(packageJsonPath) {
   return null;
 }
 
+// ../agent-core/dist/level-guard.js
+import fs10 from "node:fs";
+import path13 from "node:path";
+
+// ../agent-core/dist/kibi-level.js
+import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
+import * as path12 from "node:path";
+var DEFAULT_KIBI_LEVEL = "test";
+function isKibiLevel(value) {
+  return value === "remember" || value === "test";
+}
+function readText2(file) {
+  try {
+    return readFileSync2(file, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord5(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function resolved(value, source) {
+  if (value === undefined)
+    return { level: DEFAULT_KIBI_LEVEL, source: "default" };
+  if (isKibiLevel(value))
+    return { level: value, source };
+  return { level: DEFAULT_KIBI_LEVEL, source, invalid: value };
+}
+function parseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return;
+  }
+}
+function kibiLevelInSettings(text, source) {
+  const parsed = parseJson(text);
+  if (source === "setup.json")
+    return resolved(isRecord5(parsed) ? parsed.level : undefined, source);
+  const kibi = isRecord5(parsed) ? parsed.kibi : undefined;
+  return resolved(isRecord5(kibi) ? kibi.level : undefined, source);
+}
+function readKibiLevel(workspaceRoot) {
+  const packagePath = path12.join(workspaceRoot, "package.json");
+  if (existsSync2(packagePath))
+    return kibiLevelInSettings(readText2(packagePath), "package.json");
+  return kibiLevelInSettings(readText2(path12.join(workspaceRoot, ".kb", "setup.json")), "setup.json");
+}
+
+// ../agent-core/dist/level-guard.js
+var EVIDENCE_LEVELS = [
+  "unverified",
+  "asserted",
+  "tested",
+  "proved"
+];
+var MAX_READ_BYTES = 2 * 1024 * 1024;
+function readText3(absolutePath) {
+  try {
+    if (fs10.statSync(absolutePath).size > MAX_READ_BYTES)
+      return;
+    return fs10.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+}
+function isRecord6(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isEvidenceLevel(value) {
+  return EVIDENCE_LEVELS.includes(value);
+}
+function rank(level) {
+  return EVIDENCE_LEVELS.indexOf(level);
+}
+function proposedContent(absolutePath, toolInput) {
+  if (!isRecord6(toolInput))
+    return;
+  for (const key of ["content", "contents", "file_text"]) {
+    const value = toolInput[key];
+    if (typeof value === "string")
+      return value;
+  }
+  const records = [
+    toolInput,
+    ...Array.isArray(toolInput.edits) ? toolInput.edits : []
+  ].filter(isRecord6);
+  const replacements = [];
+  for (const record of records) {
+    const before = record.old_string ?? record.oldString;
+    const after = record.new_string ?? record.newString;
+    if (typeof before !== "string" || typeof after !== "string")
+      continue;
+    replacements.push({
+      before,
+      after,
+      all: record.replace_all === true || record.replaceAll === true
+    });
+  }
+  if (replacements.length === 0)
+    return;
+  let text = readText3(absolutePath);
+  if (text === undefined)
+    return;
+  for (const { before, after, all } of replacements) {
+    if (before === "" || !text.includes(before))
+      return;
+    text = all ? text.split(before).join(after) : text.replace(before, () => after);
+  }
+  return text;
+}
+var PATCH_SECTION_HEADER2 = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
+function patchLinesFor(toolInput, relativePath) {
+  const target = normalizeWorkspacePath(relativePath);
+  const found = { added: [], removed: [] };
+  let matched = false;
+  for (const patch of extractPatchTexts(toolInput)) {
+    let current;
+    for (const line of patch.split(/\r?\n/)) {
+      const header = PATCH_SECTION_HEADER2.exec(line.trim());
+      if (header?.[2]) {
+        current = normalizeWorkspacePath(header[2]);
+        if (current === target)
+          matched = true;
+        continue;
+      }
+      if (current !== target)
+        continue;
+      if (line.startsWith("+"))
+        found.added.push(line.slice(1));
+      else if (line.startsWith("-"))
+        found.removed.push(line.slice(1));
+    }
+  }
+  return matched ? found : undefined;
+}
+var LEVEL_LINE = /"level"\s*:\s*("([^"]*)")?/;
+function levelInJson(text, settings) {
+  return kibiLevelInSettings(text, settings === "package" ? "package.json" : "setup.json").level;
+}
+function asLevel(value) {
+  return isKibiLevel(value) ? value : DEFAULT_KIBI_LEVEL;
+}
+function levelChangeOfEdit(workspaceRoot, relativePath, toolInput) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  const hasPackage = fs10.existsSync(path13.join(workspaceRoot, "package.json"));
+  const settings = normalized === "package.json" ? "package" : normalized === ".kb/setup.json" && !hasPackage ? "setup" : undefined;
+  if (settings === undefined)
+    return;
+  const from = readKibiLevel(workspaceRoot).level;
+  const absolutePath = path13.join(workspaceRoot, normalized);
+  const after = proposedContent(absolutePath, toolInput);
+  let to;
+  if (after !== undefined) {
+    to = levelInJson(after, settings);
+  } else {
+    const lines = patchLinesFor(toolInput, normalized);
+    if (lines === undefined)
+      return;
+    const added = lines.added.map((line) => LEVEL_LINE.exec(line)).find((match) => match !== null);
+    const removed = lines.removed.some((line) => LEVEL_LINE.test(line));
+    if (added)
+      to = asLevel(added[2]);
+    else if (removed)
+      to = DEFAULT_KIBI_LEVEL;
+  }
+  if (to === undefined || to === from)
+    return;
+  return { kind: "level", path: normalized, from, to };
+}
+var REQUIREMENT_PATH = /^\.kb\/requirements\/([^/]+)\.md$/;
+function frontmatter(text) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
+  if (!match?.[1])
+    return;
+  const fields = new Map;
+  let section;
+  for (const line of match[1].split(/\r?\n/)) {
+    const top = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (top?.[1] !== undefined) {
+      section = top[1];
+      fields.set(top[1], unquote4(top[2] ?? ""));
+      continue;
+    }
+    const nested = /^\s+([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
+    if (section !== undefined && nested?.[1] !== undefined)
+      fields.set(`${section}.${nested[1]}`, unquote4(nested[2] ?? ""));
+  }
+  return fields;
+}
+function unquote4(value) {
+  const trimmed = value.trim();
+  return /^(['"]).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function evidenceFloor(fields) {
+  if (isEvidenceLevel(fields.required_evidence))
+    return fields.required_evidence;
+  const firmness = typeof fields.firmness === "string" && fields.firmness !== "" ? fields.firmness : undefined;
+  if (firmness === "firm")
+    return "tested";
+  if (firmness === undefined) {
+    if (fields.originKind !== "agent")
+      return "tested";
+    if (typeof fields.approvedBy === "string" && fields.approvedBy !== "")
+      return "tested";
+  }
+  return "unverified";
+}
+function floorOfDocument(fields) {
+  return evidenceFloor({
+    required_evidence: fields.get("required_evidence"),
+    firmness: fields.get("firmness"),
+    originKind: fields.get("origin.kind"),
+    approvedBy: fields.get("origin.approved_by")
+  });
+}
+function currentRequirement(workspaceRoot, requirementId) {
+  const text = readText3(path13.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`));
+  return text === undefined ? undefined : frontmatter(text);
+}
+function lowering(requirementId, from, to) {
+  return rank(to) < rank(from) ? { kind: "evidence", requirementId, from, to } : undefined;
+}
+function evidenceLoweringOfEdit(workspaceRoot, relativePath, toolInput) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  const requirementId = REQUIREMENT_PATH.exec(normalized)?.[1];
+  if (requirementId === undefined)
+    return;
+  const current = currentRequirement(workspaceRoot, requirementId);
+  if (current === undefined)
+    return;
+  const from = floorOfDocument(current);
+  const after = proposedContent(path13.join(workspaceRoot, normalized), toolInput);
+  if (after !== undefined) {
+    const proposed = frontmatter(after);
+    return proposed === undefined ? undefined : lowering(requirementId, from, floorOfDocument(proposed));
+  }
+  const lines = patchLinesFor(toolInput, normalized);
+  if (lines === undefined)
+    return;
+  const field = /^required_evidence:\s*(.*)$/;
+  const added = lines.added.map((line) => field.exec(line)).find((match) => match !== null);
+  if (added) {
+    const next = new Map(current);
+    next.set("required_evidence", unquote4(added[1] ?? ""));
+    return lowering(requirementId, from, floorOfDocument(next));
+  }
+  if (lines.removed.some((line) => field.test(line))) {
+    const next = new Map(current);
+    next.delete("required_evidence");
+    return lowering(requirementId, from, floorOfDocument(next));
+  }
+  return;
+}
+var REQUIREMENT_WRITE = "kb_upsert";
+function evidenceLoweringOfKbCall(workspaceRoot, operation, toolInput) {
+  if (operation !== REQUIREMENT_WRITE || !isRecord6(toolInput))
+    return;
+  if (toolInput.dryRun === true)
+    return;
+  const { id, properties } = toolInput;
+  if (typeof id !== "string" || !isRecord6(properties))
+    return;
+  const type = toolInput.type;
+  if (type !== undefined && type !== "req")
+    return;
+  const requested = properties.required_evidence;
+  if (!isEvidenceLevel(requested))
+    return;
+  const current = currentRequirement(workspaceRoot, id);
+  if (current === undefined)
+    return;
+  return lowering(id, floorOfDocument(current), requested);
+}
+function guardedChangeOf(input) {
+  const operation = canonicalKbToolName(input.toolName);
+  if (operation !== undefined)
+    return evidenceLoweringOfKbCall(input.workspaceRoot, operation, input.toolInput);
+  if (input.relativePath === undefined)
+    return;
+  return levelChangeOfEdit(input.workspaceRoot, input.relativePath, input.toolInput) ?? evidenceLoweringOfEdit(input.workspaceRoot, input.relativePath, input.toolInput);
+}
+function describe(change) {
+  if (change.kind === "level")
+    return `changes the Kibi level from ${change.from} to ${change.to} (${change.path})`;
+  return `lowers the evidence ${change.requirementId} must reach from ${change.from} to ${change.to}`;
+}
+function guardedChangeNotice(change) {
+  return `Kibi: this change ${describe(change)}. That is the person's decision, not yours: ask the person before making it, and leave it out unless they agree.`;
+}
+
 // ../agent-core/dist/session-brief.js
 var SESSION_BRIEF_LINES = [
   "Kibi records this repository's requirements and decisions with their reasons.",
@@ -3638,32 +3929,32 @@ function sessionBriefWith(hostLines) {
 }
 
 // ../agent-core/dist/workspace-optin.js
-import fs10 from "node:fs";
-import path12 from "node:path";
+import fs11 from "node:fs";
+import path14 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path12.dirname(current);
+  const parent = path14.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs10.existsSync(path12.join(directory, ".kb", "manifest.json"));
+  return fs11.existsSync(path14.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs10.existsSync(path12.join(directory, ".git"));
+  return fs11.existsSync(path14.join(directory, ".git"));
 }
 function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      const root = path12.resolve(value);
+      const root = path14.resolve(value);
       return { root, optedIn: hasKibiManifest(root) };
     }
   }
-  const start = path12.resolve(startDir?.trim() ? startDir : process.cwd());
+  const start = path14.resolve(startDir?.trim() ? startDir : process.cwd());
   let current = start;
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
@@ -3679,22 +3970,22 @@ function resolveKibiWorkspace(startDir, env = process.env) {
 
 // src/hook-state.ts
 import { createHash as createHash6, randomUUID as randomUUID5 } from "node:crypto";
-import fs11 from "node:fs";
+import fs12 from "node:fs";
 import os2 from "node:os";
-import path13 from "node:path";
+import path15 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
 var workspaceStateRoot = "workspaces";
 function resolvePluginDataDir(explicit, env = process.env) {
-  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path13.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
+  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path15.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
 }
 function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
   }
-  const workspaceKey = createHash6("sha256").update(path13.resolve(workspaceRoot)).digest("hex");
-  return path13.join(pluginData, workspaceStateRoot, workspaceKey);
+  const workspaceKey = createHash6("sha256").update(path15.resolve(workspaceRoot)).digest("hex");
+  return path15.join(pluginData, workspaceStateRoot, workspaceKey);
 }
 function emptyHookState() {
   return {
@@ -3705,16 +3996,16 @@ function emptyHookState() {
   };
 }
 function statePath(pluginData) {
-  return path13.join(pluginData, stateFileName);
+  return path15.join(pluginData, stateFileName);
 }
-function isRecord5(value) {
+function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeDirtyPath(dirtyPath) {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 function uniqueTempPath(pluginData) {
-  return path13.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
+  return path15.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
 }
 function mergeDirtyPaths(existingPaths, dirtyPaths) {
   const merged = [...existingPaths, ...dirtyPaths].map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -3724,7 +4015,7 @@ function mergeDirtyPaths(existingPaths, dirtyPaths) {
   };
 }
 function coerceHookState(value) {
-  if (!isRecord5(value) || !Array.isArray(value.dirtyPaths)) {
+  if (!isRecord7(value) || !Array.isArray(value.dirtyPaths)) {
     return emptyHookState();
   }
   const dirtyPaths = value.dirtyPaths.filter((dirtyPath) => typeof dirtyPath === "string").map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -3737,7 +4028,7 @@ function coerceHookState(value) {
   };
 }
 function journalPath(pluginData) {
-  return path13.join(pluginData, journalFileName);
+  return path15.join(pluginData, journalFileName);
 }
 function applyJournalEvent(state, event) {
   switch (event.kind) {
@@ -3762,7 +4053,7 @@ function applyJournalEvent(state, event) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs11.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs12.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -3772,11 +4063,11 @@ function readJournal(pluginData, initialState) {
       return state;
     try {
       const value = JSON.parse(line);
-      if (!isRecord5(value) || typeof value.kind !== "string")
+      if (!isRecord7(value) || typeof value.kind !== "string")
         return state;
       if (value.kind === "clear")
         return applyJournalEvent(state, { kind: "clear" });
-      if (value.kind === "replace" && isRecord5(value.state)) {
+      if (value.kind === "replace" && isRecord7(value.state)) {
         return applyJournalEvent(state, {
           kind: "replace",
           state: coerceHookState(value.state)
@@ -3800,8 +4091,8 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs11.mkdirSync(pluginData, { recursive: true });
-  fs11.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs12.mkdirSync(pluginData, { recursive: true });
+  fs12.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `, "utf8");
 }
 function loadHookState(pluginData) {
@@ -3809,7 +4100,7 @@ function loadHookState(pluginData) {
     return emptyHookState();
   }
   try {
-    return readJournal(pluginData, coerceHookState(JSON.parse(fs11.readFileSync(statePath(pluginData), "utf8"))));
+    return readJournal(pluginData, coerceHookState(JSON.parse(fs12.readFileSync(statePath(pluginData), "utf8"))));
   } catch {
     return readJournal(pluginData, emptyHookState());
   }
@@ -3820,11 +4111,11 @@ function saveHookState(pluginData, state) {
   }
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs11.mkdirSync(pluginData, { recursive: true });
+  fs12.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
-  fs11.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs12.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs11.renameSync(tempPath, statePath(pluginData));
+  fs12.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   const initialState = loadHookState(pluginData);
@@ -3961,6 +4252,25 @@ function editTargets(workspaceRoot, input) {
     base: input.cwd ?? workspaceRoot
   }));
 }
+function guardedNotice(workspaceRoot, input, trace) {
+  const changes = isKibiMcpToolName(input.toolName) ? [
+    guardedChangeOf({
+      workspaceRoot,
+      toolName: input.toolName,
+      toolInput: input.toolInput
+    })
+  ] : isEditLikeTool(input.toolName) ? editTargets(workspaceRoot, input).map((target) => guardedChangeOf({
+    workspaceRoot,
+    toolName: input.toolName,
+    toolInput: input.toolInput,
+    relativePath: target.relative
+  })) : [];
+  const change = changes.find((candidate) => candidate !== undefined);
+  if (change === undefined)
+    return;
+  trace.action = change.kind === "level" ? "level_change_notice" : "evidence_lowering_notice";
+  return guardedChangeNotice(change);
+}
 function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
   const targets = editTargets(workspaceRoot, input);
   const first = targets[0];
@@ -4035,7 +4345,7 @@ function firmNotice(workspaceRoot, targets, files, summarize, session, input, en
   return;
 }
 function packageVersion() {
-  return readPackageVersion(path14.join(path14.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+  return readPackageVersion(path16.join(path16.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 }
 function editTelemetryTraces(workspaceRoot, stateDir, input) {
   const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
@@ -4119,6 +4429,23 @@ async function runHook(rawInput, environment = {}) {
         };
       }
       case "PreToolUse": {
+        const guardedNow = () => {
+          try {
+            return guardedNotice(workspace.root, input, trace);
+          } catch {
+            return;
+          }
+        };
+        const mcpGuarded = isKibiMcpToolName(input.toolName) ? guardedNow() : undefined;
+        if (mcpGuarded) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              additionalContext: mcpGuarded
+            }
+          };
+        }
         if (isKibiMcpToolName(input.toolName)) {
           const stamped = stampKibiWorkspace(input.toolName, input.toolInput, workspace.root);
           return stamped === undefined ? defaultResult() : {
@@ -4131,19 +4458,33 @@ async function runHook(rawInput, environment = {}) {
           };
         }
         const explicitPaths = extractEditedPaths(input.toolInput);
+        const guarded = guardedNow();
         const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
         if (hasDirectKbEdit) {
-          trace.action = "kb_direct_note";
           trace.pathKind = "kb";
+          if (guarded)
+            return {
+              continue: true,
+              systemMessage: DIRECT_KB_EDIT_WARNING,
+              hookSpecificOutput: {
+                hookEventName: "PreToolUse",
+                additionalContext: guarded
+              }
+            };
+          trace.action = "kb_direct_note";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
         let context;
         try {
           context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, env, trace) : shellFirmNotice(workspace.root, stateDir, input, env);
         } catch {}
-        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+        if (!guarded && isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
           trace.action = context ? "edit_snippet" : "edit_silent";
         }
+        if (guarded)
+          context = context ? `${guarded}
+
+${context}` : guarded;
         if (context) {
           return {
             continue: true,
@@ -4257,7 +4598,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path14.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path16.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {
@@ -4277,6 +4618,7 @@ async function runHookCliIfMain(isMain = isInvokedAsCli(process.argv[1], import.
 runHookCliIfMain();
 var hookRunnerPath = fileURLToPath2(import.meta.url);
 export {
+  guardedNotice,
   hookRunnerPath,
   isInvokedAsCli,
   main,

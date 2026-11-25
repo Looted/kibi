@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import { PLAN_APPLY_RESULT_VERSION } from "../../../src/operations/planning/apply-plan.js";
+import { COMPILE_PLAN_VERSION } from "../../../src/operations/planning/compile-intent.js";
+import { REPAIR_PLAN_VERSION } from "../../../src/public/operations/repair-plan.js";
+import { SYMBOL_REPAIR_PLAN_VERSION } from "../../../src/public/operations/symbol-repair-plan.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { COMPILE_PLAN_VERSION } from "../../../src/operations/planning/compile-intent.js";
-import { PLAN_APPLY_RESULT_VERSION } from "../../../src/operations/planning/apply-plan.js";
-import { REPAIR_PLAN_VERSION } from "../../../src/public/operations/repair-plan.js";
-import { SYMBOL_REPAIR_PLAN_VERSION } from "../../../src/public/operations/symbol-repair-plan.js";
 
 /**
  * The version strings of the plan documents Kibi writes and applies. Kibi reads

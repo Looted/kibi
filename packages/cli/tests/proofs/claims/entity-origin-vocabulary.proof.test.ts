@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
+  ENTITY_ORIGIN_KINDS,
+  SCHEMA6_MIGRATION_ORIGIN_REF,
+} from "../../../src/public/entity-origin.js";
+import { ORIGIN_REVIEW_RULES } from "../../../src/public/operations/origin-review.js";
+import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  ENTITY_ORIGIN_KINDS,
-  SCHEMA6_MIGRATION_ORIGIN_REF,
-} from "../../../src/public/entity-origin.js";
-import { ORIGIN_REVIEW_RULES } from "../../../src/public/operations/origin-review.js";
 
 /**
  * The origin kinds, the migration origin reference and the origin review rules.

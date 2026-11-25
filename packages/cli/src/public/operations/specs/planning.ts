@@ -8,8 +8,8 @@ import {
   type CompilePlanV1,
   executeCompileIntent,
 } from "../../../operations/planning/compile-intent.js";
-import type { OperationSpec } from "../types.js";
 import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+import type { OperationSpec } from "../types.js";
 
 export type {
   CompileIntentArgs,

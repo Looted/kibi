@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { CASE_LIMIT } from "../../../src/operations/semantic-advisor/case-preview.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { CASE_LIMIT } from "../../../src/operations/semantic-advisor/case-preview.js";
 
 /**
  * How many edge cases the semantic advisor preview lists for one fact. Kibi reads every value itself at ingest, so the certificate is checked against the code.

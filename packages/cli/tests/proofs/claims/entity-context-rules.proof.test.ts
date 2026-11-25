@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { CONTEXT_MISSING_TAG } from "../../../src/entity-body-context.js";
+import { BODY_CONTEXT_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
+import { ENTITY_CONTEXT_RULES } from "../../../src/public/operations/entity-context.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
@@ -6,9 +9,6 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { ENTITY_CONTEXT_RULES } from "../../../src/public/operations/entity-context.js";
-import { CONTEXT_MISSING_TAG } from "../../../src/entity-body-context.js";
-import { BODY_CONTEXT_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
 
 /**
  * The check rules, review tag and schema version of the entity body context check.

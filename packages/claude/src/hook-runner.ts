@@ -29,6 +29,12 @@ import {
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
 import {
+  type GuardedChange,
+  guardedChangeConfirmation,
+  guardedChangeContext,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
+import {
   requestTopicWords,
   requirementCandidatesForPath,
 } from "kibi-agent-core/requirement-candidates";
@@ -331,6 +337,29 @@ function withFirmConfirmation(
   };
 }
 
+/**
+ * Put a change of the Kibi level, or a lowered required_evidence, to the
+ * person: the choice is theirs, so Claude Code asks every time.
+ */
+export function guardedChangeAsk(
+  change: GuardedChange,
+  trace: HookTrace,
+  updatedInput?: Record<string, unknown>,
+): HookOutput {
+  trace.action =
+    change.kind === "level" ? "level_change_ask" : "evidence_lowering_ask";
+  if (change.kind === "evidence") trace.requirementIds = [change.requirementId];
+  return {
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: guardedChangeConfirmation(change),
+      additionalContext: guardedChangeContext(change),
+      ...(updatedInput ? { updatedInput } : {}),
+    },
+  };
+}
+
 function preToolUse(
   input: HookInput,
   workspace: Workspace,
@@ -346,6 +375,12 @@ function preToolUse(
       input.toolInput,
       workspace.root,
     );
+    const lowering = guardedChangeOf({
+      workspaceRoot: workspace.root,
+      toolName,
+      toolInput: input.toolInput,
+    });
+    if (lowering) return guardedChangeAsk(lowering, trace, stamped);
     return stamped === undefined
       ? {}
       : {
@@ -389,6 +424,16 @@ function preToolUse(
   const kind = classifyPath(target.relative);
   trace.path = target.relative;
   trace.pathKind = kind;
+
+  if (isEdit) {
+    const change = guardedChangeOf({
+      workspaceRoot: workspace.root,
+      toolName,
+      toolInput: input.toolInput,
+      relativePath: target.relative,
+    });
+    if (change) return guardedChangeAsk(change, trace);
+  }
 
   if (kind === "kb") {
     trace.action = "kb_direct_silent";

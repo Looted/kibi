@@ -508,3 +508,77 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
     expect(row.session_id).toBe("conv-diag-on");
   });
 });
+
+describe("Kibi level and required evidence confirmation", () => {
+  const env = { KIBI_TELEMETRY: "0" };
+  function guarded() {
+    const { root, pluginData } = createKibiWorkspace();
+    fs.writeFileSync(
+      path.join(root, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, ".kb", "requirements", "REQ-floor.md"),
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    const pre = (name: string, args: Record<string, unknown>) =>
+      runHook(
+        {
+          hookEventName: "PreToolUse",
+          conversationId: "conv-guard",
+          cwd: root,
+          workspacePaths: [root],
+          toolCall: { id: "g1", name, args },
+        },
+        { pluginData, env },
+      );
+    return { root, pre };
+  }
+
+  test("a write that changes the level is force-asked", async () => {
+    const { root, pre } = guarded();
+    const output = await pre("write_to_file", {
+      TargetFile: path.join(root, "package.json"),
+      CodeContent: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+    });
+    expect(output.decision).toBe("force_ask");
+    expect(output.reason).toContain(
+      "changes the Kibi level from test to remember",
+    );
+  });
+
+  test("an edit or a kb_upsert that lowers a floor is force-asked", async () => {
+    const { root, pre } = guarded();
+    const edit = await pre("replace_file_content", {
+      TargetFile: path.join(root, ".kb", "requirements", "REQ-floor.md"),
+      TargetContent: "required_evidence: tested",
+      ReplacementContent: "required_evidence: asserted",
+    });
+    expect(edit.decision).toBe("force_ask");
+    expect(edit.reason).toContain(
+      "REQ-floor must reach from tested to asserted",
+    );
+    const call = await pre("call_mcp_tool", {
+      ServerName: "kibi",
+      ToolName: "kb_upsert",
+      Arguments: JSON.stringify({
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "unverified" },
+      }),
+    });
+    expect(call.decision).toBe("force_ask");
+    expect(call.overwrite).toBeDefined();
+    const raised = await pre("call_mcp_tool", {
+      ServerName: "kibi",
+      ToolName: "kb_upsert",
+      Arguments: JSON.stringify({
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "proved" },
+      }),
+    });
+    expect(raised.decision).not.toBe("force_ask");
+  });
+});

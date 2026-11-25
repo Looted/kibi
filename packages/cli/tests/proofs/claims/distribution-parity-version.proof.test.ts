@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { DISTRIBUTION_PARITY_VERSION } from "../../../src/public/distribution-parity.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { DISTRIBUTION_PARITY_VERSION } from "../../../src/public/distribution-parity.js";
 
 /**
  * The version of the distribution parity matrix. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

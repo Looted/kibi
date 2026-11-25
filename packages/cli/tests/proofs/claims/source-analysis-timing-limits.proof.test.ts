@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+  MAX_SOURCE_ANALYSIS_TIMING_BYTES,
+  MAX_SOURCE_ANALYSIS_TIMING_EVENTS,
+} from "../../../../plugin-treesitter/src/performance-timing.js";
+import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import {
-  MAX_SOURCE_ANALYSIS_TIMING_BYTES,
-  MAX_SOURCE_ANALYSIS_TIMING_EVENTS,
-} from "../../../../plugin-treesitter/src/performance-timing.js";
 
 /**
  * How many timing events and bytes the tree-sitter plugin keeps per source analysis. Kibi reads every value itself at ingest, so the certificate is checked against the code.

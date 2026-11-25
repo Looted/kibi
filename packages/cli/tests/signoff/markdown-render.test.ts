@@ -36,6 +36,8 @@ const summary = (
   kind: "summary",
   scope: "working",
   generatedAt: "2024-01-01T00:00:00Z",
+  level: { level: "test", setting: "the default" },
+  decisions: [],
   requirements,
   notes,
 });
@@ -54,6 +56,7 @@ const questions = (
   version: "kibi.signoff.v1",
   kind: "questions",
   generatedAt: "2024-01-01T00:00:00Z",
+  level: { level: "test", setting: "the default" },
   questions: list,
   notes,
 });
@@ -62,7 +65,9 @@ describe("renderSummaryMarkdownBody", () => {
   test("an empty change says so", () => {
     expect(SIGNOFF_MARKDOWN_LIMIT).toBe(15);
     expect(renderSummaryMarkdownBody(summary([]))).toBe(
-      "## Requirements signoff: no requirement changes",
+      "## Requirements signoff: no requirement changes\n\nKibi level: test (the default)",
+      "",
+      "Kibi level: test (the default)",
     );
   });
 
@@ -120,6 +125,8 @@ describe("renderSummaryMarkdownBody", () => {
       [
         "## Requirements signoff: 1 new",
         "",
+        "Kibi level: test (the default)",
+        "",
         "### New",
         "",
         "**1. REQ-1** · firm · Title",
@@ -152,6 +159,8 @@ describe("renderSummaryMarkdownBody", () => {
       [
         "## Requirements signoff: 1 new",
         "",
+        "Kibi level: test (the default)",
+        "",
         "### New",
         "",
         "**1. REQ-1** · default · Title",
@@ -170,6 +179,8 @@ describe("renderSummaryMarkdownBody", () => {
     ).toBe(
       [
         "## Requirements signoff: 1 retired",
+        "",
+        "Kibi level: test (the default)",
         "",
         "### Superseded or retired",
         "",
@@ -192,6 +203,8 @@ describe("renderSummaryMarkdownBody", () => {
     );
     expect(body.split("\n")[0]).toBe(
       "## Requirements signoff: 2 new, 1 changed, 1 affected, 1 retired",
+      "",
+      "Kibi level: test (the default)",
     );
     expect(
       body.split("\n").filter((line) => /^(###|\*\*\d)/.test(line)),
@@ -218,6 +231,8 @@ describe("renderSummaryMarkdownBody", () => {
     expect(body).toBe(
       [
         "## Requirements signoff: 1 new, 1 changed",
+        "",
+        "Kibi level: test (the default)",
         "",
         "**Requirements 1 and 2 were written by the agent and wait for your approval.**",
         "",
@@ -280,7 +295,7 @@ describe("renderSummaryMarkdownBody", () => {
         ]),
       )
         .split("\n")
-        .slice(5, -2);
+        .slice(7, -2);
     expect(body("Keep this. Drop that.", "Keep this. Add more.")).toEqual([
       "- Now, sentences 1 added in bold, 1 removed struck through:",
       "  > Keep this. **Add more.** ~~Drop that.~~",
@@ -298,6 +313,45 @@ describe("renderSummaryMarkdownBody", () => {
       "  > Old one.",
       "- Now:",
       "  > New one.",
+    ]);
+  });
+});
+
+describe("decisions only the person makes", () => {
+  test("come after the level line, ahead of the requirements", () => {
+    const body = renderSummaryMarkdownBody({
+      ...summary([]),
+      level: {
+        level: "test",
+        setting: "level in .kb/setup.json",
+        previous: "remember",
+      },
+      decisions: [
+        {
+          kind: "level",
+          from: "remember",
+          to: "test",
+          setting: "level in .kb/setup.json",
+        },
+        {
+          kind: "evidence",
+          requirementId: "REQ-a",
+          title: "A",
+          from: "proved",
+          to: "tested",
+        },
+      ],
+    });
+    expect(body.split("\n")).toEqual([
+      "## Requirements signoff: no requirement changes",
+      "",
+      "Kibi level: test (level in .kb/setup.json, was remember)",
+      "",
+      "### Decisions only you make",
+      "",
+      "- **The change moves the Kibi level from remember to test (level in .kb/setup.json). At test, Kibi asks for the scenarios and linked tests that show each requirement holds, and blocks commits that leave them out. Keep it only if you chose this level.**",
+      "",
+      "- **The change lowers the evidence REQ-a (A) must reach from proved to tested, so kibi check stops asking for the evidence it asked for before. Keep it only if you agree the requirement needs less evidence.**",
     ]);
   });
 });
@@ -343,6 +397,8 @@ describe("renderQuestionsMarkdownBody", () => {
       [
         "## Decisions to confirm: 3 open, 1 answered",
         "",
+        "Kibi level: test (the default)",
+        "",
         "**1. Conflict with a recorded rule: New thing** · would be firm",
         "> Use the new rule.",
         '- Your words: "do it"',
@@ -384,6 +440,8 @@ describe("renderQuestionsMarkdownBody", () => {
     ).toEqual([
       "## Decisions to confirm: 1 open",
       "",
+      "Kibi level: test (the default)",
+      "",
       "**1. Change REQ-9: T**",
       "- Recorded now (exploratory):",
       "  > Old.",
@@ -400,10 +458,10 @@ describe("renderQuestionsMarkdownBody", () => {
         questions([question({ answer: "no", title: "T" })]),
       ),
     ).toBe(
-      "## Decisions to confirm: 0 open, 1 answered\n\n~~**1. New rule: T**~~ · answered: no",
+      "## Decisions to confirm: 0 open, 1 answered\n\nKibi level: test (the default)\n\n~~**1. New rule: T**~~ · answered: no",
     );
     expect(renderQuestionsMarkdownBody(questions([]))).toBe(
-      "## Decisions to confirm: 0 open",
+      "## Decisions to confirm: 0 open\n\nKibi level: test (the default)",
     );
   });
 });
@@ -422,7 +480,7 @@ describe("fenced and chat views", () => {
 
   test("the fence names the view and no body line can close it", () => {
     expect(renderSignoffMarkdown(summary([]))).toBe(
-      "```kibi-signoff\n## Requirements signoff: no requirement changes\n```\n",
+      "```kibi-signoff\n## Requirements signoff: no requirement changes\n\nKibi level: test (the default)\n```\n",
     );
     expect(
       renderSignoffMarkdown(questions([], ["a\n```js\nb ``` c\n```"])),
@@ -430,6 +488,8 @@ describe("fenced and chat views", () => {
       [
         "```kibi-questions",
         "## Decisions to confirm: 0 open",
+        "",
+        "Kibi level: test (the default)",
         "",
         "Note: a",
         "'''js",

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { AGENT_REQUIREMENT_REVIEW_LIMIT } from "../../../src/public/operations/origin-review.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { AGENT_REQUIREMENT_REVIEW_LIMIT } from "../../../src/public/operations/origin-review.js";
 
 /**
  * How many agent-authored requirements kb_check lists before summarising the rest.

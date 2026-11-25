@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS } from "kibi-plugin-sdk";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS } from "kibi-plugin-sdk";
 
 /**
  * The largest source text a symbol extractor is given. Kibi reads the constant

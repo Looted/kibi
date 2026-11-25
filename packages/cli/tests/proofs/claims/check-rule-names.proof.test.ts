@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { SCOPED_CHECK_OMITTED_ID } from "../../../src/public/operations/check-helpers.js";
 import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
+  POLICY_MARKERS_RULE,
+  POLICY_OWNERSHIP_RULE,
+} from "../../../src/public/operations/check-policy-rules.js";
+import { SUPERSEDES_REASON_ACKNOWLEDGED_RULE } from "../../../src/public/operations/decision-firmness.js";
 import {
   EVIDENCE_FLOOR_RULE,
   EVIDENCE_FLOOR_SCHEMA_VERSION,
@@ -15,13 +15,13 @@ import {
   EXCEPTION_UNAPPROVED_RULE,
   REQUIREMENT_RATIONALE_MISSING_RULE,
 } from "../../../src/public/operations/origin-review.js";
-import {
-  POLICY_MARKERS_RULE,
-  POLICY_OWNERSHIP_RULE,
-} from "../../../src/public/operations/check-policy-rules.js";
 import { SYMBOL_GRANULARITY_RULE } from "../../../src/public/operations/symbol-granularity-check.js";
-import { SUPERSEDES_REASON_ACKNOWLEDGED_RULE } from "../../../src/public/operations/decision-firmness.js";
-import { SCOPED_CHECK_OMITTED_ID } from "../../../src/public/operations/check-helpers.js";
+import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * The rule names kb_check reports its findings under. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

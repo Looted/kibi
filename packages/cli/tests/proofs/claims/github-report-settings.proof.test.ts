@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
-import {
   GITHUB_BADGE_WORKFLOW_RELPATH,
   GITHUB_PAGES_NAMESPACE,
   KIBI_BADGE_ALT,
   PLACEHOLDER_OWNER,
   PLACEHOLDER_REPO,
 } from "../../../src/commands/github-init.js";
+import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
 
 /**
  * Where kibi init --github writes the badge workflow, the Pages folder the report is published under, the badge alt text and the placeholders used before the repository is known. Kibi reads every value itself at ingest, so the certificate is checked against the code.

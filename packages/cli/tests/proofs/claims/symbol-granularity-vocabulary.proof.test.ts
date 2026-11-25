@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { SYMBOL_GRANULARITY_VIOLATION } from "../../../src/operations/mutation/symbol-granularity.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
@@ -11,7 +12,6 @@ import {
   SYMBOL_ROLES,
   TRACEABILITY_RELATIONSHIP_TYPES,
 } from "../../../src/public/symbol-granularity.generated.js";
-import { SYMBOL_GRANULARITY_VIOLATION } from "../../../src/operations/mutation/symbol-granularity.js";
 
 /**
  * The symbol roles, granularity reasons and link types of the behavioral anchor check. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

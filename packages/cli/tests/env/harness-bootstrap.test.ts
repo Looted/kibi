@@ -138,7 +138,9 @@ describe("harness-independent env bootstrap", () => {
     expect(cliPayload.HARNESS_USER_TOKEN).toBe("project-override");
     expect(cliPayload.HARNESS_PROJECT_TOKEN).toBe("from-project");
     expect(mcpPayload.HARNESS_USER_TOKEN).toBe(cliPayload.HARNESS_USER_TOKEN);
-    expect(mcpPayload.HARNESS_PROJECT_TOKEN).toBe(cliPayload.HARNESS_PROJECT_TOKEN);
+    expect(mcpPayload.HARNESS_PROJECT_TOKEN).toBe(
+      cliPayload.HARNESS_PROJECT_TOKEN,
+    );
     expect(mcpPayload.sources.HARNESS_PROJECT_TOKEN).toBe("project_env");
     expect(mcpPayload.sources.HARNESS_USER_TOKEN).toBe("project_env");
   });

@@ -43,6 +43,11 @@ import {
   isKibiMcpToolName,
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
+import {
+  type GuardedChange,
+  guardedChangeNotice,
+  guardedChangeOf,
+} from "kibi-agent-core/level-guard";
 import { classifyPath } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
@@ -125,6 +130,19 @@ function knowledgeFor(
     focus,
     summarize: createEntitySummarizer(workspaceRoot),
   });
+}
+
+/**
+ * An edit that changes the Kibi level or lowers a requirement's
+ * required_evidence, or a Kibi call that lowers one: the agent is told to
+ * ask the person first, every time, since the choice is the person's.
+ */
+export function guardedNotice(change: GuardedChange, trace: HookTrace): string {
+  trace.action =
+    change.kind === "level"
+      ? "level_change_notice"
+      : "evidence_lowering_notice";
+  return guardedChangeNotice(change);
 }
 
 /**
@@ -369,10 +387,38 @@ export async function runHook(
             input.toolInput,
             kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
           );
+          const lowering = kibiReady
+            ? guardedChangeOf({
+                workspaceRoot: cwd,
+                toolName: input.toolName,
+                toolInput: input.toolInput,
+              })
+            : undefined;
+          // Cursor does not enforce "ask": the agent is told to ask first,
+          // and no permission is sent, so Cursor's own approval still applies.
+          if (lowering)
+            return {
+              agent_message: guardedNotice(lowering, trace),
+              ...(stamped ? { updated_input: stamped } : {}),
+            };
           return stamped === undefined
             ? emptyResult()
             : { updated_input: stamped };
         }
+        const guarded =
+          kibiReady && isEditLikeTool(input.toolName)
+            ? extractExplicitPathFields(input.toolInput)
+                .map((target) =>
+                  guardedChangeOf({
+                    workspaceRoot: cwd,
+                    toolName: input.toolName,
+                    toolInput: input.toolInput,
+                    relativePath: toRepoRelativePath(target, cwd),
+                  }),
+                )
+                .find((change) => change !== undefined)
+            : undefined;
+        if (guarded) return { agent_message: guardedNotice(guarded, trace) };
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
           kibiReady &&
