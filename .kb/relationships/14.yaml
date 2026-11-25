@@ -419,6 +419,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bf54f7aee6c
+  - type: assumes
+    from: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    to: FACT-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:28:18.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f765eec0da09
+  - type: verified_by
+    from: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:18.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8573828e5711
   - type: implements
     from: SYM-cli-rule-registry-getCanonicalRules
     to: REQ-kibi-check-rule-selection-by-level

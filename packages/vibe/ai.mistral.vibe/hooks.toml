@@ -26,7 +26,7 @@ description = "Search the Kibi KB for the prompt and inject governing entities"
 [[hooks]]
 name = "kibi-file-context"
 type = "post_tool"
-match = "re:(file_system\\.)?(read_file|edit|write_file|search_replace)"
+match = "re:(file_system\\.)?(read_file|grep|bash|edit|write_file|search_replace)"
 command = "node bin/hooks/kibi-file-context.mjs"
 timeout = 30.0
-description = "After reading/editing a file, append the Kibi entities linked to it"
+description = "After a read, search or shell read, append requirement rows for the code in view; after an edit, the Kibi entities linked to the file"

@@ -13,6 +13,7 @@ import {
   createDecisionHooks,
   decisionStateDir,
   messageText,
+  toolReads,
 } from "../src/decision-hooks";
 import kibiOpencodePlugin from "../src/plugin.js";
 
@@ -242,6 +243,84 @@ describe("OpenCode decision hooks", () => {
     await expect(decisions.sessionIdle("s1")).resolves.toBeUndefined();
     decisions.chatMessage("s1", text("   "));
     decisions.chatMessage("s1", undefined);
+  });
+});
+
+describe("OpenCode read, grep and bash rows", () => {
+  test("a read of linked code shows its requirement once per session", () => {
+    const root = linkedWorkspace();
+    const { decisions } = hooks(root);
+    const read = { filePath: "src/checkout.ts" };
+    const note = decisions.afterTool("read", "s1", read) ?? "";
+    expect(note).toStartWith("Kibi requirements for the code in view:");
+    expect(note).toContain("REQ-checkout-rounding");
+    expect(decisions.afterTool("read", "s1", read)).toBeUndefined();
+    expect(decisions.afterTool("read", "s2", read)).toContain(
+      "REQ-checkout-rounding",
+    );
+    expect(
+      decisions.afterTool("read", undefined, { filePath: "src/other.ts" }),
+    ).toBeUndefined();
+  });
+
+  test("grep and bash reads show rows; glob and unreadable input show none", () => {
+    const root = linkedWorkspace();
+    write(
+      root,
+      ".kb/symbol-coordinates.yaml",
+      "coordinates:\n  SYM-computeTotal:\n    sourceLine: 1\n    sourceEndLine: 1\n",
+    );
+    const { decisions } = hooks(root);
+    expect(
+      decisions.afterTool("grep", "g1", { pattern: "computeTotal" }),
+    ).toContain("REQ-checkout-rounding");
+    expect(
+      decisions.afterTool("bash", "b1", {
+        command: "sed -n '1,1p' src/checkout.ts",
+      }),
+    ).toContain("REQ-checkout-rounding");
+    expect(
+      decisions.afterTool("glob", "c1", { pattern: "**/*.ts" }),
+    ).toBeUndefined();
+    expect(
+      decisions.afterTool("grep", "d1", {
+        pattern: "computeTotal",
+        include: "*.md",
+      }),
+    ).toBeUndefined();
+    // A tool input that cannot be read leaves the output as it is.
+    const broken = {
+      get filePath(): string {
+        throw new Error("unreadable");
+      },
+    };
+    expect(decisions.afterTool("read", "e1", broken)).toBeUndefined();
+  });
+
+  test("toolReads reads each tool's arguments", () => {
+    const root = linkedWorkspace();
+    const absolute = path.join(root, "src/checkout.ts");
+    expect(toolReads(root, "read", { filePath: "src/checkout.ts" })).toEqual({
+      reads: [{ absolute, directory: false }],
+    });
+    expect(
+      toolReads(root, "read", { filePath: absolute, offset: 5, limit: 10 }),
+    ).toEqual({
+      reads: [{ absolute, directory: false, focus: [{ start: 5, end: 14 }] }],
+    });
+    expect(toolReads(root, "read", { filePath: absolute, offset: 0 })).toEqual({
+      reads: [{ absolute, directory: false, focus: [{ start: 1, end: 2000 }] }],
+    });
+    expect(toolReads(root, "read", { filePath: absolute, limit: 3 })).toEqual({
+      reads: [{ absolute, directory: false, focus: [{ start: 1, end: 3 }] }],
+    });
+    expect(toolReads(root, "read", {})).toEqual({ reads: [] });
+    expect(toolReads(root, "read", null)).toEqual({ reads: [] });
+    expect(toolReads(root, "grep", { pattern: "" })).toEqual({ reads: [] });
+    expect(
+      toolReads(root, "grep", { pattern: "x", path: "src" }).reads[0],
+    ).toMatchObject({ absolute: path.join(root, "src"), directory: true });
+    expect(toolReads(root, "glob", { pattern: "*" })).toEqual({ reads: [] });
   });
 });
 

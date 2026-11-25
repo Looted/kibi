@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47ad8e5bf127
+  - type: assumes
+    from: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    to: FACT-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    created_at: 2026-11-25T14:29:17.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b711dedafd3b
+  - type: verified_by
+    from: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:29:17.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e47ddf897555

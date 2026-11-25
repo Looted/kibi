@@ -671,3 +671,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-98acf66ee1df
+  - type: implements
+    from: SYM-src-hook-runner-spend-search-tip
+    to: REQ-hook-search-tip-after-rows
+    created_at: 2026-11-25T15:04:49.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eabc591cc109
+  - type: covered_by
+    from: SYM-src-hook-runner-spend-search-tip
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:49.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b26e73746328

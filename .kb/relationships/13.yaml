@@ -384,6 +384,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68d17c2caabd
+  - type: implements
+    from: SYM-src-hook-runner-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T15:04:44.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17dcea3b067f
+  - type: covered_by
+    from: SYM-src-hook-runner-read-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:44.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5530f7ee81ae
   - type: assumes
     from: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
     to: FACT-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
