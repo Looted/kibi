@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4157c5b9ab59
+  - type: assumes
+    from: SCEN-NEG-kibi-schema-20-level-c01-gt-0
+    to: FACT-NEG-kibi-schema-20-level-c01-gt-0
+    created_at: 2026-11-25T10:19:57.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-275bdd11717d
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    to: FACT-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    created_at: 2026-11-25T10:21:15.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed547e6299bc

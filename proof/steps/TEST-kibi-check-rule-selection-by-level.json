@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-check-rule-selection-by-level",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/kibi-levels/rule-selection.test.ts"
+    ]
+  ]
+}

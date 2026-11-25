@@ -77,6 +77,10 @@
     "./retrieval-tokens": {
       "types": "./dist/retrieval-tokens.d.ts",
       "default": "./dist/retrieval-tokens.js"
+    },
+    "./kibi-level": {
+      "types": "./dist/kibi-level.d.ts",
+      "default": "./dist/kibi-level.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

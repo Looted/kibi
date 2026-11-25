@@ -112,7 +112,7 @@ describe("positive scenarios through the kibi CLI", () => {
       "Acknowledged 1 current must requirement(s) recorded before schema 17",
     );
     const upgraded = JSON.parse(ws.read(".kb/manifest.json")) as Json;
-    expect(upgraded.schemaVersion).toBe(19);
+    expect(upgraded.schemaVersion).toBe(20);
     expect(upgraded.positiveScenarioAcknowledged).toEqual(["REQ-QUOTA-CALL"]);
     ws.sync();
     expect(checkViolations(ws, RULE)).toEqual([]);

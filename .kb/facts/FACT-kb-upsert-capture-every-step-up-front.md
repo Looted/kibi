@@ -1,5 +1,5 @@
 ---
-title: A requirement write lists every later kb_check step up front
+title: A requirement write lists the kb_model and pair-review steps up front
 status: active
 fact_kind: property_value
 subject_key: mcp.kb_upsert
@@ -7,8 +7,8 @@ property_key: later_check_steps_missing_from_next_actions
 operator: eq
 value_type: int
 value_int: 0
-claim_key: CLAIM-0FAE8DE1666484D6
-claim_text: When kb_upsert or kb_record writes a requirement below its evidence floor, its nextActions must also include a pair-review step for each current requirement on its claims' subjects, a kb_model step for its unmodeled claims, and a failure-side scenario that the same test validates
+claim_key: CLAIM-580DB1193B4C8588
+claim_text: When kb_upsert or kb_record writes a requirement with unmodeled claims, its nextActions must include a kb_model step for those claims and a pair-review step for each current requirement on its claims' subjects, at every level
 text_ref: REQ-kb-upsert-capture-every-step-up-front
 tags:
   - strict-modeling
@@ -21,3 +21,4 @@ origin:
 id: FACT-kb-upsert-capture-every-step-up-front
 type: fact
 ---
+When kb_upsert or kb_record writes a requirement with unmodeled claims, its nextActions include a kb_model step for those claims and a pair-review step for each current requirement on its claims' subjects, at every Kibi level: the number of those steps missing from nextActions is 0.
