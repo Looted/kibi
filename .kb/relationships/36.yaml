@@ -686,6 +686,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7beb045e6396
   - type: implements
+    from: SYM-markdown-render-questions-markdown-body
+    to: REQ-kibi-signoff-written-and-printed
+    created_at: 2026-11-25T14:21:18.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b275c95a38d4
+  - type: covered_by
+    from: SYM-markdown-render-questions-markdown-body
+    to: TEST-kibi-signoff-views
+    created_at: 2026-11-25T14:21:18.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bcaffdc16ae
+  - type: implements
     from: SYM-retrieval-retrieve
     to: REQ-search-scope-candidates
     created_at: 2026-11-25T14:29:08.747Z

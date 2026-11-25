@@ -2363,3 +2363,96 @@ describe("Codex reminders from real payload shapes", () => {
     ]);
   });
 });
+
+describe("Codex Kibi level and required evidence notices", () => {
+  function guardedWorkspace(): { cwd: string; pluginData: string } {
+    const cwd = createTempRoot("kibi-codex-guard-");
+    tempRoots.push(cwd);
+    optInWorkspace(cwd);
+    writeFile(
+      cwd,
+      "package.json",
+      `${JSON.stringify({ name: "app", kibi: { level: "test" } }, null, 2)}\n`,
+    );
+    writeFile(
+      cwd,
+      ".kb/requirements/REQ-floor.md",
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    return { cwd, pluginData };
+  }
+  const contextOf = (result: HookResult) =>
+    result.hookSpecificOutput &&
+    "additionalContext" in result.hookSpecificOutput
+      ? result.hookSpecificOutput.additionalContext
+      : undefined;
+
+  test("a patch that changes the level tells the agent to ask the person first", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: package.json",
+      "@@",
+      '-    "level": "test"',
+      '+    "level": "remember"',
+      "*** End Patch",
+    ].join("\n");
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: { command: patch },
+      },
+      { pluginData },
+    );
+    expect(contextOf(result)).toContain(
+      "Kibi: this change changes the Kibi level from test to remember (package.json). That is the person's decision, not yours: ask the person before making it",
+    );
+  });
+
+  test("a kb_upsert or .kb edit that lowers a floor gets the notice, and no permission decision", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const call = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "mcp__kibi__kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+        },
+      },
+      { pluginData },
+    );
+    expect(contextOf(call)).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+    expect(JSON.stringify(call)).not.toContain("permissionDecision");
+    const edit = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          command: [
+            "*** Begin Patch",
+            "*** Update File: .kb/requirements/REQ-floor.md",
+            "@@",
+            "-required_evidence: tested",
+            "*** End Patch",
+          ].join("\n"),
+        },
+      },
+      { pluginData },
+    );
+    expect(edit.systemMessage).toBeDefined();
+    expect(contextOf(edit)).toContain("from tested to unverified");
+  });
+});

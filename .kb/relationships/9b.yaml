@@ -329,6 +329,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-c92c457207b4
   - type: implements
+    from: SYM-src-hook-runner-guarded-change-ask
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:45.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3876677e18b
+  - type: covered_by
+    from: SYM-src-hook-runner-guarded-change-ask
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:45.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-673e537101da
+  - type: implements
     from: SYM-retrieval-eval-rank-of
     to: REQ-kibi-change-to-proof-evaluation
     created_at: 2026-11-25T15:14:53.409Z

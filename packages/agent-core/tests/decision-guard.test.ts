@@ -11,6 +11,7 @@ import {
   captureReminder,
   claimCaptureReminder,
   claimDecisionFlag,
+  claimGuardedChangeNotice,
   claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
@@ -1155,6 +1156,38 @@ describe("session markers", () => {
     expect(claimDecisionFlag(s, "capture-asked")).toBe(true);
     expect(claimDecisionFlag(s, "capture-asked")).toBe(false);
     expect(claimDecisionFlag(noState, "capture-asked")).toBe(false);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "level",
+        path: "package.json",
+        from: "test",
+        to: "remember",
+      }),
+    ).toBe(true);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "level",
+        path: "package.json",
+        from: "test",
+        to: "remember",
+      }),
+    ).toBe(false);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "evidence",
+        requirementId: "REQ-a",
+        from: "tested",
+        to: "asserted",
+      }),
+    ).toBe(true);
+    expect(
+      claimGuardedChangeNotice(noState, {
+        kind: "evidence",
+        requirementId: "REQ-a",
+        from: "tested",
+        to: "asserted",
+      }),
+    ).toBe(false);
     markDecisionFlag(noState, "source-edited");
     expect(hasDecisionFlag(noState, "source-edited")).toBe(false);
   });

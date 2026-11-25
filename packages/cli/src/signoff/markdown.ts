@@ -9,7 +9,9 @@ import {
   approvalNumbers,
   approvalSentence,
   awaitsApproval,
+  decisionLabel,
   firmEditReviewLabel,
+  levelLabel,
   proofLabel,
   questionKind,
   questionOpen,
@@ -152,7 +154,12 @@ export function renderSummaryMarkdownBody(
   summary: SignoffSummary,
   limit = SIGNOFF_MARKDOWN_LIMIT,
 ): string {
-  const lines = [headline(summary)];
+  const lines = [headline(summary), "", levelLabel(summary.level)];
+  if (summary.decisions.length > 0) {
+    lines.push("", "### Decisions only you make");
+    for (const decision of summary.decisions)
+      lines.push("", `- **${decisionLabel(decision)}**`);
+  }
   const approvals = approvalNumbers(
     CHANGE_ORDER.flatMap((change) =>
       summary.requirements.filter((row) => row.change === change),
@@ -194,6 +201,8 @@ export function renderQuestionsMarkdownBody(view: SignoffQuestions): string {
   const answered = view.questions.length - open;
   const lines = [
     `## Decisions to confirm: ${open} open${answered > 0 ? `, ${answered} answered` : ""}`,
+    "",
+    levelLabel(view.level),
   ];
   for (const question of view.questions) {
     const title = question.title ?? question.current?.title ?? question.id;

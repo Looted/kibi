@@ -6,6 +6,7 @@ import {
   DEFAULT_KIBI_LEVEL,
   KIBI_LEVELS,
   isKibiLevel,
+  kibiLevelInSettings,
   kibiLevelSettingName,
   readKibiLevel,
 } from "../src/kibi-level";
@@ -52,6 +53,24 @@ describe("Kibi level", () => {
       level: "test",
       source: "default",
     });
+  });
+
+  test("one settings file's text records its level", () => {
+    expect(
+      kibiLevelInSettings('{"kibi":{"level":"remember"}}', "package.json"),
+    ).toEqual({ level: "remember", source: "package.json" });
+    expect(kibiLevelInSettings('{"level":"remember"}', "package.json")).toEqual(
+      { level: "test", source: "default" },
+    );
+    expect(kibiLevelInSettings('{"level":"remember"}', "setup.json")).toEqual({
+      level: "remember",
+      source: "setup.json",
+    });
+    expect(kibiLevelInSettings(undefined, "setup.json")).toEqual({
+      level: "test",
+      source: "default",
+    });
+    expect(kibiLevelInSettings("{not json", "package.json").level).toBe("test");
   });
 
   test("the root package.json records the level in kibi.level", () => {

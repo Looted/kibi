@@ -517,6 +517,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6561b18951ea
+  - type: implements
+    from: SYM-level-guard-guarded-change-confirmation
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:47.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f9dd9f39092
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-confirmation
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:47.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4503559f7901
   - type: executable_for
     from: SYM-vscode-mock-default-mcp-stdio-server-definition-cwd
     to: TEST-vscode-traceability

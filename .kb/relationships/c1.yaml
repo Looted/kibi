@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2de44fb3f53a
+  - type: implements
+    from: SYM-collect-signoff-level
+    to: REQ-kibi-signoff-level
+    created_at: 2026-11-25T14:16:26.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade6062a315d
+  - type: covered_by
+    from: SYM-collect-signoff-level
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T14:16:26.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0e3f7917f3d
