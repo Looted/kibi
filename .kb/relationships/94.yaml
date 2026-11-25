@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fad12d78c7e
+  - type: implements
+    from: SYM-cla-workflow
+    to: REQ-contributions-require-cla
+    created_at: 2026-11-25T06:08:37.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2ac3f891d90
+  - type: covered_by
+    from: SYM-cla-workflow
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:37.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6561b18951ea
