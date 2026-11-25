@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-agent-hooks-read-rows",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/agent-core/tests/read-context.test.ts",
+      "./packages/agent-core/tests/bash-command.test.ts",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/antigravity/tests/hook-runner-branches.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts",
+      "./packages/opencode/tests/decision-hooks.test.ts",
+      "./packages/vibe/tests/guard.test.mjs"
+    ]
+  ]
+}

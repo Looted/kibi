@@ -496,3 +496,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2bf4c6df4c8
+  - type: implements
+    from: SYM-cursor-runHook
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:14.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5fa093c6ef2
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:14.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1b9757221e6

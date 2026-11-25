@@ -45,6 +45,15 @@ export function getSourceLinkedSymbols(
   return { relativePath, symbols };
 }
 
+/** Every linked file of the workspace, through the same cached index. */
+export function linkedFiles(
+  workspaceRoot: string,
+  cacheDir?: string,
+): Record<string, IndexedSymbol[]> {
+  return loadKnowledgeIndex(workspaceRoot, cacheDir, CURSOR_INDEX_OPTIONS)
+    .files;
+}
+
 /** Requirements the file's symbols implement (typed `implements` only). */
 export function getSourceLinkedRequirementIds(
   workspaceRoot: string,

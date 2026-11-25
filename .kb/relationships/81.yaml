@@ -391,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70eadebd714c
+  - type: constrains
+    from: REQ-hook-read-row-budgets
+    to: FACT-SUBJECT-kibi-host-read-rows
+    created_at: 2026-11-25T14:29:07.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-640f822edc9d
+  - type: requires_property
+    from: REQ-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:07.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f96b5550cedc
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:07.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4130e8cae72
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:29:07.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbcc6751238a
+  - type: requires_property
+    from: REQ-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets-repeated-requirement-rows
+    created_at: 2026-11-25T14:29:07.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87c185e5a32a
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    created_at: 2026-11-25T14:39:34.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96716009eb47

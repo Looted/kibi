@@ -3244,6 +3244,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cursor-canonical-manifest
@@ -3255,6 +3257,8 @@ symbols:
         target: TEST-session-brief
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
       - type: implements
         target: REQ-session-brief-on-every-surface
   - id: SYM-cursor-stopFollowupMessage
@@ -14130,7 +14134,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
       - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
   - id: SYM-zcode-mcp-registration-config
@@ -18858,6 +18866,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -18865,6 +18875,10 @@ symbols:
         target: REQ-claude-adapter-isolation
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
   - id: SYM-claude-adapterKind
     title: adapterKind
     status: active
@@ -19098,7 +19112,7 @@ symbols:
       - type: executable_for
         target: TEST-claude-code-kibi-plugin-v1
   - id: SYM-claude-case-read-snippet-once
-    title: A linked file shows requirement titles, symbols, tests, and next calls once
+    title: A linked file shows one row per current requirement, once
     status: active
     sourceFile: packages/claude/tests/hook-runner.test.ts
     symbol_role: behavioral
@@ -43581,7 +43595,11 @@ symbols:
       recorded_at: 2026-11-16T17:00:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-session-brief
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
       - type: implements
         target: REQ-session-brief-on-every-surface
   - id: SYM-codex-CODEX_SESSION_NOTE
@@ -47833,9 +47851,15 @@ symbols:
       recorded_at: 2026-11-22T05:06:51.056Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
         target: TEST-antigravity-plugin
       - type: implements
         target: REQ-antigravity-hook-lifecycle-and-scoping
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+      - type: implements
+        target: REQ-hook-search-tip-after-rows
   - id: SYM-snippets-search-tip
     title: searchTip
     sourceFile: packages/antigravity/src/snippets.ts
@@ -49351,3 +49375,355 @@ symbols:
         target: TEST-antigravity-plugin
       - type: implements
         target: REQ-antigravity-plugin-package
+  - id: SYM-test-agent-hooks-read-rows
+    title: Read and search rows suite
+    status: active
+    sourceFile: packages/agent-core/tests/read-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:26:44.158Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hooks-read-rows
+  - id: SYM-read-context-read-context
+    title: readContext
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:26.182Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-busy-file-ids
+      - type: implements
+        target: REQ-hook-read-row-budgets
+      - type: implements
+        target: REQ-hook-read-rows-in-view
+  - id: SYM-read-context-resolve-read-views
+    title: resolveReadViews
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:27.244Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-in-view
+  - id: SYM-bash-command-command-read-views
+    title: commandReadViews
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:50.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-bash-command-shell-tool-read-views
+    title: shellToolReadViews
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:27:51.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-read-context-search-tool-read
+    title: searchToolRead
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:08.564Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-matching-lines
+    title: matchingLines
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:28:09.663Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-hook-read-rows
+    title: hookReadRows
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:29:09.314Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-row-budgets
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-decision-hooks-tool-reads
+    title: toolReads
+    sourceFile: packages/opencode/src/decision-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:30:17.104Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-guard-read-rows-note
+    title: readRowsNote
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:30:18.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-bash-command-shell-tool-command
+    title: shellToolCommand
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:45.376Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
+        target: TEST-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+  - id: SYM-bash-command-read-text
+    title: readText
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:46.632Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-named-file
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-grep-reg-exp
+    title: grepRegExp
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:50.819Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-read-context-glob-filter
+    title: globFilter
+    sourceFile: packages/agent-core/src/read-context.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:51.970Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-search-rows
+  - id: SYM-source-linked-requirements-linked-files
+    title: linkedFiles
+    sourceFile: packages/cursor/src/source-linked-requirements.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:57.190Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-guard-is-read-tool
+    title: isReadTool
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:58.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-guard-tool-reads
+    title: toolReads
+    sourceFile: packages/vibe/src/guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:45:59.495Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: implements
+        target: REQ-hook-read-rows-every-harness
+  - id: SYM-bash-command-shell-line-range
+    title: ShellLineRange
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:05.414Z
+  - id: SYM-bash-command-shell-grep
+    title: ShellGrep
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:07.703Z
+  - id: SYM-bash-command-shell-read
+    title: ShellRead
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:09.807Z
+  - id: SYM-read-context-max-rows-per-event
+    title: MAX_ROWS_PER_EVENT
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:12.048Z
+  - id: SYM-read-context-max-whole-file-rows
+    title: MAX_WHOLE_FILE_ROWS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:14.408Z
+  - id: SYM-read-context-max-event-chars
+    title: MAX_EVENT_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:16.781Z
+  - id: SYM-read-context-max-whole-file-event-chars
+    title: MAX_WHOLE_FILE_EVENT_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:19.039Z
+  - id: SYM-read-context-max-session-rows
+    title: MAX_SESSION_ROWS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:21.250Z
+  - id: SYM-read-context-max-session-chars
+    title: MAX_SESSION_CHARS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:23.464Z
+  - id: SYM-read-context-max-search-requirements
+    title: MAX_SEARCH_REQUIREMENTS
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:25.647Z
+  - id: SYM-read-context-read-view
+    title: ReadView
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:28.056Z
+  - id: SYM-read-context-read-context-input
+    title: ReadContextInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:30.339Z
+  - id: SYM-read-context-resolve-input
+    title: ResolveInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:35.243Z
+  - id: SYM-read-context-hook-rows-input
+    title: HookRowsInput
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:37.636Z
+  - id: SYM-read-context-read-context-type
+    title: ReadContext
+    status: active
+    sourceFile: packages/agent-core/src/read-context.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T14:46:57.115Z
