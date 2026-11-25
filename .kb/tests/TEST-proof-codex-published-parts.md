@@ -26,20 +26,20 @@ proof_contract:
     path: /files
     select: items
   proves:
-    - CLAIM-A803F27577B74ED2
+    - CLAIM-E17040C703A7CF28
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f02eccb40e94fe74f272404d
+    receipt_id: PR-a7e62d9657826a247f14943e
     test_id: TEST-proof-codex-published-parts
     scope: unit
     outcome: passed
-    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-20T07:56:44.843Z'
-    finished_at: '2026-11-20T08:30:48.727Z'
-    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    code_snapshot: 017f08e44cfd7461b2b4632514b2750261c1be0471722dc4ee28dbea05858af6
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-25T18:11:15.093Z'
+    finished_at: '2026-11-25T18:11:15.209Z'
+    artifact_digest: 3ec8ed4953a5034ade48b27d425e647361c7744d4180afd3422341dea8cea4af
     contract_hash: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
-    binding_hash: 75e567313a1aaf9288d4be4ed360fac83a5e8d539141f41b36ec19db158d8899
+    binding_hash: 94930121caf808afbd0db28ee50f5f072884dc68f6e44f583c6a8dd843f62602
     fingerprint: 487d50247390ec4a03357161320d10db8822c7ba58a5b407374986a7915d2667
     fingerprint_components:
       contract: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
@@ -79,12 +79,14 @@ proof_receipts:
           - CHANGELOG.md
           - LICENSE
           - SECURITY.md
+          - assets
           - bin
           - dist
           - hooks
           - skills
         sequence:
           - .codex-plugin
+          - assets
           - .mcp.json
           - hooks
           - skills
@@ -93,7 +95,7 @@ proof_receipts:
           - CHANGELOG.md
           - LICENSE
           - SECURITY.md
-    certificate_digest: 1dd724854272f6989ee1810e3b4e650964a10e3882e4dc6a9b13ddfb63ebe563
+    certificate_digest: d1115970708ac213e2b0a9f2331af3f18f655fb104e5510e509e909c46be4448
     claim_bindings:
       - claim_key: CLAIM-E17040C703A7CF28
         requirement_id: REQ-codex-plugin-package

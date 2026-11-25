@@ -13,7 +13,7 @@
     }
   },
   "files": [
-    "plugin.json",
+    ".codex-plugin",
     "assets",
     ".mcp.json",
     "hooks",

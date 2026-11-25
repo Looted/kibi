@@ -314,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec46bec072aa
-  - type: implements
-    from: SYM-mcp-register-mcp-server-provider
-    to: REQ-vs-code-extension-register-kibi-mcp
-    created_at: 2026-11-25T14:51:28.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-abc73946af9c
   - type: covered_by
     from: SYM-mcp-register-mcp-server-provider
     to: TEST-vs-code-extension-register-kibi-mcp
@@ -342,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5e19a9564f9
+  - type: implements
+    from: SYM-mcp-register-mcp-server-provider
+    to: REQ-vscode-mcp-server-provider
+    created_at: 2026-11-25T18:05:57.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75834055dae

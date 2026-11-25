@@ -367,7 +367,7 @@ test("registerMcpServerProvider: registers provider, gates on .kb/manifest.json,
   expect(defs[0]?.label).toBe("Kibi");
   expect(defs[0]?.command).toBe(localBin);
   expect(defs[0]?.env).toEqual({
-    KIBI_WORKSPACE: ws,
+    KIBI_MCP_ATTACH_ROOT: ws,
     KIBI_MCP_HOST: "vscode",
   });
   expect(defs[0]?.cwd?.fsPath).toBe(ws);
