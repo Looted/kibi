@@ -290,16 +290,15 @@ const SHELL_TOOLS = new Set([
 ]);
 
 /**
- * Absolute paths of existing files a shell tool call writes in place, or
- * none when the call is not a shell call. Hosts pass the command as a string
- * or an argv array; both are read.
+ * The command line of a shell tool call, or undefined when the call is not
+ * a shell call. Hosts pass the command as a string or an argv array; both
+ * are read, and `["bash", "-lc", "<script>"]` is its script.
  */
-export function shellToolEditPaths(
+export function shellToolCommand(
   toolName: string | undefined,
   toolInput: unknown,
-  cwd: string,
-): string[] {
-  if (toolName === undefined || !SHELL_TOOLS.has(toolName)) return [];
+): string | undefined {
+  if (toolName === undefined || !SHELL_TOOLS.has(toolName)) return undefined;
   const raw =
     toolInput !== null && typeof toolInput === "object"
       ? (toolInput as { command?: unknown }).command
@@ -307,9 +306,387 @@ export function shellToolEditPaths(
   const argv = Array.isArray(raw)
     ? raw.filter((part): part is string => typeof part === "string")
     : undefined;
-  // `["bash", "-lc", "<script>"]` runs the script as its own command line.
   const command =
     argv === undefined ? raw : (shellScript(argv) ?? argv.join(" "));
-  if (typeof command !== "string") return [];
-  return commandEditPaths(command, cwd);
+  return typeof command === "string" ? command : undefined;
+}
+
+/**
+ * Absolute paths of existing files a shell tool call writes in place, or
+ * none when the call is not a shell call.
+ */
+export function shellToolEditPaths(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): string[] {
+  const command = shellToolCommand(toolName, toolInput);
+  return command === undefined ? [] : commandEditPaths(command, cwd);
+}
+
+/**
+ * What a shell tool call shows of each file it names (see
+ * {@link commandReadViews}), or nothing when the call is not a shell call.
+ * Files the call writes in place are left out: they are edits.
+ */
+export function shellToolReadViews(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): ShellRead[] {
+  const command = shellToolCommand(toolName, toolInput);
+  if (command === undefined) return [];
+  const edited = new Set(commandEditPaths(command, cwd));
+  return commandReadViews(command, cwd).filter(
+    (view) => !edited.has(view.absolute),
+  );
+}
+
+/** Lines of a file, 1-based and inclusive. */
+export type ShellLineRange = { start: number; end: number };
+
+/** How a shell search matches lines (grep, egrep, fgrep, rg). */
+export type ShellGrep = {
+  pattern: string;
+  /** `-i`: case-insensitive. */
+  ignoreCase: boolean;
+  /** `-F` or fgrep: the pattern is a literal string. */
+  fixed: boolean;
+  /** grep without `-E`/`-P`: basic regular expression syntax. */
+  basic: boolean;
+  /** `-w`: the match is a whole word. */
+  word: boolean;
+};
+
+/**
+ * What one shell command shows of a file or directory: the lines in view
+ * (`sed -n 'a,bp'`, `head`, `tail`), the lines a search matches (`grep`,
+ * `rg`), or the whole file (`cat`, any other command naming it).
+ */
+export type ShellRead = {
+  /** Absolute path of an existing file or, for a search, a directory. */
+  absolute: string;
+  directory: boolean;
+  /** Lines in view; absent when the whole file is (or for a search). */
+  focus?: ShellLineRange[];
+  /** The search whose matching lines are in view. */
+  grep?: ShellGrep;
+};
+
+const SEARCH_PROGRAMS = new Set(["grep", "egrep", "fgrep", "rg"]);
+const WHOLE_FILE_PROGRAMS = new Set(["cat", "nl", "bat", "less", "more"]);
+// grep and rg options that take the next word as their value.
+const GREP_VALUE_FLAGS = new Set([
+  "-A",
+  "-B",
+  "-C",
+  "-m",
+  "-g",
+  "-t",
+  "-T",
+  "-f",
+  "--glob",
+  "--type",
+  "--max-count",
+  "--context",
+  "--after-context",
+  "--before-context",
+  "--include",
+  "--exclude",
+  "--exclude-dir",
+]);
+const SED_PRINT = /^(\d+)(?:,(\d+|\$))?p$/;
+/** Lines a `tail` with no length shows, and `head` alike. */
+const DEFAULT_HEAD_LINES = 10;
+
+/** The value of `-n N`, `-nN`, `-N` or `--lines=N`, and the words it used. */
+function lineCount(
+  args: readonly string[],
+  index: number,
+): { value: string; used: number } | undefined {
+  const arg = args[index] as string;
+  if (arg === "-n" || arg === "--lines") {
+    const value = args[index + 1];
+    return value === undefined ? undefined : { value, used: 2 };
+  }
+  const attached =
+    /^(?:-n|--lines=)(\+?\d+)$/.exec(arg) ?? /^-(\d+)$/.exec(arg);
+  return attached ? { value: attached[1] as string, used: 1 } : undefined;
+}
+
+/** A file's text, or undefined when it cannot be read. */
+export function readText(absolute: string): string | undefined {
+  try {
+    return fs.readFileSync(absolute, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Number of lines of a file; an unreadable file has none. */
+function fileLineCount(absolute: string): number {
+  const content = readText(absolute) ?? "";
+  const lines = content.split("\n").length;
+  return content.endsWith("\n") || content === "" ? lines - 1 : lines;
+}
+
+type Stage = {
+  /** Operand words (files or directories) the stage names. */
+  operands: string[];
+  /** Lines the stage keeps of what it reads, when it narrows them. */
+  range?: (absolute: string) => ShellLineRange;
+  grep?: ShellGrep;
+  /** A recursive search with no operand searches the working directory. */
+  recursive: boolean;
+  whole: boolean;
+};
+
+/** One simple command of a pipeline, read as a view of the files it names. */
+function readStage(words: readonly string[]): Stage | undefined {
+  const [name, ...args] = words;
+  const program = path.basename(String(name));
+  if (program === "sed") {
+    if (!args.includes("-n")) return undefined;
+    const rest = args.filter((arg) => arg !== "-n");
+    const scriptIndex = rest.findIndex((arg) => !arg.startsWith("-"));
+    if (scriptIndex === -1) return undefined;
+    const print = SED_PRINT.exec(unquote(rest[scriptIndex] as string));
+    if (!print) return undefined;
+    const start = Number(print[1]);
+    const endText = print[2] ?? print[1];
+    return {
+      operands: rest
+        .slice(scriptIndex + 1)
+        .filter((arg) => !arg.startsWith("-")),
+      range: (absolute) => ({
+        start,
+        end: endText === "$" ? fileLineCount(absolute) : Number(endText),
+      }),
+      recursive: false,
+      whole: false,
+    };
+  }
+  if (program === "head" || program === "tail") {
+    let count = String(DEFAULT_HEAD_LINES);
+    const operands: string[] = [];
+    for (let index = 0; index < args.length; index++) {
+      const found = lineCount(args, index);
+      if (found) {
+        count = found.value;
+        index += found.used - 1;
+      } else if (!(args[index] as string).startsWith("-"))
+        operands.push(args[index] as string);
+    }
+    const lines = Number(count.replace(/^\+/, ""));
+    return {
+      operands,
+      range: (absolute) => {
+        if (program === "head") return { start: 1, end: lines };
+        const total = fileLineCount(absolute);
+        return count.startsWith("+")
+          ? { start: lines, end: total }
+          : { start: Math.max(1, total - lines + 1), end: total };
+      },
+      recursive: false,
+      whole: false,
+    };
+  }
+  if (SEARCH_PROGRAMS.has(program)) return searchStage(program, args);
+  if (WHOLE_FILE_PROGRAMS.has(program))
+    return {
+      operands: args.filter((arg) => !arg.startsWith("-")),
+      recursive: false,
+      whole: true,
+    };
+  return undefined;
+}
+
+/** The pattern, flags and operands of a grep, egrep, fgrep or rg command. */
+function searchStage(program: string, args: readonly string[]): Stage {
+  let pattern: string | undefined;
+  let ignoreCase = false;
+  let fixed = program === "fgrep";
+  let basic = program === "grep";
+  let word = false;
+  let recursive = program === "rg";
+  const operands: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (arg === "--") {
+      for (const rest of args.slice(index + 1)) {
+        if (pattern === undefined) pattern = unquote(rest);
+        else operands.push(rest);
+      }
+      break;
+    }
+    if (arg === "-e" || arg === "--regexp") {
+      pattern = unquote(String(args[++index]));
+      continue;
+    }
+    if (GREP_VALUE_FLAGS.has(arg)) {
+      index++;
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      if (arg === "--ignore-case") ignoreCase = true;
+      else if (arg === "--fixed-strings") fixed = true;
+      else if (arg === "--extended-regexp" || arg === "--perl-regexp")
+        basic = false;
+      else if (arg === "--word-regexp") word = true;
+      else if (arg === "--recursive") recursive = true;
+      continue;
+    }
+    if (arg.startsWith("-") && arg.length > 1) {
+      // Bundled short flags (`-rn`, `-inE`); a trailing value flag such as
+      // `-A3` carries its value.
+      for (const flag of arg.slice(1)) {
+        if (flag === "i") ignoreCase = true;
+        else if (flag === "F") fixed = true;
+        else if (flag === "E" || flag === "P") basic = false;
+        else if (flag === "w") word = true;
+        else if (flag === "r" || flag === "R") recursive = true;
+      }
+      continue;
+    }
+    if (pattern === undefined) pattern = unquote(arg);
+    else operands.push(arg);
+  }
+  return {
+    operands,
+    ...(pattern === undefined || pattern.length === 0
+      ? {}
+      : { grep: { pattern, ignoreCase, fixed, basic: basic && !fixed, word } }),
+    recursive,
+    whole: false,
+  };
+}
+
+/** The pipelines of a command line, each a list of stages' words. */
+function* pipelines(command: string): Generator<string[][]> {
+  const masked = maskQuoted(command);
+  const separator = /&&|\|\||[;\n]/g;
+  let start = 0;
+  const pieces: Array<[number, number]> = [];
+  for (const match of masked.matchAll(separator)) {
+    pieces.push([start, match.index]);
+    start = match.index + match[0].length;
+  }
+  pieces.push([start, masked.length]);
+  for (const [from, to] of pieces) {
+    const stages: string[][] = [];
+    let stageStart = from;
+    const cut = (end: number) => {
+      const words = [...masked.slice(stageStart, end).matchAll(/\S+/g)].map(
+        (word) => {
+          const at = stageStart + word.index;
+          return command.slice(at, at + word[0].length);
+        },
+      );
+      const plain = unbracketed(words);
+      stages.push(plain.slice(Math.max(0, commandStart(plain))));
+    };
+    for (let index = from; index < to; index++) {
+      if (masked[index] === "|") {
+        cut(index);
+        stageStart = index + 1;
+      }
+    }
+    cut(to);
+    yield stages;
+  }
+}
+
+/**
+ * What a shell command shows of each workspace file or directory it names,
+ * before it runs: line ranges from `sed -n 'a,bp'`, `head` and `tail` (also
+ * when they read a piped `cat` or `nl` of one file), the search of a `grep`
+ * or `rg` (over named files, or over directories when recursive), and the
+ * whole file for `cat` or any other command that names it. A file named in
+ * several ways keeps its narrowest view; nothing is lost when parsing fails,
+ * since every file the command names is still listed whole.
+ */
+export function commandReadViews(command: string, cwd: string): ShellRead[] {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const views = new Map<string, ShellRead>();
+  const resolve = (
+    word: string,
+  ): { absolute: string; directory: boolean } | undefined => {
+    const name = unquote(word);
+    for (const base of bases) {
+      const absolute = path.resolve(base, name);
+      try {
+        const stat = fs.statSync(absolute);
+        if (stat.isFile() || stat.isDirectory())
+          return { absolute, directory: stat.isDirectory() };
+      } catch {
+        // Not here; try the next base.
+      }
+    }
+    return undefined;
+  };
+  const add = (view: ShellRead) => {
+    const known = views.get(view.absolute);
+    // A focused or searched view says more than a whole-file one.
+    if (!known || (!known.focus && !known.grep)) views.set(view.absolute, view);
+  };
+  const visit = (line: string, depth: number) => {
+    for (const stages of pipelines(line)) {
+      let source: string | undefined;
+      for (const words of stages) {
+        const script = shellScript(words);
+        if (script !== undefined && depth < 2) {
+          visit(unquote(script), depth + 1);
+          continue;
+        }
+        const stage = readStage(words);
+        if (!stage) {
+          source = undefined;
+          continue;
+        }
+        const operands = stage.operands
+          .map(resolve)
+          .filter((target) => target !== undefined);
+        if (stage.grep) {
+          const targets =
+            operands.length === 0 && stage.recursive
+              ? [
+                  {
+                    absolute: path.resolve(bases.at(-1) as string),
+                    directory: true,
+                  },
+                ]
+              : operands;
+          for (const target of targets)
+            if (!target.directory || stage.recursive)
+              add({ ...target, grep: stage.grep });
+          if (operands.length === 0 && source)
+            add({ absolute: source, directory: false, grep: stage.grep });
+          source = undefined;
+          continue;
+        }
+        const files = operands.filter((target) => !target.directory);
+        if (stage.range) {
+          const targets =
+            files.length === 0 && source
+              ? [{ absolute: source, directory: false }]
+              : files;
+          for (const target of targets)
+            add({ ...target, focus: [stage.range(target.absolute)] });
+          source = undefined;
+          continue;
+        }
+        for (const target of files) add(target);
+        source =
+          files.length === 1
+            ? (files[0] as { absolute: string }).absolute
+            : undefined;
+      }
+    }
+  };
+  visit(scanned, 0);
+  for (const absolute of commandFilePaths(scanned, cwd))
+    if (!views.has(absolute))
+      views.set(absolute, { absolute, directory: false });
+  return [...views.values()];
 }
