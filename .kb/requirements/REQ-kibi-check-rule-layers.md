@@ -42,6 +42,7 @@ logic_claims:
   - CLAIM-A4AB3FEAC7EB55A8
 id: REQ-kibi-check-rule-layers
 type: req
+required_evidence: tested
 ---
 Every check rule in the rule registry must declare its layer, knowledge or verification. The verification layer must hold exactly evidence-floor, symbol-coverage, must-priority-coverage, must-positive-scenario, proof-contract-claims and proof-contract-symbols.
 
