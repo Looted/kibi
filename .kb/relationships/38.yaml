@@ -262,6 +262,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a80c70ed9ab6
+  - type: implements
+    from: SYM-intent-search-tokenizer-sources
+    to: REQ-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T14:43:51.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed779b6a2656
+  - type: covered_by
+    from: SYM-intent-search-tokenizer-sources
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T14:43:51.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eda5fb069544
+  - type: covered_by
+    from: SYM-intent-search-tokenizer-sources
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-11-25T14:43:51.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41caa1c92af5
+  - type: covered_by
+    from: SYM-intent-search-tokenizer-sources
+    to: TEST-search-answer-hygiene
+    created_at: 2026-11-25T14:43:51.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16ca48efdc3b
+  - type: covered_by
+    from: SYM-intent-search-tokenizer-sources
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-25T14:43:51.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79bc55c2e1e9
+  - type: covered_by
+    from: SYM-intent-search-tokenizer-sources
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T14:44:03.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2560325024d
   - type: assumes
     from: SCEN-NEG-kibi-init-level-choice-c02-eq-false
     to: FACT-NEG-kibi-init-level-choice-c02-eq-false

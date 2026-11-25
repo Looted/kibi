@@ -440,6 +440,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0c86fd1548a
+  - type: implements
+    from: SYM-retrieval-eval-scale-store
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:15:03.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c647ba9053d
+  - type: covered_by
+    from: SYM-retrieval-eval-scale-store
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:15:03.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f690b14cea6
   - type: verified_by
     from: REQ-014
     to: TEST-kibi-levels-cli

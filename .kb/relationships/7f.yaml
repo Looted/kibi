@@ -566,3 +566,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67ebf580c42b
+  - type: executable_for
+    from: SYM-test-retrieval-replay-harness
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T14:57:15.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed24f098f5a5

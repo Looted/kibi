@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-search-decision-retrieval",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/agent-core/tests/retrieval-contract.test.ts",
+      "./packages/agent-core/tests/retrieval.test.ts",
+      "./packages/agent-core/tests/retrieval-tokens.test.ts"
+    ]
+  ]
+}
