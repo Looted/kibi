@@ -49261,3 +49261,31 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-migrate-managed-hooks-refresh
+  - id: SYM-antigravity-run-node-cmd
+    title: Antigravity polyglot Windows/POSIX hook Node launcher (run-node.cmd)
+    status: active
+    sourceFile: packages/antigravity/bin/run-node.cmd
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:33:40.543Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
+  - id: SYM-antigravity-run-node-sh
+    title: Antigravity POSIX hook Node resolver launcher (run-node.sh)
+    status: active
+    sourceFile: packages/antigravity/bin/run-node.sh
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-11-25T08:33:44.348Z
+    relationships:
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-plugin-package
