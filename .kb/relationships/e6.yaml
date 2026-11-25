@@ -307,3 +307,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-107b6bc859b8
+  - type: requires_predicate
+    from: REQ-cli-migrate-managed-hooks-refresh
+    to: FACT-PRED-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:01.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8393b5c18cbb
+  - type: relates_to
+    from: REQ-cli-migrate-managed-hooks-refresh
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-11-25T09:44:01.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe7142aad0d3
+  - type: constrains
+    from: REQ-cli-migrate-managed-hooks-refresh
+    to: FACT-kibi-git-hooks-managed-component
+    created_at: 2026-11-25T09:44:01.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eef1dd4a874c
+  - type: specified_by
+    from: REQ-cli-migrate-managed-hooks-refresh
+    to: SCEN-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:09.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-421fc325a668
+  - type: specified_by
+    from: REQ-cli-migrate-managed-hooks-refresh
+    to: SCEN-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    created_at: 2026-11-25T09:44:09.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1c93aa6c11b
