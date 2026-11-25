@@ -413,6 +413,7 @@ describe("formatCardLine", () => {
     firm: true,
     scope: "in" as const,
     score: 1,
+    coverage: 1,
     evidence: ["linked to code here"],
     folded: ["REQ-y"],
   };
