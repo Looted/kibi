@@ -12,8 +12,9 @@ semantic_text: Usage telemetry must record an operation that succeeds in a works
 rationale: Init outside Git was the adoption problem telemetry surfaced (From 2026-11-15 to 2026-11-25, 5 of the 9 installations that ran kibi init had it fail outside a Git repository.); after the change those runs must count as successes, and the share of workspaces without Git must be visible without sending any path.
 origin:
   kind: agent
-  ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+  ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage." Maintainer decision, 2026-11-25: approved these requirements and ADR-kibi-workspaces-without-git as worded ("Approve all").'
   recorded_at: '2026-11-25T09:21:46.615Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 7b94d654a1e4eb847279b30a32a796eb926d4bbdfbecda07ddb95311c1a8a69c
@@ -43,3 +44,7 @@ Usage telemetry must record an operation that succeeds in a workspace outside an
 ## Context
 
 vcs is git or none, and vcs_reason is not_a_repository or git_unavailable; neither carries a path. GIT_REQUIRED and GIT_REPOSITORY_UNREADABLE are counted as rejections. See ADR-kibi-workspaces-without-git, consequences.
+
+## Source
+
+> Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn't completely block Kibi usage." Maintainer decision, 2026-11-25: approved these requirements and ADR-kibi-workspaces-without-git as worded ("Approve all").

@@ -12,8 +12,9 @@ semantic_text: In a workspace outside any Git repository, an operation that read
 rationale: Without Git there is no commit gate, hook, staged snapshot or branch to read. A coded refusal keeps the missing gate visible; running a different check in its place would hide that there is no gate.
 origin:
   kind: agent
-  ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+  ref: 'Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage." Maintainer decision, 2026-11-25: approved these requirements and ADR-kibi-workspaces-without-git as worded ("Approve all").'
   recorded_at: '2026-11-25T09:17:33.218Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 025b8541ecbc574e85fc10bdc92a7f232fbcd03809276f51d7381bc409d3e3f2
@@ -43,3 +44,7 @@ In a workspace outside any Git repository, an operation that reads Git must fail
 ## Context
 
 The message names what the feature reads from Git, the Git-free command to run instead (for example kibi check for kibi check --staged) and how to turn the feature on (git init, then kibi init). The features are the commit gate, kibi check-generated --staged, kibi check-diff, kibi hooks install, kibi branch ensure and migrate, kibi gc, impact review and kibi signoff. See ADR-kibi-workspaces-without-git, decision 5.
+
+## Source
+
+> Maintainer, 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn't completely block Kibi usage." Maintainer decision, 2026-11-25: approved these requirements and ADR-kibi-workspaces-without-git as worded ("Approve all").

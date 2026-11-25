@@ -8,8 +8,9 @@ tags:
   - diagnostics
 origin:
   kind: agent
-  ref: 'Records the design the maintainer asked for on 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage."'
+  ref: 'Records the design the maintainer asked for on 2026-11-25: "So I think we should print some kind of warning, an advisory to use Git. but we shouldn''t completely block Kibi usage." Maintainer decision, 2026-11-25: approved these requirements and ADR-kibi-workspaces-without-git as worded ("Approve all").'
   recorded_at: '2026-11-25T09:08:19.516Z'
+  approved_by: maintainer
 id: ADR-kibi-workspaces-without-git
 type: adr
 ---
