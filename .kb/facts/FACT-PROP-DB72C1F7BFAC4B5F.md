@@ -16,8 +16,8 @@ canonical_key: mcp-kibi-model-requirement:claude.kibi_plugin:max_knowledge_snipp
 operator: lte
 value_type: int
 value_int: 1
-claim_key: CLAIM-B8B9B523CCC37CE5
-claim_text: kibi-claude hooks must add at most one knowledge snippet per file per session
+claim_key: CLAIM-1D67CD90FBCD6C63
+claim_text: kibi-claude hooks must add at most one edit snippet per file per session and show each requirement in read and search rows at most once per session
 id: FACT-PROP-DB72C1F7BFAC4B5F
 type: fact
 origin:

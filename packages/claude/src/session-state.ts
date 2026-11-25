@@ -106,6 +106,11 @@ export type SessionState = {
   sourceEdited: boolean;
   /** True once the agent wrote to the knowledge base this session. */
   kbRecorded: boolean;
+  /**
+   * How often the host dropped the conversation context: requirement rows
+   * shown before a reset may be shown again after it.
+   */
+  contextResets: number;
 };
 
 const JOURNAL = "session.jsonl";
@@ -155,6 +160,7 @@ export function emptySessionState(): SessionState {
     firmConfirmed: new Set(),
     sourceEdited: false,
     kbRecorded: false,
+    contextResets: 0,
   };
 }
 
@@ -236,6 +242,7 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     }
     case "context_reset":
+      state.contextResets++;
       // Snippets, notices and Kibi lookups shown before the reset are no
       // longer in context, so they may be shown again. Pending edits and
       // their reminders describe work done, not context, and are kept.

@@ -454,6 +454,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1064cb4a494
+  - type: implements
+    from: SYM-read-context-read-context
+    to: REQ-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:26.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c10e6b47f7e7
+  - type: covered_by
+    from: SYM-read-context-read-context
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:26.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3f472378e5f
+  - type: implements
+    from: SYM-read-context-read-context
+    to: REQ-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:08.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99ca157418b
   - type: assumes
     from: SCEN-NEG-kibi-no-git-advisory-mcp-session
     to: FACT-NEG-kibi-no-git-advisory-mcp-session
@@ -461,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-787e5074be97
+  - type: implements
+    from: SYM-hook-runner-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T15:04:42.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e85b0aa43125
+  - type: covered_by
+    from: SYM-hook-runner-read-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:42.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86185784f06a

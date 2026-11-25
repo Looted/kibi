@@ -469,6 +469,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-72a1b2a453b2
   - type: implements
+    from: SYM-bash-command-shell-tool-read-views
+    to: REQ-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:52.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44dfdd1bd6ac
+  - type: covered_by
+    from: SYM-bash-command-shell-tool-read-views
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:52.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc9e9e17e39
+  - type: implements
     from: SYM-vcs-refuse-without-git
     to: REQ-kibi-git-required-refusal
     created_at: 2026-11-25T09:18:01.059Z
