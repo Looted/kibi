@@ -124,6 +124,11 @@ refuses an unknown one with `VALIDATION_FAILED`, listing the allowed names.
 | Mutation and validation | `kb_record`, `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_review_firm_edit`, `kb_ingest_proof` |
 | Planning and review | `kb_prepare_impact_review`, `kb_author_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
+At [Kibi level](cli-reference.md#kibi-level) `remember` neither profile
+lists `kb_ingest_proof`, and the server instructions do not offer it through
+the CLI: that level asks for no proof. `kb_skills` with `action: list` leaves
+out `kibi-provable-code` there too; it still loads by id.
+
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
 environment to a comma-separated list of names, or `all`; a tool named
 there is listed in either profile:

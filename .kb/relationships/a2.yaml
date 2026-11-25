@@ -328,3 +328,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb9c9be2bc85
+  - type: requires_property
+    from: REQ-kibi-remember-level-surface
+    to: FACT-PROP-kibi-remember-level-surface-c01
+    created_at: 2026-11-25T09:49:15.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed287fa55e7f
+  - type: requires_property
+    from: REQ-kibi-remember-level-surface
+    to: FACT-PROP-kibi-remember-level-surface-c02
+    created_at: 2026-11-25T09:49:15.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f57802ead394
+  - type: specified_by
+    from: REQ-kibi-remember-level-surface
+    to: SCEN-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:24.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a2d291b9c2e
+  - type: specified_by
+    from: REQ-kibi-remember-level-surface
+    to: SCEN-NEG-kibi-remember-level-surface-rejected
+    created_at: 2026-11-25T09:49:24.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fabf4341445
+  - type: verified_by
+    from: REQ-kibi-remember-level-surface
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:24.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b89f9d262af0
+  - type: constrains
+    from: REQ-kibi-remember-level-surface
+    to: FACT-SUBJ-kibi-level
+    created_at: 2026-11-25T10:18:18.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-922f8701413f
+  - type: specified_by
+    from: REQ-kibi-remember-level-surface
+    to: SCEN-NEG-kibi-remember-level-surface-c02-eq-true
+    created_at: 2026-11-25T10:20:38.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0863bef76c2
+  - type: specified_by
+    from: REQ-kibi-remember-level-surface
+    to: SCEN-NEG-kibi-remember-level-surface-c01-eq-true
+    created_at: 2026-11-25T10:20:44.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4980f571bf3b

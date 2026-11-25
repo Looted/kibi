@@ -650,6 +650,19 @@ describe("captureFollowUp", () => {
           'kb_check blocks REQ-snippet-cap until claims C1, C2 name the subjects they are about. subjects holds the closest existing subject by its words; use hooks.snippets ("Edit snippets") instead if one fits better, or a subject you define first as a subject fact.',
         required: true,
       },
+      // Unmodeled claims are grounded at every level, with or without a floor.
+      {
+        operation: "kb_model",
+        code: "missing_logic_grounding",
+        input: {
+          mode: "requirement",
+          requirementId: "REQ-snippet-cap",
+          text: "REQ-snippet-cap",
+        },
+        reason:
+          "Each claim of REQ-snippet-cap (C1, C2, C3) is still unmodeled, so kb_check cannot tell when another requirement contradicts it: kb_model returns the facts to upsert.",
+        required: true,
+      },
     ]);
     const lone = await captureFollowUp(
       req(),
@@ -955,6 +968,65 @@ describe("captureFollowUp", () => {
     );
   });
 
+  test("at level remember the same write lists the pair reviews and the model step, and no scenario, test or proof", async () => {
+    const root = tempWorkspace({
+      "package.json": JSON.stringify({ kibi: { level: "remember" } }),
+    });
+    const reads = store({
+      entities: {
+        "REQ-snippet-cap": {
+          title: "Snippets show at most seven lines",
+          status: "open",
+          firmness: "default",
+          required_evidence: "tested",
+          semantic_text: "Snippets show at most seven lines.",
+          semantic_inventory: [
+            { claim_key: "C1", status: "missing", subjects: ["snippet"] },
+          ],
+        },
+        "REQ-soft": { firmness: "default" },
+      },
+      neighbours: [{ id: "REQ-soft", title: "Soft rule" }],
+      implementing: ["SYM-snippet"],
+      integration: false,
+    });
+    const result = await captureFollowUp(
+      req(),
+      payload([...symbolCoverageWarning("SYM-snippet")]),
+      context(root),
+      reads,
+    );
+    // Its symbol's missing test is neither a step nor a warning.
+    expect(result.warnings).toEqual([]);
+    expect(
+      result.nextActions.map((step) => [step.operation, step.code]),
+    ).toEqual([
+      ["kb_upsert", "related-requirement-unmodeled"],
+      ["kb_model", "missing_logic_grounding"],
+    ]);
+    // Neither requirement is firm, so only the statement needs the person.
+    expect(result.approvalsNeeded.map((approval) => approval.kind)).toEqual([
+      "signoff",
+    ]);
+    // The same write at level test asks for the floor's steps too.
+    const tested = await captureFollowUp(
+      req(),
+      payload(),
+      context(
+        tempWorkspace({
+          "package.json": JSON.stringify({ kibi: { level: "test" } }),
+        }),
+      ),
+      reads,
+    );
+    expect(tested.nextActions.map((step) => step.code)).toContain(
+      "evidence-floor",
+    );
+    expect(tested.nextActions.map((step) => step.operation)).toContain(
+      "kibi prove",
+    );
+  });
+
   test("a firm requirement pairs every partner for approval, and modeled claims ask for no pair review", async () => {
     const firm = await captureFollowUp(
       req(),
@@ -975,6 +1047,7 @@ describe("captureFollowUp", () => {
     );
     expect(firm.nextActions.map((step) => step.code)).toEqual([
       "related-requirement-unmodeled",
+      "missing_logic_grounding",
     ]);
     expect(firm.approvalsNeeded.map((approval) => approval.about)).toEqual([
       "REQ-snippet-cap",

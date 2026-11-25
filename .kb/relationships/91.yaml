@@ -433,6 +433,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6025f8d7262
+  - type: assumes
+    from: SCEN-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c01
+    created_at: 2026-11-25T09:48:23.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a94b5b4495a9
+  - type: assumes
+    from: SCEN-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c02
+    created_at: 2026-11-25T09:48:23.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba9a074e9153
+  - type: implements
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: REQ-kibi-change-snapshots
+    created_at: 2026-11-25T10:41:55.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87baf38554cb
+  - type: covered_by
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-11-25T10:41:55.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e9d81cbe1bc
+  - type: covered_by
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-25T10:48:57.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fda9a2296bf2
   - type: validates
     from: TEST-kibi-no-git-attached-store
     to: REQ-kibi-no-git-workspace-attaches-reserved-store
