@@ -50,6 +50,7 @@ export type MigrationAction = Readonly<{
     | "storage"
     | "schema"
     | "freshness"
+    | "hooks"
     | "relationship"
     | "symbol"
     | "semantic"

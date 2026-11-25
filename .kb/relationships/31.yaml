@@ -647,3 +647,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a80d93a76add
+  - type: implements
+    from: SYM-managed-hooks-managed-hooks-refresh-action
+    to: REQ-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:21.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ffe53067ddc
+  - type: covered_by
+    from: SYM-managed-hooks-managed-hooks-refresh-action
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:21.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-280456015688
