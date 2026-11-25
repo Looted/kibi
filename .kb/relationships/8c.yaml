@@ -335,6 +335,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5e19a9564f9
+  - type: executable_for
+    from: SYM-test-kibi-signoff-level
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:40:43.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b506301bef
   - type: implements
     from: SYM-mcp-register-mcp-server-provider
     to: REQ-vscode-mcp-server-provider

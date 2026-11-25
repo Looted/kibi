@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { kibiCliOperation } from "./kb-mcp-tools.js";
 import type { EntitySummary, IndexedSymbol } from "./knowledge-index.js";
+import type { GuardedChange } from "./level-guard.js";
 import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
 import {
   requestTopicWords,
@@ -940,6 +941,28 @@ export function claimDecisionFlag(
 ): boolean {
   try {
     touchMarker(sessionPath(session, flag), "wx");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True the first time the session claims the notice about `change`, a
+ * change the person decides, so a host whose hook runs after each tool says
+ * it once.
+ */
+export function claimGuardedChangeNotice(
+  session: DecisionSession,
+  change: GuardedChange,
+): boolean {
+  const key =
+    change.kind === "level"
+      ? `level:${change.path}:${change.from}:${change.to}`
+      : `evidence:${change.requirementId}:${change.from}:${change.to}`;
+  const name = `guarded-${createHash("sha256").update(key).digest("hex").slice(0, 32)}`;
+  try {
+    touchMarker(sessionPath(session, name), "wx");
     return true;
   } catch {
     return false;

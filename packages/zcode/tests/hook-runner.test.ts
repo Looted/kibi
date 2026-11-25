@@ -2805,6 +2805,94 @@ describe("ZCode hook runner exact decisions", () => {
   });
 });
 
+describe("ZCode Kibi level and required evidence notices", () => {
+  function guardedWorkspace() {
+    const fixture = workspaceFixture("kibi-zcode-guard");
+    fs.writeFileSync(
+      path.join(fixture.cwd, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.mkdirSync(path.join(fixture.cwd, ".kb", "requirements"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(fixture.cwd, ".kb", "requirements", "REQ-floor.md"),
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    return fixture;
+  }
+
+  test("a write that changes the level tells the agent to ask first", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "Write",
+        tool_input: {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+        },
+      },
+      { pluginData },
+    );
+    expect(expectAdditionalContext(result, "PreToolUse")).toContain(
+      "changes the Kibi level from test to remember (package.json). That is the person's decision, not yours",
+    );
+  });
+
+  test("an apply_patch that lowers a floor gets the notice too", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          patch:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-floor.md\n-required_evidence: tested\n+required_evidence: asserted\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(expectAdditionalContext(result, "PreToolUse")).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
+  test("a kb_upsert that lowers a floor gets the notice beside the workspace stamp", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const call = (input: Record<string, unknown>) =>
+      runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "guard",
+          cwd,
+          tool_name: "mcp__kibi__kb_upsert",
+          tool_input: input,
+        },
+        { pluginData },
+      );
+    const lower = {
+      type: "req",
+      id: "REQ-floor",
+      properties: { required_evidence: "asserted" },
+    };
+    const stamped = expectStrictZcodeOutput(await call(lower));
+    expect(stamped.hookSpecificOutput?.additionalContext).toContain(
+      "from tested to asserted",
+    );
+    expect(stamped.hookSpecificOutput?.updatedInput?.workspaceRoot).toBe(cwd);
+    const named = expectStrictZcodeOutput(
+      await call({ ...lower, workspaceRoot: cwd }),
+    );
+    expect(named.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(named.hookSpecificOutput?.additionalContext).toBeDefined();
+  });
+});
+
 describe("ZCode read, search and shell rows", () => {
   const ROW = "- REQ-checkout-rounding [firm: ask before changing]";
   const call = (

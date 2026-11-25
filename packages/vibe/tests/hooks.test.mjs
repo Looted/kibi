@@ -220,6 +220,32 @@ test("the firm-edit notice does not depend on the hook finding a path in the too
   }
 });
 
+test("a post_tool edit that changes the Kibi level through the shipped hook tells the agent to ask the person", async () => {
+  const ws = workspace();
+  try {
+    writeFileSync(
+      join(ws.root, "package.json"),
+      JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+    );
+    const result = await runHook(
+      "kibi-file-context.mjs",
+      postTool(ws.root, "edit", {
+        file_path: "package.json",
+        old_string: '"level":"test"',
+        new_string: '"level":"remember"',
+      }),
+      ws.env,
+    );
+    assert.equal(result.code, 0);
+    assert.match(
+      result.context,
+      /changes the Kibi level from test to remember \(package\.json\)\. That is the person's decision, not yours: ask the person now/,
+    );
+  } finally {
+    ws.cleanup();
+  }
+});
+
 test("the post-tool matcher in hooks.toml matches every edit tool the guard treats as an edit", () => {
   const toml = readFileSync(
     join(PLUGIN_ROOT, "ai.mistral.vibe", "hooks.toml"),
@@ -253,6 +279,10 @@ test("the post-tool matcher in hooks.toml matches every edit tool the guard trea
       `matcher misses file_system.${tool}`,
     );
   }
+  // A kb_upsert, under the server's prefix or none, for a lowered floor.
+  assert.ok(matcher.test("kibi_kb_upsert"));
+  assert.ok(matcher.test("kb_upsert"));
+  assert.ok(!matcher.test("kibi_kb_search"));
   assert.ok(!matcher.test("todo"));
 });
 
