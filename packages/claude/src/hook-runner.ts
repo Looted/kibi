@@ -5,8 +5,9 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
+  type ShellRead,
   commandEditPaths,
-  commandFilePaths,
+  commandReadViews,
   filesChangedSince,
   isSearchCommand,
 } from "kibi-agent-core/bash-command";
@@ -28,6 +29,11 @@ import {
   isKibiMcpToolName,
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import {
   requestTopicWords,
   requirementCandidatesForPath,
@@ -370,6 +376,14 @@ function preToolUse(
 
   if (searchTools.has(toolName)) {
     trace.action = "search_silent";
+    const rows =
+      toolName === "Grep"
+        ? grepToolRows(input, state, workspace, trace, events)
+        : undefined;
+    if (rows) {
+      spendSearchTip(state, events);
+      return emit(rows, "read_snippet");
+    }
     if (state.kbUsed || state.notices.has("search-tip")) return {};
     const linked = linkedFileCount(workspace.index());
     if (linked === 0) return {};
@@ -404,16 +418,22 @@ function preToolUse(
 
   if (isRead) {
     trace.action = "read_silent";
-    const snippet = readSnippet(
-      relativePath,
-      symbols,
+    const focus = readFocus(input.toolInput);
+    const rows = requirementRows(
+      [
+        {
+          absolute: target.absolute,
+          directory: false,
+          ...(focus ? { focus } : {}),
+        },
+      ],
       state,
       workspace,
-      readFocus(input.toolInput),
+      trace,
+      events,
     );
-    if (!snippet) return {};
-    events.push({ kind: "shown", surface: "read", path: relativePath });
-    return emit(snippet, "read_snippet");
+    if (!rows) return {};
+    return emit(rows, "read_snippet");
   }
 
   trace.action = "edit_silent";
@@ -543,36 +563,77 @@ function editPreToolUse(
   return {};
 }
 
-/** The read snippet for a file, unless this session already has it. */
-function readSnippet(
-  relativePath: string,
-  symbols: readonly IndexedSymbol[],
+/**
+ * Marks the one-time search tip as spent once a search has shown rows,
+ * since the rows already say the code is governed.
+ */
+export function spendSearchTip(
+  state: SessionState,
+  events: SessionEvent[],
+): void {
+  if (!state.notices.has("search-tip"))
+    events.push({ kind: "notice", name: "search-tip" });
+}
+
+/**
+ * Requirement rows for the code a read or search puts in view (see
+ * kibi-agent-core/read-context), each requirement once per session, counting
+ * those a Kibi tool result already showed; the files they describe are
+ * marked as read.
+ */
+export function requirementRows(
+  reads: readonly ShellRead[],
   state: SessionState,
   workspace: Workspace,
-  focus?: LineRange[],
+  trace: HookTrace,
+  events: SessionEvent[],
+  admits?: (relativePath: string) => boolean,
 ): string | undefined {
-  if (
-    state.shownRead.has(relativePath) ||
-    state.shownEdit.has(relativePath) ||
-    isExplored(state, relativePath)
-  ) {
-    return undefined;
-  }
-  const owners = requirementIds(symbols);
-  if (owners.length > 0 && owners.every((id) => state.exploredIds.has(id))) {
-    return undefined;
-  }
-  return (
-    fileKnowledgeSnippet({
-      relativePath,
-      symbols,
-      // rationale: the shared snippet only tests for the edit surface, so
-      // any other value reads as this one.
-      // Stryker disable next-line StringLiteral
-      surface: "read",
-      focus,
-      summarize: workspace.summarize,
-    }) ?? undefined
+  const rows = hookReadRows(reads, {
+    workspaceRoot: workspace.root,
+    files: workspace.index().files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    admits,
+    summarize: workspace.summarize,
+    stateDir: workspace.stateDir,
+    sessionKey: `context-${state.contextResets}`,
+    shownIds: state.exploredIds,
+    // An edit snippet already named the requirements of its file.
+    shownPaths: new Set([...state.exploredPaths, ...state.shownEdit]),
+  });
+  if (!rows) return undefined;
+  for (const shown of rows.paths)
+    events.push({ kind: "shown", surface: "read", path: shown });
+  trace.path = rows.paths[0] as string;
+  trace.pathKind = "source";
+  trace.requirementIds = rows.ids;
+  return rows.text;
+}
+
+/** The Grep tool's search (ripgrep syntax), limited by its glob. */
+function grepToolRows(
+  input: HookInput,
+  state: SessionState,
+  workspace: Workspace,
+  trace: HookTrace,
+  events: SessionEvent[],
+): string | undefined {
+  const fields = fieldsOf(input.toolInput);
+  const read = searchToolRead({
+    pattern: fields.pattern,
+    path: fields.path,
+    cwd: input.cwd ?? workspace.root,
+    ignoreCase: fields["-i"] === true,
+  });
+  if (!read) return undefined;
+  const glob = typeof fields.glob === "string" ? fields.glob : undefined;
+  return requirementRows(
+    [read],
+    state,
+    workspace,
+    trace,
+    events,
+    glob ? globFilter(glob) : undefined,
   );
 }
 
@@ -641,7 +702,9 @@ function bashContext(
 ): HookOutput {
   let namesKb = false;
   const cwd = input.cwd ?? workspace.root;
-  for (const absolute of commandFilePaths(command, cwd)) {
+  const reads = commandReadViews(command, cwd);
+  for (const { absolute, directory } of reads) {
+    if (directory) continue;
     const target = toWorkspacePath(workspace.root, absolute, input.cwd);
     if (!target) continue;
     const kind = classifyPath(target.relative);
@@ -672,13 +735,18 @@ function bashContext(
       events.push({ kind: "shown", surface: "edit", path: target.relative });
       return emit(note, alreadyKnown ? "edit_update_snippet" : "edit_snippet");
     }
-    const snippet = readSnippet(target.relative, symbols, state, workspace);
-    if (!snippet) continue;
-    trace.path = target.relative;
-    trace.pathKind = kind;
-    trace.requirementIds = requirementIds(symbols);
-    events.push({ kind: "shown", surface: "read", path: target.relative });
-    return emit(snippet, "read_snippet");
+  }
+  // Every linked file the command reads or searches, in one block.
+  const rows = requirementRows(
+    reads.filter(({ absolute }) => !edited.has(absolute)),
+    state,
+    workspace,
+    trace,
+    events,
+  );
+  if (rows) {
+    if (isSearchCommand(command)) spendSearchTip(state, events);
+    return emit(rows, "read_snippet");
   }
   if (namesKb && !state.notices.has("kb-direct")) {
     events.push({ kind: "notice", name: "kb-direct" });

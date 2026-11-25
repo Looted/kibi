@@ -713,3 +713,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b473d33889ed
+  - type: covered_by
+    from: SYM-claude-runHook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:12.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-125ed8e0f078

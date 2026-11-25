@@ -145,7 +145,7 @@ root, so sessions started in a subdirectory still match):
 | --- | --- | --- |
 | `kibi-session-context` | `session_start` | summarizes the attached KB (branch, freshness) into the session |
 | `kibi-prompt-context` | `pre_agent` | searches the KB for the prompt and injects the top entities as context |
-| `kibi-file-context` | `post_tool` (`read_file`/`edit`/`write_file`/`search_replace`) | appends the Kibi entities linked to the file just read or written |
+| `kibi-file-context` | `post_tool` (`read_file`/`grep`/`bash`/`edit`/`write_file`/`search_replace`) | after a read, search or shell read, appends the requirements of the code in view (each once per session, a few rows at most); after an edit, the Kibi entities linked to the file |
 
 The hooks also run the decision guard the other Kibi adapters share
 (`src/guard.ts`, bundled with kibi-agent-core into `bin/hooks/kibi-guard.mjs`):
