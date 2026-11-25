@@ -35,6 +35,8 @@ const summary = (
   kind: "summary",
   scope: "working",
   generatedAt: "2024-01-01T00:00:00Z",
+  level: { level: "test", setting: "the default" },
+  decisions: [],
   requirements,
   notes: [],
   ...fields,
@@ -54,6 +56,7 @@ const questions = (
   version: "kibi.signoff.v1",
   kind: "questions",
   generatedAt: "2024-01-01T00:00:00Z",
+  level: { level: "test", setting: "the default" },
   questions: list,
   notes,
 });
@@ -97,14 +100,49 @@ describe("the signoff page", () => {
 
   test("the summary meta names the branch and scope", () => {
     expect(main(renderSignoffHtml(summary([])))).toBe(
-      '<p class="meta">working tree · generated 2024-01-01T00:00:00Z</p>\n<p class="empty">This change adds, rewrites or affects no requirement.</p>\n',
+      '<p class="meta">working tree · Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>\n<p class="empty">This change adds, rewrites or affects no requirement.</p>\n',
     );
     expect(
       main(
         renderSignoffHtml(summary([], { branch: "feat/x", scope: "staged" })),
       ).split("\n")[0],
     ).toBe(
-      '<p class="meta">Branch feat/x · staged changes · generated 2024-01-01T00:00:00Z</p>',
+      '<p class="meta">Branch feat/x · staged changes · Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>',
+    );
+  });
+
+  test("decisions only the person makes come first, and the level moved is named", () => {
+    const view = summary([], {
+      level: {
+        level: "remember",
+        setting: "kibi.level in package.json",
+        previous: "test",
+      },
+      decisions: [
+        {
+          kind: "level",
+          from: "test",
+          to: "remember",
+          setting: "kibi.level in package.json",
+        },
+        {
+          kind: "evidence",
+          requirementId: "REQ-a",
+          title: "<A>",
+          from: "tested",
+          to: "asserted",
+        },
+      ],
+    });
+    expect(main(renderSignoffHtml(view))).toBe(
+      [
+        '<p class="meta">working tree · Kibi level: remember (kibi.level in package.json, was test) · generated 2024-01-01T00:00:00Z</p>',
+        "<h2>Decisions only you make (2)</h2>",
+        '<p class="callout">The change moves the Kibi level from test to remember (kibi.level in package.json). At remember, Kibi stops asking for the scenarios, tests and proofs that show each requirement holds. Keep it only if you chose this level.</p>',
+        '<p class="callout">The change lowers the evidence REQ-a (&lt;A&gt;) must reach from tested to asserted, so kibi check stops asking for the evidence it asked for before. Keep it only if you agree the requirement needs less evidence.</p>',
+        '<p class="empty">This change adds, rewrites or affects no requirement.</p>',
+        "",
+      ].join("\n"),
     );
   });
 
@@ -219,7 +257,7 @@ describe("requirement cards", () => {
     );
     const cards = html.split('<article class="card"');
     expect(cards[0]).toBe(
-      '<p class="meta">working tree · generated 2024-01-01T00:00:00Z</p>\n<h2>New (1)</h2>\n',
+      '<p class="meta">working tree · Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>\n<h2>New (1)</h2>\n',
     );
     expect(cards[1]).toContain(
       DL(
@@ -304,7 +342,7 @@ describe("question cards", () => {
     expect(html).toContain("<title>Kibi decisions to confirm</title>");
     expect(html).toContain("<h1>Decisions to confirm</h1>");
     expect(main(html).split("\n")).toEqual([
-      '<p class="meta">generated 2024-01-01T00:00:00Z</p>',
+      '<p class="meta">Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>',
       "<h2>Open (3)</h2>",
       '<article class="card" id="q1">',
       '<div class="card__head"><span class="num">1.</span><span class="title">Conflict with a recorded rule: New &lt;thing&gt;</span><span class="badge badge--firm">would be firm</span></div>',
@@ -348,14 +386,14 @@ describe("question cards", () => {
         "\n",
       ),
     ).toEqual([
-      '<p class="meta">generated 2024-01-01T00:00:00Z</p>',
+      '<p class="meta">Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>',
       "<h2>Open (0)</h2>",
       "<h2>Answered (1)</h2>",
       '<article class="card card--answered"><div class="card__head"><span class="num">1.</span><span class="title">New rule</span><span class="badge badge--answered">answered: no</span></div></article>',
       "",
     ]);
     expect(main(renderSignoffHtml(questions([])))).toBe(
-      '<p class="meta">generated 2024-01-01T00:00:00Z</p>\n<h2>Open (0)</h2>\n',
+      '<p class="meta">Kibi level: test (the default) · generated 2024-01-01T00:00:00Z</p>\n<h2>Open (0)</h2>\n',
     );
   });
 });

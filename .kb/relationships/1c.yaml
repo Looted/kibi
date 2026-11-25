@@ -301,6 +301,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-64ba5f4f2ab6
   - type: implements
+    from: SYM-guard-search-replace-edits
+    to: REQ-vibe-guarded-change-after-notice
+    created_at: 2026-11-25T14:07:22.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5181d1ecc6cf
+  - type: covered_by
+    from: SYM-guard-search-replace-edits
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:22.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80176c9d3957
+  - type: implements
     from: SYM-read-context-search-tool-read
     to: REQ-hook-search-rows
     created_at: 2026-11-25T14:28:09.286Z

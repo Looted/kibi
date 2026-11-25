@@ -560,6 +560,27 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-26b2b38f5da1
   - type: assumes
+    from: SCEN-NEG-kibi-signoff-level-c01-eq-false
+    to: FACT-NEG-kibi-signoff-level-c01-eq-false
+    created_at: 2026-11-25T13:45:10.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3c5d5da8ffc
+  - type: implements
+    from: SYM-collect-lowered-floor-decision
+    to: REQ-kibi-signoff-level
+    created_at: 2026-11-25T14:16:27.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78f5f29f6eb3
+  - type: covered_by
+    from: SYM-collect-lowered-floor-decision
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T14:16:27.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39348f700f48
+  - type: assumes
     from: SCEN-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
     to: FACT-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
     created_at: 2026-11-25T14:29:35.072Z

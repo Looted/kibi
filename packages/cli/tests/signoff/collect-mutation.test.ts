@@ -230,6 +230,8 @@ describe("collectSignoffSummary in a repository", () => {
       kind: "summary",
       scope: "working",
       generatedAt: "2026-10-22T09:00:00.000Z",
+      level: { level: "test", setting: "the default" },
+      decisions: [],
       branch: "main",
       requirements: [
         {
@@ -426,6 +428,134 @@ describe("collectSignoffSummary in a repository", () => {
   });
 });
 
+describe("signoff decisions only the person makes", () => {
+  const settings = (level?: string) =>
+    JSON.stringify(
+      level === undefined ? { name: "app" } : { name: "app", kibi: { level } },
+    );
+
+  test("shows the level, and lists a level change and each lowered floor", async () => {
+    const { root, git } = repo();
+    write(root, "package.json", settings());
+    writeReq(root, "REQ-low", "Low.", { required_evidence: "tested" });
+    writeReq(root, "REQ-firm", "Firm.");
+    writeReq(root, "REQ-up", "Up.", { required_evidence: "asserted" });
+    writeReq(root, "REQ-same", "Same.", { required_evidence: "tested" });
+    writeReq(root, "REQ-gone", "Gone.", { required_evidence: "tested" });
+    git("add", ".");
+    git("commit", "-qm", "base");
+    const unchanged = await collectSignoffSummary(root, "working", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(unchanged.level).toStrictEqual({
+      level: "test",
+      setting: "the default",
+    });
+    expect(unchanged.decisions).toStrictEqual([]);
+
+    write(root, "package.json", settings("remember"));
+    writeReq(root, "REQ-low", "Low.", { required_evidence: "asserted" });
+    // Leaving a firm requirement's floor to its firmness keeps it at tested;
+    // making it exploratory lowers it to unverified.
+    writeReq(root, "REQ-firm", "Firm.", { firmness: "exploratory" });
+    writeReq(root, "REQ-up", "Up.", { required_evidence: "proved" });
+    writeReq(root, "REQ-same", "Same again.", { required_evidence: "tested" });
+    writeReq(root, "REQ-gone", "Gone.", {
+      required_evidence: "unverified",
+      status: "deprecated",
+    });
+    const summary = await collectSignoffSummary(root, "working", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(summary.level).toStrictEqual({
+      level: "remember",
+      setting: "kibi.level in package.json",
+      previous: "test",
+    });
+    expect(summary.decisions).toStrictEqual([
+      {
+        kind: "level",
+        from: "test",
+        to: "remember",
+        setting: "kibi.level in package.json",
+      },
+      {
+        kind: "evidence",
+        requirementId: "REQ-firm",
+        title: "REQ-firm title",
+        from: "tested",
+        to: "unverified",
+      },
+      {
+        kind: "evidence",
+        requirementId: "REQ-low",
+        title: "REQ-low title",
+        from: "tested",
+        to: "asserted",
+      },
+    ]);
+
+    // The staged view reads the index: nothing is staged yet.
+    const staged = await collectSignoffSummary(root, "staged", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(staged.level).toStrictEqual({
+      level: "test",
+      setting: "the default",
+    });
+    expect(staged.decisions).toStrictEqual([]);
+  });
+
+  test("without a root package.json the level is read from .kb/setup.json", async () => {
+    const { root, git } = repo();
+    write(root, ".kb/setup.json", JSON.stringify({ level: "remember" }));
+    git("add", ".");
+    git("commit", "-qm", "base");
+    write(root, ".kb/setup.json", JSON.stringify({ level: "test" }));
+    git("add", ".");
+    const staged = await collectSignoffSummary(root, "staged", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(staged.level).toStrictEqual({
+      level: "test",
+      setting: "level in .kb/setup.json",
+      previous: "remember",
+    });
+    expect(staged.decisions).toStrictEqual([
+      {
+        kind: "level",
+        from: "remember",
+        to: "test",
+        setting: "level in .kb/setup.json",
+      },
+    ]);
+  });
+
+  test("a repository with no commit has nothing to compare", async () => {
+    const { root } = repo();
+    write(root, "package.json", settings("remember"));
+    const summary = await collectSignoffSummary(root, "working", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(summary.level).toStrictEqual({
+      level: "remember",
+      setting: "kibi.level in package.json",
+    });
+    expect(summary.decisions).toStrictEqual([]);
+    expect(
+      collectSignoffQuestions(root, [{ statement: "S" }], now).level,
+    ).toStrictEqual({
+      level: "remember",
+      setting: "kibi.level in package.json",
+    });
+  });
+});
+
 describe("collectSignoffSummary with a scripted git", () => {
   function scripted(
     responses: Record<string, string | Error>,
@@ -483,6 +613,8 @@ describe("collectSignoffSummary with a scripted git", () => {
     expect(summary.branch).toBe("feature");
     expect(calls).toStrictEqual([
       HEAD,
+      "show HEAD:package.json",
+      "show HEAD:.kb/setup.json",
       DIFF,
       UNTRACKED,
       "show HEAD:.kb/requirements/REQ-m.md",
@@ -532,6 +664,8 @@ describe("collectSignoffSummary with a scripted git", () => {
     expect("branch" in summary).toBe(false);
     expect(calls).toStrictEqual([
       HEAD,
+      "show HEAD:package.json",
+      "show HEAD:.kb/setup.json",
       DIFF,
       UNTRACKED,
       "show HEAD:.kb/requirements/REQ-missing.md",
@@ -570,6 +704,10 @@ describe("collectSignoffSummary with a scripted git", () => {
     ).toStrictEqual([["REQ-s", "changed", "New.", "Old."]]);
     expect(stagedCalls).toStrictEqual([
       HEAD,
+      "show :package.json",
+      "show :.kb/setup.json",
+      "show HEAD:package.json",
+      "show HEAD:.kb/setup.json",
       STAGED_DIFF,
       "show HEAD:.kb/requirements/REQ-s.md",
       "show :.kb/requirements/REQ-s.md",
@@ -598,6 +736,8 @@ describe("collectSignoffSummary with a scripted git", () => {
       kind: "summary",
       scope: "working",
       generatedAt: "2026-10-22T09:00:00.000Z",
+      level: { level: "test", setting: "the default" },
+      decisions: [],
       requirements: [],
       notes: [
         "Changed requirement documents could not be listed: unexpected git diff --name-status --no-renames 4b825dc642cb6eb9a060e54bf8d69288fbee4904 -- .kb/requirements",
@@ -890,6 +1030,7 @@ describe("collectSignoffQuestions", () => {
       version: "kibi.signoff.v1",
       kind: "questions",
       generatedAt: "2026-10-22T09:00:00.000Z",
+      level: { level: "test", setting: "the default" },
       questions: [
         {
           statement: "S1",

@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ed2d23c81cb
+  - type: implements
+    from: SYM-level-guard-guarded-change-after-notice
+    to: REQ-vibe-guarded-change-after-notice
+    created_at: 2026-11-25T14:07:27.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ff01c39188e
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-after-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:27.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b82837968e04

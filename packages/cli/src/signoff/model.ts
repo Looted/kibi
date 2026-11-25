@@ -105,12 +105,62 @@ export function firmEditReviewLabel(review: SignoffFirmEditReview): string {
   return `${review.symbol} in ${review.sourceFile}: the agent judged that the change ${verdict} (${review.note}); judged by the agent, not approved by you`;
 }
 
+/** The project's Kibi level, as the view shows it. */
+export type SignoffLevel = Readonly<{
+  /** remember or test. */
+  level: string;
+  /**
+   * Where it is recorded ("kibi.level in package.json" or "level in
+   * .kb/setup.json"), or "the default" when the project sets none.
+   */
+  setting: string;
+  /** The level at the base commit, when the reviewed change moves it. */
+  previous?: string;
+}>;
+
+/**
+ * A change in the reviewed range that only the person decides: a new Kibi
+ * level, or a requirement whose evidence floor is lower than it was.
+ */
+export type SignoffDecision =
+  | Readonly<{ kind: "level"; from: string; to: string; setting: string }>
+  | Readonly<{
+      kind: "evidence";
+      requirementId: string;
+      title: string;
+      from: string;
+      to: string;
+    }>;
+
+/** One line naming the project's level, and the level it moves from. */
+export function levelLabel(level: SignoffLevel): string {
+  const moved =
+    level.previous !== undefined && level.previous !== level.level
+      ? `, was ${level.previous}`
+      : "";
+  return `Kibi level: ${level.level} (${level.setting}${moved})`;
+}
+
+/** How a decision reads to the person signing off. */
+export function decisionLabel(decision: SignoffDecision): string {
+  if (decision.kind === "level")
+    return `The change moves the Kibi level from ${decision.from} to ${decision.to} (${decision.setting}). ${
+      decision.to === "remember"
+        ? "At remember, Kibi stops asking for the scenarios, tests and proofs that show each requirement holds."
+        : "At test, Kibi asks for the scenarios and linked tests that show each requirement holds, and blocks commits that leave them out."
+    } Keep it only if you chose this level.`;
+  return `The change lowers the evidence ${decision.requirementId} (${decision.title}) must reach from ${decision.from} to ${decision.to}, so kibi check stops asking for the evidence it asked for before. Keep it only if you agree the requirement needs less evidence.`;
+}
+
 export type SignoffSummary = Readonly<{
   version: typeof SIGNOFF_VERSION;
   kind: "summary";
   scope: "staged" | "working";
   generatedAt: string;
   branch?: string;
+  level: SignoffLevel;
+  /** Changes only the person decides, in the order the view lists them. */
+  decisions: readonly SignoffDecision[];
   requirements: readonly SignoffRequirement[];
   /** Parts of the view Kibi could not compute, in plain words. */
   notes: readonly string[];
@@ -148,6 +198,7 @@ export type SignoffQuestions = Readonly<{
   version: typeof SIGNOFF_VERSION;
   kind: "questions";
   generatedAt: string;
+  level: SignoffLevel;
   questions: readonly SignoffQuestion[];
   notes: readonly string[];
 }>;

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d15842d3449c
+  - type: assumes
+    from: SCEN-NEG-vibe-guarded-change-after-notice-c01-eq-false
+    to: FACT-NEG-vibe-guarded-change-after-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:55.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a14dd355ad6
