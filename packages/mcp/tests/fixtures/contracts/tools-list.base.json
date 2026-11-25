@@ -311,7 +311,7 @@
         "readOnlyHint": true,
         "title": "Search Kibi knowledge base"
       },
-      "description": "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+      "description": "Ask the KB a question or search it. Default intent-v1 ranking returns five one-line decision cards (requirements and ADRs, ranked by words and, with a search-hints plugin, by meaning), up to seven more decisions related by meaning, and an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer names no governing requirement and lists the words no card holds. Pass type to search scenarios, tests, facts or symbols. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -326,7 +326,7 @@
             "type": "string"
           },
           "hints": {
-            "description": "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
+            "description": "Intent-v1: true (default) fuses a search-hints plugin's meaning ranking and lists up to seven related decisions.",
             "type": "boolean"
           },
           "kb": {
@@ -337,13 +337,13 @@
             "type": "string"
           },
           "limit": {
-            "description": "Optional max rows after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
+            "description": "Optional max rows after ranking. Default: 5 decision cards, or 10 rows of another type; page with offset for more.",
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           },
           "minScore": {
-            "description": "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
+            "description": "Intent-v1 threshold, 0 to 1, for scenario, test, fact or symbol rows; low-confidence queries abstain.",
             "maximum": 1,
             "minimum": 0,
             "type": "number"
@@ -367,7 +367,7 @@
           },
           "semanticFacets": {
             "additionalProperties": false,
-            "description": "Optional host-agent interpretations Kibi uses as deterministic aliases and facets; ranking never calls a model.",
+            "description": "Optional host-agent interpretations Kibi adds to the question's words and uses as facets.",
             "properties": {
               "actions": {
                 "items": {

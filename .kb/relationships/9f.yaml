@@ -395,3 +395,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0c204c31f8b
+  - type: assumes
+    from: SCEN-NEG-search-decisions-are-the-unit-UNCREDITED
+    to: FACT-NEG-search-decisions-are-the-unit-UNCREDITED
+    created_at: 2026-11-25T20:04:36.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dd297b2e5ec
+  - type: verified_by
+    from: SCEN-NEG-search-decisions-are-the-unit-UNCREDITED
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T20:04:36.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-102dc7bdfeca

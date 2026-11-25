@@ -4,12 +4,6 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import {
-  type PluginProviderStamp,
-  SEARCH_HINTS_CAPABILITY_ID,
-  type SearchHintsV1,
-} from "kibi-plugin-sdk";
-
 import { renderDiscoveryTable } from "../src/commands/discovery-table.js";
 import {
   type IntentSearchMatch,
@@ -21,10 +15,8 @@ import {
   negativePathTitle,
   queryNegativePathFacts,
 } from "../src/negative-path-facts.js";
-import { NO_SEARCH_HINTS } from "../src/plugins/registry.js";
 import type { PrologQueryResult } from "../src/public/operations/runtime-types.js";
 import { buildSearchAnswer } from "../src/search-answer.js";
-import { buildSearchHints } from "../src/search-hints.js";
 
 const workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-negative-path-"));
 afterAll(() => rmSync(workspaceRoot, { recursive: true, force: true }));
@@ -243,104 +235,6 @@ describe("search ranks a negative-path fact below what it guards", () => {
     });
     expect(table).toContain("Forbidden:");
     expect(table?.match(/Forbidden:/g)).toHaveLength(1);
-  });
-});
-
-function stamp(): PluginProviderStamp {
-  return {
-    pluginId: "hints",
-    pluginVersion: "1.0.0",
-    capability: SEARCH_HINTS_CAPABILITY_ID,
-    mode: "replace",
-    external: true,
-    network: false,
-    metered: false,
-  };
-}
-
-function hintsResolution(capability: SearchHintsV1) {
-  const binding = (cap: SearchHintsV1) => ({
-    pluginId: "hints",
-    packageName: "kibi-plugin-hints",
-    stamp: stamp(),
-    capability: cap,
-  });
-  return {
-    builtin: binding(NO_SEARCH_HINTS),
-    replace: binding(capability),
-    augment: [],
-    shadow: [],
-  } as unknown as Parameters<typeof buildSearchHints>[0]["resolution"];
-}
-
-describe("search hints show a negative-path fact as what it guards", () => {
-  const UNGUARDED = {
-    id: "FACT-NEG-orphan",
-    type: "fact",
-    title: "A plan is printed without its actions",
-    status: "active",
-  };
-  const capability: SearchHintsV1 = {
-    id: "fake",
-    model: "fake-model",
-    hint: () => ({
-      hints: [
-        { id: NEG.id, score: 0.63 },
-        { id: UNGUARDED.id, score: 0.5 },
-      ],
-    }),
-  };
-
-  test("lifted to its requirement, or titled as forbidden when none is current", async () => {
-    const goals: string[] = [];
-    const prolog = {
-      async query(goal: string): Promise<PrologQueryResult> {
-        goals.push(goal);
-        if (goal.startsWith("kb_negative_path_facts("))
-          return {
-            success: true,
-            bindings: {
-              Rows: rowsBinding([
-                [NEG.id, [REQ.id]],
-                // A guard outside the current entities is never shown.
-                [UNGUARDED.id, ["REQ-gone"]],
-              ]),
-            },
-          };
-        return { success: true, bindings: { Edges: "[]" } };
-      },
-    };
-    const hints = await buildSearchHints({
-      query: "how does check print the migration plan as JSON",
-      analysis: {
-        rankingMode: "intent-v1",
-        candidateCount: 3,
-        acceptedCount: 1,
-        topScore: 0.3,
-        topTwoMargin: null,
-        topRivalMargin: null,
-        abstained: false,
-        ambiguous: false,
-      },
-      entities: [REQ, NEG, UNGUARDED],
-      bodies: new Map(),
-      governingIds: [],
-      resolution: hintsResolution(capability),
-      prolog,
-      workspaceRoot,
-    });
-    expect(hints?.items).toEqual([
-      { id: REQ.id, title: REQ.title, score: 0.63, via: NEG.id },
-      {
-        id: UNGUARDED.id,
-        title: `Forbidden: ${UNGUARDED.title}`,
-        score: 0.5,
-        negativePath: { polarity: "forbidden", guards: ["REQ-gone"] },
-      },
-    ]);
-    expect(goals[0]).toBe(
-      `kb_negative_path_facts(['${NEG.id}','${UNGUARDED.id}'], Rows)`,
-    );
   });
 });
 

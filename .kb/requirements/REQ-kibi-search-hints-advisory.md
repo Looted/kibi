@@ -1,6 +1,6 @@
 ---
 title: Search hints stay advisory and never cost the answer
-status: open
+status: closed
 semantic_text: Search hints must not change the ranked results, the answer layer or abstention. A search hints provider that fails, times out or returns an invalid result must give no hints and a diagnostic, and the search must still answer. Shadow search hints providers must be reported only as comparisons.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

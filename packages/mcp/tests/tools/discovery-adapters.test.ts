@@ -6,6 +6,7 @@ import "../helpers/ensure-test-branch.js";
 import { handleKbQuery } from "../../src/tools/query.js";
 import { handleKbSearch } from "../../src/tools/search.js";
 import { handleKbStatus } from "../../src/tools/status.js";
+import { resolveWorkspaceRoot } from "../../src/workspace.js";
 
 function createPort(query: PrologPort["query"]): PrologPort {
   return {
@@ -17,7 +18,8 @@ function createPort(query: PrologPort["query"]): PrologPort {
 
 function createContext(prolog: PrologPort) {
   return {
-    workspaceRoot: process.cwd(),
+    // The adapter's own default, so both read the same .kb files.
+    workspaceRoot: resolveWorkspaceRoot(),
     signal: new AbortController().signal,
     clock: () => new Date("2026-07-21T00:00:00Z"),
     prolog,

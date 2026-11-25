@@ -384,3 +384,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edf499599bc1
+  - type: assumes
+    from: SCEN-search-weak-answer
+    to: FACT-search-weak-answer-lists-uncovered-words
+    created_at: 2026-11-25T19:24:24.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2cac4e2dc7
+  - type: assumes
+    from: SCEN-search-weak-answer
+    to: FACT-search-weak-answer-never-says-nothing-governs
+    created_at: 2026-11-25T19:24:24.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0eae683f2a6
+  - type: verified_by
+    from: SCEN-search-weak-answer
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:11.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cadc6a88481
+  - type: assumes
+    from: SCEN-search-weak-answer
+    to: FACT-search-weak-answer-governs-only-when-covered
+    created_at: 2026-11-25T20:15:23.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de3fc7b4311d

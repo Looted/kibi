@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6b85de914fe
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-lists-related-decisions
+    created_at: 2026-11-25T19:24:20.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-933590b898e3
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-no-superseded-or-other-scope
+    created_at: 2026-11-25T19:24:20.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f63b1c41035
+  - type: verified_by
+    from: SCEN-search-meaning-list
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:28:23.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a23adc6f83f
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-credited-through-links
+    created_at: 2026-11-25T20:05:22.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1666a8cad9a

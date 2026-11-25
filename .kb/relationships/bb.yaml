@@ -580,3 +580,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1838ff08c09
+  - type: assumes
+    from: SCEN-NEG-search-weak-answer-NOTHING-GOVERNS
+    to: FACT-NEG-search-weak-answer-nothing-governs-SAID
+    created_at: 2026-11-25T19:25:01.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6957d5c2c5
+  - type: verified_by
+    from: SCEN-NEG-search-weak-answer-NOTHING-GOVERNS
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:13.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66f8ce5e93e4

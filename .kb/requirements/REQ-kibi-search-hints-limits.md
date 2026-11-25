@@ -1,6 +1,6 @@
 ---
 title: The search hints limits
-status: open
+status: closed
 priority: must
 firmness: firm
 semantic_text: The search hints weak top score shall be 0.44. The search hints host shall show at most 10 hints. A kibi.search-hints.v1 result shall hold at most 20 hints.

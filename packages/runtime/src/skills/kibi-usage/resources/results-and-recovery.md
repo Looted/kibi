@@ -15,12 +15,14 @@ question about why a rule is what it is from that requirement's `why`: quote
 its recorded text; a neighbouring requirement's reason is not this one's; when
 `why.recorded` is false, say no reason is recorded, do not supply one, and
 offer to record the person's. Pass `sourceLocations` before changing a source
-file, and `rankingMode: "legacy"` for literal identifier lookups. A weak
-answer may add `queryAnalysis.hints` (requirements the question may mean):
-re-ask in their words, never cite a hint as the rule. Without hints, an
-abstained or weak answer names the next call in `nextActions` (list the
-requirement titles, then search in the KB's own words): an abstention does not
-mean nothing is recorded. See
+file, and `rankingMode: "legacy"` for literal identifier lookups. The rows
+are five one-line decision cards; `queryAnalysis.hints.items` adds up to seven
+decisions related by meaning: read one with `kb_query` before relying on it,
+never cite it as the rule. A weak answer (`queryAnalysis.weak`) names no
+governing requirement and lists the words no card holds in
+`queryAnalysis.uncoveredTerms`; without related decisions it names the next
+call in `nextActions` (list the requirement titles, then search in the KB's own
+words): a missing match does not mean nothing is recorded. See
 `resources/workflows.md` for the mode recipe.
 
 ## Typed results and recovery
