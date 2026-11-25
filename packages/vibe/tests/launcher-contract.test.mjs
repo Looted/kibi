@@ -302,7 +302,7 @@ test(
 );
 
 test(
-  "post_tool hook lists the entities linked to a file named by a relative path",
+  "post_tool hook lists the entities linked to an edited file named by a relative path",
   {
     timeout: 240_000,
     skip: !workspaceReady && "project-local kibi-mcp not built",
@@ -314,7 +314,7 @@ test(
       hook_event_name: "post_tool",
       session_id: "contract-test",
       cwd: REPO_ROOT,
-      tool_name: "file_system.read_file",
+      tool_name: "file_system.write_file",
       tool_call_id: "contract-1",
       tool_input: { path: "packages/vibe/bin/kibi-runtime.mjs" },
       tool_status: "success",

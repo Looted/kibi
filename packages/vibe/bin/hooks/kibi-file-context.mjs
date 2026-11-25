@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// post_tool hook (read_file/edit/write_file): after a file is read or written,
-// append the Kibi entities linked to that source file, so the model sees which
-// requirement a file implements and what must stay true.
+// post_tool hook. After read_file, grep or bash: the requirement rows for the
+// code the call put in view, each requirement once per session (the shared
+// read-context composer). After an edit: the firm-requirement notice and the
+// Kibi entities linked to the edited file, so the model sees which
+// requirement it implements and what must stay true.
 // Payload: { hook_event_name: "post_tool", tool_name, tool_input, tool_status, cwd, ... }
 import {
   clip,
@@ -14,15 +16,28 @@ import {
   runKibi,
   toRepoRelative,
 } from "./kibi-common.mjs";
-import { postEditNote } from "./kibi-guard.mjs";
+import { isReadTool, postEditNote, readRowsNote } from "./kibi-guard.mjs";
 
 try {
   const payload = await readStdinJson();
   if (payload?.tool_status !== "success") process.exit(0);
+  const workspace = resolveHookWorkspace(payload);
+  if (isReadTool(payload?.tool_name)) {
+    emitAdditionalContext(
+      joinParts([guardNote(readRowsNote, workspace, payload)]),
+    );
+  } else {
+    await editContext(payload, workspace);
+  }
+} catch {
+  // fail-open
+}
+process.exitCode = 0;
+
+async function editContext(payload, workspace) {
   const input = payload?.tool_input ?? {};
   const file =
     input.file_path ?? input.path ?? input.new_path ?? input.newFilePath;
-  const workspace = resolveHookWorkspace(payload);
   // After an edit: the firm-requirement notice and the rule-capture
   // template, ahead of the linked entities. The guard reads the edit's own
   // paths, so it runs before (and independently of) the entity lookup.
@@ -49,7 +64,4 @@ try {
         : `Kibi entities linked to ${rel}:\n${lines.join("\n")}`,
     ]),
   );
-} catch {
-  // fail-open
 }
-process.exitCode = 0;

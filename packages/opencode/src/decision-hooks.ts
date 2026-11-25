@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
+import {
+  type ShellRead,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
 import {
   type DecisionSession,
   captureReminder,
@@ -32,9 +36,15 @@ import {
 import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
 import {
   canonicalizeWorkspacePath,
+  classifyPath,
   extractEditedPaths,
   isSourceImpactRelevantPath,
 } from "kibi-agent-core/path-policy";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import { createEntitySummarizer, editFocus } from "kibi-agent-core/snippets";
 
 import { kibiToolName } from "./smart-enforcement-events.js";
@@ -136,6 +146,61 @@ function editedRelativePaths(
   ];
 }
 
+/** OpenCode's read tool reads 2000 lines from its offset unless limited. */
+const READ_TOOL_LINES = 2000;
+
+/**
+ * What a read, grep or bash call puts in view: the read tool's file and
+ * window, a grep's pattern over its path (limited by its include glob), a
+ * command's files and searches. Glob lists names only and shows nothing.
+ */
+export function toolReads(
+  workspaceRoot: string,
+  tool: string,
+  args: unknown,
+): { reads: ShellRead[]; admits?: (relativePath: string) => boolean } {
+  const fields = (
+    args !== null && typeof args === "object" ? args : {}
+  ) as Record<string, unknown>;
+  if (tool === "read") {
+    if (typeof fields.filePath !== "string") return { reads: [] };
+    const offset =
+      typeof fields.offset === "number" ? fields.offset : undefined;
+    const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+    const start = Math.max(1, offset ?? 1);
+    const focus =
+      offset === undefined && limit === undefined
+        ? undefined
+        : [{ start, end: start + (limit ?? READ_TOOL_LINES) - 1 }];
+    return {
+      reads: [
+        {
+          absolute: path.resolve(workspaceRoot, fields.filePath),
+          directory: false,
+          ...(focus ? { focus } : {}),
+        },
+      ],
+    };
+  }
+  if (tool === "grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd: workspaceRoot,
+    });
+    const include =
+      typeof fields.include === "string" ? fields.include : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...(include ? { admits: globFilter(include) } : {}),
+    };
+  }
+  if (tool === "bash") {
+    return { reads: shellToolReadViews("Bash", args, workspaceRoot) };
+  }
+  return { reads: [] };
+}
+
 export function createDecisionHooks(
   options: DecisionHookOptions,
 ): DecisionHooks {
@@ -153,6 +218,34 @@ export function createDecisionHooks(
       startDecisionSession(session, "startup");
     }
     return session;
+  };
+
+  /**
+   * Requirement rows for the code a read, grep or bash call puts in view
+   * (see kibi-agent-core/read-context), each requirement once per session.
+   */
+  const readRows = (
+    tool: string,
+    sessionId: string | undefined,
+    args: unknown,
+  ): string | undefined => {
+    try {
+      const { reads, admits } = toolReads(workspaceRoot, tool, args);
+      if (reads.length === 0) return undefined;
+      return hookReadRows(reads, {
+        workspaceRoot,
+        files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+        isSource: (relativePath) => classifyPath(relativePath) === "source",
+        admits,
+        summarize: createEntitySummarizer(workspaceRoot),
+        stateDir,
+        sessionKey: sessionId ?? "",
+      })?.text;
+    } catch {
+      // Requirement context is advisory; an unreadable manifest or file
+      // leaves the tool's output as it is.
+      return undefined;
+    }
   };
 
   return {
@@ -229,6 +322,7 @@ export function createDecisionHooks(
       const parts = [
         takeRuleNote(session),
         editedSource ? claimRuleCaptureTemplate(session) : undefined,
+        readRows(tool, sessionId, args),
       ].filter((part): part is string => part !== undefined);
       return parts.length > 0 ? parts.join("\n\n") : undefined;
     },

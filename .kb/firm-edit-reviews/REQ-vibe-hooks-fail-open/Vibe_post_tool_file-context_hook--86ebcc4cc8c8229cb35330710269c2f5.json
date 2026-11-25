@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/hooks/kibi-file-context.mjs",
   "symbol": "Vibe post_tool file-context hook",
   "verdict": "keeps",
-  "note": "Hooks still anchor at the workspace root resolved from the payload cwd, and relative tool paths now resolve against that cwd; every failure path still exits 0, and the failing kibi call's stderr is dropped, so a hook prints nothing on error or outside a Kibi workspace (hooks.test.mjs, launcher-contract.test.mjs).",
+  "note": "The read path resolves the workspace from the payload cwd, runs only in a Kibi workspace through guardNote, and stays inside the outer try, so any error exits 0 with no output.",
   "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
-  "codeHash": "sha256:a8f5dad6bd0f310baa8e440db4279b432bd5e7330952c5361a05c852f12df5a3",
+  "codeHash": "sha256:fcdbd7eead5569999f337aeace2caac14eefa5c0d44551a06ed32034ed454067",
   "startLine": 1,
-  "endLine": 56,
-  "recordedAt": "2026-11-24T10:06:23.889Z"
+  "endLine": 68,
+  "recordedAt": "2026-11-25T14:41:33.676Z"
 }

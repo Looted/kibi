@@ -482,3 +482,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-227306a8c550
+  - type: constrains
+    from: REQ-hook-search-rows
+    to: FACT-SUBJECT-kibi-host-read-rows
+    created_at: 2026-11-25T14:28:07.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09861ce2f317
+  - type: requires_property
+    from: REQ-hook-search-rows
+    to: FACT-hook-search-rows
+    created_at: 2026-11-25T14:28:07.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21090f876697
+  - type: specified_by
+    from: REQ-hook-search-rows
+    to: SCEN-hook-search-rows
+    created_at: 2026-11-25T14:28:07.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30a0e5129e69
+  - type: specified_by
+    from: REQ-hook-search-rows
+    to: SCEN-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    created_at: 2026-11-25T14:28:07.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c401fd07555d

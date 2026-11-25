@@ -349,6 +349,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c924c71b7c93
+  - type: assumes
+    from: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    to: FACT-NEG-hook-read-rows-in-view-NO-ROW
+    created_at: 2026-11-25T14:26:52.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54cf87e62721
+  - type: verified_by
+    from: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:26:52.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6240100215d6
   - type: implements
     from: SYM-cli-rule-registry-getRuleEnforcementClass
     to: REQ-kibi-check-rule-selection-by-level
