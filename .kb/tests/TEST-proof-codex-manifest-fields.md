@@ -22,11 +22,11 @@ proof_contract:
   kind: source
   source:
     reader: json
-    file: packages/codex/.codex-plugin/plugin.json
-    path: ''
+    file: packages/codex/plugin.json
+    path: /extensions/com.openai
     select: keys
   proves:
-    - CLAIM-AEF7587DBC190FD1
+    - CLAIM-FE9E314873A11112
 proof_receipts:
   - version: kibi.proof-receipt.v2
     receipt_id: PR-99a46345223d7a7f74ee16cb

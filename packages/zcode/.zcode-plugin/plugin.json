@@ -5,7 +5,10 @@
   "author": {
     "name": "Piotr Franczyk"
   },
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": "https://github.com/Looted/kibi",
   "license": "AGPL-3.0-or-later",
+  "keywords": ["kibi", "mcp", "requirements", "traceability", "knowledge-base"],
   "skills": "skills",
   "commands": "commands",
   "mcpServers": {

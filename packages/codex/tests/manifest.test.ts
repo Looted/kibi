@@ -31,12 +31,13 @@ const packageRoot = (() => {
   return process.cwd();
 })();
 const packageJsonPath = path.join(packageRoot, "package.json");
-const manifestPath = path.join(packageRoot, ".codex-plugin", "plugin.json");
+const manifestPath = path.join(packageRoot, "plugin.json");
 const scriptPath = path.join(packageRoot, "scripts", "copy-plugin-assets.ts");
 const hookBundlePath = path.join(packageRoot, "bin", "hook-runner.mjs");
 
 const manifestAssets = [
-  path.join(".codex-plugin", "plugin.json"),
+  "plugin.json",
+  "assets",
   path.join("hooks", "hooks.json"),
   "skills",
   ".mcp.json",
@@ -51,20 +52,54 @@ describe("kibi-codex plugin manifest", () => {
 
     const manifestRaw = fs.readFileSync(manifestPath, "utf8");
     const manifest = JSON.parse(manifestRaw) as {
+      $schema?: string;
       name?: string;
       version?: string;
       description?: string;
-      skills?: string;
-      hooks?: string;
-      mcpServers?: string;
+      extensions?: {
+        "com.openai"?: {
+          hooks?: string;
+          mcpServers?: string;
+          interface?: {
+            displayName?: string;
+            shortDescription?: string;
+            defaultPrompt?: string[];
+            composerIcon?: string;
+            logo?: string;
+            brandColor?: string;
+          };
+        };
+      };
     };
 
+    expect(manifest.$schema).toBe(
+      "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    );
     expect(manifest.name).toBe("kibi-codex");
     expect(manifest.version).toBe(packageJson.version);
     expect(manifest.description).toEqual(expect.stringContaining("Kibi"));
-    expect(manifest.skills).toBe("./skills/");
-    expect(manifest.hooks).toBe("./hooks/hooks.json");
-    expect(manifest.mcpServers).toBe("./.mcp.json");
+
+    const openai = manifest.extensions?.["com.openai"];
+    expect(openai?.hooks).toBe("./hooks/hooks.json");
+    expect(openai?.mcpServers).toBe("./.mcp.json");
+
+    const ui = openai?.interface;
+    expect(ui?.displayName).toBe("Kibi");
+    expect((ui?.displayName ?? "").length).toBeLessThanOrEqual(30);
+    expect((ui?.shortDescription ?? "").length).toBeGreaterThan(0);
+    expect((ui?.shortDescription ?? "").length).toBeLessThanOrEqual(30);
+    expect(ui?.defaultPrompt?.length).toBeLessThanOrEqual(3);
+    for (const prompt of ui?.defaultPrompt ?? []) {
+      expect(prompt.length).toBeLessThanOrEqual(128);
+    }
+    expect(ui?.logo).toBe("./assets/logo.png");
+    expect(ui?.composerIcon).toBe("./assets/composer-icon.svg");
+    expect(fs.existsSync(path.join(packageRoot, "assets", "logo.png"))).toBe(
+      true,
+    );
+    expect(
+      fs.existsSync(path.join(packageRoot, "assets", "composer-icon.svg")),
+    ).toBe(true);
   });
 
   test("manifests references existing source assets", () => {

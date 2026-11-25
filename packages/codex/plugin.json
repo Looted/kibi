@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kibi-codex",
+  "version": "2.14.0",
+  "description": "Kibi Codex plugin manifest for integrating the Kibi MCP into Codex workflows.",
+  "author": {
+    "name": "Piotr Franczyk"
+  },
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": "https://github.com/Looted/kibi",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["kibi", "mcp", "requirements", "traceability", "knowledge-base"],
+  "extensions": {
+    "com.openai": {
+      "mcpServers": "./.mcp.json",
+      "hooks": "./hooks/hooks.json",
+      "interface": {
+        "displayName": "Kibi",
+        "shortDescription": "Requirements compiler for AI",
+        "longDescription": "Agent-native requirements compiler and enforcement layer: progressive-disclosure requirement snippets, firm-edit notices, decision capture, signoff reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server.",
+        "developerName": "Piotr Franczyk",
+        "category": "Developer Tools",
+        "websiteURL": "https://looted.github.io/kibi/",
+        "defaultPrompt": [
+          "Search Kibi for requirements governing this area before we edit code",
+          "Check KB impact and symbol traceability for my current changes",
+          "Show the Kibi requirements signoff view for this branch"
+        ],
+        "composerIcon": "./assets/composer-icon.svg",
+        "logo": "./assets/logo.png",
+        "brandColor": "#1D1E23"
+      }
+    }
+  }
+}

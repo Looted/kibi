@@ -614,7 +614,8 @@ developing/testing.
 
 The installed plugin package contributes:
 
-- `.codex-plugin/plugin.json` manifest
+- `plugin.json` manifest (Agent Plugins 1.0 with `extensions["com.openai"]`)
+- `assets/` Kibi logo and composer icon assets
 - `.mcp.json` MCP config with the inline workspace-opt-in launcher
 - `hooks/hooks.json` lifecycle hooks
 - `skills/*/SKILL.md` Kibi workflow guidance

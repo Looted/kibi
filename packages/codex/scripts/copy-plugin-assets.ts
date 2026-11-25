@@ -7,7 +7,7 @@ const packageRoot = path.resolve(
   "..",
 );
 const distRoot = path.join(packageRoot, "dist");
-const pluginAssets = [".codex-plugin", "hooks", "skills", ".mcp.json"];
+const pluginAssets = ["plugin.json", "assets", "hooks", "skills", ".mcp.json"];
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
