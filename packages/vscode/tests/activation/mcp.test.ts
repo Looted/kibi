@@ -19,6 +19,9 @@ let mockExecSync: ReturnType<
 >;
 let mockDeps: McpDeps;
 
+const configChangeListeners: Array<
+  (event: { affectsConfiguration: (section: string) => boolean }) => void
+> = [];
 const workspaceApi = {
   getConfiguration: mock((_section?: string) => ({
     get: <T>(key: string, defaultValue?: T) => {
@@ -26,6 +29,16 @@ const workspaceApi = {
       return defaultValue as T;
     },
   })),
+  onDidChangeConfiguration: mock(
+    (
+      listener: (event: {
+        affectsConfiguration: (section: string) => boolean;
+      }) => void,
+    ) => {
+      configChangeListeners.push(listener);
+      return { dispose() {} };
+    },
+  ),
 };
 
 const windowApi = {
@@ -38,16 +51,48 @@ const commandsApi = {
   executeCommand,
 };
 
+const registerMcpProviderCalls: Array<{
+  id: string;
+  provider: {
+    onDidChangeMcpServerDefinitions?: (listener: () => void) => void;
+    provideMcpServerDefinitions: () => Array<{
+      label: string;
+      command: string;
+      args?: string[];
+      env?: Record<string, string | number | null>;
+      cwd?: { fsPath: string };
+    }>;
+  };
+}> = [];
+const registerMcpServerDefinitionProviderMock = mock(
+  (
+    id: string,
+    provider: (typeof registerMcpProviderCalls)[number]["provider"],
+  ): DisposableLike => {
+    registerMcpProviderCalls.push({ id, provider });
+    return { dispose() {} };
+  },
+);
+const lmApi: {
+  registerMcpServerDefinitionProvider?: typeof registerMcpServerDefinitionProviderMock;
+} = {
+  registerMcpServerDefinitionProvider: registerMcpServerDefinitionProviderMock,
+};
+
 resetVscodeMock({
   workspace: workspaceApi,
   window: windowApi,
   commands: commandsApi,
+  lm: lmApi,
 });
 
 mock.module("vscode", () => getVscodeMockModule());
-const { findKibiMcpInPath, validateMcpServerPath } = await import(
-  "../../src/activation/mcp"
-);
+const {
+  findKibiMcpInPath,
+  registerMcpServerProvider,
+  resolveKibiMcpServerCommand,
+  validateMcpServerPath,
+} = await import("../../src/activation/mcp");
 
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };
 
@@ -66,6 +111,12 @@ beforeEach(() => {
       )) as McpDeps["execSync"],
   };
   workspaceApi.getConfiguration.mockClear();
+  workspaceApi.onDidChangeConfiguration.mockClear();
+  configChangeListeners.length = 0;
+  registerMcpProviderCalls.length = 0;
+  registerMcpServerDefinitionProviderMock.mockClear();
+  lmApi.registerMcpServerDefinitionProvider =
+    registerMcpServerDefinitionProviderMock;
   showWarningMessage.mockClear();
   showErrorMessage.mockClear();
   commandsApi.registerCommand.mockClear();
@@ -74,6 +125,7 @@ beforeEach(() => {
     workspace: workspaceApi,
     window: windowApi,
     commands: commandsApi,
+    lm: lmApi,
   });
 });
 
@@ -256,5 +308,103 @@ test("validateMcpServerPath: Open Settings error selection executes command", as
   expect(executeCommand).toHaveBeenCalledWith(
     "workbench.action.openSettings",
     "kibi.mcp.serverPath",
+  );
+});
+
+test("resolveKibiMcpServerCommand: prefers explicit serverPath, then project-local bin, then PATH", () => {
+  const ws = "/repo";
+  mockServerPath = "/custom/kibi-mcp.mjs";
+  mockExistsSync = mock((targetPath: string) => targetPath === mockServerPath);
+  expect(resolveKibiMcpServerCommand(ws, mockDeps)).toEqual({
+    command: "node",
+    args: ["/custom/kibi-mcp.mjs"],
+  });
+
+  mockServerPath = "";
+  const localBin = "/repo/node_modules/.bin/kibi-mcp";
+  mockExistsSync = mock((targetPath: string) => targetPath === localBin);
+  expect(
+    resolveKibiMcpServerCommand(ws, { ...mockDeps, platform: "linux" }),
+  ).toEqual({
+    command: localBin,
+    args: [],
+  });
+
+  mockExistsSync = mock(
+    (targetPath: string) => targetPath === "/usr/local/bin/kibi-mcp",
+  );
+  mockExecSync = mock(() => "/usr/local/bin/kibi-mcp\n");
+  expect(
+    resolveKibiMcpServerCommand(ws, { ...mockDeps, platform: "linux" }),
+  ).toEqual({
+    command: "/usr/local/bin/kibi-mcp",
+    args: [],
+  });
+});
+
+test("registerMcpServerProvider: registers provider, gates on .kb/manifest.json, and fires on config change", () => {
+  const ws = "/repo";
+  const localBin = "/repo/node_modules/.bin/kibi-mcp";
+  let hasManifest = true;
+  mockExistsSync = mock(
+    (targetPath: string) =>
+      (hasManifest && targetPath === "/repo/.kb/manifest.json") ||
+      targetPath === localBin,
+  );
+
+  const disposable = registerMcpServerProvider(output as never, ws, {
+    ...mockDeps,
+    platform: "linux",
+  });
+  expect(disposable).toBeDefined();
+
+  expect(registerMcpProviderCalls).toHaveLength(1);
+  expect(registerMcpProviderCalls[0]?.id).toBe("kibi.mcpProvider");
+
+  const provider = registerMcpProviderCalls[0]?.provider;
+  const defs = provider?.provideMcpServerDefinitions() ?? [];
+  expect(defs).toHaveLength(1);
+  expect(defs[0]?.label).toBe("Kibi");
+  expect(defs[0]?.command).toBe(localBin);
+  expect(defs[0]?.env).toEqual({
+    KIBI_WORKSPACE: ws,
+    KIBI_MCP_HOST: "vscode",
+  });
+  expect(defs[0]?.cwd?.fsPath).toBe(ws);
+
+  // Silent outside Kibi workspaces (no .kb/manifest.json)
+  hasManifest = false;
+  expect(provider?.provideMcpServerDefinitions()).toEqual([]);
+
+  // Fires onDidChangeMcpServerDefinitions when kibi.mcp.serverPath changes
+  let changeEvents = 0;
+  provider?.onDidChangeMcpServerDefinitions?.(() => {
+    changeEvents += 1;
+  });
+  for (const listener of configChangeListeners) {
+    listener({
+      affectsConfiguration: (section: string) => section === "other.setting",
+    });
+  }
+  expect(changeEvents).toBe(0);
+  for (const listener of configChangeListeners) {
+    listener({
+      affectsConfiguration: (section: string) =>
+        section === "kibi.mcp.serverPath",
+    });
+  }
+  expect(changeEvents).toBe(1);
+
+  disposable?.dispose();
+});
+
+test("registerMcpServerProvider: skips gracefully when vscode.lm API is unavailable", () => {
+  const disposable = registerMcpServerProvider(output as never, "/repo", {
+    ...mockDeps,
+    vscodeApi: {},
+  });
+  expect(disposable).toBeUndefined();
+  expect(output.appendLine).toHaveBeenCalledWith(
+    expect.stringContaining("unavailable"),
   );
 });

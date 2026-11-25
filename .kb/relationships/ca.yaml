@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6b85de914fe
+  - type: specified_by
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:53:27.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-809d78dd7946
+  - type: constrains
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: FACT-SUBJ-vscode-mcp-provider
+    created_at: 2026-11-25T14:56:01.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5670b321bbdd
+  - type: requires_property
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: FACT-vscode-mcp-provider-registration
+    created_at: 2026-11-25T14:58:57.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b84e049c34
+  - type: specified_by
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp-reject
+    created_at: 2026-11-25T15:00:47.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69319b689d94

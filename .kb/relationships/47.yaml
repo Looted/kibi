@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c772dcb408cd
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp-reject
+    to: FACT-assume-vscode-mcp-non-provider
+    created_at: 2026-11-25T15:00:44.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-125770a38d16
