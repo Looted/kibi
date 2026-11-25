@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-590cbe975b63
+  - type: assumes
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-QUOTED-RESULT-WITH-SNIPPET
+    to: FACT-CASE-kb-search-answered-results-identity-only-SEARCH-QUOTED-RESULT-WITH-SNIPPET
+    created_at: 2026-11-24T19:26:38.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07c83f0166f2
+  - type: verified_by
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-QUOTED-RESULT-WITH-SNIPPET
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:26:38.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cefea4c0b8b

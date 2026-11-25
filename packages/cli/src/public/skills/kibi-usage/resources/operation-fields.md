@@ -27,7 +27,7 @@ Generated from the public `OperationSpec` catalog by `scripts/generate-operation
 - `answer`: Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.
 - `hints`: Intent-v1 only, first page only. When true (default), a weak or abstained answer adds queryAnalysis.hints from the bundled kibi-plugin-search-hints (or the kibi.search-hints.v1 provider the project configured): requirements the question may mean, to re-ask with. A project that lists kibi-plugin-search-hints in kibi.declinedPlugins gets none. Hints never change results or the answer layer.
 - `semanticFacets`: Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.
-- `fields`: Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.
+- `fields`: Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery; a result whose entity the answer already quotes (a requirement with its whole statement, a fact with its claim) gives only its id, type, title, score and reasons. Use 'full' to include complete entity bodies for every result, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.
 
 ## `kb_status` (`kibi status`)
 
