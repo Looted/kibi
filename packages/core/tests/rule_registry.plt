@@ -45,6 +45,18 @@ test(implementations_follow_the_schema) :-
     findall(Name-Impl, rule_implementation(Name, Impl), Actual),
     Actual == Expected.
 
+test(layers_follow_the_schema) :-
+    schema_rules(Rules),
+    rule_pairs(layer, Rules, Expected),
+    findall(Name-Layer, rule_layer(Name, Layer), Actual),
+    Actual == Expected.
+
+test(verification_layer_holds_the_proof_rules) :-
+    findall(Name, rule_layer(Name, verification), Names0),
+    msort(Names0, Names),
+    Names == ['evidence-floor', 'must-positive-scenario', 'must-priority-coverage',
+              'proof-contract-claims', 'proof-contract-symbols', 'symbol-coverage'].
+
 test(prolog_predicates_follow_the_schema) :-
     schema_rules(Rules),
     prolog_rules(Rules, PrologRules),

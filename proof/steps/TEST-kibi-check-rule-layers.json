@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-check-rule-layers",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/utils/rule-layers.test.ts"
+    ]
+  ]
+}

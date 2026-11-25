@@ -12,6 +12,7 @@
     coverage_evidence_json/7,
     evidence_floor_json/6,
     evidence_floor_json/7,
+    unapproved_implemented_json/2,
     requirement_proof_json/5,
     requirement_proof_json/7,
     symbol_proof_json/7,
@@ -34,7 +35,7 @@
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
-:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, requirement_review_row/4, test_receipt_evidence/4]).
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, unapproved_implemented_row/3, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
 :- use_module('logic_ir.pl', [logic_rule_conflict/4]).
 :- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1, entity_source_file_missing/2]).
@@ -425,9 +426,22 @@ evidence_floor_json(Scope, BindingMode, TestBindings, VerificationSnapshot, Chec
         Rows0),
     sort(id, @<, Rows0, Rows),
     length(Evaluated, Count),
-    review_rows(unapproved_implemented, Evaluated, Unapproved),
-    dict_json_string(_{evaluated: Count, rows: Rows,
-                       unapprovedImplemented: Unapproved}, JsonString).
+    dict_json_string(_{evaluated: Count, rows: Rows}, JsonString).
+
+% The current must requirements of Scope (all, or ids(Ids)) that an agent
+% wrote, no person approved and production symbols implement, for the
+% agent-requirement-unapproved-implemented rule.  Read from the KB alone:
+% no requirement proof is evaluated, so the rule runs without the
+% verification layer.
+unapproved_implemented_json(Scope, JsonString) :-
+    findall(Row,
+        (   evidence_floor_requirement(Scope, Id, Props),
+            unapproved_implemented_row(Id, Props, Row0),
+            Row = Row0.put(id, Id)
+        ),
+        Rows0),
+    sort(id, @<, Rows0, Rows),
+    dict_json_string(_{rows: Rows}, JsonString).
 
 evidence_floor_requirement(all, Id, Props) :-
     kb_entity(Id, req, Props).
@@ -435,18 +449,6 @@ evidence_floor_requirement(ids(Ids), Id, Props) :-
     sort(Ids, Unique),
     member(Id, Unique),
     kb_entity(Id, req, Props).
-
-% The rows of one requirement review kind (see requirement_review_row/4),
-% each tagged with its requirement id and sorted by it.
-review_rows(Kind, Evaluated, Rows) :-
-    findall(Row,
-        (   member(Id-Proof, Evaluated),
-            kb_entity(Id, req, Props),
-            requirement_review_row(Kind, Props, Proof, Row0),
-            Row = Row0.put(id, Id)
-        ),
-        Rows0),
-    sort(id, @<, Rows0, Rows).
 
 % The entities behind an evidence-floor row's gaps, so a person sees what to
 % fix without one kibi proof explain per requirement: the tests whose
