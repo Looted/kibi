@@ -1847,6 +1847,27 @@ describe("Cursor Kibi level and required evidence notices", () => {
     return { cwd, pluginData };
   }
 
+  test("an apply_patch that lowers a floor gets the notice too", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          patch:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-floor.md\n-required_evidence: tested\n+required_evidence: asserted\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(result.permission).toBeUndefined();
+    expect(result.agent_message).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
   test("a write that changes the level tells the agent to ask, with no permission", async () => {
     const { cwd, pluginData } = guardedWorkspace();
     const result = await runHook(

@@ -665,9 +665,9 @@ describe("engine socket auto-reclaim and drain guards", () => {
         timeout: 2_000,
       });
       const reclaimStarted = performance.now();
-      expect(
-        await nonLease.stopOrReclaim({ holdsPublicationLease: false }),
-      ).toBe(false);
+      expect(await nonLease.stopOrReclaim({ holdsPublicationLease: false })).toBe(
+        false,
+      );
       expect(performance.now() - reclaimStarted).toBeGreaterThanOrEqual(4_900);
       expect(existsSync(pid2)).toBe(false);
 

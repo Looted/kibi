@@ -971,9 +971,7 @@ function broadRationaleRankScores(
   const scores = new Map<IntentSearchMatch, number>(baseScores);
   for (const match of ranked) {
     if (String(match.entity.type ?? "") !== "adr") continue;
-    const status = String(match.entity.status ?? "")
-      .trim()
-      .toLowerCase();
+    const status = String(match.entity.status ?? "").trim().toLowerCase();
     if (
       NON_GOVERNING_STATUSES.has(status) ||
       match.reasons.includes("demoted: superseded")

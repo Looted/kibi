@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { MAX_NAMING_BINDING_WORDS } from "../../../src/operations/modeling/predicate-bindings.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { MAX_NAMING_BINDING_WORDS } from "../../../src/operations/modeling/predicate-bindings.js";
 
 /**
  * The longest participant value predicate modeling keeps bound. Kibi reads

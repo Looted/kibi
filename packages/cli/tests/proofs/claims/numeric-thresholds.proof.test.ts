@@ -5,8 +5,8 @@ import {
   WEAK_CANDIDATE_MARGIN,
 } from "../../../src/operations/modeling/predicate-applicability.js";
 import {
-  type CodeCertificate,
   arithmeticCertificate,
+  type CodeCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 

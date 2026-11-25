@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  CLAIM_BINDING_SCHEMA_VERSION,
-  PROOF_CONTRACT_CLAIMS_RULE,
-} from "../../../src/public/operations/proof-contract-claims.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
@@ -11,6 +7,10 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 import { PROOF_RECEIPT_OUTCOMES } from "../../../src/public/proof-receipt.js";
+import {
+  CLAIM_BINDING_SCHEMA_VERSION,
+  PROOF_CONTRACT_CLAIMS_RULE,
+} from "../../../src/public/operations/proof-contract-claims.js";
 
 /**
  * The receipt outcomes, schema version and check rule of claim-bound proofs. Kibi

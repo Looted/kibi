@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { EVIDENCE_LEVELS } from "../../../src/public/evidence-levels.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { EVIDENCE_LEVELS } from "../../../src/public/evidence-levels.js";
 
 /**
  * The evidence levels Kibi reports. Kibi reads EVIDENCE_LEVELS itself at ingest

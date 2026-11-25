@@ -57,8 +57,13 @@ a separate one.
 
 ## Summary contents
 
+Both views name the project's Kibi level under the heading (`Kibi level:
+test (the default)`), and the summary says the level it moves from when the
+change sets another one.
+
 | Section | Meaning |
 | --- | --- |
+| Decisions only you make | A change of the Kibi level, and each requirement whose evidence floor the change lowers. Only the person keeps these: ask them, and undo the change unless they agree |
 | New | Requirement documents the change adds |
 | Changed | Rewritten requirements; a changed statement shows before and after |
 | Affected by the code change | Unchanged requirements whose implementing code changed (the `requirement_statement_unverified` set) |

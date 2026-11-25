@@ -3144,7 +3144,9 @@ describe("engine lifecycle", () => {
     createDeadUnixSocket(socketPath);
     const daemon = await startDaemon(undefined, { workspace });
     await settled(daemon);
-    expect(result(await daemon.request({ method: "handshake" }))).toBeDefined();
+    expect(
+      result(await daemon.request({ method: "handshake" })),
+    ).toBeDefined();
     await daemon.stop();
     mock.restore();
 

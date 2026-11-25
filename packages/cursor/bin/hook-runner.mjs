@@ -565,10 +565,33 @@ function extractExplicitPathFields(input) {
   visitExplicitPathFields(input, paths);
   return [...new Set(paths)];
 }
+var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)/;
 var patchTextKeys = ["command", "patch", "input", "patchText"];
+function extractPatchFilePaths(patch) {
+  const paths = [];
+  for (const line of patch.split(/\r?\n/)) {
+    const match = patchFileHeader.exec(line.trim());
+    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
+    if (candidate.length > 0)
+      paths.push(candidate);
+  }
+  return [...new Set(paths)];
+}
 function extractPatchTexts(toolInput) {
   const fields = isRecord2(toolInput) ? toolInput : {};
   return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
+}
+function extractEditedPaths(toolInput) {
+  const paths = extractExplicitPathFields(toolInput);
+  if (isRecord2(toolInput)) {
+    for (const key of patchTextKeys) {
+      const value = toolInput[key];
+      if (typeof value === "string") {
+        paths.push(...extractPatchFilePaths(value));
+      }
+    }
+  }
+  return [...new Set(paths)];
 }
 function classifyPath(relativePath) {
   const segments = pathSegments(relativePath);
@@ -3566,9 +3589,6 @@ var LEVEL_LINE = /"level"\s*:\s*("([^"]*)")?/;
 function levelInJson(text, settings) {
   return kibiLevelInSettings(text, settings === "package" ? "package.json" : "setup.json").level;
 }
-function asLevel(value) {
-  return isKibiLevel(value) ? value : DEFAULT_KIBI_LEVEL;
-}
 function levelChangeOfEdit(workspaceRoot, relativePath, toolInput) {
   const normalized = normalizeWorkspacePath(relativePath);
   const hasPackage = fs10.existsSync(path12.join(workspaceRoot, "package.json"));
@@ -3586,10 +3606,12 @@ function levelChangeOfEdit(workspaceRoot, relativePath, toolInput) {
     if (lines === undefined)
       return;
     const added = lines.added.map((line) => LEVEL_LINE.exec(line)).find((match) => match !== null);
-    const removed = lines.removed.some((line) => LEVEL_LINE.test(line));
-    if (added)
-      to = asLevel(added[2]);
-    else if (removed)
+    const removed = lines.removed.some((line) => isKibiLevel(LEVEL_LINE.exec(line)?.[2]));
+    if (added) {
+      if (!isKibiLevel(added[2]))
+        return;
+      to = added[2];
+    } else if (removed)
       to = DEFAULT_KIBI_LEVEL;
   }
   if (to === undefined || to === from)
@@ -3666,19 +3688,27 @@ function evidenceLoweringOfEdit(workspaceRoot, relativePath, toolInput) {
   const lines = patchLinesFor(toolInput, normalized);
   if (lines === undefined)
     return;
-  const field = /^required_evidence:\s*(.*)$/;
-  const added = lines.added.map((line) => field.exec(line)).find((match) => match !== null);
-  if (added) {
-    const next = new Map(current);
-    next.set("required_evidence", unquote4(added[1] ?? ""));
-    return lowering(requirementId, from, floorOfDocument(next));
+  const fields = [
+    ["required_evidence", /^required_evidence:\s*(.*)$/],
+    ["firmness", /^firmness:\s*(.*)$/],
+    ["origin.approved_by", /^\s+approved_by:\s*(.*)$/]
+  ];
+  const next = new Map(current);
+  let touched = false;
+  for (const [key, pattern] of fields) {
+    if (lines.removed.some((line) => pattern.test(line))) {
+      next.delete(key);
+      touched = true;
+    }
   }
-  if (lines.removed.some((line) => field.test(line))) {
-    const next = new Map(current);
-    next.delete("required_evidence");
-    return lowering(requirementId, from, floorOfDocument(next));
+  for (const [key, pattern] of fields) {
+    const added = lines.added.map((line) => pattern.exec(line)).find((match) => match !== null);
+    if (added) {
+      next.set(key, unquote4(added[1] ?? ""));
+      touched = true;
+    }
   }
-  return;
+  return touched ? lowering(requirementId, from, floorOfDocument(next)) : undefined;
 }
 var REQUIREMENT_WRITE = "kb_upsert";
 function evidenceLoweringOfKbCall(workspaceRoot, operation, toolInput) {
@@ -3692,13 +3722,38 @@ function evidenceLoweringOfKbCall(workspaceRoot, operation, toolInput) {
   const type = toolInput.type;
   if (type !== undefined && type !== "req")
     return;
-  const requested = properties.required_evidence;
-  if (!isEvidenceLevel(requested))
-    return;
-  const current = currentRequirement(workspaceRoot, id);
+  const current = currentRequirement(kbCallWorkspace(workspaceRoot, toolInput), id);
   if (current === undefined)
     return;
-  return lowering(id, floorOfDocument(current), requested);
+  const sent = properties.required_evidence;
+  if (typeof sent === "string" && sent !== "" && !isEvidenceLevel(sent))
+    return;
+  const next = new Map(current);
+  for (const field of ["required_evidence", "firmness"]) {
+    if (!(field in properties))
+      continue;
+    const value = properties[field];
+    if (typeof value === "string" && value !== "")
+      next.set(field, value);
+    else
+      next.delete(field);
+  }
+  if ("origin" in properties) {
+    for (const key of [...next.keys()])
+      if (key.startsWith("origin."))
+        next.delete(key);
+    const origin = properties.origin;
+    if (isRecord5(origin)) {
+      for (const [key, value] of Object.entries(origin))
+        if (typeof value === "string")
+          next.set(`origin.${key}`, value);
+    }
+  }
+  return lowering(id, floorOfDocument(current), floorOfDocument(next));
+}
+function kbCallWorkspace(workspaceRoot, toolInput) {
+  const named = toolInput.workspaceRoot;
+  return typeof named === "string" && named.trim() !== "" ? path12.resolve(workspaceRoot, named.trim()) : workspaceRoot;
 }
 function guardedChangeOf(input) {
   const operation = canonicalKbToolName(input.toolName);
@@ -4455,7 +4510,7 @@ async function runHook(rawInput, environment = {}) {
             };
           return stamped === undefined ? emptyResult() : { updated_input: stamped };
         }
-        const guarded = kibiReady && isEditLikeTool(input.toolName) ? extractExplicitPathFields2(input.toolInput).map((target) => guardedChangeOf({
+        const guarded = kibiReady && isEditLikeTool(input.toolName) ? extractEditedPaths(input.toolInput).map((target) => guardedChangeOf({
           workspaceRoot: cwd,
           toolName: input.toolName,
           toolInput: input.toolInput,

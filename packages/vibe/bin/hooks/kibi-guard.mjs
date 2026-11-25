@@ -2014,7 +2014,26 @@ function committedContent(workspaceRoot, relativePath) {
   });
   return result.status === 0 ? result.stdout : undefined;
 }
+function levelChangeSinceCommit(workspaceRoot, relativePath) {
+  const normalized = normalizeWorkspacePath(relativePath);
+  if (normalized !== "package.json" && normalized !== ".kb/setup.json")
+    return;
+  const head = spawnSync2("git", ["rev-parse", "--verify", "--quiet", "HEAD"], {
+    cwd: workspaceRoot,
+    stdio: "ignore",
+    timeout: 5000
+  });
+  if (head.status !== 0)
+    return;
+  const committedPackage = committedContent(workspaceRoot, "package.json");
+  const committedSetup = committedContent(workspaceRoot, ".kb/setup.json");
+  const from = committedPackage !== undefined ? levelInJson(committedPackage, "package") : committedSetup !== undefined ? levelInJson(committedSetup, "setup") : DEFAULT_KIBI_LEVEL;
+  const to = readKibiLevel(workspaceRoot).level;
+  return from === to ? undefined : { kind: "level", path: normalized, from, to };
+}
 function guardedChangeSince(workspaceRoot, relativePath, before) {
+  if (before === undefined)
+    return levelChangeSinceCommit(workspaceRoot, relativePath);
   const normalized = normalizeWorkspacePath(relativePath);
   const now = readText3(path7.join(workspaceRoot, normalized));
   if (now === undefined)
@@ -2119,8 +2138,6 @@ function guardedChangeAfter(workspaceRoot, input, targets) {
   }));
   for (const candidate of candidates) {
     const before = candidate.before ?? committedContent(workspaceRoot, candidate.relative);
-    if (before === undefined)
-      continue;
     const change = guardedChangeSince(workspaceRoot, candidate.relative, before);
     if (change !== undefined)
       return change;

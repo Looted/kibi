@@ -48,7 +48,7 @@ import {
   guardedChangeNotice,
   guardedChangeOf,
 } from "kibi-agent-core/level-guard";
-import { classifyPath } from "kibi-agent-core/path-policy";
+import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type LineRange,
@@ -407,7 +407,7 @@ export async function runHook(
         }
         const guarded =
           kibiReady && isEditLikeTool(input.toolName)
-            ? extractExplicitPathFields(input.toolInput)
+            ? extractEditedPaths(input.toolInput)
                 .map((target) =>
                   guardedChangeOf({
                     workspaceRoot: cwd,

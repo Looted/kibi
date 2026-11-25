@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { SOURCE_EXTRACTION_FAILED } from "../../../src/commands/sync/cache.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { SOURCE_EXTRACTION_FAILED } from "../../../src/commands/sync/cache.js";
 
 /**
  * The code sync gives a source file it could not extract. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

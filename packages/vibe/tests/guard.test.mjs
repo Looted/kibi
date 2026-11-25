@@ -299,6 +299,41 @@ test("postEditNote tells the agent once to ask the person about a level change",
   }
 });
 
+test("postEditNote notices a settings file the last commit did not have", () => {
+  const ws = workspace();
+  try {
+    const git = (...args) =>
+      execFileSync("git", args, { cwd: ws.root, stdio: "ignore" });
+    git("init", "-q");
+    git("add", ".");
+    git(
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@example.invalid",
+      "commit",
+      "-qm",
+      "init",
+    );
+    const content = JSON.stringify({ level: "remember" });
+    writeFileSync(join(ws.root, ".kb", "setup.json"), content);
+    const note = postEditNote(
+      ws.root,
+      {
+        ...edit(ws.root, ".kb/setup.json", { content }),
+        tool_name: "write_file",
+      },
+      ws.env,
+    );
+    assert.match(
+      String(note),
+      /changes the Kibi level from test to remember \(\.kb\/setup\.json\)/,
+    );
+  } finally {
+    ws.cleanup();
+  }
+});
+
 test("postEditNote compares a whole-file write with the last commit", () => {
   const ws = workspace();
   try {

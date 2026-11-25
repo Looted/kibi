@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { BOOTSTRAP_PROVIDER_ORDER } from "../../../src/operations/bootstrap/types.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { BOOTSTRAP_PROVIDER_ORDER } from "../../../src/operations/bootstrap/types.js";
 
 /**
  * The evidence providers a bootstrap plan reads from. Kibi reads every value itself at ingest, so the certificate is checked against the code.

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { BUILTIN_CLAIM_SIMILARITY_THRESHOLD } from "kibi-plugin-builtin";
-import { EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
+import { BUILTIN_CLAIM_SIMILARITY_THRESHOLD } from "kibi-plugin-builtin";
 
 /**
  * The claim similarity threshold and operation scope of vocabulary alignment.

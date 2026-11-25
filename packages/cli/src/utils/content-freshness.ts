@@ -396,7 +396,9 @@ export function missingCachedKbSourceReasons(
     });
   }
 
-  return reasons.sort((a, b) => String(a.path).localeCompare(String(b.path)));
+  return reasons.sort((a, b) =>
+    String(a.path).localeCompare(String(b.path)),
+  );
 }
 
 /**

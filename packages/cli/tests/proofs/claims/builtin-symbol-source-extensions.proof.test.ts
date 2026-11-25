@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { SUPPORTED_SOURCE_EXTENSIONS } from "../../../../plugin-builtin/src/symbols/ts-morph-shared.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { SUPPORTED_SOURCE_EXTENSIONS } from "../../../../plugin-builtin/src/symbols/ts-morph-shared.js";
 
 /**
  * The file extensions the builtin TypeScript symbol extractor reads. Kibi reads every value itself at ingest, so the certificate is checked against the code.

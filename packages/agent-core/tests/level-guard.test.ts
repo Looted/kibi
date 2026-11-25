@@ -212,6 +212,20 @@ describe("levelChangeOfEdit", () => {
       levelChangeOfEdit(root, "package.json", { command: "true" }),
     ).toBeUndefined();
   });
+
+  test('a patch of another "level" key in package.json is no change', () => {
+    const root = workspace({ "package.json": pkg("remember") });
+    expect(
+      levelChangeOfEdit(root, "package.json", {
+        patch: patch("package.json", '+    "level": "debug"'),
+      }),
+    ).toBeUndefined();
+    expect(
+      levelChangeOfEdit(root, "package.json", {
+        patch: patch("package.json", '-    "level": "debug"'),
+      }),
+    ).toBeUndefined();
+  });
 });
 
 describe("evidenceFloor", () => {
@@ -279,6 +293,32 @@ describe("evidenceLoweringOfEdit", () => {
         new_string: "",
       }),
     ).toMatchObject({ to: "unverified" });
+  });
+
+  test("a patch that changes firmness or drops the approval lowers it", () => {
+    const root = workspace({
+      [file]: `---\nid: REQ-a\ntitle: A\nstatus: open\nfirmness: firm\norigin:\n  kind: agent\n  approved_by: maintainer\n---\n`,
+    });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        patch: patch(file, "-firmness: firm", "+firmness: exploratory"),
+      }),
+    ).toMatchObject({ from: "tested", to: "unverified" });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        patch: patch(file, "-firmness: firm", "-  approved_by: maintainer"),
+      }),
+    ).toMatchObject({ to: "unverified" });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        patch: patch(file, "-firmness: firm"),
+      }),
+    ).toBeUndefined();
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        patch: patch(file, "+title: B"),
+      }),
+    ).toBeUndefined();
   });
 
   test("a patch that adds a lower value or only removes the line lowers it", () => {
@@ -354,6 +394,57 @@ describe("evidenceLoweringOfKbCall", () => {
     expect(
       evidenceLoweringOfKbCall(dir, "kb_upsert", { id: "REQ-a" }),
     ).toBeUndefined();
+  });
+
+  test("a write that lowers the floor through firmness or origin is a lowering", () => {
+    const approved = workspace({
+      ".kb/requirements/REQ-a.md": `---\nid: REQ-a\ntitle: A\nstatus: open\norigin:\n  kind: agent\n  approved_by: maintainer\n---\nBody.\n`,
+    });
+    const upsert = (properties: Record<string, unknown>) =>
+      evidenceLoweringOfKbCall(approved, "kb_upsert", {
+        id: "REQ-a",
+        properties: { title: "A", status: "open", ...properties },
+      });
+    expect(upsert({ firmness: "exploratory" })).toMatchObject({
+      from: "tested",
+      to: "unverified",
+    });
+    expect(upsert({ firmness: "default" })).toMatchObject({ to: "unverified" });
+    expect(upsert({ origin: { kind: "agent" } })).toMatchObject({
+      to: "unverified",
+    });
+    expect(upsert({ origin: "agent" })).toBeUndefined();
+    expect(upsert({ firmness: "firm" })).toBeUndefined();
+    expect(upsert({ required_evidence: "tested" })).toBeUndefined();
+    // Omitted properties keep their stored values.
+    expect(upsert({})).toBeUndefined();
+    const explicit = root();
+    expect(
+      evidenceLoweringOfKbCall(explicit, "kb_upsert", {
+        id: "REQ-a",
+        properties: { required_evidence: null },
+      }),
+    ).toMatchObject({ from: "tested", to: "unverified" });
+  });
+
+  test("a call that names another workspace is judged there", () => {
+    const other = root();
+    const here = workspace({});
+    const call = {
+      id: "REQ-a",
+      workspaceRoot: other,
+      properties: { required_evidence: "asserted" },
+    };
+    expect(evidenceLoweringOfKbCall(here, "kb_upsert", call)).toMatchObject({
+      from: "tested",
+      to: "asserted",
+    });
+    expect(
+      evidenceLoweringOfKbCall(other, "kb_upsert", {
+        ...call,
+        workspaceRoot: " ",
+      }),
+    ).toMatchObject({ to: "asserted" });
   });
 
   test("anything else is not a lowering", () => {
@@ -497,6 +588,60 @@ describe("committedContent", () => {
     writeFileSync(path.join(root, "package.json"), pkg("remember"));
     expect(committedContent(root, "package.json")).toBe(pkg("test"));
     expect(committedContent(root, "missing.json")).toBeUndefined();
+  });
+});
+
+describe("guardedChangeSince without earlier text", () => {
+  const levelChangeSinceCommit = (root: string, relativePath: string) =>
+    guardedChangeSince(root, relativePath, undefined);
+  const commit = (root: string, ...files: string[]) => {
+    const git = (...args: string[]) =>
+      spawnSync("git", args, { cwd: root, stdio: "ignore" });
+    git("init", "-q");
+    if (files.length > 0) git("add", ...files);
+    git(
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@example.invalid",
+      "commit",
+      "-qm",
+      "init",
+      "--allow-empty",
+    );
+  };
+
+  test("a settings file new since the commit is compared with the committed level", () => {
+    const root = workspace({ "README.md": "x" });
+    expect(levelChangeSinceCommit(root, ".kb/setup.json")).toBeUndefined();
+    commit(root, "README.md");
+    mkdirSync(path.join(root, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "setup.json"),
+      JSON.stringify({ level: "remember" }),
+    );
+    expect(levelChangeSinceCommit(root, ".kb/setup.json")).toEqual({
+      kind: "level",
+      path: ".kb/setup.json",
+      from: "test",
+      to: "remember",
+    });
+    expect(levelChangeSinceCommit(root, "README.md")).toBeUndefined();
+  });
+
+  test("the committed package.json, then setup.json, sets the earlier level", () => {
+    const withSetup = workspace({
+      ".kb/setup.json": JSON.stringify({ level: "remember" }),
+    });
+    commit(withSetup, ".kb/setup.json");
+    writeFileSync(path.join(withSetup, "package.json"), pkg());
+    expect(levelChangeSinceCommit(withSetup, "package.json")).toMatchObject({
+      from: "remember",
+      to: "test",
+    });
+    const withPackage = workspace({ "package.json": pkg("remember") });
+    commit(withPackage, "package.json");
+    expect(levelChangeSinceCommit(withPackage, "package.json")).toBeUndefined();
   });
 });
 

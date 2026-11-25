@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
+import {
   CONTEXT_MISSING_TAG_CODE,
   SEMANTIC_TEXT_PIN_CODE,
 } from "../../../src/operations/migration/entity-body-context.js";
@@ -10,19 +16,13 @@ import {
   PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
 } from "../../../src/operations/migration/proof-contract-claims.js";
 import { SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE } from "../../../src/operations/migration/schema6.js";
-import { CLOSED_REQUIREMENT_STATUS } from "../../../src/operations/migration/superseded-closure.js";
 import { SUPERSEDES_REASON_ACKNOWLEDGE_CODE } from "../../../src/operations/migration/supersedes-reason.js";
 import {
   SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
   SYMBOL_LEGACY_LINK_MARK_CODE,
 } from "../../../src/operations/migration/symbol-legacy-links.js";
+import { CLOSED_REQUIREMENT_STATUS } from "../../../src/operations/migration/superseded-closure.js";
 import { DERIVED_COORDINATES_SCHEMA_VERSION } from "../../../src/operations/migration/untrack-symbol-coordinates.js";
-import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
 
 /**
  * The codes kibi migrate reports for the steps that pin, acknowledge or mark existing entities. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

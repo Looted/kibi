@@ -80,9 +80,7 @@ function header(file: string): { entries: [string, string][] } {
 // executable_for TEST-kibi-plugin-search-hints
 describe("search hints model edges", () => {
   test("the model id names the label and the asset digest", () => {
-    expect(MODEL_LABEL).toBe(
-      "minishlab/potion-retrieval-32M@6fc8051fab2a/int8",
-    );
+    expect(MODEL_LABEL).toBe("minishlab/potion-retrieval-32M@6fc8051fab2a/int8");
     expect(model.id).toMatch(
       /^minishlab\/potion-retrieval-32M@6fc8051fab2a\/int8-[0-9a-f]{12}$/,
     );

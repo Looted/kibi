@@ -1,7 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { DEFAULT_FIRMNESS } from "../../../src/decision-firmness.js";
-import { DECISION_FIRMNESS_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
-import { DECISION_FIRMNESS_RULES } from "../../../src/public/operations/decision-firmness.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
@@ -9,6 +6,9 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { DECISION_FIRMNESS_RULES } from "../../../src/public/operations/decision-firmness.js";
+import { DEFAULT_FIRMNESS } from "../../../src/decision-firmness.js";
+import { DECISION_FIRMNESS_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
 
 /**
  * The check rules, default firmness value and schema version of decision firmness.

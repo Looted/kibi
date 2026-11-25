@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-  ENGINE_IDLE_CHECK_INTERVAL_MS,
-  ENGINE_PROLOG_EXIT_GRACE_MS,
-} from "../../../src/engine.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  ENGINE_IDLE_CHECK_INTERVAL_MS,
+  ENGINE_PROLOG_EXIT_GRACE_MS,
+} from "../../../src/engine.js";
 
 /**
  * How often the engine daemon checks for idleness and how long it waits for Prolog to exit. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

@@ -154,10 +154,6 @@ function levelInJson(text: string, settings: "package" | "setup"): KibiLevel {
   ).level;
 }
 
-function asLevel(value: unknown): KibiLevel {
-  return isKibiLevel(value) ? value : DEFAULT_KIBI_LEVEL;
-}
-
 /**
  * The change of Kibi level an edit makes, or undefined when it makes none.
  * Only the file the project reads its level from counts: the root
@@ -190,9 +186,15 @@ function levelChangeOfEdit(
     const added = lines.added
       .map((line) => LEVEL_LINE.exec(line))
       .find((match) => match !== null);
-    const removed = lines.removed.some((line) => LEVEL_LINE.test(line));
-    if (added) to = asLevel(added[2]);
-    else if (removed) to = DEFAULT_KIBI_LEVEL;
+    const removed = lines.removed.some((line) =>
+      isKibiLevel(LEVEL_LINE.exec(line)?.[2]),
+    );
+    // A "level" key whose value is no Kibi level belongs to something else
+    // in the file, so it changes nothing.
+    if (added) {
+      if (!isKibiLevel(added[2])) return undefined;
+      to = added[2];
+    } else if (removed) to = DEFAULT_KIBI_LEVEL;
   }
   if (to === undefined || to === from) return undefined;
   return { kind: "level", path: normalized, from, to };
@@ -287,8 +289,8 @@ function lowering(
 
 /**
  * The lowering of a requirement's floor an edit of its document makes, or
- * undefined when it makes none. A patch counts when a line it adds sets a
- * lower required_evidence, or when it only removes the line.
+ * undefined when it makes none. A patch counts by the required_evidence,
+ * firmness and approved_by lines it adds or removes.
  */
 function evidenceLoweringOfEdit(
   workspaceRoot: string,
@@ -313,21 +315,33 @@ function evidenceLoweringOfEdit(
   }
   const lines = patchLinesFor(toolInput, normalized);
   if (lines === undefined) return undefined;
-  const field = /^required_evidence:\s*(.*)$/;
-  const added = lines.added
-    .map((line) => field.exec(line))
-    .find((match) => match !== null);
-  if (added) {
-    const next = new Map(current);
-    next.set("required_evidence", unquote(added[1] ?? ""));
-    return lowering(requirementId, from, floorOfDocument(next));
+  // The frontmatter lines a patch adds or removes that set the floor: each
+  // removed field is dropped, then each added one is set.
+  const fields: readonly [string, RegExp][] = [
+    ["required_evidence", /^required_evidence:\s*(.*)$/],
+    ["firmness", /^firmness:\s*(.*)$/],
+    ["origin.approved_by", /^\s+approved_by:\s*(.*)$/],
+  ];
+  const next = new Map(current);
+  let touched = false;
+  for (const [key, pattern] of fields) {
+    if (lines.removed.some((line) => pattern.test(line))) {
+      next.delete(key);
+      touched = true;
+    }
   }
-  if (lines.removed.some((line) => field.test(line))) {
-    const next = new Map(current);
-    next.delete("required_evidence");
-    return lowering(requirementId, from, floorOfDocument(next));
+  for (const [key, pattern] of fields) {
+    const added = lines.added
+      .map((line) => pattern.exec(line))
+      .find((match) => match !== null);
+    if (added) {
+      next.set(key, unquote(added[1] ?? ""));
+      touched = true;
+    }
   }
-  return undefined;
+  return touched
+    ? lowering(requirementId, from, floorOfDocument(next))
+    : undefined;
 }
 
 /** The Kibi operation that can change an existing requirement. */
@@ -336,7 +350,7 @@ const REQUIREMENT_WRITE = "kb_upsert";
 /**
  * The lowering of a requirement's floor a kb_upsert call makes, or undefined
  * when it makes none: a requirement already in the knowledge base whose call
- * sets a lower required_evidence. kb_record only creates requirements, so it
+ * lowers its floor, by required_evidence, firmness or origin. kb_record only creates requirements, so it
  * lowers none.
  */
 function evidenceLoweringOfKbCall(
@@ -351,11 +365,44 @@ function evidenceLoweringOfKbCall(
   if (typeof id !== "string" || !isRecord(properties)) return undefined;
   const type = toolInput.type;
   if (type !== undefined && type !== "req") return undefined;
-  const requested = properties.required_evidence;
-  if (!isEvidenceLevel(requested)) return undefined;
-  const current = currentRequirement(workspaceRoot, id);
+  const current = currentRequirement(
+    kbCallWorkspace(workspaceRoot, toolInput),
+    id,
+  );
   if (current === undefined) return undefined;
-  return lowering(id, floorOfDocument(current), requested);
+  // kb_upsert keeps the stored value of each property the call omits, so the
+  // floor after the call is the stored document with the sent fields applied.
+  const sent = properties.required_evidence;
+  // A value that is no evidence level is refused by the write itself.
+  if (typeof sent === "string" && sent !== "" && !isEvidenceLevel(sent))
+    return undefined;
+  const next = new Map(current);
+  for (const field of ["required_evidence", "firmness"] as const) {
+    if (!(field in properties)) continue;
+    const value = properties[field];
+    if (typeof value === "string" && value !== "") next.set(field, value);
+    else next.delete(field);
+  }
+  if ("origin" in properties) {
+    for (const key of [...next.keys()])
+      if (key.startsWith("origin.")) next.delete(key);
+    const origin = properties.origin;
+    if (isRecord(origin))
+      for (const [key, value] of Object.entries(origin))
+        if (typeof value === "string") next.set(`origin.${key}`, value);
+  }
+  return lowering(id, floorOfDocument(current), floorOfDocument(next));
+}
+
+/** The workspace a Kibi call names with workspaceRoot, else the hook's own. */
+function kbCallWorkspace(
+  workspaceRoot: string,
+  toolInput: Record<string, unknown>,
+): string {
+  const named = toolInput.workspaceRoot;
+  return typeof named === "string" && named.trim() !== ""
+    ? path.resolve(workspaceRoot, named.trim())
+    : workspaceRoot;
 }
 
 /**
@@ -439,15 +486,51 @@ export function committedContent(
 }
 
 /**
+ * The change of Kibi level since the last commit after a write of
+ * `relativePath` whose earlier text is not known: the level the committed
+ * package.json or `.kb/setup.json` set (test when HEAD has neither) against
+ * the level now. Undefined for other files and without a commit to compare.
+ */
+function levelChangeSinceCommit(
+  workspaceRoot: string,
+  relativePath: string,
+): LevelChange | undefined {
+  const normalized = normalizeWorkspacePath(relativePath);
+  if (normalized !== "package.json" && normalized !== ".kb/setup.json")
+    return undefined;
+  const head = spawnSync("git", ["rev-parse", "--verify", "--quiet", "HEAD"], {
+    cwd: workspaceRoot,
+    stdio: "ignore",
+    timeout: 5000,
+  });
+  if (head.status !== 0) return undefined;
+  const committedPackage = committedContent(workspaceRoot, "package.json");
+  const committedSetup = committedContent(workspaceRoot, ".kb/setup.json");
+  const from =
+    committedPackage !== undefined
+      ? levelInJson(committedPackage, "package")
+      : committedSetup !== undefined
+        ? levelInJson(committedSetup, "setup")
+        : DEFAULT_KIBI_LEVEL;
+  const to = readKibiLevel(workspaceRoot).level;
+  return from === to
+    ? undefined
+    : { kind: "level", path: normalized, from, to };
+}
+
+/**
  * The change the file `relativePath` holds now against its earlier text
  * `before`: a different Kibi level in the file the project reads it from,
- * or a requirement whose floor is lower than it was.
+ * or a requirement whose floor is lower than it was. Without earlier text,
+ * only a level change since the last commit counts.
  */
 export function guardedChangeSince(
   workspaceRoot: string,
   relativePath: string,
-  before: string,
+  before: string | undefined,
 ): GuardedChange | undefined {
+  if (before === undefined)
+    return levelChangeSinceCommit(workspaceRoot, relativePath);
   const normalized = normalizeWorkspacePath(relativePath);
   const now = readText(path.join(workspaceRoot, normalized));
   if (now === undefined) return undefined;

@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
+import {
   DECISION_FIRM_EDITED_RULE,
   DECISION_FIRM_SUPERSEDED_RULE,
   DECISION_FIRM_UNREFERENCED_RULE,
   SUPERSEDES_REASON_MISSING_RULE,
 } from "../../../../cli/src/public/operations/decision-firmness.js";
-import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
 
 /**
  * The names kibi check reports decision firmness findings under. Kibi reads every value itself at ingest, so the certificate is checked against the code.

@@ -6,8 +6,8 @@ import {
   type PlanBootstrapArgs,
   type PlanBootstrapResult,
 } from "../../../operations/bootstrap/types.js";
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export type {
   BootstrapContext,
