@@ -399,6 +399,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-820416cfa4a4
   - type: implements
+    from: SYM-init-helpers-refresh-managed-hooks
+    to: REQ-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:27.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-951b1658cff9
+  - type: covered_by
+    from: SYM-init-helpers-refresh-managed-hooks
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:27.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-beb30a68b516
+  - type: implements
     from: SYM-antigravity-run-node-cmd
     to: REQ-antigravity-plugin-package
     created_at: 2026-11-25T08:33:41.560Z

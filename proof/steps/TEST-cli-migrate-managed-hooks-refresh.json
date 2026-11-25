@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-migrate-managed-hooks-refresh",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "180000",
+      "./packages/cli/tests/commands/migrate-managed-hooks.test.ts"
+    ]
+  ]
+}

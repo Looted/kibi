@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a4ead8e2448
+  - type: executable_for
+    from: SYM-cli-migrate-managed-hooks-refresh-verifier
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:30.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f6ee3f08354
