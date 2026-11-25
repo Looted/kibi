@@ -713,3 +713,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b473d33889ed
+  - type: assumes
+    from: SCEN-NEG-search-decision-scope-distant-when-source-unlinked-BELOW
+    to: FACT-NEG-search-decision-scope-distant-when-source-unlinked-BELOW
+    created_at: 2026-11-25T14:35:11.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b4ec9cccd4a
+  - type: verified_by
+    from: SCEN-NEG-search-decision-scope-distant-when-source-unlinked-BELOW
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:12.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f61c84e07f24
+  - type: assumes
+    from: SCEN-NEG-search-decision-collapse-superseded-folds-into-chain-head-OFF
+    to: FACT-NEG-search-decision-collapse-superseded-folds-into-chain-head-OFF
+    created_at: 2026-11-25T14:35:38.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9024f4e56c1f
+  - type: verified_by
+    from: SCEN-NEG-search-decision-collapse-superseded-folds-into-chain-head-OFF
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:38.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efc06382f90e

@@ -398,3 +398,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d381ba682a93
+  - type: implements
+    from: SYM-intent-search-normalize
+    to: REQ-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T14:43:32.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be1031e9ed09
+  - type: covered_by
+    from: SYM-intent-search-normalize
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-11-25T14:43:32.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49aac5c8fa37
+  - type: covered_by
+    from: SYM-intent-search-normalize
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-11-25T14:43:32.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60a0e235d292
+  - type: covered_by
+    from: SYM-intent-search-normalize
+    to: TEST-search-answer-hygiene
+    created_at: 2026-11-25T14:43:32.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbce6a88d6d4
+  - type: covered_by
+    from: SYM-intent-search-normalize
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-25T14:43:32.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bded08b55928
+  - type: covered_by
+    from: SYM-intent-search-normalize
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T14:43:45.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5be7007ae012

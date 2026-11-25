@@ -69,6 +69,14 @@
     "./hook-input": {
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"
+    },
+    "./retrieval": {
+      "types": "./dist/retrieval.d.ts",
+      "default": "./dist/retrieval.js"
+    },
+    "./retrieval-tokens": {
+      "types": "./dist/retrieval-tokens.d.ts",
+      "default": "./dist/retrieval-tokens.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

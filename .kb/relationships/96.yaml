@@ -566,3 +566,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05bc333fc7be
+  - type: constrains
+    from: REQ-search-decision-scope
+    to: FACT-search-decision-scope-subject
+    created_at: 2026-11-25T14:28:59.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceb5b953405a
+  - type: requires_property
+    from: REQ-search-decision-scope
+    to: FACT-search-decision-scope-in-scope-when-linked-or-source-linked
+    created_at: 2026-11-25T14:28:59.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aae9b1d8b9a9
+  - type: requires_property
+    from: REQ-search-decision-scope
+    to: FACT-search-decision-scope-other-scope-when-linked-elsewhere-only
+    created_at: 2026-11-25T14:28:59.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-275ef356f457
+  - type: requires_property
+    from: REQ-search-decision-scope
+    to: FACT-search-decision-scope-distant-when-source-unlinked
+    created_at: 2026-11-25T14:28:59.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b030cf66fa37
+  - type: requires_property
+    from: REQ-search-decision-scope
+    to: FACT-search-decision-scope-unscoped-otherwise
+    created_at: 2026-11-25T14:28:59.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4ef7f8e4d02
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-search-decision-scope-tiers
+    created_at: 2026-11-25T14:28:59.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc68ea502911
+  - type: verified_by
+    from: REQ-search-decision-scope
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:28:59.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f39a735c0c37
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-NEG-search-decision-scope-in-scope-when-linked-or-source-linked-BELOW
+    created_at: 2026-11-25T14:36:58.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33a4525c0186
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-NEG-search-decision-scope-other-scope-when-linked-elsewhere-only-OFF
+    created_at: 2026-11-25T14:36:58.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9be0a62a5106
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-NEG-search-decision-scope-distant-when-source-unlinked-BELOW
+    created_at: 2026-11-25T14:36:58.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-378258aa458a
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-NEG-search-decision-scope-unscoped-otherwise-OFF
+    created_at: 2026-11-25T14:36:58.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-505ed7e38b00
+  - type: specified_by
+    from: REQ-search-decision-scope
+    to: SCEN-search-decision-scope-tier-boundaries
+    created_at: 2026-11-25T15:08:50.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6c765c86887
