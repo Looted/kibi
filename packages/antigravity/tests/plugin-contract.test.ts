@@ -127,11 +127,12 @@ describe("kibi-antigravity plugin contract", () => {
     ).toBe(true);
   });
 
-  test("ships executable hook launcher scripts on POSIX", () => {
-    const runNodeCmd = path.join(packageRoot, "bin", "run-node.cmd");
-    const runNodeSh = path.join(packageRoot, "bin", "run-node.sh");
+  test.skipIf(process.platform === "win32")(
+    "ships executable hook launcher scripts on POSIX",
+    () => {
+      const runNodeCmd = path.join(packageRoot, "bin", "run-node.cmd");
+      const runNodeSh = path.join(packageRoot, "bin", "run-node.sh");
 
-    if (process.platform !== "win32") {
       expect(fs.statSync(runNodeCmd).mode & 0o111).not.toBe(0);
       expect(fs.statSync(runNodeSh).mode & 0o111).not.toBe(0);
 
@@ -144,8 +145,8 @@ describe("kibi-antigravity plugin contract", () => {
       });
       expect(probe.status).toBe(0);
       expect(probe.stdout.trim()).toMatch(/^v\d+\./);
-    }
-  });
+    },
+  );
 
   test("package.json files lists exactly the shipped plugin parts", () => {
     const pkg = JSON.parse(
