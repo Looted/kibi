@@ -23,7 +23,7 @@ Register the plugin in `.agents/plugins.json`:
 
 ### User-global install
 
-Install globally from GitHub with the Antigravity CLI:
+Install globally from GitHub with the Antigravity CLI (use `tree/develop/packages/antigravity` instead of `tree/master/packages/antigravity` if installing before the plugin is released on `master`):
 
 ```bash
 agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
@@ -41,11 +41,25 @@ No `node_modules` are needed in the copied plugin directory: `bin/hook-runner.mj
 
 When validating or installing from a local Kibi monorepo checkout, exclude `node_modules` first (`agy plugin install` rejects workspace symlinks pointing outside the plugin directory):
 
+macOS / Linux:
+
 ```bash
 agy plugin validate --strict ./packages/antigravity
 rsync -a --delete --exclude node_modules ./packages/antigravity/ /tmp/kibi-antigravity/
 agy plugin install /tmp/kibi-antigravity
 rm -rf /tmp/kibi-antigravity
+```
+
+Windows (PowerShell):
+
+```powershell
+agy plugin validate --strict .\packages\antigravity
+$tmp = Join-Path $env:TEMP kibi-antigravity
+Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $tmp | Out-Null
+Get-ChildItem .\packages\antigravity -Exclude node_modules | Copy-Item -Destination $tmp -Recurse
+agy plugin install $tmp
+Remove-Item -Recurse -Force $tmp
 ```
 
 ## What the agent gets
