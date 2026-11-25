@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { MIGRATION_PLAN_REFUSED } from "../../../src/operations/planning/migration-refusal.js";
-import { LEGACY_MIGRATION_PLAN_VERSION } from "../../../src/public/operations/legacy-migration-plan.js";
-import { MIGRATION_PLAN_DIGEST_VERSION } from "../../../src/public/operations/migration-plan.js";
 import {
   type CodeCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { LEGACY_MIGRATION_PLAN_VERSION } from "../../../src/public/operations/legacy-migration-plan.js";
+import { MIGRATION_PLAN_DIGEST_VERSION } from "../../../src/public/operations/migration-plan.js";
+import { MIGRATION_PLAN_REFUSED } from "../../../src/operations/planning/migration-refusal.js";
 
 /**
  * The versions of the legacy migration plan and the plan digest, and the code of a refused plan. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

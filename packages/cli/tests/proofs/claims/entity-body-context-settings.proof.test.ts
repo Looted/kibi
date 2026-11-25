@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  CONTEXT_HEADING_WORDS,
-  CONTEXT_REQUIRED_TYPES,
-  MIN_CONTEXT_WORDS,
-  RESTATEMENT_JACCARD,
-} from "../../../src/entity-body-context.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  CONTEXT_HEADING_WORDS,
+  CONTEXT_REQUIRED_TYPES,
+  MIN_CONTEXT_WORDS,
+  RESTATEMENT_JACCARD,
+} from "../../../src/entity-body-context.js";
 
 /**
  * Which entities need body context, which headings hold it, how long it must be

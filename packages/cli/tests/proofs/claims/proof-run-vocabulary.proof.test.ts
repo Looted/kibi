@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  PRODUCER_KINDS,
-  PROOF_INTEGRATIONS_PATH,
-  PROOF_RUNS_DIR,
-} from "../../../src/proof/integrations.js";
-import { COVERAGE_ROW_PAGE_SIZE } from "../../../src/public/operations/specs/reporting.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   exhaustiveCertificate,
@@ -19,7 +13,13 @@ import {
   RUN_FAILURE_PHASES,
   SUCCESS_POLICIES,
 } from "../../../src/public/proof-protocol.js";
+import {
+  PRODUCER_KINDS,
+  PROOF_INTEGRATIONS_PATH,
+  PROOF_RUNS_DIR,
+} from "../../../src/proof/integrations.js";
 import { MAX_PROOF_RECEIPTS } from "../../../src/public/proof-receipt.js";
+import { COVERAGE_ROW_PAGE_SIZE } from "../../../src/public/operations/specs/reporting.js";
 
 /**
  * The closed lists, paths and bounds of a proof run and its receipts. Kibi reads

@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type CodeCertificate,
+  regexCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
+import {
   KIBI_CONTAINER_ID,
   KIBI_FOCUS_KB_COMMAND,
   KIBI_REFRESH_TREE_COMMAND,
   KIBI_VIEW_ID,
 } from "../../../../vscode/src/extensionIds.js";
-import {
-  type CodeCertificate,
-  regexCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
 
 /**
  * The sidebar container, tree view and tree command ids the VS Code extension contributes. Kibi reads every value itself at ingest, so the certificate is checked against the code.

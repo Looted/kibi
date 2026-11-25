@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  STORE_LOCK_TAKEOVER_FILE,
-  STORE_LOCK_TAKEOVER_VISIBLE_MS,
-} from "../../../src/prolog/store-lock.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   regexCertificate,
@@ -15,6 +11,10 @@ import {
   BRANCH_STORE_NOT_COMPILED,
   BRANCH_STORE_NOT_COMPILED_RULE,
 } from "../../../src/utils/branch-store.js";
+import {
+  STORE_LOCK_TAKEOVER_FILE,
+  STORE_LOCK_TAKEOVER_VISIBLE_MS,
+} from "../../../src/prolog/store-lock.js";
 
 /**
  * The codes, manifest version and lock takeover record of a branch store. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

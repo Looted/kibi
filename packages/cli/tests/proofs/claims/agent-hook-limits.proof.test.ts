@@ -1,10 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { CONFIRM_FIRM_EDITS_ENV } from "../../../../agent-core/src/decision-guard.js";
-import { MAX_REQUIREMENT_CANDIDATES } from "../../../../agent-core/src/requirement-candidates.js";
-import {
-  GROUNDING_LINK_TYPES,
-  MAX_SNIPPET_CHARS,
-} from "../../../../agent-core/src/snippets.js";
 import {
   type CodeCertificate,
   arithmeticCertificate,
@@ -12,6 +6,12 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  GROUNDING_LINK_TYPES,
+  MAX_SNIPPET_CHARS,
+} from "../../../../agent-core/src/snippets.js";
+import { MAX_REQUIREMENT_CANDIDATES } from "../../../../agent-core/src/requirement-candidates.js";
+import { CONFIRM_FIRM_EDITS_ENV } from "../../../../agent-core/src/decision-guard.js";
 
 /**
  * How long an edit snippet may be, how many requirement candidates a hook offers, which links ground a requirement in a snippet, and the variable that turns on firm-edit confirmation. Kibi reads every value itself at ingest, so the certificate is checked against the code.

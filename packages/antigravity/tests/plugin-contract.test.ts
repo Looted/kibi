@@ -139,14 +139,10 @@ describe("kibi-antigravity plugin contract", () => {
       // Antigravity executes hooks via `sh -c`; `run-node.cmd` is a polyglot
       // Windows/POSIX script (no shebang) that still requires `+x` for `sh` to
       // invoke it directly.
-      const probe = spawnSync(
-        "/bin/sh",
-        ["-c", "./bin/run-node.cmd --version"],
-        {
-          cwd: packageRoot,
-          encoding: "utf8",
-        },
-      );
+      const probe = spawnSync("/bin/sh", ["-c", "./bin/run-node.cmd --version"], {
+        cwd: packageRoot,
+        encoding: "utf8",
+      });
       expect(probe.status).toBe(0);
       expect(probe.stdout.trim()).toMatch(/^v\d+\./);
     },

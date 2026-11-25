@@ -1845,14 +1845,10 @@ describe("a governing requirement's recorded reason", () => {
 
   test("a section that names who asked before saying no reason was stated records none", () => {
     for (const lines of [
-      [
-        "Asked by the owner in the project chat on 2026-11-10. Reason not stated.",
-      ],
+      ["Asked by the owner in the project chat on 2026-11-10. Reason not stated."],
       ["Requested by the owner (chat); reason not stated."],
       ["- Asked by the owner", "- Source: chat", "- Reason", "  not stated"],
-      [
-        `Asked by the owner. ${"Background words. ".repeat(30)}Reason not stated.`,
-      ],
+      [`Asked by the owner. ${"Background words. ".repeat(30)}Reason not stated.`],
     ])
       expect(
         requirementReason(

@@ -406,7 +406,7 @@ export function guardedNotice(
   const targets: { relativePath?: string }[] = isKibiMcpToolName(input.toolName)
     ? [{}]
     : isEditLikeTool(input.toolName)
-      ? extractExplicitPathFields(input.toolInput)
+      ? extractEditedPaths(input.toolInput)
           .map((rawPath) =>
             canonicalizeWorkspacePath(workspaceRoot, {
               eventCwd: input.cwd,

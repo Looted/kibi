@@ -66,8 +66,6 @@ describe("renderSummaryMarkdownBody", () => {
     expect(SIGNOFF_MARKDOWN_LIMIT).toBe(15);
     expect(renderSummaryMarkdownBody(summary([]))).toBe(
       "## Requirements signoff: no requirement changes\n\nKibi level: test (the default)",
-      "",
-      "Kibi level: test (the default)",
     );
   });
 
@@ -201,11 +199,11 @@ describe("renderSummaryMarkdownBody", () => {
         requirement({ id: "R-N2", change: "new" }),
       ]),
     );
-    expect(body.split("\n")[0]).toBe(
+    expect(body.split("\n").slice(0, 3)).toEqual([
       "## Requirements signoff: 2 new, 1 changed, 1 affected, 1 retired",
       "",
       "Kibi level: test (the default)",
-    );
+    ]);
     expect(
       body.split("\n").filter((line) => /^(###|\*\*\d)/.test(line)),
     ).toEqual([

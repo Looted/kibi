@@ -4,10 +4,10 @@
   "sourceFile": "packages/codex/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "The new Kibi level and required_evidence notices only add context for the agent; no path denies a tool call or writes to .kb.",
+  "note": "Only a comment explaining why a guarded Kibi call is not stamped was added; no path denies a tool call or writes to .kb.",
   "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
-  "codeHash": "sha256:011f28855440ae1aed8e8f80b8aa45f4819de8ae913ab43cb1f4dce94e282009",
+  "codeHash": "sha256:6ae94caeb308e7ac44f89eca3a05b8f5f5bdf7e82faf9913a1186bffac8bc03b",
   "startLine": 1,
-  "endLine": 888,
-  "recordedAt": "2026-11-25T15:41:19.278Z"
+  "endLine": 891,
+  "recordedAt": "2026-11-25T18:15:29.464Z"
 }

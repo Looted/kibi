@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { ONTOLOGY_POLARITIES } from "../../../../plugin-sdk/src/capabilities/ontology-pack.js";
-import {
-  SEMANTIC_LANES,
-  SEMANTIC_SIGNAL_KINDS,
-} from "../../../../plugin-sdk/src/capabilities/semantic-classifier.js";
-import { PLUGIN_MODES } from "../../../../plugin-sdk/src/protocol.js";
-import { EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { PLUGIN_MODES } from "../../../../plugin-sdk/src/protocol.js";
+import { ONTOLOGY_POLARITIES } from "../../../../plugin-sdk/src/capabilities/ontology-pack.js";
+import {
+  SEMANTIC_LANES,
+  SEMANTIC_SIGNAL_KINDS,
+} from "../../../../plugin-sdk/src/capabilities/semantic-classifier.js";
+import { EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 
 /**
  * The modes a capability plugin may run in, the polarities of an ontology pack rule, the semantic lanes and signal kinds a classifier may report, and the operations that may load an external classifier. Kibi reads every value itself at ingest, so the certificate is checked against the code.

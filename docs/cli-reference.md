@@ -783,7 +783,11 @@ evidence level, the evidence floor and whether it is met (a floor lowered with
 any certificate that no longer re-checks. Each firm-edit receipt the change
 adds or rewrites (see `kibi review-firm-edit`) is listed under its
 requirement as the agent's verdict, labelled "judged by the agent, not
-approved by you". `--no-proof` skips the proof
+approved by you". The view names the project's Kibi level under its heading
+(`Kibi level: test (the default)`), and a "Decisions only you make" section
+lists a change of the level against `HEAD` and each changed requirement whose
+evidence floor is now lower; the JSON view carries them as `level` and
+`decisions`. `--no-proof` skips the proof
 lookup, which runs a full coverage pass and can take tens of seconds on a
 large knowledge base.
 

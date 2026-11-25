@@ -606,6 +606,9 @@ export async function runHook(
           : undefined;
         if (mcpGuarded) {
           // No permission decision: Codex's own approval still applies.
+          // Codex takes updatedInput only with an "allow" decision, so this
+          // call is deliberately not stamped with the worktree's
+          // workspaceRoot: allowing it would skip the person's approval.
           return {
             continue: true,
             hookSpecificOutput: {

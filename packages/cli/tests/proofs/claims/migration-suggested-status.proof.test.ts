@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { SUGGESTED_REQUIREMENT_STATUS } from "../../../src/operations/migration/requirement-status.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { SUGGESTED_REQUIREMENT_STATUS } from "../../../src/operations/migration/requirement-status.js";
 
 /**
  * The status a migration suggests for each legacy lifecycle word found on a requirement. Kibi reads every value itself at ingest, so the certificate is checked against the code.

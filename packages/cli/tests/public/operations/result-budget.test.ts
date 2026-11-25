@@ -568,14 +568,8 @@ describe("fitOperationResult", () => {
             dirty: true,
             staleReasonCount: 2,
             staleReasons: [
-              {
-                code: "knowledge_source_newer",
-                path: ".kb/requirements/REQ-0.md",
-              },
-              {
-                code: "relationship_source_newer",
-                path: ".kb/relationships/links.yaml",
-              },
+              { code: "knowledge_source_newer", path: ".kb/requirements/REQ-0.md" },
+              { code: "relationship_source_newer", path: ".kb/relationships/links.yaml" },
             ],
           },
         },
@@ -584,9 +578,7 @@ describe("fitOperationResult", () => {
     const staleText = staleCut.result.content[0]?.text ?? "";
     expect(staleText).toContain("KB store is stale (2 uncompiled changes");
     expect(staleText).toContain(".kb/requirements/REQ-0.md");
-    expect(staleText).toContain(
-      "Run `kibi sync` before relying on these results.",
-    );
+    expect(staleText).toContain("Run `kibi sync` before relying on these results.");
 
     const uncompiledCut = fitOperationResult(
       read,
@@ -607,8 +599,6 @@ describe("fitOperationResult", () => {
     );
     const uncompiledText = uncompiledCut.result.content[0]?.text ?? "";
     expect(uncompiledText).toContain("Branch store has never been compiled.");
-    expect(uncompiledText).toContain(
-      "Run kibi sync before relying on query results.",
-    );
+    expect(uncompiledText).toContain("Run kibi sync before relying on query results.");
   });
 });

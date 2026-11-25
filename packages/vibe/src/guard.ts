@@ -214,7 +214,8 @@ export function guardedChangeAfter(
   for (const candidate of candidates) {
     const before =
       candidate.before ?? committedContent(workspaceRoot, candidate.relative);
-    if (before === undefined) continue;
+    // Without earlier text (a settings file the last commit did not have),
+    // the level the commit set is compared with the level now.
     const change = guardedChangeSince(
       workspaceRoot,
       candidate.relative,

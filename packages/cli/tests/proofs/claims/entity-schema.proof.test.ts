@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type CodeCertificate,
   arithmeticCertificate,
+  type CodeCertificate,
   readProjectSource,
   sourceCertificate,
   writeCodeCertificate,

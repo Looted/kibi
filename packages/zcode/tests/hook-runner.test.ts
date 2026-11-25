@@ -2834,6 +2834,26 @@ describe("ZCode Kibi level and required evidence notices", () => {
     );
   });
 
+  test("an apply_patch that lowers a floor gets the notice too", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          patch:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-floor.md\n-required_evidence: tested\n+required_evidence: asserted\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(expectAdditionalContext(result, "PreToolUse")).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
   test("a kb_upsert that lowers a floor gets the notice beside the workspace stamp", async () => {
     const { cwd, pluginData } = guardedWorkspace();
     const call = (input: Record<string, unknown>) =>

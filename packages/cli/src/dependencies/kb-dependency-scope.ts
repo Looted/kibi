@@ -16,12 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ADVERTISED_DESCRIPTION } from "../public/operations/advertised-schema.js";
 import {
   type KbDependencyOptions,
   type ResolvedKbDependency,
   resolveKbDependency,
 } from "./kb-dependencies.js";
+import { ADVERTISED_DESCRIPTION } from "../public/operations/advertised-schema.js";
 
 /** Business input key that scopes a read operation to a KB dependency. */
 export const KB_DEPENDENCY_ARGUMENT = "kb";

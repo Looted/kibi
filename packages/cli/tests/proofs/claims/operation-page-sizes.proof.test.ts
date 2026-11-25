@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type CodeCertificate,
+  arithmeticCertificate,
+  exhaustiveCertificate,
+  writeCodeCertificate,
+} from "../../../src/public/proof-certificates.js";
+import {
   ENTITY_QUERY_CHUNK_SIZE,
   PROOF_CONTRACT_PAGE_SIZE,
   SEARCH_CANDIDATE_PAGE_SIZE,
@@ -7,12 +13,6 @@ import {
 } from "../../../src/public/operations/discovery-entities.js";
 import { QUERY_BODY_MAX_CHARS } from "../../../src/public/operations/discovery-executors.js";
 import { KIBI_PROTOCOL_VERSION } from "../../../src/public/operations/result-envelope.js";
-import {
-  type CodeCertificate,
-  arithmeticCertificate,
-  exhaustiveCertificate,
-  writeCodeCertificate,
-} from "../../../src/public/proof-certificates.js";
 
 /**
  * The page sizes, body limit, entity types and protocol version shared by the CLI

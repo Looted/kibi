@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-  MAX_ASPECT_CHARS,
-  MAX_ASPECT_WORDS,
-} from "../../../../cli/src/operations/bootstrap/requirement-claims.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  MAX_ASPECT_CHARS,
+  MAX_ASPECT_WORDS,
+} from "../../../../cli/src/operations/bootstrap/requirement-claims.js";
 
 /**
  * How many words and characters a bootstrap claim aspect may hold. Kibi reads every value itself at ingest, so the certificate is checked against the code.

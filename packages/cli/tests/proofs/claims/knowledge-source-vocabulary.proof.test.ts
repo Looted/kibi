@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
-  INTENT_CLAIM_KINDS,
-  KNOWLEDGE_SOURCE_AUTHORITIES,
-  KNOWLEDGE_SOURCE_KINDS,
-} from "../../../src/operations/bootstrap/types.js";
-import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  INTENT_CLAIM_KINDS,
+  KNOWLEDGE_SOURCE_AUTHORITIES,
+  KNOWLEDGE_SOURCE_KINDS,
+} from "../../../src/operations/bootstrap/types.js";
 
 /**
  * The closed lists of knowledge source kinds, authorities and claim kinds. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { FACT_KINDS } from "../../../src/public/operations/discovery-executors.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { FACT_KINDS } from "../../../src/public/operations/discovery-executors.js";
 
 /**
  * The fact kinds a typed fact query accepts. Kibi reads every value itself at ingest, so the certificate is checked against the code.

@@ -1,17 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { PROVE_PROGRESS_FILE } from "../../../src/commands/prove.js";
-import { PROOF_INTEGRATION_CONFIGURE } from "../../../src/proof/integration-plan.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { FINGERPRINT_COMPONENT_NAMES } from "../../../src/public/proof-fingerprint.js";
 import {
   PROOF_RECEIPT_V1_VERSION,
   PROOF_RECEIPT_VERSIONS,
 } from "../../../src/public/proof-protocol.js";
+import { FINGERPRINT_COMPONENT_NAMES } from "../../../src/public/proof-fingerprint.js";
+import { PROVE_PROGRESS_FILE } from "../../../src/commands/prove.js";
+import { PROOF_INTEGRATION_CONFIGURE } from "../../../src/proof/integration-plan.js";
 
 /**
  * The receipt versions Kibi reads, the parts of an execution fingerprint, the prove progress file and the integration setup step. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

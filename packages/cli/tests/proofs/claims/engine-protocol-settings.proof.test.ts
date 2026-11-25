@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-  ENGINE_IDLE_TIMEOUT_MS,
-  ENGINE_PROTOCOL_VERSION,
-} from "../../../src/engine.js";
-import {
   type CodeCertificate,
   arithmeticCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import {
+  ENGINE_IDLE_TIMEOUT_MS,
+  ENGINE_PROTOCOL_VERSION,
+} from "../../../src/engine.js";
 
 /**
  * The protocol version of the Kibi engine daemon and how long it waits idle. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

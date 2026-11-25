@@ -9,8 +9,8 @@ import { executeValidateUpsert } from "../../../operations/mutation/validate-ups
 import type { OperationSpec } from "../types.js";
 import { ENTITY_TYPES } from "./mutation-schemas.js";
 
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import { PLANNED_FACTS_SCHEMA, UPSERT_DOCUMENT_SCHEMA } from "./upsert.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export { upsertSpec } from "./upsert.js";
 

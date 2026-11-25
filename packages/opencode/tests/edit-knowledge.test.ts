@@ -105,9 +105,7 @@ describe("edit guidance grounding", () => {
       linkedWorkspace("open", `${sentence}. ${sentence}. ${sentence}.`),
     );
     assert.ok(
-      prompt.includes(
-        `Why: ${sentence}. ${sentence} (REQ-checkout-rounding rationale). Decision:`,
-      ),
+      prompt.includes(`Why: ${sentence}. ${sentence} (REQ-checkout-rounding rationale). Decision:`),
       prompt,
     );
     assert.ok(wordCount(prompt) <= 120, `${wordCount(prompt)} words`);

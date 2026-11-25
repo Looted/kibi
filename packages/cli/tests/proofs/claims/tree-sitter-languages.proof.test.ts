@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { TREE_SITTER_LANGUAGES } from "../../../../plugin-treesitter/src/catalog.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
+import { TREE_SITTER_LANGUAGES } from "../../../../plugin-treesitter/src/catalog.js";
 
 /**
  * The languages the tree-sitter plugin extracts symbols from and the file extensions it claims for some of them. Kibi reads every value itself at ingest, so the certificate is checked against the code.
