@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4a14dd355ad6
+  - type: assumes
+    from: SCEN-NEG-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-full-profile-every-tool
+    created_at: 2026-11-26T10:33:00.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfac7c4ac7d7
+  - type: assumes
+    from: SCEN-NEG-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-instructions-unnamed-planning
+    created_at: 2026-11-26T10:33:00.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fefb0d9a0bce

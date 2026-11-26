@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0703fe45e55
+  - type: validates
+    from: TEST-mcp-default-tool-profile
+    to: SCEN-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:15.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bda841a27806
+  - type: validates
+    from: TEST-mcp-default-tool-profile
+    to: SCEN-NEG-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:15.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c48f60f308d
