@@ -51921,3 +51921,48 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-root-pages
+  - id: SYM-input-aliases-with-input-aliases
+    title: withInputAliases
+    sourceFile: packages/cli/src/public/operations/input-aliases.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:04:35.324Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-search-question-alias
+      - type: implements
+        target: REQ-kb-search-question-alias
+  - id: SYM-input-aliases-marker
+    title: INPUT_ALIASES
+    status: active
+    sourceFile: packages/cli/src/public/operations/input-aliases.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:04:50.457Z
+  - id: SYM-test-cli-input-aliases
+    title: CLI input aliases suite
+    status: active
+    sourceFile: packages/cli/tests/operations/input-aliases.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:04:53.268Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-search-question-alias
+  - id: SYM-test-mcp-input-aliases
+    title: MCP input aliases suite
+    status: active
+    sourceFile: packages/mcp/tests/server/input-aliases.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:04:56.262Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-search-question-alias
