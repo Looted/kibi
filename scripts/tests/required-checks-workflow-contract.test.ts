@@ -21,7 +21,7 @@ function workflow(name: string): Workflow {
 describe("one required check per workflow", () => {
   for (const [file, aggregate, exempt] of [
     ["ci.yml", "ci-required", []],
-    ["proof.yml", "proof-required", ["deploy"]],
+    ["proof.yml", "proof-required", []],
   ] as const) {
     test(`${aggregate} needs every other ${file} job and passes only when all succeed`, () => {
       const jobs = workflow(file).jobs;
@@ -107,7 +107,9 @@ describe("proof fails fast on KB-only gates", () => {
     const sync = at("Sync and validate integrity of the proof snapshot");
     const answers = at("Gate kb_search answers on the repository gold set");
     const hints = at("Gate kb_search hints on reworded questions");
-    const floor = at("Reject evidence-floor regressions before executing contracts");
+    const floor = at(
+      "Reject evidence-floor regressions before executing contracts",
+    );
     expect(answers).toBeGreaterThan(sync);
     expect(hints).toBeGreaterThan(answers);
     expect(floor).toBeGreaterThan(hints);
