@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9464b67841ff
+  - type: implements
+    from: SYM-input-aliases-with-input-aliases
+    to: REQ-kb-search-question-alias
+    created_at: 2026-11-26T11:04:36.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8c720ccdfe1
+  - type: covered_by
+    from: SYM-input-aliases-with-input-aliases
+    to: TEST-kb-search-question-alias
+    created_at: 2026-11-26T11:04:49.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b704ae74ff

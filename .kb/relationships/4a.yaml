@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f1ed002b51d
+  - type: executable_for
+    from: SYM-test-cli-input-aliases
+    to: TEST-kb-search-question-alias
+    created_at: 2026-11-26T11:04:54.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-790dfa9fc7d7
