@@ -658,4 +658,27 @@ describe("formatOwnerFindings", () => {
     expect(text).toContain("    REQ-tags-create: Tag creation\n");
     expect(text).not.toContain("Also linked from this file");
   });
+
+  test("marks an extracted symbol with no manifest record as new even without symbols_manifest_stale", () => {
+    const [finding] = collectOwnerFindings({
+      traceability: [violation("src/pricing.ts", "approveRefundOverride", 7)],
+      diagnostics: [],
+      symbols: [
+        {
+          name: "approveRefundOverride",
+          location: { file: "src/pricing.ts", startLine: 7 },
+          role: "behavioral",
+          reqLinks: [],
+        },
+      ],
+      candidatesByFile: new Map(),
+      readRequirement,
+    });
+    expect(finding?.state).toBe("new");
+    const text = formatOwnerFindings(finding ? [finding] : []);
+    expect(text).toContain(
+      "approveRefundOverride (src/pricing.ts:7) is new and no requirement owns it.",
+    );
+    expect(text).not.toContain("has a symbol record");
+  });
 });

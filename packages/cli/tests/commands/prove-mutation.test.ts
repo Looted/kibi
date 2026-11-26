@@ -492,7 +492,23 @@ describe("playwright narrowing", () => {
         bound("T-2", "a.spec.ts"),
       ]),
     ).toEqual({
-      argv: [...command, "a.spec.ts", "b.spec.ts"],
+      argv: [...command, "a\\.spec\\.ts", "b\\.spec\\.ts"],
+      narrowed: true,
+    });
+  });
+
+  test("escapes regex metacharacters in bound spec paths", () => {
+    expect(
+      narrowedPlaywrightCommand(
+        ["playwright", "test"],
+        [bound("T-1", "app/[id]/(group)/page+1.spec.ts")],
+      ),
+    ).toEqual({
+      argv: [
+        "playwright",
+        "test",
+        "app/\\[id\\]/\\(group\\)/page\\+1\\.spec\\.ts",
+      ],
       narrowed: true,
     });
   });
@@ -1656,11 +1672,11 @@ describe("prove runs", () => {
       return result;
     };
     expect(await run({ testId: "T-1" })).toEqual([
-      ["playwright", "test", "a.spec.ts"],
+      ["playwright", "test", "a\\.spec\\.ts"],
       [],
     ]);
     expect(await run({ stale: true })).toEqual([
-      ["playwright", "test", "a.spec.ts"],
+      ["playwright", "test", "a\\.spec\\.ts"],
       [],
     ]);
     expect(await run({ all: true })).toEqual([["playwright", "test"], []]);
@@ -1694,7 +1710,7 @@ describe("prove runs", () => {
       { requirement: "REQ-1" },
       { runtime: h.runtime, ingestProof: ingestWith(h) as never },
     );
-    expect(h.spawns[0]?.argv).toEqual(["playwright", "test", "a.spec.ts"]);
+    expect(h.spawns[0]?.argv).toEqual(["playwright", "test", "a\\.spec\\.ts"]);
   });
 
   test("records an integration that is not configured", async () => {

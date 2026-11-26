@@ -386,7 +386,11 @@ describe("trim and archive", () => {
       expect(report.target).toBe("win32-x64");
       expect(report.checks["pe-audit"]).toBe("passed");
       expect(report.checks.smoke).toBe("passed");
-      expect(existsSync(path.join(work, "prefix", "lib", "swipl", "bin", "swipl.exe"))).toBe(true);
+      expect(
+        existsSync(
+          path.join(work, "prefix", "lib", "swipl", "bin", "swipl.exe"),
+        ),
+      ).toBe(true);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -424,7 +428,11 @@ describe("trim and archive", () => {
       );
       expect(run.status).toBe(0);
       const result = JSON.parse(run.stdout.trim().split("\n").pop());
-      expect(existsSync(path.join(result.prefix, "lib", "swipl", "bin", "swipl.exe"))).toBe(true);
+      expect(
+        existsSync(
+          path.join(result.prefix, "lib", "swipl", "bin", "swipl.exe"),
+        ),
+      ).toBe(true);
       // A second run into the same workdir must refuse to reuse the destination.
       const again = spawnSync(
         "python3",

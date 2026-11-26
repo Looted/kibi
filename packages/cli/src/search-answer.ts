@@ -273,6 +273,12 @@ export type SearchAnswerOptions = Readonly<{
    * the note says the governing list holds candidates to confirm.
    */
   ambiguous?: boolean;
+  /**
+   * Additional supersession edges (superseded id -> superseding id) known from
+   * the decision corpus so a superseded requirement is never named governing
+   * even before its replacement is synced into the branch store.
+   */
+  supersededBy?: Readonly<Record<string, string>>;
 }>;
 
 /**
@@ -1257,7 +1263,9 @@ export async function buildSearchAnswer(
   // A replacement is only proposed for a predecessor that matched about as
   // well as the best candidate: a weak match on an old requirement says
   // little about its replacement, which would otherwise fill a free slot.
-  const supersededBy = new Map<string, string>();
+  const supersededBy = new Map<string, string>(
+    Object.entries(options.supersededBy ?? {}),
+  );
   let frontier = byScore();
   const pullFloor =
     Math.max(...[...candidates.values()].map((entry) => entry.score)) *

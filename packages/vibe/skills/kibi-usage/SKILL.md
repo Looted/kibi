@@ -2,7 +2,7 @@
 id: kibi-usage
 name: kibi-usage
 description: "Load before changing code in a repository that has a `.kb/` folder or `kb_*` tools, and whenever a Kibi hook, check or write result leaves you unsure what to do next. Covers the change arc over MCP or the trusted local CLI: find the requirement that governs the code, edit, record a stated rule with kb_record, run the linked tests and the changed-files check, finish without asking, commit with the `.kb` files and Git-stages them yourself, plus partial-completion repair. Also use for knowledge base quality work: cleaning up or auditing a KB, clearing kibi check review findings (broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, entity-context-missing), splitting a requirement that covers several behaviors, choosing which function owns a behavior, writing why a requirement exists, and retiring knowledge whose behavior is gone."
-version: 3.2.0
+version: 3.2.1
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi

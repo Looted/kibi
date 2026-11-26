@@ -17,7 +17,10 @@
 */
 
 import * as path from "node:path";
-import { readKibiLevel } from "kibi-agent-core/kibi-level";
+import {
+  type KibiLevel,
+  kibiLevelInSettings,
+} from "kibi-agent-core/kibi-level";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import { EngineClient } from "../engine.js";
 import { isCliTraceOrDebugEnabled } from "../env.js";
@@ -376,6 +379,12 @@ export function formatQualityDiagnostics(
 export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
+  diagnostics?: readonly Readonly<{
+    category?: string;
+    severity?: string;
+    message?: string;
+    suggestion?: string;
+  }>[];
   migrationPlan?: MigrationPlan | undefined;
   symbolDebt?: SymbolDebt | undefined;
 }): void {
@@ -384,7 +393,7 @@ export function printStructuredCheckResult(input: {
       structuredContent: {
         violations: input.violations,
         count: input.violations.length,
-        diagnostics: [],
+        diagnostics: input.diagnostics ?? [],
         qualityDiagnostics: input.qualityDiagnostics,
         // The same migration plan kb_check returns, so the CLI and MCP agree
         // (JSON leaves the key out when there is none).
@@ -393,6 +402,24 @@ export function printStructuredCheckResult(input: {
       },
     }),
   );
+}
+
+/** Read the Kibi level from an immutable Git tree (`package.json`, else `.kb/setup.json`). */
+function readSnapshotKibiLevel(
+  snapshot: { readGit(args: readonly string[]): Buffer },
+  tree: string,
+): KibiLevel {
+  const readTreeFile = (file: string): string | undefined => {
+    try {
+      return snapshot.readGit(["show", `${tree}:${file}`]).toString("utf8");
+    } catch {
+      return undefined;
+    }
+  };
+  const pkg = readTreeFile("package.json");
+  if (pkg !== undefined) return kibiLevelInSettings(pkg, "package.json").level;
+  return kibiLevelInSettings(readTreeFile(".kb/setup.json"), "setup.json")
+    .level;
 }
 
 const countFormat = new Intl.NumberFormat("en-US");
@@ -854,8 +881,6 @@ export async function checkCommand(
         };
 
     if (options.staged) {
-      // The project's Kibi level selects whether verification rules run.
-      const level = readKibiLevel(process.cwd()).level;
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
       let stagedCoverage: StagedFileCoverageResult | null = null;
       let tempCtx: {
@@ -866,6 +891,14 @@ export async function checkCommand(
       } | null = null;
       try {
         const snapshot = captureStagedSnapshot(process.cwd());
+        // The commit gate judges the commit itself, so the Kibi level comes
+        // from the staged snapshot, never from unstaged working-tree edits.
+        const level = readSnapshotKibiLevel(snapshot, snapshot.headTree);
+        const baseLevel = readSnapshotKibiLevel(snapshot, snapshot.baseTree);
+        const levelChangeNotice =
+          baseLevel !== level
+            ? `Note: this commit changes the Kibi level from ${baseLevel} to ${level}.`
+            : undefined;
         const stagedInventory = snapshot.inventory;
         const trustedSourceConfig = readSnapshotSourceConfig(
           snapshot,
@@ -1648,6 +1681,7 @@ export async function checkCommand(
             qualityDiagnostics: stagedKibiDiagnostics,
             ownerFindings,
             messages: [
+              ...(levelChangeNotice ? [levelChangeNotice] : []),
               ...(ownerText.length > 0 ? [ownerText] : []),
               ...(shown.diagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(shown.diagnostics)]
@@ -1677,6 +1711,7 @@ export async function checkCommand(
             qualityDiagnostics: stagedKibiDiagnostics,
             ownerFindings,
             messages: [
+              ...(levelChangeNotice ? [levelChangeNotice] : []),
               ...(ownerText.length > 0 ? [ownerText] : []),
               ...(shown.diagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(shown.diagnostics)]
@@ -1695,6 +1730,7 @@ export async function checkCommand(
           format: options.format,
           coverage: stagedCoverage,
           messages: [
+            ...(levelChangeNotice ? [levelChangeNotice] : []),
             allSymbols.length === 0 && stagedEntityResults.length === 0
               ? noValidatedSymbolsMessage(sourceAnalysis)
               : passMessage,
@@ -1788,10 +1824,12 @@ export async function checkCommand(
     const violations = result.structuredContent?.violations ?? [];
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
+    const diagnostics = result.structuredContent?.diagnostics ?? [];
     if (options.format === "json") {
       printStructuredCheckResult({
         violations,
         qualityDiagnostics,
+        diagnostics,
         migrationPlan: result.structuredContent?.migrationPlan,
         symbolDebt: result.structuredContent?.symbolDebt,
       });
@@ -1802,6 +1840,12 @@ export async function checkCommand(
     const schemaNote = schemaUpgradeNote(process.cwd());
     if (schemaNote !== null) {
       console.log(schemaNote);
+      console.log();
+    }
+    for (const warning of diagnostics.filter((d) => d.severity === "warning")) {
+      console.log(`Warning: ${warning.message}`);
+      if (warning.suggestion)
+        console.log(`  Suggestion: ${warning.suggestion}`);
       console.log();
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);

@@ -319,7 +319,9 @@ describe("strict proof workflow contract", () => {
         String(
           workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
         ),
-      ).toContain("github.event.pull_request.head.repo.full_name == github.repository");
+      ).toContain(
+        "github.event.pull_request.head.repo.full_name == github.repository",
+      );
       expect(
         String(
           workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
@@ -336,7 +338,8 @@ describe("strict proof workflow contract", () => {
     );
     expect(download?.with).toMatchObject({
       name: "kibi-requirement-proof",
-      "run-id": "${{ needs.reuse.outputs.train-run-id }}",
+      "run-id":
+        "${{ needs.reuse.outputs.train-report-run-id || needs.reuse.outputs.train-run-id }}",
     });
   });
 

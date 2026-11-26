@@ -68,10 +68,32 @@ describe("kibi init and the Kibi level", () => {
       written: ".kb/setup.json",
     });
     expect(read(root, ".kb/setup.json")).toEqual({ level: "test" });
-    expect(await settleKibiLevel(root, "REMEMBER", false, never)).toEqual({
+    const refused = await settleKibiLevel(root, "REMEMBER", false, never);
+    expect("error" in refused && refused.error).toContain("--change-level");
+    expect(
+      await settleKibiLevel(root, "REMEMBER", false, never, {
+        changeLevel: true,
+      }),
+    ).toEqual({
       level: "remember",
       written: ".kb/setup.json",
     });
+    const fresh = levelWorkspace();
+    expect(await settleKibiLevel(fresh, "REMEMBER", false, never)).toEqual({
+      level: "remember",
+      written: ".kb/setup.json",
+    });
+    const brokenPkg = levelWorkspace({ "package.json": "{not valid json" });
+    const brokenSettled = await settleKibiLevel(
+      brokenPkg,
+      "remember",
+      false,
+      never,
+    );
+    expect(brokenSettled).toMatchObject({ level: "remember", written: null });
+    expect("warning" in brokenSettled && brokenSettled.warning).toContain(
+      "package.json",
+    );
     expect(await settleKibiLevel(root, "prove", false, never)).toEqual({
       error: "unknown --level 'prove'. Expected one of: remember, test.",
     });

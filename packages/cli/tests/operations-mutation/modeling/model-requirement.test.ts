@@ -297,6 +297,60 @@ describe("vocabulary alignment", () => {
     expect(subjectSteps(content.applyPlan)).toEqual([]);
   });
 
+  test("preserves existing requirement title, status, text_ref and tags when modeling by requirementId", async () => {
+    manifestState();
+    const { mkdirSync, mkdtempSync, rmSync, writeFileSync } = await import(
+      "node:fs"
+    );
+    const { tmpdir } = await import("node:os");
+    const path = await import("node:path");
+    const dir = mkdtempSync(path.join(tmpdir(), "kibi-model-preserve-"));
+    try {
+      mkdirSync(path.join(dir, ".kb", "requirements"), { recursive: true });
+      writeFileSync(
+        path.join(dir, ".kb", "requirements", "REQ-clamp.md"),
+        [
+          "---",
+          "id: REQ-clamp",
+          "type: req",
+          "title: clamp must return a value within [lo, hi]",
+          "status: active",
+          "firmness: firm",
+          "tags:",
+          "  - math",
+          "---",
+          "clamp must return a value within [lo, hi].",
+          "",
+        ].join("\n"),
+      );
+      const result = await handleKbModelRequirement(
+        undefined,
+        {
+          ...PROVIDED,
+          operator: "lte",
+          requirementId: "REQ-clamp",
+          text: "clamp must return a value within [lo, hi].",
+        },
+        dir,
+      );
+      const step = reqStep(
+        result.applyPlan as unknown as Array<{
+          type: string;
+          id: string;
+          properties: Record<string, unknown>;
+        }>,
+      );
+      expect(step.properties.title).toBe(
+        "clamp must return a value within [lo, hi]",
+      );
+      expect(step.properties.status).toBe("active");
+      expect(step.properties.text_ref).toBeUndefined();
+      expect(step.properties.tags).toEqual(["math"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test("tags a declared subject and names its nearest neighbour from the review score", async () => {
     manifestState();
     const shape = {

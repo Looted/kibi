@@ -37,6 +37,7 @@ const OUTCOME_CATEGORIES: Readonly<Record<string, string>> = {
   check: "check_violations",
   "check-diff": "check_violations",
   "check-generated": "generated_artifacts_stale",
+  init: "init_failed",
   prove: "tests_failed",
   "proof run-steps": "tests_failed",
 };

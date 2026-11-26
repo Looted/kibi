@@ -167,8 +167,8 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
     );
     expect(preOut).toEqual({ decision: "allow" });
 
-    // Unsandboxed run_command and mutating tools in non-Kibi repos are never
-    // auto-allowed by the hook ("ask" respects the user's Always Allow cache).
+    // Outside Kibi workspaces, PreToolUse delegates to Antigravity's default
+    // policy with "allow" (never "auto_approve" and never extra "ask" prompts).
     const bypassOut = await runHook(
       {
         hookEventName: "PreToolUse",
@@ -183,7 +183,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
       },
       { env: { KIBI_TELEMETRY: "0" } },
     );
-    expect(bypassOut).toEqual({ decision: "ask" });
+    expect(bypassOut).toEqual({ decision: "allow" });
 
     const editNonKibi = await runHook(
       {
@@ -203,7 +203,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
       },
       { env: { KIBI_TELEMETRY: "0" } },
     );
-    expect(editNonKibi).toEqual({ decision: "ask" });
+    expect(editNonKibi).toEqual({ decision: "allow" });
   });
 
   test("injects SessionStart brief, queues read snippet on PreToolUse, and drains on PreInvocation", async () => {
@@ -347,7 +347,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
       },
       { pluginData, env },
     );
-    expect(nextEdit).toEqual({ decision: "ask" });
+    expect(nextEdit).toEqual({ decision: "allow" });
 
     // Opt-out disables firm edit confirmation.
     const optedOut = await runHook(
@@ -360,7 +360,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
       },
       { pluginData, env: { ...env, [CONFIRM_FIRM_EDITS_ENV]: "0" } },
     );
-    expect(optedOut).toEqual({ decision: "ask" });
+    expect(optedOut).toEqual({ decision: "allow" });
   });
 
   test("stamps workspaceRoot via overwrite on Kibi MCP calls and reminds once on Stop", async () => {
@@ -386,7 +386,7 @@ describe("kibi-antigravity hook-runner lifecycle", () => {
       { pluginData, env },
     );
     expect(stamped).toEqual({
-      decision: "ask",
+      decision: "allow",
       overwrite: {
         Arguments: JSON.stringify({ query: "checkout", workspaceRoot: root }),
       },
@@ -579,6 +579,15 @@ describe("Kibi level and required evidence confirmation", () => {
         properties: { required_evidence: "proved" },
       }),
     });
-    expect(raised.decision).not.toBe("force_ask");
+    expect(raised.decision).toBe("allow");
+
+    // Shell kibi init --level remember is force-asked too.
+    const shellLevel = await pre("run_command", {
+      CommandLine: "kibi init --level remember",
+    });
+    expect(shellLevel.decision).toBe("force_ask");
+    expect(shellLevel.reason).toContain(
+      "changes the Kibi level from test to remember",
+    );
   });
 });

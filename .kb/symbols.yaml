@@ -51995,3 +51995,151 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kb-search-question-alias
+  - id: SYM-bash-command-kibi-init-level-target
+    title: kibiInitLevelTarget
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:45:00.518Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hooks-read-rows
+      - type: covered_by
+        target: TEST-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-agent-hosts-shell-edits-count
+  - id: SYM-kb-mcp-tools-is-kibi-mcp-tool-name
+    title: isKibiMcpToolName
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:45:48.483Z
+    tags:
+      - hooks
+      - mcp
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-shared-hook-inputs
+      - type: covered_by
+        target: TEST-antigravity-plugin
+      - type: implements
+        target: REQ-antigravity-kb-tool-recognition
+  - id: SYM-level-guard-guarded-change-of-shell-command
+    title: guardedChangeOfShellCommand
+    status: active
+    sourceFile: packages/agent-core/src/level-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:45:51.517Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-guarded-change-ask
+      - type: implements
+        target: REQ-agent-hosts-guarded-change-prompt
+  - id: SYM-session-brief-remember-finish-line
+    title: REMEMBER_FINISH_LINE
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:45:54.212Z
+  - id: SYM-decision-search-min-meaning-score
+    title: MIN_MEANING_SCORE
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:45:57.069Z
+  - id: SYM-decision-search-decision-search-result
+    title: DecisionSearchResult
+    status: active
+    sourceFile: packages/cli/src/decision-search.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:46:00.090Z
+  - id: SYM-discovery-executors-decision-search-analysis
+    title: DecisionSearchAnalysis
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:46:03.336Z
+  - id: SYM-vibe-kibi-runtime-debug-launch
+    title: debugLaunch
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:46:07.277Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-vibe-kibi-runtime-serve-deferred-mcp-server
+    title: serveDeferredMcpServer
+    status: active
+    sourceFile: packages/vibe/bin/kibi-runtime.mjs
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:46:10.708Z
+    relationships:
+      - type: covered_by
+        target: TEST-vibe-plugin-contract-v1
+      - type: implements
+        target: REQ-vibe-mcp-launcher-contract
+  - id: SYM-ci-proof-reuse-report-run-id-from-attestation
+    title: reportRunIdFromAttestation
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:46:13.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-reuse-train-merge
+      - type: implements
+        target: REQ-ci-proof-reuse-train-merge
+  - id: SYM-prove-narrowed-playwright-command
+    title: narrowedPlaywrightCommand
+    status: active
+    sourceFile: packages/cli/src/commands/prove.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T17:49:46.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prove-narrowed-run-evidence
+      - type: implements
+        target: REQ-cli-prove-narrowed-run-evidence
+  - id: SYM-bash-command-edit-paths
+    title: commandEditPaths
+    status: active
+    sourceFile: packages/agent-core/src/bash-command.ts
+    symbol_role: behavioral
+    tags:
+      - hooks
+      - bash
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T19:07:40.361Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-agent-hosts-shell-edits-count

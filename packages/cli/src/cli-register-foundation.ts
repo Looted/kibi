@@ -74,6 +74,10 @@ export function registerFoundationCommands(program: Command): void {
       "--level <level>",
       "How hard Kibi holds the agent to its requirements: test (default; also asks for scenarios and linked tests) or remember (records requirements without them). Asked at a terminal when not given; recorded in package.json kibi.level or .kb/setup.json",
     )
+    .option(
+      "--change-level",
+      "Allow changing an already recorded Kibi level when running non-interactively with --level",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         (await import("./commands/init.js")).initCommand(options),

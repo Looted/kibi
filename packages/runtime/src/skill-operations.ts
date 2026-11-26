@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
-import type { OperationResult, OperationSpec } from "kibi-cli/operations";
+import {
+  type OperationResult,
+  type OperationSpec,
+  readKibiLevel,
+} from "kibi-cli/operations";
 import type { OperationContext } from "kibi-cli/operations/runtime-types";
 import type { SkillManifest } from "./skill-system/types.js";
 import {
@@ -7,6 +11,20 @@ import {
   loadBundledSkill,
   readBundledSkillResource,
 } from "./skills.js";
+
+const REMEMBER_UNOFFERED_SKILLS: ReadonlySet<string> = new Set([
+  "kibi-provable-code",
+]);
+
+function offeredSkills(
+  skills: readonly SkillManifest[],
+  workspaceRoot: string,
+): SkillManifest[] {
+  const remember = readKibiLevel(workspaceRoot).level === "remember";
+  return skills.filter(
+    (skill) => !remember || !REMEMBER_UNOFFERED_SKILLS.has(skill.id),
+  );
+}
 
 function assertNonEmptyString(value: string, field: string): void {
   if (value.trim() === "") {
@@ -16,9 +34,9 @@ function assertNonEmptyString(value: string, field: string): void {
 
 async function executeSkillsList(
   _input: Readonly<Record<string, unknown>>,
-  _context: OperationContext,
+  context: OperationContext,
 ): Promise<OperationResult<{ readonly skills: readonly SkillManifest[] }>> {
-  const skills = listBundledSkills();
+  const skills = offeredSkills(listBundledSkills(), context.workspaceRoot);
   const ids = skills.map((skill) => skill.id).join(", ") || "none";
   return {
     content: [
