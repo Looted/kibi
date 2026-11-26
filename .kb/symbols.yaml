@@ -51870,3 +51870,36 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-search-decision-answers
+  - id: SYM-tools-config-remember-knowledge-tools
+    title: REMEMBER_KNOWLEDGE_TOOLS
+    sourceFile: packages/mcp/src/tools-config.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:29:13.092Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-kibi-remember-level-tool-list
+  - id: SYM-tools-config-has-impact-policy
+    title: hasImpactPolicy
+    sourceFile: packages/mcp/src/tools-config.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:29:14.697Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-kibi-remember-level-tool-list
+  - id: SYM-tools-config-impact-review-tools
+    title: IMPACT_REVIEW_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:36:50.889Z
