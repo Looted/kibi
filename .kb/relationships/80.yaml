@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bfac4faa9339
+  - type: implements
+    from: SYM-kibi-usage-skill-guidance
+    to: REQ-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:45:47.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70b10528fb13

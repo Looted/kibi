@@ -461,3 +461,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1ce3a424b01
+  - type: assumes
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:17.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b75ab059349
+  - type: assumes
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-stated-rule-self-approved
+    created_at: 2026-11-26T11:44:17.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990b0394e1ca
+  - type: verified_by
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-26T11:44:17.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c80a107119c

@@ -1,5 +1,5 @@
 ---
-title: Bundled skills keep kibi-usage to its core arc, expect .kb staging and teach a write as one call
+title: Bundled skills keep kibi-usage to its core arc, ask the person only for decisions, expect .kb staging and teach a write as one call
 status: passing
 priority: must
 tags:
@@ -20,17 +20,17 @@ id: TEST-kibi-skills-core-arc
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-42daa8347cf4f8a38b146288
+    receipt_id: PR-7f6eda88af72019d0b753da8
     test_id: TEST-kibi-skills-core-arc
     scope: end_to_end
     outcome: passed
-    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-20T07:56:37.912Z'
-    finished_at: '2026-11-20T08:21:18.271Z'
-    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
+    code_snapshot: 3a2ac7b7dfe8d3763962477b10e9b0536e0a559fbf3caa10ce8b5ebbff20d1ad
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-26T11:52:08.279Z'
+    finished_at: '2026-11-26T11:52:08.514Z'
+    artifact_digest: 444e89420fe7157f02d6f2b9d4e0050c6ae7bfedb5dfe3b3a5122c62430740cb
     contract_hash: 4a2b2ccb5d837ac53ec2fd646a5c90f453d5683313d4c9cb9941e702aa6cdb55
-    binding_hash: 93e1f7ed0681c8d16fe2c0184f00620396fc44c856f185cccd6c43adce5836e2
+    binding_hash: aa104b9422019b1c9533600507d993f4a3b5ec2ff0c9d9db7615093e9b35d3ab
     fingerprint: f020535163a1655c39eb2d91679b8b7c601a37a1cc558bcb5dcc214022e23c8b
     fingerprint_components:
       contract: 4a2b2ccb5d837ac53ec2fd646a5c90f453d5683313d4c9cb9941e702aa6cdb55
@@ -55,4 +55,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Loads the bundled skills through the same loader kb_skills uses and asserts that the kibi-usage body is under 4,500 characters with only the interface and the five arc steps as sections, that it names the six resources the topic sections moved to, that the eval-tuned paragraphs are gone, that kibi-commit-review forbids hand edits of .kb while expecting it to be staged, and that no skill body except kibi-bootstrap teaches a dry run plus read-back as the default write. Entry points: packages/cli/tests/skills-core-arc.test.ts, and scripts/skillopt-eval/tests/queried-before-write.test.ts for the evaluation signal that credits the read before a write instead of a read-back after it. A false pass would need a skill whose prose keeps the ritual in words the patterns do not match.
+Loads the bundled skills through the same loader kb_skills uses and asserts that the kibi-usage body is under 4,500 characters with only the interface and the five arc steps as sections, that it names the six resources the topic sections moved to, that the eval-tuned paragraphs are gone, that kibi-commit-review forbids hand edits of .kb while expecting it to be staged, and that no skill body except kibi-bootstrap teaches a dry run plus read-back as the default write. It also asserts that kibi-usage and kibi-decisions tell the agent to ask the person only for a decision and to do the steps a Kibi result lists without asking, that a rule the person stated is approved by their own words, that neither skill asks to confirm a stated rule or reads a keeps receipt as needing the person's approval, and that kibi-usage's description says to load it before changing code, its check step comes before the final message with changed: true, and its proof-first resource stays under 3,000 characters. Entry points: packages/cli/tests/skills-core-arc.test.ts, and scripts/skillopt-eval/tests/queried-before-write.test.ts for the evaluation signal that credits the read before a write instead of a read-back after it. A false pass would need a skill whose prose keeps the ritual or the extra questions in words the patterns do not match.
