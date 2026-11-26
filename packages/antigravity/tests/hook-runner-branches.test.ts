@@ -66,7 +66,7 @@ function hookRunner(root: string, pluginData: string, conversationId: string) {
 }
 
 describe("kibi-antigravity permission decisions", () => {
-  test("never grants edits, commands or MCP calls inside a Kibi workspace", async () => {
+  test("passes non-guarded edits, commands and MCP calls through with allow (never auto_approve)", async () => {
     const { root, pluginData } = createKibiWorkspace();
     const hook = hookRunner(root, pluginData, "conv-perm");
     const file = path.join(root, "src", "unowned.ts");
@@ -77,33 +77,33 @@ describe("kibi-antigravity permission decisions", () => {
         Target: "1",
         Replacement: "2",
       }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
     expect(
       await hook.pre("write_to_file", { TargetFile: file, CodeContent: "x" }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
     expect(await hook.pre("run_command", { CommandLine: "ls" })).toEqual({
-      decision: "ask",
+      decision: "allow",
     });
     expect(
       await hook.pre("run_command", {
         CommandLine: "ls",
         BypassSandbox: true,
       }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
     expect(
       await hook.pre("call_mcp_tool", {
         ServerName: "other",
         ToolName: "anything",
       }),
-    ).toEqual({ decision: "ask" });
-    // A Kibi MCP call gets workspaceRoot stamped and still defers to the user.
+    ).toEqual({ decision: "allow" });
+    // A Kibi MCP call gets workspaceRoot stamped and delegates to default policy.
     expect(await hook.pre("kibi_kb_search", { query: "rounding" })).toEqual({
-      decision: "ask",
+      decision: "allow",
       overwrite: { workspaceRoot: root },
     });
   });
 
-  test("allows reads and searches only inside the opened workspace", async () => {
+  test("passes reads and searches through with allow regardless of path", async () => {
     const { root, pluginData } = createKibiWorkspace();
     const hook = hookRunner(root, pluginData, "conv-read");
     const outside = path.join(os.tmpdir(), "kibi-agy-outside.txt");
@@ -112,9 +112,9 @@ describe("kibi-antigravity permission decisions", () => {
       await hook.pre("view_file", { AbsolutePath: path.join(root, "README") }),
     ).toEqual({ decision: "allow" });
     expect(await hook.pre("read_file", { Path: outside })).toEqual({
-      decision: "ask",
+      decision: "allow",
     });
-    expect(await hook.pre("read_file", {})).toEqual({ decision: "ask" });
+    expect(await hook.pre("read_file", {})).toEqual({ decision: "allow" });
     expect(
       await hook.pre("grep_search", {
         Query: "x",
@@ -126,11 +126,10 @@ describe("kibi-antigravity permission decisions", () => {
         Pattern: "*",
         SearchDirectory: os.tmpdir(),
       }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
     expect(await hook.pre("grep_search", { Query: "x" })).toEqual({
       decision: "allow",
     });
-    // Without a cwd a path-less search cannot be placed inside the workspace.
     expect(
       await runHook(
         {
@@ -141,10 +140,10 @@ describe("kibi-antigravity permission decisions", () => {
         },
         { pluginData, env },
       ),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
   });
 
-  test("outside Kibi, reads inside the opened folder are allowed and the rest asks", async () => {
+  test("outside Kibi, PreToolUse passes through with allow and other events stay silent", async () => {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-agy-plain-"));
     extraDirs.push(folder);
     fs.mkdirSync(path.join(folder, ".git"));
@@ -163,10 +162,10 @@ describe("kibi-antigravity permission decisions", () => {
       await call("read_file", { Path: path.join(folder, "a.md") }),
     ).toEqual({ decision: "allow" });
     expect(await call("read_file", { Path: "/etc/hosts" })).toEqual({
-      decision: "ask",
+      decision: "allow",
     });
     expect(await call("run_command", { CommandLine: "rm -rf x" })).toEqual({
-      decision: "ask",
+      decision: "allow",
     });
     // Other events stay silent outside Kibi.
     expect(
@@ -202,7 +201,7 @@ describe("kibi-antigravity shell and edit context", () => {
 
     expect(
       await hook.pre("run_command", { CommandLine: "cat src/checkout.ts" }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
     expect(injected(await hook.drain())).toContain("REQ-checkout-rounding");
 
     await hook.pre("run_command", {
@@ -268,7 +267,7 @@ describe("kibi-antigravity shell and edit context", () => {
       }),
     );
     expect(await hook.pre("run_command", { CommandLine: command })).toEqual({
-      decision: "ask",
+      decision: "allow",
     });
     // An in-place edit of a doc is not a firm edit.
     fs.writeFileSync(path.join(root, "notes.md"), "a\n");
@@ -276,7 +275,7 @@ describe("kibi-antigravity shell and edit context", () => {
       await hook.pre("run_command", {
         CommandLine: "sed -i 's/a/b/' notes.md",
       }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
   });
 
   test("reports files a shell command changed and records CLI KB use", async () => {
@@ -580,7 +579,7 @@ describe("kibi-antigravity CLI entry", () => {
       }),
       main,
     );
-    expect(JSON.parse(ok)).toEqual({ decision: "ask" });
+    expect(JSON.parse(ok)).toEqual({ decision: "allow" });
 
     const fallback = await withStdin(
       JSON.stringify({
@@ -592,7 +591,7 @@ describe("kibi-antigravity CLI entry", () => {
           throw new Error("boom");
         }),
     );
-    expect(JSON.parse(fallback)).toEqual({ decision: "ask" });
+    expect(JSON.parse(fallback)).toEqual({ decision: "allow" });
     const other = await withStdin("{}", () =>
       main(async () => {
         throw "plain";
@@ -715,7 +714,7 @@ describe("kibi-antigravity edge edits", () => {
       Target: "// implements REQ-checkout-rounding\n",
       Replacement: "",
     });
-    expect(out.decision).toBe("ask");
+    expect(out.decision).toBe("allow");
   });
 
   test("a shell write to a non-source file needs no confirmation", async () => {
@@ -723,7 +722,7 @@ describe("kibi-antigravity edge edits", () => {
     const hook = hookRunner(root, pluginData, "conv-shell-doc");
     expect(
       await hook.pre("run_command", { CommandLine: "echo hi > notes.md" }),
-    ).toEqual({ decision: "ask" });
+    ).toEqual({ decision: "allow" });
   });
 
   test("a source file with coordinates but no symbols reads as an unreadable manifest", async () => {

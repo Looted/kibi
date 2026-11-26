@@ -568,8 +568,14 @@ describe("fitOperationResult", () => {
             dirty: true,
             staleReasonCount: 2,
             staleReasons: [
-              { code: "knowledge_source_newer", path: ".kb/requirements/REQ-0.md" },
-              { code: "relationship_source_newer", path: ".kb/relationships/links.yaml" },
+              {
+                code: "knowledge_source_newer",
+                path: ".kb/requirements/REQ-0.md",
+              },
+              {
+                code: "relationship_source_newer",
+                path: ".kb/relationships/links.yaml",
+              },
             ],
           },
         },
@@ -578,7 +584,9 @@ describe("fitOperationResult", () => {
     const staleText = staleCut.result.content[0]?.text ?? "";
     expect(staleText).toContain("KB store is stale (2 uncompiled changes");
     expect(staleText).toContain(".kb/requirements/REQ-0.md");
-    expect(staleText).toContain("Run `kibi sync` before relying on these results.");
+    expect(staleText).toContain(
+      "Run `kibi sync` before relying on these results.",
+    );
 
     const uncompiledCut = fitOperationResult(
       read,
@@ -599,6 +607,46 @@ describe("fitOperationResult", () => {
     );
     const uncompiledText = uncompiledCut.result.content[0]?.text ?? "";
     expect(uncompiledText).toContain("Branch store has never been compiled.");
-    expect(uncompiledText).toContain("Run kibi sync before relying on query results.");
+    expect(uncompiledText).toContain(
+      "Run kibi sync before relying on query results.",
+    );
+  });
+
+  test("truncates an oversized multiline string field to a prefix instead of dropping it", () => {
+    const multilineBody = Array.from(
+      { length: 1_200 },
+      (_, i) => `Line ${i}: "quoted" value with \\backslash\\ and details\n`,
+    ).join("");
+    const fitted = fitOperationResult(
+      read,
+      {},
+      {
+        content: [],
+        structuredContent: {
+          entities: [
+            {
+              id: "REQ-multiline",
+              type: "req",
+              title: "Multiline requirement",
+              source: ".kb/requirements/REQ-multiline.md",
+              body: multilineBody,
+            },
+          ],
+          count: 1,
+        },
+      },
+    );
+    const data = fitted.result.structuredContent as unknown as {
+      entities: Array<{
+        id: string;
+        body?: string;
+        omittedFields?: string[];
+      }>;
+    };
+    expect(data.entities).toHaveLength(1);
+    expect(typeof data.entities[0]?.body).toBe("string");
+    expect(data.entities[0]?.body).toStartWith('Line 0: "quoted"');
+    expect(data.entities[0]?.body).toContain("truncated");
+    expect(data.entities[0]?.omittedFields).toContain("body");
   });
 });

@@ -387,6 +387,30 @@ test("postEditNote compares a whole-file write with the last commit", () => {
       ) ?? "",
       /ask the person now whether to keep it/,
     );
+    assert.match(
+      postEditNote(
+        ws.root,
+        {
+          ...upsert({ id: "REQ-floor", properties: {} }),
+          tool_name: "mcp_kibi.kb_upsert",
+          session_id: "s3b",
+        },
+        ws.env,
+      ) ?? "",
+      /ask the person now whether to keep it/,
+    );
+    assert.match(
+      postEditNote(
+        ws.root,
+        {
+          session_id: "s3c",
+          tool_name: "bash",
+          tool_input: { command: "kibi init --level remember" },
+        },
+        ws.env,
+      ) ?? "",
+      /changes the Kibi level/,
+    );
     assert.equal(
       postEditNote(
         ws.root,
@@ -556,6 +580,72 @@ test("readRowsNote names the requirements of the code in view once per session",
     } = read(ws.root, "file_system.grep", { pattern: "deleteInvoice" });
     // Without coordinates a match cannot be placed in a symbol: no row.
     assert.equal(readRowsNote(ws.root, unattributed), undefined);
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("postEditNote catches post-tool kibi init --level and kb_delete ids", () => {
+  const ws = workspace();
+  try {
+    writeFileSync(
+      join(ws.root, "package.json"),
+      JSON.stringify({ name: "app", kibi: { level: "test" } }, null, 2),
+    );
+    const reqPath = join(ws.root, ".kb/requirements/REQ-del.md");
+    writeFileSync(
+      reqPath,
+      "---\nid: REQ-del\ntitle: Del\nstatus: open\nrequired_evidence: tested\n---\nBody.\n",
+    );
+    execFileSync("git", ["init", "-q"], { cwd: ws.root });
+    execFileSync("git", ["add", "."], { cwd: ws.root });
+    execFileSync(
+      "git",
+      [
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@example.com",
+        "commit",
+        "-qm",
+        "init",
+      ],
+      { cwd: ws.root },
+    );
+    // Simulate bash having already run `kibi init --level remember`
+    writeFileSync(
+      join(ws.root, "package.json"),
+      JSON.stringify({ name: "app", kibi: { level: "remember" } }, null, 2),
+    );
+    const levelNote = postEditNote(
+      ws.root,
+      {
+        hook_event_name: "post_tool",
+        session_id: "s-lvl",
+        cwd: ws.root,
+        tool_name: "bash",
+        tool_input: { command: "kibi init --level remember" },
+        tool_status: "success",
+      },
+      ws.env,
+    );
+    assert.match(levelNote ?? "", /from test to remember/);
+
+    // Simulate kb_delete({ ids: ["REQ-del"] }) having already removed the file
+    rmSync(reqPath);
+    const delNote = postEditNote(
+      ws.root,
+      {
+        hook_event_name: "post_tool",
+        session_id: "s-del",
+        cwd: ws.root,
+        tool_name: "mcp_kibi.kb_delete",
+        tool_input: { ids: ["REQ-del"] },
+        tool_status: "success",
+      },
+      ws.env,
+    );
+    assert.match(delNote ?? "", /REQ-del/);
   } finally {
     ws.cleanup();
   }

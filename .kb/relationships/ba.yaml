@@ -342,3 +342,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e47ddf897555
+  - type: implements
+    from: SYM-bash-command-kibi-init-level-target
+    to: REQ-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T17:45:01.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a27411957c5
+  - type: covered_by
+    from: SYM-bash-command-kibi-init-level-target
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-26T17:45:01.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9defa2ac1377
+  - type: covered_by
+    from: SYM-bash-command-kibi-init-level-target
+    to: TEST-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T17:45:01.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-094e9cb0a8d8

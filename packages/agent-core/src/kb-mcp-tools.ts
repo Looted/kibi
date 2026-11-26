@@ -65,16 +65,20 @@ function readRecord(
 /**
  * Canonical Kibi operation name for a host tool name. Hosts prefix MCP tools
  * (`mcp__kibi__kb_check`, `mcp__plugin_<plugin>_kibi__kb_check`,
- * `MCP:kb_check`, `kibi_kb_check`); an unprefixed `kb_check` passes through.
+ * `mcp_kibi.kb_check`, `MCP:kb_check`, `kibi_kb_check`); an unprefixed
+ * `kb_check` passes through.
  */
 export function canonicalKbToolName(
   toolName: string | undefined,
 ): string | undefined {
   // `String(undefined)` is "undefined", which is no kb_ operation either.
   const trimmed = String(toolName).trim();
+  const vibeDot = /^mcp_[^.]+\.(.+)$/i.exec(trimmed)?.[1];
   const lastSegment = trimmed.includes("__")
     ? (trimmed.split("__").at(-1) as string)
-    : trimmed.replace(/^MCP:/i, "");
+    : vibeDot !== undefined
+      ? vibeDot
+      : trimmed.replace(/^MCP:/i, "");
   const operation = lastSegment.replace(/^kibi_/, "");
   return operation.startsWith("kb_") ? operation : undefined;
 }
@@ -90,12 +94,14 @@ export const KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 
 /**
  * True for a Kibi MCP tool as hosts name it in pre-tool hooks:
- * `mcp__<server>__kb_*` from a server whose name mentions kibi, or Cursor's
- * `MCP:kb_*` (Cursor does not name the server there).
+ * `mcp__<server>__kb_*` from a server whose name mentions kibi, Vibe's
+ * `mcp_<server>.kb_*` from a kibi server, or Cursor's `MCP:kb_*` (Cursor
+ * does not name the server there).
  */
 export function isKibiMcpToolName(toolName: string | undefined): boolean {
   const name = String(toolName).trim();
   if (/^MCP:kb_[a-z_]+$/i.test(name)) return true;
+  if (/^mcp_[^.]*kibi[^.]*\.(?:kibi_)?kb_[a-z_]+$/i.test(name)) return true;
   const segments = name.split("__");
   if (segments[0] !== "mcp") return false;
   // Fewer than three segments leave the server empty, which never matches.

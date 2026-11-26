@@ -2,6 +2,7 @@ import {
   KIBI_WORKSPACE_ARGUMENT,
   canonicalKbToolName,
   effectiveKbOperation,
+  isKibiMcpToolName,
   kibiCliOperation,
 } from "kibi-agent-core/kb-mcp-tools";
 
@@ -46,24 +47,42 @@ function strings(value: unknown): string[] {
 }
 
 /**
- * Normalize any Antigravity MCP tool name naming a Kibi operation to its
- * canonical `kb_*` operation name.
+ * Normalize a Kibi MCP tool name (either a bare `kb_*` tool name inside a
+ * `call_mcp_tool` wrapper whose ServerName names kibi, or a direct
+ * server-qualified Kibi tool name) to its canonical `kb_*` operation name.
+ * Tools from non-Kibi servers (such as `mcp__docs__kb_search`) return undefined.
  */
 export function canonicalKbOperation(
   toolName: string | undefined,
 ): string | undefined {
   if (!toolName) return undefined;
   const trimmed = toolName.trim();
-  const shared = canonicalKbToolName(trimmed);
-  if (shared && /^kb_[a-z_]+$/.test(shared)) return shared;
-
-  const afterColon = trimmed.includes(":")
-    ? (trimmed.split(":").at(-1) as string)
-    : trimmed;
-  const match = /(?:^|(?:^|_)kibi_)(kb_[a-z_]+)$/.exec(afterColon);
-  if (match?.[1]) return match[1];
-  const mcpMatch = /^mcp_[^_]*kibi[^_]*_(kb_[a-z_]+)$/i.exec(afterColon);
+  if (/^kb_[a-z_]+$/.test(trimmed)) return trimmed;
+  if (isKibiMcpToolName(trimmed)) {
+    const shared = canonicalKbToolName(trimmed);
+    return shared && /^kb_[a-z_]+$/.test(shared) ? shared : undefined;
+  }
+  if (trimmed.includes(":")) {
+    const colonIndex = trimmed.lastIndexOf(":");
+    const server = trimmed.slice(0, colonIndex);
+    const tail = trimmed.slice(colonIndex + 1);
+    if (!/kibi/i.test(server)) return undefined;
+    return /^kb_[a-z_]+$/.test(tail) ? tail : undefined;
+  }
+  const kibiPrefixed = /^kibi_(kb_[a-z_]+)$/i.exec(trimmed);
+  if (kibiPrefixed?.[1]) return kibiPrefixed[1];
+  const mcpMatch = /^mcp_[^_]*(?:_[^_]*)*kibi[^_]*_(kb_[a-z_]+)$/i.exec(
+    trimmed,
+  );
   return mcpMatch?.[1];
+}
+
+/** True when a direct tool name explicitly identifies a Kibi server/prefix. */
+function isDirectKibiToolName(toolName: string | undefined): boolean {
+  if (!toolName) return false;
+  const trimmed = toolName.trim();
+  if (/^kb_[a-z_]+$/.test(trimmed)) return false;
+  return canonicalKbOperation(trimmed) !== undefined;
 }
 
 type UnwrappedMcpCall = {
@@ -113,9 +132,9 @@ export function unwrapKibiMcpCall(
   if (toolName === "call_mcp_tool" && isRecord(toolArgs)) {
     const innerName = firstStringField(toolArgs, ["ToolName", "toolName"]);
     const serverName = firstStringField(toolArgs, ["ServerName", "serverName"]);
+    if (!serverName || !/kibi/i.test(serverName)) return undefined;
     const operation = canonicalKbOperation(innerName);
     if (!operation) return undefined;
-    if (serverName && !/kibi/i.test(serverName)) return undefined;
     const argumentsKey: "Arguments" | "arguments" =
       !("Arguments" in toolArgs) && "arguments" in toolArgs
         ? "arguments"
@@ -130,6 +149,7 @@ export function unwrapKibiMcpCall(
     };
   }
 
+  if (!isDirectKibiToolName(toolName)) return undefined;
   const operation = canonicalKbOperation(toolName);
   if (!operation) return undefined;
   const payload = payloadOf(toolArgs);

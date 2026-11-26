@@ -13,6 +13,7 @@ import {
   guardedChangeContext,
   guardedChangeNotice,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
   guardedChangeSince,
   proposedContent,
 } from "../src/level-guard";
@@ -280,7 +281,12 @@ describe("evidenceLoweringOfEdit", () => {
     ).toBeUndefined();
     expect(
       evidenceLoweringOfEdit(root, file, { content: "no frontmatter" }),
-    ).toBeUndefined();
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
   });
 
   test("removing the field lowers an agent requirement to unverified", () => {
@@ -297,7 +303,8 @@ describe("evidenceLoweringOfEdit", () => {
 
   test("a patch that changes firmness or drops the approval lowers it", () => {
     const root = workspace({
-      [file]: `---\nid: REQ-a\ntitle: A\nstatus: open\nfirmness: firm\norigin:\n  kind: agent\n  approved_by: maintainer\n---\n`,
+      [file]:
+        "---\nid: REQ-a\ntitle: A\nstatus: open\nfirmness: firm\norigin:\n  kind: agent\n  approved_by: maintainer\n---\n",
     });
     expect(
       evidenceLoweringOfEdit(root, file, {
@@ -398,7 +405,8 @@ describe("evidenceLoweringOfKbCall", () => {
 
   test("a write that lowers the floor through firmness or origin is a lowering", () => {
     const approved = workspace({
-      ".kb/requirements/REQ-a.md": `---\nid: REQ-a\ntitle: A\nstatus: open\norigin:\n  kind: agent\n  approved_by: maintainer\n---\nBody.\n`,
+      ".kb/requirements/REQ-a.md":
+        "---\nid: REQ-a\ntitle: A\nstatus: open\norigin:\n  kind: agent\n  approved_by: maintainer\n---\nBody.\n",
     });
     const upsert = (properties: Record<string, unknown>) =>
       evidenceLoweringOfKbCall(approved, "kb_upsert", {
@@ -753,5 +761,274 @@ describe("texts", () => {
     expect(guardedChangeAfterNotice(lower)).toBe(
       "Kibi: the change you just made lowers the evidence REQ-a must reach from tested to asserted. That is the person's decision, not yours: ask the person now whether to keep it, and undo it unless they agree.",
     );
+  });
+});
+
+describe("YAML frontmatter, id lookup, apply_patch, kb_delete/apply_plan, and shell guards", () => {
+  test("YAML comments, tags, quoted keys, flow origin, and malformed frontmatter cannot bypass evidence guard", () => {
+    const file = ".kb/requirements/REQ-pay.md";
+    const doc = [
+      "---",
+      "id: REQ-pay",
+      "title: Refund rule",
+      "status: open",
+      "required_evidence: tested",
+      "firmness: firm",
+      "origin:",
+      "  kind: human",
+      "  approved_by: alice",
+      "---",
+      "Body.",
+    ].join("\n");
+    const root = workspace({ [file]: doc });
+    for (const replacement of [
+      "required_evidence: asserted # ok",
+      "required_evidence: !!str asserted",
+      '"required_evidence": asserted',
+      "required_evidence: not-a-real-level",
+    ]) {
+      expect(
+        evidenceLoweringOfEdit(root, file, {
+          old_string: "required_evidence: tested",
+          new_string: replacement,
+        }),
+        replacement,
+      ).toMatchObject({
+        kind: "evidence",
+        requirementId: "REQ-pay",
+        from: "tested",
+      });
+    }
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        old_string:
+          "required_evidence: tested\nfirmness: firm\norigin:\n  kind: human\n  approved_by: alice\n",
+        new_string: "origin: {kind: agent}\n",
+      }),
+    ).toMatchObject({
+      requirementId: "REQ-pay",
+      from: "tested",
+      to: "unverified",
+    });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        content: "---\n: [broken yaml\n---\n",
+      }),
+    ).toMatchObject({
+      requirementId: "REQ-pay",
+      from: "tested",
+      to: "unverified",
+    });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        patch: patch(
+          file,
+          "-required_evidence: tested",
+          "+required_evidence: asserted # fine",
+        ),
+      }),
+    ).toMatchObject({
+      requirementId: "REQ-pay",
+      from: "tested",
+      to: "asserted",
+    });
+  });
+
+  test("resolves requirements by frontmatter id even when file name differs", () => {
+    const file = ".kb/requirements/nested/chargeback-rule.md";
+    const root = workspace({
+      [file]: requirement({
+        id: "REQ-pay-chargeback",
+        required_evidence: "tested",
+      }),
+    });
+    expect(
+      evidenceLoweringOfKbCall(root, "mcp_kibi.kb_upsert", {
+        type: "req",
+        id: "REQ-pay-chargeback",
+        properties: { required_evidence: "unverified" },
+      }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-pay-chargeback",
+      from: "tested",
+      to: "unverified",
+    });
+    expect(
+      evidenceLoweringOfEdit(root, file, {
+        old_string: "required_evidence: tested",
+        new_string: "required_evidence: asserted",
+      }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-pay-chargeback",
+      from: "tested",
+      to: "asserted",
+    });
+  });
+
+  test("apply_patch detects level change even when another level line precedes it or on Delete+Add", () => {
+    const root = workspace({ "package.json": pkg("test") });
+    expect(
+      levelChangeOfEdit(root, "package.json", {
+        patch: patch(
+          "package.json",
+          '+  "logging": {"level": "debug"},',
+          '-    "level": "test"',
+          '+    "level": "remember"',
+        ),
+      }),
+    ).toMatchObject({ kind: "level", from: "test", to: "remember" });
+    expect(
+      levelChangeOfEdit(root, "package.json", {
+        patch: [
+          "*** Begin Patch",
+          "*** Delete File: package.json",
+          "*** Add File: package.json",
+          "+{",
+          '+  "kibi": {',
+          '+    "level":',
+          '+      "remember"',
+          "+  }",
+          "+}",
+          "*** End Patch",
+        ].join("\n"),
+      }),
+    ).toMatchObject({ kind: "level", from: "test", to: "remember" });
+  });
+
+  test("kb_delete and kb_apply_plan lowering an existing requirement are guarded", () => {
+    const root = workspace({
+      ".kb/requirements/REQ-a.md": requirement({ required_evidence: "tested" }),
+    });
+    expect(
+      evidenceLoweringOfKbCall(root, "kb_delete", { ids: ["REQ-a"] }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
+    expect(
+      evidenceLoweringOfKbCall(root, "kb_apply_plan", {
+        plan: {
+          actions: [
+            {
+              operation: "upsert",
+              payload: {
+                id: "REQ-a",
+                properties: { required_evidence: "asserted" },
+              },
+            },
+          ],
+        },
+      }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "asserted",
+    });
+    expect(
+      evidenceLoweringOfKbCall(root, "kb_apply_plan", {
+        plan: {
+          actions: [{ operation: "delete", entityId: "REQ-a" }],
+        },
+      }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
+  });
+
+  test("guardedChangeOfShellCommand catches kibi init --level and shell writes to settings or requirements", () => {
+    const root = workspace({
+      "package.json": pkg("test"),
+      ".kb/requirements/REQ-a.md": requirement({ required_evidence: "tested" }),
+    });
+    expect(
+      guardedChangeOfShellCommand(root, "kibi init --level remember"),
+    ).toEqual({
+      kind: "level",
+      path: "package.json",
+      from: "test",
+      to: "remember",
+    });
+    expect(
+      guardedChangeOfShellCommand(
+        root,
+        'bash -c "npx --no-install kibi init --level=remember"',
+      ),
+    ).toEqual({
+      kind: "level",
+      path: "package.json",
+      from: "test",
+      to: "remember",
+    });
+    expect(
+      guardedChangeOfShellCommand(root, "kibi init --level test"),
+    ).toBeUndefined();
+    expect(
+      guardedChangeOfShellCommand(
+        root,
+        `sed -i 's/"level": "test"/"level": "remember"/' package.json`,
+      ),
+    ).toMatchObject({ kind: "level", path: "package.json", from: "test" });
+    expect(
+      guardedChangeOfShellCommand(
+        root,
+        `sed -i 's/"version": "1.0.0"/"version": "1.0.1"/' package.json`,
+      ),
+    ).toBeUndefined();
+    expect(
+      guardedChangeOfShellCommand(
+        root,
+        `sed -i 's/required_evidence: tested/required_evidence: unverified/' .kb/requirements/REQ-a.md`,
+      ),
+    ).toMatchObject({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+    });
+  });
+
+  test("stripping frontmatter or deleting a requirement fails closed to unverified", () => {
+    const reqContent = requirement({ required_evidence: "tested" });
+    const root = workspace({
+      ".kb/requirements/REQ-strip.md": reqContent,
+    });
+    expect(
+      evidenceLoweringOfEdit(root, ".kb/requirements/REQ-strip.md", {
+        content: "plain markdown without frontmatter\n",
+      }),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
+    writeFileSync(
+      path.join(root, ".kb/requirements/REQ-strip.md"),
+      "plain markdown without frontmatter\n",
+    );
+    expect(
+      guardedChangeSince(root, ".kb/requirements/REQ-strip.md", reqContent),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
+    rmSync(path.join(root, ".kb/requirements/REQ-strip.md"));
+    expect(
+      guardedChangeSince(root, ".kb/requirements/REQ-strip.md", reqContent),
+    ).toEqual({
+      kind: "evidence",
+      requirementId: "REQ-a",
+      from: "tested",
+      to: "unverified",
+    });
   });
 });

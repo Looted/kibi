@@ -27,6 +27,7 @@ import {
 } from "../../intent-search.js";
 import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
+import { normalizeEntityId, parseAtomList } from "../../prolog/codec.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import {
   type SearchAnswer,
@@ -286,6 +287,8 @@ export type DecisionSearchAnalysis = {
   readonly fused: boolean;
   /** No card covers enough of the question to govern it. */
   readonly weak: boolean;
+  /** Top governing requirements are close and should be confirmed as candidates. */
+  readonly ambiguous: boolean;
   /** No decision shares a word of the question. */
   readonly abstained: boolean;
   /** Share of the question's weight the best card covers, 0 to 1. */
@@ -1572,6 +1575,36 @@ function topMatchLabel(match: {
 const WEAK_DECISION_NOTE =
   "No decision in this workspace's scope matches the question strongly, so no requirement is named as governing. That is not evidence that nothing governs it: the cards are the nearest decisions, and the words listed in queryAnalysis.uncoveredTerms appear in none of them. Ask again in the KB's words, or read the nearest card with kb_query.";
 
+const EMPTY_KB_DECISION_NOTE =
+  "No decisions (requirements or ADRs) are recorded in this knowledge base yet.";
+
+/**
+ * Checks which corpus ids actually exist in the attached compiled branch store.
+ * Returns null when the Prolog port does not answer (e.g. a mock port in a unit
+ * test), so callers only drop seeds on a confirmed store mismatch.
+ */
+async function findUnindexedCorpusIds(
+  prolog: PrologPort,
+  ids: readonly string[],
+): Promise<Set<string> | null> {
+  const uniqueIds = [...new Set(ids.filter((id) => id.length > 0))];
+  if (uniqueIds.length === 0) return new Set();
+  const list = uniqueIds.map(toPrologAtom).join(",");
+  try {
+    const result = await prolog.query(
+      `findall(Id, (member(Id, [${list}]), kb_entity(Id, _, _)), Present)`,
+    );
+    if (!result.success || typeof result.bindings.Present !== "string")
+      return null;
+    const present = new Set(
+      parseAtomList(result.bindings.Present).map(normalizeEntityId),
+    );
+    return new Set(uniqueIds.filter((id) => !present.has(id)));
+  } catch {
+    return null;
+  }
+}
+
 /** A decision card as a result row; the line is what an agent reads. */
 function decisionCardRow(card: DecisionCard): DecisionCardRow {
   return {
@@ -1622,6 +1655,7 @@ function decisionSearchText(options: {
   readonly answer: SearchAnswer | undefined;
   readonly hints: SearchHintsAnalysis | undefined;
   readonly offset: number;
+  readonly ambiguous: boolean;
 }): string {
   const { found, answer, query } = options;
   const lines = found.cards.map((card) => formatCardLine(card));
@@ -1633,7 +1667,7 @@ function decisionSearchText(options: {
   const tail: string[] = [];
   if (answer)
     tail.push(
-      `Governing: ${answer.governing.map((req) => req.id).join(", ") || "no current requirement among the cards"}.`,
+      `${governingLabel(options.ambiguous, answer.governing.length)}: ${answer.governing.map((req) => req.id).join(", ") || "no current requirement among the cards"}.`,
     );
   if (found.retrieval.uncoveredTerms.length > 0)
     tail.push(`Not in any card: ${found.retrieval.uncoveredTerms.join(", ")}.`);
@@ -1720,23 +1754,84 @@ async function executeDecisionSearch(
           sourceFilterPaths: (sourceLocations ?? []).map((loc) => loc.path),
         })
       : undefined;
+  // Cross-check corpus cards and answer seeds against the attached branch store
+  // so un-ingested or sync-refused files are never named as Governing, and any
+  // corpus-vs-store divergence emits a stale notice.
+  const unindexedIds =
+    storeNotice === null
+      ? await findUnindexedCorpusIds(prolog, [
+          ...found.cards.map((card) => card.id),
+          ...found.seeds.map((seed) => seed.id),
+        ])
+      : null;
+  const missingList = unindexedIds ? [...unindexedIds].sort() : [];
+  const sources = found.sources ?? {};
+  const supersededBy = found.supersededBy ?? {};
+  const ambiguous = found.ambiguous ?? false;
+  const unindexedReasons: Record<string, unknown>[] = missingList.map((id) => {
+    const source = sources[id];
+    return {
+      code: "unindexed_corpus_entity",
+      ...(source ? { path: source } : {}),
+      entityIds: [id],
+    };
+  });
+  const storedSeeds =
+    unindexedIds && unindexedIds.size > 0
+      ? found.seeds.filter((seed) => !unindexedIds.has(seed.id))
+      : found.seeds;
+  const combinedStaleReasons: Record<string, unknown>[] = [
+    ...(freshness?.state === "stale" &&
+    Array.isArray(freshness.meta.staleReasons)
+      ? (freshness.meta.staleReasons as Record<string, unknown>[])
+      : []),
+    ...unindexedReasons,
+  ];
+  const staleMeta =
+    combinedStaleReasons.length > 0
+      ? buildCompactStaleMeta(combinedStaleReasons)
+      : freshness?.state === "stale"
+        ? freshness.meta
+        : undefined;
+  const staleCount =
+    combinedStaleReasons.length > 0
+      ? combinedStaleReasons.length
+      : freshness?.state === "stale"
+        ? freshness.staleReasonCount
+        : undefined;
+  const staleWarningNote =
+    freshness?.state === "stale"
+      ? freshness.note
+      : unindexedReasons.length > 0
+        ? staleStoreWarningNote(
+            unindexedReasons.length,
+            unindexedReasons.flatMap((reason) =>
+              typeof reason.path === "string" ? [reason.path] : [],
+            ),
+          )
+        : undefined;
   const syncState: "fresh" | "stale" | "unknown" =
-    storeNotice !== null ? "stale" : (freshness?.state ?? "unknown");
-  // Only cards that cover enough of the question seed the answer: the rest
-  // are the nearest decisions, not ones known to govern it.
+    storeNotice !== null || staleMeta !== undefined
+      ? "stale"
+      : (freshness?.state ?? "unknown");
+  // Only cards that cover enough of the question and exist in the compiled
+  // branch store seed the answer: the rest are the nearest decisions, not ones
+  // known to govern it.
   const answerLayer =
-    (answer ?? true) && offset === 0 && found.seeds.length > 0
-      ? await buildSearchAnswer(prolog, answerSeeds(found.seeds), {
+    (answer ?? true) && offset === 0 && storedSeeds.length > 0
+      ? await buildSearchAnswer(prolog, answerSeeds(storedSeeds), {
           workspaceRoot: context.workspaceRoot,
           branch: context.branchAttachment?.kbBranch ?? null,
           detail: fields === "full" ? "full" : "summary",
           syncState,
+          ...(ambiguous ? { ambiguous: true } : {}),
+          ...(Object.keys(supersededBy).length > 0 ? { supersededBy } : {}),
           ...(storeNotice !== null
             ? { staleReasonCount: 1 }
-            : freshness?.state === "stale"
+            : staleCount !== undefined
               ? {
-                  staleReasonCount: freshness.staleReasonCount,
-                  staleWarningNote: freshness.note,
+                  staleReasonCount: staleCount,
+                  ...(staleWarningNote ? { staleWarningNote } : {}),
                 }
               : {}),
         })
@@ -1749,20 +1844,20 @@ async function executeDecisionSearch(
     query,
     type,
     abstained,
-    listTitles: offset === 0 && found.weak && (hints?.items.length ?? 0) === 0,
+    listTitles: offset === 0 && found.weak,
     unlocatedPaths,
     sourceLocations,
   });
   const rows = found.cards.map(decisionCardRow);
   const staleOrStoreNote =
-    shared.storeNote ||
-    (freshness?.state === "stale" ? ` ${freshness.note}` : "");
+    shared.storeNote || (staleWarningNote ? ` ${staleWarningNote}` : "");
   const text = `${decisionSearchText({
     query,
     found,
     answer: answerLayer,
     hints,
     offset,
+    ambiguous,
   })}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(query) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
   const analysis: DecisionSearchAnalysis = {
     rankingMode: "intent-v1",
@@ -1770,11 +1865,20 @@ async function executeDecisionSearch(
     decisionCount: found.decisionCount,
     fused: found.fused,
     weak: found.weak,
+    ambiguous,
     abstained,
     coverage: Math.round(found.retrieval.coverage * 1000) / 1000,
     uncoveredTerms: found.retrieval.uncoveredTerms,
     otherScopes: found.retrieval.otherScopes,
   };
+  const weakNotes =
+    found.decisionCount === 0
+      ? [EMPTY_KB_DECISION_NOTE]
+      : found.cards.length === 0
+        ? [ABSTENTION_NOTE]
+        : found.weak
+          ? [WEAK_DECISION_NOTE]
+          : undefined;
   return {
     content: [{ type: "text", text }],
     structuredContent: {
@@ -1792,10 +1896,10 @@ async function executeDecisionSearch(
       truncated: offset + rows.length < found.retrieval.ranking.length,
       queryAnalysis: hints !== undefined ? { ...analysis, hints } : analysis,
       ...(answerLayer ? { answer: answerLayer } : {}),
-      ...(found.weak ? { notes: [WEAK_DECISION_NOTE] } : {}),
+      ...(weakNotes ? { notes: weakNotes } : {}),
       ...(nextActions.length > 0 ? { nextActions } : {}),
       ...shared.branchFields,
-      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+      ...(staleMeta !== undefined ? { meta: staleMeta } : {}),
     },
   };
 }

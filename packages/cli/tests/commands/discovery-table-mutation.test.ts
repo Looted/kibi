@@ -66,6 +66,44 @@ describe("renderDiscoveryTable dispatch", () => {
     `);
   });
 
+  test("renders decision search digest header and card line", () => {
+    const weakText = render({
+      count: 1,
+      queryAnalysis: {
+        unit: "decision",
+        weak: true,
+        ambiguous: false,
+        uncoveredTerms: ["polishword"],
+        hints: { items: [{ id: "REQ-hint-1", title: "Hint", score: 0.4 }] },
+      },
+      results: [
+        {
+          entity: { id: "REQ-card-1", type: "req", title: "Card title" },
+          score: 0.01,
+          reasons: ["linked to code here"],
+          line: "REQ-card-1: Card title — Full card statement",
+        },
+      ],
+    });
+    expect(weakText).toContain(
+      "No strong match in this workspace's scope; showing nearest decisions (not confirmed to govern).",
+    );
+    expect(weakText).toContain("Not in any card: polishword.");
+    expect(weakText).toContain("Related by meaning: REQ-hint-1.");
+    expect(weakText).toContain("REQ-card-1: Card title — Full card");
+    expect(weakText).toContain("statement");
+
+    const ambiguousText = render({
+      count: 2,
+      queryAnalysis: { unit: "decision", weak: false, ambiguous: true },
+      answer: { governing: [{ id: "REQ-a" }, { id: "REQ-b" }] },
+      results: [],
+    });
+    expect(ambiguousText).toContain(
+      "Candidate requirements, not confirmed to govern: REQ-a, REQ-b.",
+    );
+  });
+
   test("renders branch status", () => {
     expect(
       render({

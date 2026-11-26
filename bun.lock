@@ -29,11 +29,13 @@
     "packages/agent-core": {
       "name": "kibi-agent-core",
       "version": "0.15.0",
+      "dependencies": {
+        "yaml": "^2.9.1",
+      },
       "devDependencies": {
         "@types/node": "^25.9.8",
         "semver": "^7.8.5",
         "typescript": "^5.7.0",
-        "yaml": "^2.9.1",
       },
     },
     "packages/antigravity": {

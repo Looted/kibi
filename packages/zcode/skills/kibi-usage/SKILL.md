@@ -4,7 +4,7 @@ description: "Load before changing code in a repository that has a `.kb/` folder
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 3.2.0
+  version: 3.2.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
