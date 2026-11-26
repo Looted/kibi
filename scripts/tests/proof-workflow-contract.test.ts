@@ -265,10 +265,17 @@ describe("strict proof workflow contract", () => {
         job.steps.find((step) => step.name === "Checkout")?.with,
       ).toMatchObject({ ref: "${{ github.sha }}", "fetch-depth": 1 });
       for (const step of job.steps.slice(4)) {
-        if (String(step.name).startsWith("Upload Kibi Pages")) continue;
-        if (String(step.name).includes("documentation site")) continue;
-        if (String(step.name).startsWith("Namespace the proof report"))
+        // A develop push keeps the report it proved or reused for the
+        // master Pages deploy (pages.yml).
+        if (String(step.name).endsWith("for the master Pages deploy")) {
+          expect(String(step.if), String(step.name)).toContain(
+            "github.ref == 'refs/heads/develop'",
+          );
+          expect(String(step.if), String(step.name)).toContain(
+            "steps.train-report.outcome == 'success'",
+          );
           continue;
+        }
         if (String(step.name).includes("develop proof")) continue;
         if (String(step.name).includes("branch store")) continue;
         if (String(step.name).includes("reused train's proof report")) {

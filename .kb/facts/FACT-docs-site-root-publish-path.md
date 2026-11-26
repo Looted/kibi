@@ -11,8 +11,8 @@ operator: eq
 value_type: string
 value_string: /
 polarity: require
-claim_key: CLAIM-D7EC1967FE8D582A
-claim_text: The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to the default branch
+claim_key: CLAIM-612F050DEDB5442F
+claim_text: The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to master, the release branch, and never from develop
 id: FACT-docs-site-root-publish-path
 type: fact
 origin:
