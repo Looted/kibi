@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5f2640100d8
+  - type: implements
+    from: SYM-tools-config-has-impact-policy
+    to: REQ-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:29:15.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c48e96289c78
+  - type: covered_by
+    from: SYM-tools-config-has-impact-policy
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-26T10:29:15.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4cef0890ef
