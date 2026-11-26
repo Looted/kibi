@@ -43,6 +43,7 @@ import {
   operationData,
   prepareOperationInput,
   toKibiResult,
+  withInputAliases,
 } from "kibi-runtime";
 import type { OperationResult } from "kibi-runtime";
 import type { z } from "zod";
@@ -563,6 +564,11 @@ export function addTool<TProlog>(
       // withToolTimeout installs touch before the operation can report.
       const activity = {} as ToolTimeoutActivity;
       const onProgress = progressReporter(extra, activity);
+      // A field given under another name its contract declares runs under
+      // its own name, as on the CLI JSON route.
+      if (businessInputSchema !== undefined) {
+        businessArgs = withInputAliases(businessArgs, businessInputSchema);
+      }
       const inputError =
         businessInputSchema === undefined
           ? undefined

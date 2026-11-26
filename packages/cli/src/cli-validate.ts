@@ -2,6 +2,7 @@ import Ajv, { type ErrorObject } from "ajv";
 import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 
 import { advertisedFieldSchemaHints } from "./public/operations/advertised-schema.js";
+import { withInputAliases } from "./public/operations/input-aliases.js";
 import { schemaIssues } from "./telemetry-details.js";
 
 export type DiagnosticTelemetry = Readonly<Record<string, unknown>>;
@@ -74,8 +75,13 @@ export function prepareOperationInput(
     };
   }
 
-  const businessInput = Object.fromEntries(
-    Object.entries(input).filter(([key]) => key !== "_diagnostic_telemetry"),
+  // A field given under a name its schema declares as another name for it
+  // is validated and executed under its own name.
+  const businessInput = withInputAliases(
+    Object.fromEntries(
+      Object.entries(input).filter(([key]) => key !== "_diagnostic_telemetry"),
+    ),
+    schema,
   );
   const validator = compileInputSchema(schema);
   if (!validator(businessInput)) {
