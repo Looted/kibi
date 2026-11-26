@@ -1,5 +1,56 @@
 # kibi-vscode
 
+## 1.2.0
+
+### Minor Changes
+
+- e477332: Kibi's harness plugins now display the Kibi icon consistently across Claude Code, Cursor, Codex, and light- or dark-theme MCP clients. The Claude Code npm package now includes its bundled slash commands (`commands/kibi-signoff.md`), the Codex plugin adds `interface` metadata and starter prompts in `.codex-plugin/plugin.json`, and the VS Code extension now registers the Kibi MCP server through VS Code's `mcpServerDefinitionProviders` API instead of an unsupported static `contributes.mcp` block.
+
+  Technical summary:
+
+  - `kibi-claude`: bundled `assets/logo.png`, added `icon` and `displayName` to `.claude-plugin/plugin.json` (removing the unsupported `icon` field from the `kibi-claude` entry in `.claude-plugin/marketplace.json`), and added `assets` and `commands` to `package.json` `files`.
+  - `kibi-codex`: kept `.codex-plugin/plugin.json` (so Codex continues loading `.mcp.json` and `hooks/hooks.json`), bundled `assets/logo.png` and `assets/composer-icon.svg`, and added `interface` presentation metadata (`displayName`, `shortDescription`, `defaultPrompt`, `brandColor`).
+  - `kibi-cursor`: bundled `assets/logo.svg`, declared `logo` in `.cursor-plugin/plugin.json`, included `assets` and `LICENSE` in package outputs, and synced `plugins/kibi-cursor`.
+  - `kibi-mcp`: removed `theme: "dark"` from `KIBI_ICONS` so MCP clients render the icon on both light and dark backgrounds.
+  - `kibi-vscode`: replaced the non-functional static `contributes.mcp.servers` block with `contributes.mcpServerDefinitionProviders` and `vscode.lm.registerMcpServerDefinitionProvider` (workspace-gated on `.kb/manifest.json`, passing `KIBI_MCP_ATTACH_ROOT`, resolving `kibi.mcp.serverPath` → project-local `node_modules/.bin/kibi-mcp` → PATH, and degrading gracefully on older VS Code hosts).
+  - `kibi-zcode`, `kibi-vibe`, `kibi-opencode`: added `LICENSE` to package payloads, standardized marketplace `homepage` URLs to `https://looted.github.io/kibi/`, removed the stray nested `packages/opencode/.changeset/` file, and added an icon drift test (`scripts/tests/plugin-icons-drift.test.ts`).
+
+### Patch Changes
+
+- Updated dependencies [71f0537]
+- Updated dependencies [6b4bb5d]
+- Updated dependencies [708d968]
+- Updated dependencies [15b57e2]
+- Updated dependencies [b8a5010]
+- Updated dependencies [2f7b4f0]
+- Updated dependencies [0e252d4]
+- Updated dependencies [370e376]
+- Updated dependencies [d56ac3f]
+- Updated dependencies [3ea1727]
+- Updated dependencies [532e8ff]
+- Updated dependencies [1a01cfe]
+- Updated dependencies [8cb077c]
+- Updated dependencies [6cdc2ee]
+- Updated dependencies [da54a73]
+- Updated dependencies [c1fe951]
+- Updated dependencies [164c751]
+- Updated dependencies [25ce1ab]
+- Updated dependencies [22a9a39]
+- Updated dependencies [15c0170]
+- Updated dependencies [bf18c03]
+- Updated dependencies [f7f0209]
+- Updated dependencies [df6dbfd]
+- Updated dependencies [17bb194]
+- Updated dependencies [0851175]
+- Updated dependencies [79f5a84]
+- Updated dependencies [4cddea5]
+- Updated dependencies [a4019b7]
+- Updated dependencies [7bacaad]
+- Updated dependencies [c1fe951]
+- Updated dependencies [5892438]
+- Updated dependencies [b011b59]
+  - kibi-cli@2.46.0
+
 ## 1.1.1
 
 ### Patch Changes
@@ -58,6 +109,7 @@
 ### Patch Changes
 
 - This coordinated release includes the OpenCode adapter and VS Code extension after their package manifests were reformatted. Their runtime behavior and package metadata values are unchanged.
+
   - Publish fresh package versions for the two manifest-only changes alongside the other packages changed since the previous versioning commit.
 
 - Updated dependencies [b375e8f]
@@ -136,6 +188,7 @@
 - 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
 
   Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
   - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
   - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
   - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
@@ -195,6 +248,7 @@
 ### Patch Changes
 
 - Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
   - Remove implicit branch-name normalization and add previewed legacy branch migration.
   - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
 
@@ -298,6 +352,7 @@
 - VS Code users no longer see brief notifications or a latest-brief command from the extension. The extension remains focused on the Kibi knowledge base tree and MCP integration. Removed brief configuration no longer implies any VS Code notification behavior.
 
   Technical summary:
+
   - Regenerate the VS Code extension bundle after removing brief watcher, command, and virtual document provider code.
   - Keep tree view, CodeLens, and MCP configuration surfaces intact.
 
@@ -309,6 +364,7 @@
 ### Patch Changes
 
 - f8a3a88: This update introduces a split symbol coordinate workflow that separates logical symbol definitions from their physical source locations. Symbol coordinates are now managed in `documentation/symbol-coordinates.yaml`, which improves git diff readability and reduces merge conflicts when only line numbers change. The `kibi sync` command now supports a `--refresh-symbol-coordinates` flag to explicitly update these locations.
+
   - **kibi-cli**: Added `--refresh-symbol-coordinates` flag to `kibi sync` and updated pre-commit hooks to enforce coordinate staging.
   - **kibi-mcp**: Updated symbol resolution logic to read from the new split coordinate manifest.
   - **kibi-opencode**: Updated background sync behavior and documentation to support the split manifest workflow.
