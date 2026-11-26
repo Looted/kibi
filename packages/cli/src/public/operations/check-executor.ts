@@ -634,10 +634,18 @@ export async function executeCheck(
           impactResult,
         )
       : partitioned.qualityDiagnostics;
+    const REMEMBER_SKIPPED_QUALITY_DIAGNOSTICS = new Set([
+      "coverage_depth_review",
+      "logical_coverage_review",
+    ]);
     const qualityDiagnostics = [
       ...advisoryQualityDiagnostics,
       ...extraQualityDiagnostics,
-    ];
+    ].filter(
+      (diagnostic) =>
+        resolvedLevel.level !== "remember" ||
+        !REMEMBER_SKIPPED_QUALITY_DIAGNOSTICS.has(diagnostic.id),
+    );
 
     const statusPlan = await readStatusMigrationPlan(context);
     // The plan repairs every finding, so a scoped check plans from all of

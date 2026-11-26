@@ -533,7 +533,9 @@ describe("SWI build pipeline workflow contract", () => {
     for (const command of ["build-archive", "smoke-archive"]) {
       const jobs = pipelineJobs(workflow, command);
       const rows = jobs.flatMap(([, job]) => job.strategy.matrix.include);
-      expect(rows.map((row) => row.target).sort()).toEqual([...ALL_TARGETS].sort());
+      expect(rows.map((row) => row.target).sort()).toEqual(
+        [...ALL_TARGETS].sort(),
+      );
       for (const [, job] of jobs) {
         for (const row of job.strategy.matrix.include) {
           const runner = matrixValue(job["runs-on"], row);
@@ -656,19 +658,19 @@ describe("release archive cache", () => {
   };
 
   test("defaults to off, so a caller that omits the input builds from source", () => {
-    expect(parsed.on.workflow_call.inputs["archive-cache"].default).toBe(
-      "off",
-    );
+    expect(parsed.on.workflow_call.inputs["archive-cache"].default).toBe("off");
   });
 
   test("each producer restores and saves under one exact per-target key", () => {
     for (const id of ["build-linux", "build-macos", "build-windows"]) {
       const steps = parsed.jobs[id]?.steps ?? [];
-      const restore = steps.find((step) => step.name === "Restore a cached archive");
+      const restore = steps.find(
+        (step) => step.name === "Restore a cached archive",
+      );
       const save = steps.find((step) => step.name === "Save the archive cache");
       expect(restore?.uses).toMatch(/^actions\/cache\/restore@/);
       expect(save?.uses).toMatch(/^actions\/cache\/save@/);
-      expect(restore?.["with"]?.["lookup-only"]).toBe(
+      expect(restore?.with?.["lookup-only"]).toBe(
         "${{ inputs.archive-cache == 'write' }}",
       );
       expect(restore?.if).toContain("inputs.archive-cache == 'read'");
@@ -677,9 +679,9 @@ describe("release archive cache", () => {
       expect(save?.with).not.toHaveProperty("restore-keys");
       const key = restore?.with?.key ?? "";
       expect(key).toBe(save?.with?.key);
-      expect(key.startsWith("swipl-release-archive-${{ matrix.target }}-")).toBe(
-        true,
-      );
+      expect(
+        key.startsWith("swipl-release-archive-${{ matrix.target }}-"),
+      ).toBe(true);
       for (const input of SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS) {
         expect(key, input).toContain(`'${input}'`);
       }
@@ -691,10 +693,14 @@ describe("release archive cache", () => {
         "${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}",
       );
       expect(restore?.with?.path).toBe(save?.with?.path);
-      const stage = steps.find((step) => step.name === "Stage the archive cache");
-      expect(stage?.run).toContain('swipl-*.tar.gz.sha256');
+      const stage = steps.find(
+        (step) => step.name === "Stage the archive cache",
+      );
+      expect(stage?.run).toContain("swipl-*.tar.gz.sha256");
       expect(stage?.run).toContain('test "${#sidecars[@]}" -eq 1');
-      const restored = steps.find((step) => step.name === "Use the restored archive");
+      const restored = steps.find(
+        (step) => step.name === "Use the restored archive",
+      );
       expect(restored?.run).toContain('test "${#sidecars[@]}" -eq 1');
       const build = steps.find((step) => step.run?.includes(" build-archive "));
       expect(build?.if).toBe(
@@ -703,7 +709,9 @@ describe("release archive cache", () => {
       const record = steps.find(
         (step) => step.name === "Record archive cache status",
       );
-      expect(record?.env?.ARCHIVE_CACHE_MODE).toBe("${{ inputs.archive-cache }}");
+      expect(record?.env?.ARCHIVE_CACHE_MODE).toBe(
+        "${{ inputs.archive-cache }}",
+      );
       expect(record?.env?.ARCHIVE_CACHE_HIT).toBe(
         "${{ steps.cache.outputs.cache-hit }}",
       );

@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { extractFromMarkdownString } from "../../extractors/markdown.js";
 import {
   type StrictWriteSet,
   buildStrictWriteSet,
@@ -406,7 +409,11 @@ async function logicModelResult(
     ...(args.claimKey !== undefined ? { claimKey: args.claimKey } : {}),
     ...(args.claimText !== undefined ? { claimText: args.claimText } : {}),
   });
-  const applyPlan = withAdvisorRoles(logicPlan.applyPlan);
+  const applyPlan = preserveExistingRequirementStep(
+    withAdvisorRoles(logicPlan.applyPlan),
+    workspaceRoot,
+    normalizeOptionalString(args.requirementId),
+  );
   const fallbackWriteSet = buildStrictWriteSet({
     claim: extracted.claim,
     statement: extracted.statement,
@@ -467,7 +474,7 @@ async function unresolvedConditionalResult(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
   const start = Math.max(0, semanticText.indexOf(claimText));
-  const applyPlan: Array<Record<string, unknown>> =
+  const rawApplyPlan: Array<Record<string, unknown>> =
     typeof args.requirementId === "string"
       ? [
           {
@@ -505,6 +512,11 @@ async function unresolvedConditionalResult(
           },
         ]
       : [];
+  const applyPlan = preserveExistingRequirementStep(
+    rawApplyPlan,
+    workspaceRoot,
+    normalizeOptionalString(args.requirementId),
+  );
   const writeSet = buildStrictWriteSet({
     claim: extracted.claim,
     statement: extracted.statement,
@@ -554,6 +566,68 @@ export async function getWorkspaceMigrationWarning(
   return status.warning;
 }
 
+/**
+ * When `kb_model` targets an existing requirement (for example one just
+ * created by `kb_record`), keep its authored title, status, text_ref and tags
+ * on the req upsert step so applying the plan never trips the firm-decision
+ * title guard or overwrites human provenance with `mcp://kibi/model-requirement`.
+ */
+function preserveExistingRequirementStep(
+  plan: readonly Record<string, unknown>[],
+  workspaceRoot: string,
+  requirementId: string | undefined,
+): Record<string, unknown>[] {
+  if (
+    !requirementId ||
+    requirementId.includes("/") ||
+    requirementId.includes("\\") ||
+    requirementId.includes("..")
+  ) {
+    return [...plan];
+  }
+  const reqDir = path.resolve(workspaceRoot, ".kb", "requirements");
+  const filePath = path.resolve(reqDir, `${requirementId}.md`);
+  if (!filePath.startsWith(`${reqDir}${path.sep}`)) return [...plan];
+  if (!existsSync(filePath)) return [...plan];
+  let existing: Record<string, unknown>;
+  try {
+    const raw = readFileSync(filePath, "utf8");
+    existing = extractFromMarkdownString(
+      raw,
+      `.kb/requirements/${requirementId}.md`,
+    ).entity as unknown as Record<string, unknown>;
+  } catch {
+    return [...plan];
+  }
+  return plan.map((step) => {
+    if (step.type !== "req" || step.id !== requirementId) return step;
+    const {
+      text_ref: _dropTextRef,
+      tags: _dropTags,
+      ...baseProps
+    } = step.properties && typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown>)
+      : {};
+    const rawProps: Record<string, unknown> = { ...baseProps };
+    if (typeof existing.title === "string" && existing.title.trim() !== "") {
+      rawProps.title = existing.title;
+    }
+    if (typeof existing.status === "string" && existing.status.trim() !== "") {
+      rawProps.status = existing.status;
+    }
+    if (
+      typeof existing.text_ref === "string" &&
+      existing.text_ref.trim() !== ""
+    ) {
+      rawProps.text_ref = existing.text_ref;
+    }
+    if (Array.isArray(existing.tags)) {
+      rawProps.tags = existing.tags;
+    }
+    return { ...step, properties: rawProps };
+  });
+}
+
 export async function handleKbModelRequirement(
   _prolog: unknown,
   args: ModelRequirementArgs,
@@ -601,11 +675,12 @@ export async function handleKbModelRequirement(
   const claimKey = semanticClaimKey(extracted.statement);
   // A caller-named requirement keeps its id: the strict write set updates it
   // instead of minting REQ-AUTO-<hash>.
+  const targetRequirementId = normalizeOptionalString(args.requirementId);
   const aligned = await applyVocabularyAlignment(
     context,
     extracted,
     claimKey,
-    normalizeOptionalString(args.requirementId),
+    targetRequirementId,
   );
   const writeSet = aligned.writeSet;
   const logicClaims = Array.from(
@@ -616,7 +691,7 @@ export async function handleKbModelRequirement(
   // below-threshold observation is only a review artifact: it gets no claim
   // provenance (that would make it look like grounding) and is tagged as an
   // open ontology gap.
-  const applyPlan = writeSet.isStrict
+  const annotatedPlan = writeSet.isStrict
     ? plan.map((step) =>
         annotateModelRequirementStep(step, {
           claimKey,
@@ -625,6 +700,11 @@ export async function handleKbModelRequirement(
         }),
       )
     : plan.map(unresolvedObservationStep);
+  const applyPlan = preserveExistingRequirementStep(
+    annotatedPlan,
+    workspaceRoot,
+    targetRequirementId,
+  );
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const warnings = writeSet.isStrict
     ? [...aligned.warnings]

@@ -584,11 +584,11 @@ describe("executeSearch over decisions", () => {
     expect(Object.hasOwn(result.structuredContent, "answer")).toBe(false);
   });
 
-  test("decisions related by meaning are the next step, so the titles are not listed", async () => {
+  test("weak search still lists titles when decisions related by meaning are shown", async () => {
     decisionFakes({ meaning: [{ id: "REQ-m", title: "M", score: 0.4 }] });
     rankerFake();
     const result = await search({ query: "q" }, context({ ensurePlugins }));
-    expect(Object.hasOwn(result.structuredContent, "nextActions")).toBe(false);
+    expect(result.structuredContent.nextActions).toHaveLength(1);
     expect(result.structuredContent.notes).toHaveLength(1);
   });
 

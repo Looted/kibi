@@ -605,7 +605,10 @@ export async function executeCoverage(
     // The report for the first `count` rows, with plans for exactly them.
     const assemble = async (count: number): Promise<CoveragePayload> => {
       const rows = allRows.slice(0, count);
-      const pageInput = fullListing ? input : { ...input, limit: count };
+      const pageInput =
+        fullListing || count === allRows.length
+          ? input
+          : { ...input, limit: count };
       const repairPlan = buildRepairPlan(
         { ...payload, rows },
         pageInput,

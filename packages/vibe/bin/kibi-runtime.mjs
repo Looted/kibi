@@ -21,6 +21,8 @@ import {
   appendFileSync,
   closeSync,
   existsSync,
+  lstatSync,
+  mkdirSync,
   openSync,
   readFileSync,
   writeFileSync,
@@ -71,8 +73,27 @@ function userTag() {
   return raw.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-function perUserTmpFile(name) {
-  return join(tmpdir(), `kibi-vibe-${name}-${userTag()}`);
+function privateVibeTempDir(env = process.env) {
+  const fromPlugin = String(env.PLUGIN_DATA ?? "").trim();
+  const dir = fromPlugin || join(tmpdir(), `kibi-vibe-${userTag()}`);
+  try {
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    const stat = lstatSync(dir);
+    if (
+      !stat.isDirectory() ||
+      (typeof process.getuid === "function" && stat.uid !== process.getuid())
+    ) {
+      return null;
+    }
+    return dir;
+  } catch {
+    return null;
+  }
+}
+
+function perUserTmpFile(name, env = process.env) {
+  const dir = privateVibeTempDir(env);
+  return dir ? join(dir, name) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,9 +105,9 @@ const CACHE_TTL_MS = 120_000;
 
 function readRuntimeCache() {
   try {
-    const parsed = JSON.parse(
-      readFileSync(perUserTmpFile("runtime.json"), "utf8"),
-    );
+    const file = perUserTmpFile("runtime.json");
+    if (!file) return {};
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
     return {};
@@ -95,8 +116,10 @@ function readRuntimeCache() {
 
 function writeRuntimeCache(patch) {
   try {
+    const file = perUserTmpFile("runtime.json");
+    if (!file) return;
     const merged = { ...readRuntimeCache(), ...patch };
-    const fd = openSync(perUserTmpFile("runtime.json"), "w", 0o600);
+    const fd = openSync(file, "w", 0o600);
     try {
       writeFileSync(fd, JSON.stringify(merged));
     } finally {
@@ -334,8 +357,10 @@ export function resolveWorkspace(
 export function debugLaunch(event, env = process.env) {
   if (String(env.KIBI_VIBE_LAUNCHER_DEBUG ?? "") !== "1") return;
   try {
+    const file = perUserTmpFile("launcher.log", env);
+    if (!file) return;
     appendFileSync(
-      perUserTmpFile("launcher.log"),
+      file,
       `${JSON.stringify({
         ts: new Date().toISOString(),
         pid: process.pid,
@@ -478,10 +503,19 @@ function wslEnv(env, plan, host) {
   };
 }
 
-/** Spawn the project-local kibi-mcp server (stdio inherited) under the right runtime. */
+/**
+ * Spawn the project-local kibi-mcp server under the right runtime.
+ * @param {any} plan
+ * @param {{ env?: NodeJS.ProcessEnv, spawnImpl?: typeof spawn, stdio?: import("node:child_process").StdioOptions }} [options]
+ * @returns {import("node:child_process").ChildProcess}
+ */
 export function spawnKibiMcp(
   plan,
-  { env = process.env, spawnImpl = spawn } = {},
+  {
+    env = process.env,
+    spawnImpl = spawn,
+    stdio = ["inherit", "inherit", "inherit"],
+  } = {},
 ) {
   const host = resolveMcpHost(env);
   if (plan.mode === "wsl") {
@@ -494,14 +528,14 @@ export function spawnKibiMcp(
         `cannot convert kibi-mcp bin path to a WSL path for ${plan.workspace}`,
       );
     return spawnImpl("wsl.exe", buildWslArgs(plan, binWsl), {
-      stdio: ["inherit", "inherit", "inherit"],
+      stdio,
       env: wslEnv(env, plan, host),
     });
   }
   const binPath = resolvePackageBin(plan.workspace, "kibi-mcp", "kibi-mcp");
   return spawnImpl(process.execPath, [binPath], {
     cwd: plan.workspace,
-    stdio: ["inherit", "inherit", "inherit"],
+    stdio,
     env: { ...env, KIBI_MCP_ATTACH_ROOT: plan.workspace, KIBI_MCP_HOST: host },
   });
 }
@@ -614,6 +648,368 @@ export function serveEmptyMcpServer({
     });
     process.stdin.on("end", () => resolvePromise());
     process.stdin.on("error", () => resolvePromise());
+    process.stdin.resume();
+  });
+}
+
+function rootUriToPath(uri) {
+  if (typeof uri !== "string" || uri.trim() === "") return null;
+  if (uri.startsWith("file://")) {
+    try {
+      return fileURLToPath(uri);
+    } catch {
+      return null;
+    }
+  }
+  return isAbsolute(uri) ? uri : null;
+}
+
+/**
+ * Deferred-attach MCP server for user-scope Vibe installs where the launcher
+ * starts in the plugin directory instead of the project directory. Answers
+ * `initialize`, discovers the project's Kibi workspace via `roots/list` (or
+ * `notifications/roots/list_changed`, or a `tools/call` `workspaceRoot`),
+ * spawns that workspace's `kibi-mcp`, replays the handshake, and proxies all
+ * traffic transparently. Stays a silent zero-tool server outside Kibi repos.
+ *
+ * @param {{
+ *   serverName?: string,
+ *   instructions?: string,
+ *   env?: NodeJS.ProcessEnv,
+ *   rootsTimeoutMs?: number,
+ *   childInitTimeoutMs?: number,
+ *   spawnImpl?: typeof spawn,
+ * }} [options]
+ * @returns {Promise<number>}
+ */
+export function serveDeferredMcpServer({
+  serverName = "kibi-vibe-launcher",
+  instructions,
+  env = process.env,
+  rootsTimeoutMs = 2500,
+  childInitTimeoutMs = 10000,
+  spawnImpl = spawn,
+} = {}) {
+  const ROOTS_ID = "__kibi_vibe_roots__";
+  const CHILD_INIT_ID = "__kibi_vibe_child_init__";
+  return new Promise((resolvePromise) => {
+    const serverInfo = { name: serverName, version: packageVersion() };
+    let buf = "";
+    let childBuf = "";
+    let initParams = null;
+    let clientSupportsRoots = false;
+    let awaitingRoots = false;
+    let rootsTimer = null;
+    let child = null;
+    let childReady = false;
+    let attaching = false;
+    let attachError = null;
+    let done = false;
+    const queued = [];
+
+    const finish = (code = 0) => {
+      if (done) return;
+      done = true;
+      if (rootsTimer) clearTimeout(rootsTimer);
+      resolvePromise(code);
+    };
+    const send = (msg) => {
+      try {
+        process.stdout.write(`${JSON.stringify(msg)}\n`);
+      } catch {
+        finish(0);
+      }
+    };
+    const respond = (id, result) => send({ jsonrpc: "2.0", id, result });
+    const respondError = (id, code, message) =>
+      send({ jsonrpc: "2.0", id, error: { code, message } });
+
+    const answerSilent = (msg) => {
+      if (msg.id === undefined || msg.id === null) return;
+      switch (msg.method) {
+        case "tools/list":
+          respond(msg.id, { tools: [] });
+          break;
+        case "prompts/list":
+          respond(msg.id, { prompts: [] });
+          break;
+        case "resources/list":
+          respond(msg.id, { resources: [] });
+          break;
+        case "ping":
+          respond(msg.id, {});
+          break;
+        case "tools/call":
+          respond(msg.id, {
+            content: [
+              {
+                type: "text",
+                text: attachError
+                  ? `This workspace is configured for Kibi (.kb/manifest.json found), but starting kibi-mcp failed: ${attachError}`
+                  : (instructions ??
+                    "Kibi is not configured for this workspace, so no KB tools are available."),
+              },
+            ],
+          });
+          break;
+        default:
+          respondError(
+            msg.id,
+            -32601,
+            `method not found: ${String(msg.method)}`,
+          );
+      }
+    };
+
+    const flushQueued = () => {
+      while (queued.length > 0) {
+        const msg = queued.shift();
+        if (childReady && child?.stdin && !child.stdin.destroyed) {
+          child.stdin.write(`${JSON.stringify(msg)}\n`);
+        } else {
+          answerSilent(msg);
+        }
+      }
+    };
+
+    const attachWorkspace = (workspaceRoot) => {
+      if (attaching || childReady) return;
+      attaching = true;
+      let spawned;
+      try {
+        const plan = planRuntime(workspaceRoot, env);
+        debugLaunch({ kind: "mcp-deferred-attach", plan }, env);
+        spawned = spawnKibiMcp(plan, {
+          env,
+          spawnImpl,
+          stdio: ["pipe", "pipe", "inherit"],
+        });
+      } catch (error) {
+        attachError = error instanceof Error ? error.message : String(error);
+        attaching = false;
+        debugLaunch(
+          { kind: "mcp-deferred-spawn-error", message: attachError },
+          env,
+        );
+        process.stderr.write(
+          `[kibi-vibe] Failed to start kibi-mcp for ${workspaceRoot}: ${attachError}\n`,
+        );
+        flushQueued();
+        return;
+      }
+
+      child = spawned;
+      const initTimer = setTimeout(() => {
+        if (!childReady) {
+          attachError = "kibi-mcp child did not complete initialize in time";
+          attaching = false;
+          try {
+            child?.kill();
+          } catch {
+            // ignore
+          }
+          child = null;
+          flushQueued();
+        }
+      }, childInitTimeoutMs);
+
+      child.stdout?.setEncoding("utf8");
+      child.stdout?.on("data", (chunk) => {
+        childBuf += chunk;
+        for (;;) {
+          const idx = childBuf.indexOf("\n");
+          if (idx === -1) break;
+          const line = childBuf.slice(0, idx).trim();
+          childBuf = childBuf.slice(idx + 1);
+          if (!line) continue;
+          let msg;
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            continue;
+          }
+          if (!childReady && msg.id === CHILD_INIT_ID) {
+            clearTimeout(initTimer);
+            childReady = true;
+            attaching = false;
+            try {
+              child.stdin?.write(
+                `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+              );
+            } catch {
+              // ignore
+            }
+            send({
+              jsonrpc: "2.0",
+              method: "notifications/tools/list_changed",
+            });
+            flushQueued();
+            continue;
+          }
+          send(msg);
+        }
+      });
+
+      child.once("error", (error) => {
+        clearTimeout(initTimer);
+        if (!childReady) {
+          attachError = error.message;
+          attaching = false;
+          child = null;
+          flushQueued();
+        } else {
+          finish(1);
+        }
+      });
+
+      child.once("close", (code, signal) => {
+        clearTimeout(initTimer);
+        if (!childReady) {
+          attachError = `kibi-mcp exited during handshake (code ${code ?? "null"})`;
+          attaching = false;
+          child = null;
+          flushQueued();
+        } else {
+          finish(signal ? 1 : (code ?? 0));
+        }
+      });
+
+      try {
+        child.stdin?.write(
+          `${JSON.stringify({
+            jsonrpc: "2.0",
+            id: CHILD_INIT_ID,
+            method: "initialize",
+            params: initParams ?? {
+              protocolVersion: "2025-06-18",
+              capabilities: {},
+              clientInfo: { name: serverName, version: packageVersion() },
+            },
+          })}\n`,
+        );
+      } catch (error) {
+        clearTimeout(initTimer);
+        attachError = error instanceof Error ? error.message : String(error);
+        attaching = false;
+        child = null;
+        flushQueued();
+      }
+    };
+
+    const requestRoots = () => {
+      if (!clientSupportsRoots || childReady || attaching) return;
+      awaitingRoots = true;
+      if (rootsTimer) clearTimeout(rootsTimer);
+      rootsTimer = setTimeout(() => {
+        if (awaitingRoots) {
+          awaitingRoots = false;
+          if (!attaching) flushQueued();
+        }
+      }, rootsTimeoutMs);
+      send({ jsonrpc: "2.0", id: ROOTS_ID, method: "roots/list" });
+    };
+
+    const pickKibiRoot = (roots) => {
+      if (!Array.isArray(roots)) return null;
+      for (const entry of roots) {
+        const uri = entry && typeof entry === "object" ? entry.uri : entry;
+        const dir = rootUriToPath(uri);
+        if (!dir) continue;
+        const resolved = resolveWorkspace(dir, env);
+        if (isKibiWorkspace(resolved.root)) return resolved.root;
+      }
+      return null;
+    };
+
+    for (const signal of ["SIGINT", "SIGTERM", "SIGHUP", "SIGBREAK"]) {
+      if (process.platform === "win32" && signal !== "SIGBREAK") continue;
+      process.once(signal, () => {
+        if (child && !child.killed) {
+          child.kill(/** @type {NodeJS.Signals} */ (signal));
+        }
+        finish(0);
+      });
+    }
+
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk) => {
+      buf += chunk;
+      for (;;) {
+        const idx = buf.indexOf("\n");
+        if (idx === -1) break;
+        const line = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 1);
+        if (!line) continue;
+        let msg;
+        try {
+          msg = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        if (childReady && child?.stdin && !child.stdin.destroyed) {
+          child.stdin.write(`${line}\n`);
+          continue;
+        }
+        if (msg.id === ROOTS_ID && !msg.method) {
+          awaitingRoots = false;
+          if (rootsTimer) {
+            clearTimeout(rootsTimer);
+            rootsTimer = null;
+          }
+          const found = pickKibiRoot(msg.result?.roots);
+          if (found) attachWorkspace(found);
+          else if (!attaching) flushQueued();
+          continue;
+        }
+        if (msg.method === "initialize" && msg.id !== undefined) {
+          initParams = msg.params ?? {};
+          clientSupportsRoots = Boolean(
+            msg.params?.capabilities &&
+              typeof msg.params.capabilities === "object" &&
+              "roots" in msg.params.capabilities,
+          );
+          respond(msg.id, {
+            protocolVersion: msg.params?.protocolVersion ?? "2025-06-18",
+            capabilities: { tools: { listChanged: true } },
+            serverInfo,
+            ...(instructions ? { instructions } : {}),
+          });
+          continue;
+        }
+        if (msg.method === "notifications/initialized") {
+          requestRoots();
+          continue;
+        }
+        if (msg.method === "notifications/roots/list_changed") {
+          requestRoots();
+          continue;
+        }
+        if (
+          msg.method === "tools/call" &&
+          typeof msg.params?.arguments?.workspaceRoot === "string"
+        ) {
+          const resolved = resolveWorkspace(
+            msg.params.arguments.workspaceRoot,
+            env,
+          );
+          if (isKibiWorkspace(resolved.root)) {
+            queued.push(msg);
+            attachWorkspace(resolved.root);
+            continue;
+          }
+        }
+        if (awaitingRoots || attaching) {
+          queued.push(msg);
+          continue;
+        }
+        answerSilent(msg);
+      }
+    });
+    process.stdin.on("end", () => {
+      if (child?.stdin && !child.stdin.destroyed) child.stdin.end();
+      else finish(0);
+    });
+    process.stdin.on("error", () => finish(0));
     process.stdin.resume();
   });
 }

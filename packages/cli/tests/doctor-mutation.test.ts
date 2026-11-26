@@ -753,6 +753,7 @@ describe("doctor report", () => {
       "SWI-Prolog",
       ".kb/ directory",
       ".kb/ manifest",
+      "Kibi level",
       "Canonical storage",
       "Git repository",
       "Branch store",
@@ -895,6 +896,7 @@ describe("doctor report", () => {
       "✓ SWI-Prolog: Version 9.2.0 from the bundled build at /opt/swipl; required libraries load",
       "✓ .kb/ directory: Found",
       `✓ .kb/ manifest: schemaVersion ${LATEST_KB_SCHEMA_VERSION}`,
+      "✓ Kibi level: test (default)",
       "✓ Canonical storage: Canonical .kb/ layout",
       "✓ Git repository: Found",
       "✓ Branch store: Compiled for main (g1)",
@@ -1742,6 +1744,12 @@ describe("hook directory resolution", () => {
     s.git.mockImplementation(() => ({ status: "none" }) as never);
     expect((await check("Git hooks"))?.message).toStartWith("Not installed");
     expect(s.git).toHaveBeenCalledTimes(2);
+    s.git.mockImplementation(() => ({ status: "not-a-repository" }) as never);
+    expect(await check("Git hooks")).toStrictEqual({
+      name: "Git hooks",
+      passed: true,
+      message: "Not applicable (no Git repository)",
+    });
   });
 
   test("resolve again when the working directory changes mid-run", async () => {

@@ -348,9 +348,16 @@ describe("files a command writes in place", () => {
     expect(commandEditPaths("echo x >| d.ts", root)).toStrictEqual([
       at("d.ts"),
     ]);
-    // Descriptor redirections, here-strings and quoted `>` are not writes.
+    // Numbered fd redirections to files (`2>b.ts`) are writes too.
+    expect(commandEditPaths("cat a.ts 2>b.ts", root)).toStrictEqual([
+      at("b.ts"),
+    ]);
+    expect(commandEditPaths("echo x 2>>c.ts", root)).toStrictEqual([
+      at("c.ts"),
+    ]);
+    // Descriptor duplications, here-strings and quoted `>` are not writes.
     for (const command of [
-      "cat a.ts 2>b.ts",
+      "cat a.ts 2>&1",
       "cat a.ts >&2 b.ts",
       "cat <<b.ts",
       "echo '> a.ts'",
@@ -360,6 +367,31 @@ describe("files a command writes in place", () => {
     ]) {
       expect(commandEditPaths(command, root)).toStrictEqual([]);
     }
+  });
+
+  test("destructive and file-mutating commands are treated as edits", () => {
+    const root = workspace(["a.ts", "b.ts", "c.ts"]);
+    const at = (name: string) => path.join(root, name);
+    expect(commandEditPaths("rm -f a.ts", root)).toStrictEqual([at("a.ts")]);
+    expect(commandEditPaths("rm -- a.ts", root)).toStrictEqual([at("a.ts")]);
+    expect(commandEditPaths("truncate -s 0 a.ts", root)).toStrictEqual([
+      at("a.ts"),
+    ]);
+    expect(commandEditPaths("mv a.ts b.ts", root)).toStrictEqual([
+      at("a.ts"),
+      at("b.ts"),
+    ]);
+    expect(commandEditPaths("cp a.ts b.ts", root)).toStrictEqual([at("b.ts")]);
+    expect(commandEditPaths("dd if=a.ts of=b.ts", root)).toStrictEqual([
+      at("b.ts"),
+    ]);
+    expect(commandEditPaths("git checkout -- a.ts", root)).toStrictEqual([
+      at("a.ts"),
+    ]);
+    expect(commandEditPaths("git restore -s HEAD a.ts", root)).toStrictEqual([
+      at("a.ts"),
+    ]);
+    expect(commandEditPaths("git status a.ts", root)).toStrictEqual([]);
   });
 
   test("sed and perl in-place edits, behind prefixes and assignments", () => {
@@ -675,7 +707,7 @@ describe("what a shell command shows of each file", () => {
     ]);
   });
 
-  test("unreadable ranges, other sed scripts and unknown commands fall back to whole files", () => {
+  test("non-range sed scripts fall back to whole files, while non-reading commands produce no read views", () => {
     const root = project();
     expect(readsOf(root, "sed -n '1,$p' src/missing.ts")).toEqual([]);
     expect(readsOf(root, "sed 's/a/b/' src/a.ts")).toEqual([
@@ -684,10 +716,39 @@ describe("what a shell command shows of each file", () => {
     expect(readsOf(root, "sed -n '/x/p' src/a.ts")).toEqual([
       { absolute: "src/a.ts", directory: false },
     ]);
-    expect(readsOf(root, "sed -n -E")).toEqual([]);
-    expect(readsOf(root, "wc -l src/a.ts | sort")).toEqual([
-      { absolute: "src/a.ts", directory: false },
+    expect(readsOf(root, "sed -ne 5,9p src/a.ts")).toEqual([
+      { absolute: "src/a.ts", directory: false, focus: [{ start: 5, end: 9 }] },
     ]);
+    expect(readsOf(root, "sed --quiet --expression=5,9p src/a.ts")).toEqual([
+      { absolute: "src/a.ts", directory: false, focus: [{ start: 5, end: 9 }] },
+    ]);
+    expect(readsOf(root, "sed -n -e 5,9p -f /dev/null -- src/a.ts")).toEqual([
+      { absolute: "src/a.ts", directory: false, focus: [{ start: 5, end: 9 }] },
+    ]);
+    expect(readsOf(root, "sed -n --file=/dev/null -ne5,9p src/a.ts")).toEqual([
+      { absolute: "src/a.ts", directory: false, focus: [{ start: 5, end: 9 }] },
+    ]);
+    expect(readsOf(root, "sed -n -E")).toEqual([]);
+    expect(readsOf(root, "sed -i 's/a/b/' src/a.ts")).toEqual([]);
+    // Non-reading commands naming a file must not claim the file is in view.
+    expect(readsOf(root, "wc -l src/a.ts | sort")).toEqual([]);
+    expect(readsOf(root, 'git commit -m "tweak src/a.ts"')).toEqual([]);
+    expect(readsOf(root, "echo 'see src/a.ts'")).toEqual([]);
+    expect(readsOf(root, "rm -f src/a.ts")).toEqual([]);
+    // Byte counts and inverted/summary greps do not produce line views.
+    expect(readsOf(root, "head -c 20 src/a.ts")).toEqual([]);
+    expect(readsOf(root, "head --bytes=20 src/a.ts")).toEqual([]);
+    expect(readsOf(root, "head -n -2 src/long.ts")).toEqual([
+      {
+        absolute: "src/long.ts",
+        directory: false,
+        focus: [{ start: 1, end: 28 }],
+      },
+    ]);
+    expect(readsOf(root, "grep -v cap src/a.ts")).toEqual([]);
+    expect(readsOf(root, "grep -L cap src/a.ts")).toEqual([]);
+    expect(readsOf(root, "grep -c cap src/a.ts")).toEqual([]);
+    expect(readsOf(root, "grep --invert-match cap src/a.ts")).toEqual([]);
     expect(readsOf(root, "head -n")).toEqual([]);
     expect(readsOf(root, "tail -n 3 src/dir")).toEqual([]);
     expect(readsOf(root, "tail -n +2 src/dir")).toEqual([]);
@@ -826,5 +887,18 @@ describe("shell tool calls", () => {
     expect(
       shellToolReadViews("Read", { command: "cat src/a.ts" }, root),
     ).toEqual([]);
+  });
+
+  test("cp -t targets destination dir entries and sed -f keeps the first file operand", () => {
+    const root = workspace(["src/a.ts", "src/b.ts", "out/a.ts", "out/b.ts"]);
+    expect(
+      commandEditPaths("cp -t out src/a.ts src/b.ts", root).sort(),
+    ).toStrictEqual([path.join(root, "out/a.ts"), path.join(root, "out/b.ts")]);
+    expect(
+      commandEditPaths("cp --target-directory=out src/a.ts", root),
+    ).toStrictEqual([path.join(root, "out/a.ts")]);
+    expect(commandReadViews("sed -f rules.sed src/a.ts", root)).toStrictEqual([
+      { absolute: path.join(root, "src/a.ts"), directory: false },
+    ]);
   });
 });

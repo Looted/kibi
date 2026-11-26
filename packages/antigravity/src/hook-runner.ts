@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createHash, randomUUID } from "node:crypto";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -50,6 +51,7 @@ import {
   guardedChangeConfirmation,
   guardedChangeContext,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import { classifyPath, toWorkspacePath } from "kibi-agent-core/path-policy";
 import { type AntigravityHookInput, parseHookInput } from "./hook-input.js";
@@ -376,52 +378,16 @@ function withFirmConfirmation(
   };
 }
 
-/** Whether `target` resolves inside one of `roots`. */
-function insideAnyRoot(
-  roots: readonly string[],
-  target: string,
-  cwd: string | undefined,
-): boolean {
-  return roots.some((root) => {
-    if (root.trim().length === 0) return false;
-    const resolvedRoot = path.resolve(root);
-    return (
-      path.resolve(cwd ?? resolvedRoot, target) === resolvedRoot ||
-      toWorkspacePath(root, target, cwd) !== undefined
-    );
-  });
-}
-
 /**
- * The permission decision Kibi returns when it has no firm requirement to
- * confirm. Kibi never grants a permission the user has not granted: every
- * edit, command and MCP call gets "ask", which applies the user's own
- * Antigravity permissions and "Always Allow" choices. Only reads and searches
- * of files inside the opened workspace (or the Kibi workspace) are allowed,
- * so the plugin does not add prompts to ordinary exploration.
+ * The permission decision Kibi returns when it has no firm requirement or
+ * guarded change to confirm. In Antigravity's PreToolUse contract, "allow"
+ * delegates to subsequent hooks or Antigravity's default policy (whereas
+ * "auto_approve" bypasses prompts and "ask" forces a prompt). Kibi never
+ * returns "auto_approve" and passes non-guarded calls through with "allow" so
+ * it never adds spurious prompts in Kibi or non-Kibi workspaces.
  */
-function passthroughPreToolDecision(
-  input: AntigravityHookInput,
-  workspaceRoot?: string,
-): AntigravityHookOutput {
-  const isRead = readTools.has(input.toolName);
-  if (!isRead && !searchTools.has(input.toolName)) {
-    return { decision: "ask" };
-  }
-  const roots = [...input.workspacePaths];
-  if (workspaceRoot) roots.push(workspaceRoot);
-  const rawPath = toolPath(input.toolArgs) ?? searchPath(input.toolArgs);
-  if (rawPath) {
-    return insideAnyRoot(roots, rawPath, input.cwd)
-      ? { decision: "allow" }
-      : { decision: "ask" };
-  }
-  // A read names its file; one without a path is not something Kibi can vouch
-  // for. A search without a path runs in the current directory.
-  if (!isRead && input.cwd && insideAnyRoot(roots, input.cwd, input.cwd)) {
-    return { decision: "allow" };
-  }
-  return { decision: "ask" };
+function passthroughPreToolDecision(): AntigravityHookOutput {
+  return { decision: "allow" };
 }
 
 /**
@@ -452,7 +418,7 @@ function preToolUse(
   workspace: Workspace,
   trace: HookTrace = {},
 ): AntigravityHookOutput {
-  const passthrough = passthroughPreToolDecision(input, workspace.root);
+  const passthrough = passthroughPreToolDecision();
   const toolName = input.toolName;
   const overwrite = workspaceOverwrite(
     toolName,
@@ -470,7 +436,7 @@ function preToolUse(
   if (lowering) return guardedChangeAsk(lowering, workspace, trace, overwrite);
   if (overwrite) {
     return {
-      decision: passthrough.decision ?? "ask",
+      decision: passthrough.decision ?? "allow",
       overwrite,
     };
   }
@@ -785,6 +751,7 @@ function shellPreToolUse(
     appendSessionEvents(workspace.stateDir, events);
   };
   const cwd = input.cwd ?? workspace.root;
+  const guarded = guardedChangeOfShellCommand(workspace.root, command, cwd);
   const edited = new Set(commandEditPaths(command, cwd));
   const firm = [...edited]
     .map((absolute) => {
@@ -814,6 +781,7 @@ function shellPreToolUse(
     events,
     queueAndCommit,
   );
+  if (guarded) return guardedChangeAsk(guarded, workspace, trace);
   return firm ? withFirmConfirmation(firm, workspace, trace) : passthrough;
 }
 
@@ -830,8 +798,11 @@ function queueShellContext(
   let namesKb = false;
   const cwd = input.cwd ?? workspace.root;
   const reads = commandReadViews(command, cwd);
-  for (const { absolute, directory } of reads) {
-    if (directory) continue;
+  const inspected = new Set<string>([
+    ...edited,
+    ...reads.filter((r) => !r.directory).map((r) => r.absolute),
+  ]);
+  for (const absolute of inspected) {
     const target = toWorkspacePath(workspace.root, absolute, input.cwd);
     if (!target) continue;
     const kind = classifyPath(target.relative);
@@ -1217,6 +1188,32 @@ function resolveStartDirectory(
   return env.ANTIGRAVITY_WORKSPACE?.trim() || process.cwd();
 }
 
+/**
+ * Return a private directory (mode 0700, owned by the current user on POSIX)
+ * under the OS temp dir when `PLUGIN_DATA` is not provided by Antigravity.
+ * If another local user pre-created the predictable path, return undefined so
+ * hooks never read or append to an untrusted directory.
+ */
+function privateTempPluginData(): string | undefined {
+  const candidate = path.join(
+    os.tmpdir(),
+    `kibi-antigravity-${process.getuid?.() ?? "user"}`,
+  );
+  try {
+    fs.mkdirSync(candidate, { recursive: true, mode: 0o700 });
+    const stat = fs.lstatSync(candidate);
+    if (
+      !stat.isDirectory() ||
+      (typeof process.getuid === "function" && stat.uid !== process.getuid())
+    ) {
+      return undefined;
+    }
+    return candidate;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
@@ -1225,9 +1222,7 @@ export async function runHook(
   const env = environment.env ?? process.env;
   const input = parseHookInput(rawInput);
   const pluginData =
-    environment.pluginData ??
-    env.PLUGIN_DATA ??
-    path.join(os.tmpdir(), `kibi-antigravity-${process.getuid?.() ?? "user"}`);
+    environment.pluginData ?? env.PLUGIN_DATA ?? privateTempPluginData();
 
   const startDir = resolveStartDirectory(input, env);
   let resolved = resolveKibiWorkspace(startDir, env);
@@ -1241,9 +1236,7 @@ export async function runHook(
     }
   }
   if (!resolved.optedIn) {
-    return input.event === "PreToolUse"
-      ? passthroughPreToolDecision(input)
-      : {};
+    return input.event === "PreToolUse" ? passthroughPreToolDecision() : {};
   }
 
   const dataDir = workspaceDataDir(pluginData, resolved.root);
@@ -1340,7 +1333,7 @@ export async function main(run: typeof runHook = runHook): Promise<void> {
     process.stderr.write(`kibi-antigravity hook error: ${message}\n`);
     const parsed = parseHookInput(raw);
     const fallback =
-      parsed.event === "PreToolUse" ? passthroughPreToolDecision(parsed) : {};
+      parsed.event === "PreToolUse" ? passthroughPreToolDecision() : {};
     process.stdout.write(`${JSON.stringify(fallback)}\n`);
   }
 }

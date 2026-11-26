@@ -39,6 +39,10 @@ const CHECK_STEP_PREFIX = "- Before your final message,";
 export const NO_GIT_FINISH_LINE =
   "- Before your final message, run the tests linked to the code you changed, then `kibi check` (this directory has no Git repository, so there is no commit check).";
 
+/** The finish line at Kibi level remember, which asks for no tests or proofs. */
+export const REMEMBER_FINISH_LINE =
+  "- Before your final message, run kb_check with changed: true.";
+
 /** The session brief for a workspace with Git, or one without. */
 export function sessionBriefFor(noGit: boolean): string {
   if (!noGit) return SESSION_BRIEF;
@@ -49,10 +53,18 @@ export function sessionBriefFor(noGit: boolean): string {
 
 /**
  * The session brief followed by host-specific lines, one block per session
- * start. Empty host lines are dropped.
+ * start. Empty host lines are dropped. At level `remember`, the check step
+ * omits asking to run linked tests.
  */
-export function sessionBriefWith(hostLines: readonly string[]): string {
-  return [SESSION_BRIEF, ...hostLines.filter((line) => line.length > 0)].join(
-    "\n",
-  );
+export function sessionBriefWith(
+  hostLines: readonly string[],
+  level?: "test" | "remember",
+): string {
+  const brief =
+    level === "remember"
+      ? SESSION_BRIEF_LINES.map((line) =>
+          line.startsWith(CHECK_STEP_PREFIX) ? REMEMBER_FINISH_LINE : line,
+        ).join("\n")
+      : SESSION_BRIEF;
+  return [brief, ...hostLines.filter((line) => line.length > 0)].join("\n");
 }

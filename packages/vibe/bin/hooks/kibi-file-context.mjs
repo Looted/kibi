@@ -23,9 +23,12 @@ try {
   if (payload?.tool_status !== "success") process.exit(0);
   const workspace = resolveHookWorkspace(payload);
   if (isReadTool(payload?.tool_name)) {
-    emitAdditionalContext(
-      joinParts([guardNote(readRowsNote, workspace, payload)]),
-    );
+    const tool = String(payload?.tool_name ?? "").replace(/^file_system\./, "");
+    const parts = [guardNote(readRowsNote, workspace, payload)];
+    if (tool === "bash") {
+      parts.push(guardNote(postEditNote, workspace, payload));
+    }
+    emitAdditionalContext(joinParts(parts));
   } else {
     await editContext(payload, workspace);
   }

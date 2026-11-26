@@ -403,6 +403,66 @@ export function readContext(input: ReadContextInput): ReadContext | undefined {
  * literal for `-F`, basic syntax (`\|`, `\(`, `\+` are operators, bare
  * `|()+?{}` are literal) translated, and `-w` as word bounds.
  */
+/** Longest single line matched against a search regex (guards backtracking). */
+const MAX_SEARCH_LINE_CHARS = 1000;
+/** Longest regex source accepted before falling back to literal matching. */
+const MAX_REGEX_SOURCE_CHARS = 512;
+/** Time budget per resolveReadViews / matchingLines call in milliseconds. */
+const MAX_SEARCH_TIME_MS = 50;
+
+/**
+ * Reject regexes that can catastrophically backtrack in JavaScript's NFA
+ * engine: a group containing a quantifier or alternation that is itself
+ * repeated, backreferences, or over-long patterns.
+ */
+function isSafeRegexSource(source: string): boolean {
+  if (source.length > MAX_REGEX_SOURCE_CHARS) return false;
+  const stack: Array<{ hasQuantifier: boolean; hasAlternation: boolean }> = [];
+  let inClass = false;
+  for (let index = 0; index < source.length; index++) {
+    const char = source[index] as string;
+    if (char === "\\") {
+      const next = source[index + 1];
+      if (next !== undefined && next >= "1" && next <= "9") return false;
+      index++;
+      continue;
+    }
+    if (inClass) {
+      if (char === "]") inClass = false;
+      continue;
+    }
+    if (char === "[") {
+      inClass = true;
+      continue;
+    }
+    if (char === "(") {
+      stack.push({ hasQuantifier: false, hasAlternation: false });
+      continue;
+    }
+    if (char === ")") {
+      const frame = stack.pop();
+      const next = source[index + 1];
+      const quantified = next === "+" || next === "*" || next === "{";
+      if (frame) {
+        if (quantified && (frame.hasQuantifier || frame.hasAlternation))
+          return false;
+        const parent = stack.at(-1);
+        if (parent) {
+          if (frame.hasQuantifier || quantified) parent.hasQuantifier = true;
+          if (frame.hasAlternation) parent.hasAlternation = true;
+        }
+      }
+      continue;
+    }
+    const current = stack.at(-1);
+    if (!current) continue;
+    if (char === "|") current.hasAlternation = true;
+    else if (char === "+" || char === "*" || char === "{")
+      current.hasQuantifier = true;
+  }
+  return true;
+}
+
 export function grepRegExp(grep: ShellGrep): RegExp {
   const flags = grep.ignoreCase ? "i" : "";
   const literal = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -423,6 +483,7 @@ export function grepRegExp(grep: ShellGrep): RegExp {
       else source += char;
     }
   } else source = grep.pattern;
+  if (!isSafeRegexSource(source)) source = literal(grep.pattern);
   if (grep.word) source = `\\b(?:${source})\\b`;
   try {
     return new RegExp(source, flags);
@@ -433,14 +494,21 @@ export function grepRegExp(grep: ShellGrep): RegExp {
 }
 
 /** 1-based numbers of the lines of a file that a search matches. */
-export function matchingLines(absolute: string, grep: ShellGrep): number[] {
+export function matchingLines(
+  absolute: string,
+  grep: ShellGrep,
+  deadlineMs = Date.now() + MAX_SEARCH_TIME_MS,
+): number[] {
   const pattern = grepRegExp(grep);
   const content = readText(absolute);
   if (content === undefined || content.length > MAX_SEARCH_FILE_BYTES)
     return [];
   const lines: number[] = [];
-  for (const [index, line] of content.split("\n").entries())
+  for (const [index, line] of content.split("\n").entries()) {
+    if (Date.now() > deadlineMs) break;
+    if (line.length > MAX_SEARCH_LINE_CHARS) continue;
     if (pattern.test(line)) lines.push(index + 1);
+  }
   return lines;
 }
 
@@ -487,6 +555,7 @@ export function resolveReadViews(
   input: ResolveInput,
 ): ReadView[] {
   const views = new Map<string, ReadView>();
+  const deadlineMs = Date.now() + MAX_SEARCH_TIME_MS;
   for (const read of reads) {
     const relative = relativeTo(input.workspaceRoot, read.absolute);
     if (relative === undefined) continue;
@@ -495,12 +564,14 @@ export function resolveReadViews(
         ? linkedFilesUnder(input.files, relative)
         : [relative];
       for (const file of targets) {
+        if (Date.now() > deadlineMs) break;
         if (!input.isSource(file) || !(input.admits?.(file) ?? true)) continue;
         const symbols = input.files[file] ?? [];
         if (implementedRequirementIds(symbols).length === 0) continue;
         const matches = matchingLines(
           path.join(input.workspaceRoot, file),
           read.grep,
+          deadlineMs,
         );
         if (matches.length === 0) continue;
         views.set(file, { relativePath: file, symbols, matches });

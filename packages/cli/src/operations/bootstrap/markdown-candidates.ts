@@ -258,6 +258,7 @@ export function markdownCandidates(
   let heading: string | undefined;
   let headingLine = 0;
   let fenced = false;
+  let inKibiManaged = false;
   // rationale: placeholder text has no heading, fence or modal verb, so it
   // reads like a document without content.
   // Stryker disable next-line StringLiteral
@@ -268,6 +269,14 @@ export function markdownCandidates(
       continue;
     }
     if (fenced) continue;
+    if (/<!--\s*BEGIN kibi-managed\b/i.test(line)) {
+      inKibiManaged = true;
+      continue;
+    }
+    if (inKibiManaged) {
+      if (/<!--\s*END kibi-managed\b/i.test(line)) inKibiManaged = false;
+      continue;
+    }
     const match = line.match(/^\s*#+\s*(.+)/);
     if (match?.[1]) {
       heading = match[1].trim();
