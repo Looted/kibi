@@ -18,6 +18,7 @@
 
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   renameSync,
@@ -874,22 +875,95 @@ async function refreshManagedHookSections(
   const { findOutdatedManagedHooks, refreshOutdatedManagedHooks } =
     await import("../operations/migration/managed-hooks.js");
   const outdated = findOutdatedManagedHooks(cwd);
-  if (outdated === null) return;
+  if (outdated !== null) {
+    if (dryRun) {
+      console.log(
+        `Would refresh the kibi-managed sections of ${outdated.hooks.join(", ")}: they differ from the template this Kibi CLI installs.`,
+      );
+    } else {
+      const { refreshed, skipped } = refreshOutdatedManagedHooks(outdated);
+      if (refreshed.length > 0)
+        console.log(
+          `Refreshed the kibi-managed sections of ${refreshed.join(", ")} to this Kibi CLI's template.`,
+        );
+      if (skipped.length > 0)
+        printWarning(
+          `Could not refresh the kibi-managed section of ${skipped.join(", ")} (a symlinked or unreadable hook); run kibi init and kibi doctor.`,
+        );
+    }
+  }
+  await refreshManagedAgentInstructions(cwd, dryRun);
+}
+
+async function refreshManagedAgentInstructions(
+  cwd: string,
+  dryRun: boolean,
+): Promise<void> {
+  const [
+    { resolveGitRepository },
+    {
+      AGENTS_FILE,
+      CLAUDE_FILE,
+      CLAUDE_IMPORT_SECTION,
+      GEMINI_FILE,
+      GEMINI_IMPORT_SECTION,
+      agentInstructionsFor,
+      managedSectionState,
+      upsertManagedSection,
+    },
+  ] = await Promise.all([
+    import("../utils/git-repository-context.js"),
+    import("./agent-instructions.js"),
+  ]);
+  const repoStatus = resolveGitRepository(cwd).status;
+  const noGit =
+    repoStatus === "not-a-repository" || repoStatus === "git-unavailable";
+  const targets: ReadonlyArray<readonly [string, string]> = [
+    [AGENTS_FILE, agentInstructionsFor(noGit)],
+    [CLAUDE_FILE, CLAUDE_IMPORT_SECTION],
+    [GEMINI_FILE, GEMINI_IMPORT_SECTION],
+  ];
+  const outdated: Array<readonly [string, string]> = [];
+  for (const [name, body] of targets) {
+    const filePath = path.join(cwd, name);
+    try {
+      if (existsSync(filePath) && lstatSync(filePath).isSymbolicLink()) {
+        continue;
+      }
+      if (managedSectionState(filePath, body) === "outdated") {
+        outdated.push([name, body]);
+      }
+    } catch {
+      printWarning(
+        `Could not inspect the Kibi-managed section of ${name}; run kibi init and kibi doctor.`,
+      );
+    }
+  }
+  if (outdated.length === 0) return;
+  const names = outdated.map(([name]) => name).join(", ");
   if (dryRun) {
     console.log(
-      `Would refresh the kibi-managed sections of ${outdated.hooks.join(", ")}: they differ from the template this Kibi CLI installs.`,
+      `Would refresh the Kibi-managed section of ${names}: it differs from the template this Kibi CLI installs.`,
     );
     return;
   }
-  const { refreshed, skipped } = refreshOutdatedManagedHooks(outdated);
-  if (refreshed.length > 0)
+  const updated: string[] = [];
+  for (const [name, body] of outdated) {
+    try {
+      if (upsertManagedSection(path.join(cwd, name), body) === "updated") {
+        updated.push(name);
+      }
+    } catch {
+      printWarning(
+        `Could not refresh the Kibi-managed section of ${name}; run kibi init and kibi doctor.`,
+      );
+    }
+  }
+  if (updated.length > 0) {
     console.log(
-      `Refreshed the kibi-managed sections of ${refreshed.join(", ")} to this Kibi CLI's template.`,
+      `Refreshed the Kibi-managed section of ${updated.join(", ")} to this Kibi CLI's template.`,
     );
-  if (skipped.length > 0)
-    printWarning(
-      `Could not refresh the kibi-managed section of ${skipped.join(", ")} (a symlinked or unreadable hook); run kibi init and kibi doctor.`,
-    );
+  }
 }
 
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
@@ -1347,6 +1421,7 @@ export async function migrateCommand(
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
     await printRetiredStatusSuggestions(cwd);
+    await refreshManagedHookSections(cwd, true);
     console.log(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );

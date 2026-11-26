@@ -3,14 +3,14 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "./bin/run-node.cmd ./bin/hook-runner.mjs",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
         "timeout": 10
       }
     ],
     "PreInvocation": [
       {
         "type": "command",
-        "command": "./bin/run-node.cmd ./bin/hook-runner.mjs",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
         "timeout": 10
       }
     ],
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./bin/run-node.cmd ./bin/hook-runner.mjs",
+            "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
             "timeout": 10
           }
         ]
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./bin/run-node.cmd ./bin/hook-runner.mjs",
+            "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
             "timeout": 10
           }
         ]
@@ -41,7 +41,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "./bin/run-node.cmd ./bin/hook-runner.mjs",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
         "timeout": 10
       }
     ]

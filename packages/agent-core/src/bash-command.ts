@@ -110,10 +110,10 @@ export function filesChangedSince(root: string, sinceMs: number): string[] {
 
 // Simple commands of a command line: `;`, `&&`, `||`, `|` and newlines end one.
 const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
-// `> file`, `>> file`, `>| file`, `&> file` and `&>> file` (not `2>&1`,
-// `>&2` or a here-document marker). It runs on the masked copy, where a
-// quoted target is a run of `_`.
-const REDIRECT_TARGET = /(?:^|[^0-9&<>])(?:&>>?|>>?\|?)\s*([^\s;&|<>()]+)/g;
+// `> file`, `>> file`, `>| file`, `&> file`, `&>> file`, and numbered
+// redirections like `2> file` (not `2>&1`, `>&2`, `<>`, or `<<`). It runs on
+// the masked copy, where a quoted target is a run of `_`.
+const REDIRECT_TARGET = /(?:^|[^&<>])(?:&>>?|>>?\|?)\s*(?!&)([^\s;&|<>()]+)/g;
 // sed and perl edit in place with -i (alone, bundled as -pi or -ni, or with a
 // backup suffix as -i.bak) or sed's --in-place.
 const IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
@@ -226,7 +226,43 @@ function unbracketed(words: readonly string[]): string[] {
   });
 }
 
-/** Names a command line writes: redirection targets and editor/tee operands. */
+/** Non-flag operands of a command, skipping flags that take a separate value. */
+function operandsSkipping(
+  args: readonly string[],
+  valueFlags: ReadonlySet<string>,
+): string[] {
+  const operands: string[] = [];
+  let afterDoubleDash = false;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (afterDoubleDash) {
+      operands.push(arg);
+      continue;
+    }
+    if (arg === "--") {
+      afterDoubleDash = true;
+      continue;
+    }
+    if (valueFlags.has(arg)) {
+      index++;
+      continue;
+    }
+    if (arg.startsWith("-")) continue;
+    operands.push(arg);
+  }
+  return operands;
+}
+
+const TRUNCATE_VALUE_FLAGS = new Set(["-s", "--size", "-r", "--reference"]);
+const CP_MV_VALUE_FLAGS = new Set([
+  "-t",
+  "--target-directory",
+  "-S",
+  "--suffix",
+]);
+const GIT_RESTORE_VALUE_FLAGS = new Set(["-s", "--source"]);
+
+/** Names a command line writes: redirection targets, editor/tee, and destructive commands. */
 function* writtenNames(command: string): Generator<string> {
   const masked = maskQuoted(command);
   for (const match of masked.matchAll(REDIRECT_TARGET)) {
@@ -251,8 +287,75 @@ function* writtenNames(command: string): Generator<string> {
       (IN_PLACE_EDITORS.has(program) &&
         args.some((arg) => IN_PLACE_FLAG.test(arg))) ||
       program === "tee"
-    )
+    ) {
       yield* args;
+    } else if (program === "rm") {
+      yield* operandsSkipping(args, new Set());
+    } else if (program === "truncate") {
+      yield* operandsSkipping(args, TRUNCATE_VALUE_FLAGS);
+    } else if (program === "mv") {
+      yield* operandsSkipping(args, CP_MV_VALUE_FLAGS);
+    } else if (program === "cp") {
+      let targetDir: string | undefined;
+      const operands: string[] = [];
+      let afterDoubleDash = false;
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i] as string;
+        if (afterDoubleDash) {
+          operands.push(arg);
+          continue;
+        }
+        if (arg === "--") {
+          afterDoubleDash = true;
+          continue;
+        }
+        if (arg === "-t" || arg === "--target-directory") {
+          const next = args[i + 1];
+          if (next !== undefined) targetDir = unquote(next);
+          i += 1;
+          continue;
+        }
+        if (arg.startsWith("--target-directory=")) {
+          targetDir = unquote(arg.slice("--target-directory=".length));
+          continue;
+        }
+        if (arg.startsWith("-t") && arg.length > 2) {
+          targetDir = unquote(arg.slice(2));
+          continue;
+        }
+        if (arg === "-S" || arg === "--suffix") {
+          i += 1;
+          continue;
+        }
+        if (arg.startsWith("-")) continue;
+        operands.push(arg);
+      }
+      if (targetDir !== undefined) {
+        for (const src of operands) {
+          yield path.join(targetDir, path.basename(unquote(src)));
+        }
+      } else {
+        const destination = operands.at(-1);
+        if (operands.length >= 2 && destination !== undefined)
+          yield destination;
+      }
+    } else if (program === "dd") {
+      for (const arg of args) {
+        const cleaned = unquote(arg);
+        if (cleaned.startsWith("of=") && cleaned.length > 3)
+          yield cleaned.slice(3);
+      }
+    } else if (program === "git") {
+      const subIndex = args.findIndex((arg) => !arg.startsWith("-"));
+      const sub = subIndex >= 0 ? args[subIndex] : undefined;
+      const subArgs = subIndex >= 0 ? args.slice(subIndex + 1) : [];
+      if (sub === "restore") {
+        yield* operandsSkipping(subArgs, GIT_RESTORE_VALUE_FLAGS);
+      } else if (sub === "checkout") {
+        const dashIndex = subArgs.indexOf("--");
+        if (dashIndex >= 0) yield* subArgs.slice(dashIndex + 1);
+      }
+    }
   }
 }
 
@@ -272,11 +375,21 @@ export function commandEditPaths(command: string, cwd: string): string[] {
     // An empty name resolves to a directory, which is never a named file,
     // and an absolute one resolves to itself from every base.
     const name = unquote(target);
+    if (!name || name.startsWith("-")) continue;
     for (const base of bases) wanted.add(path.resolve(base, name));
   }
-  return commandFilePaths(scanned, cwd).filter((absolute) =>
-    wanted.has(absolute),
+  const seen = new Set(
+    commandFilePaths(scanned, cwd).filter((absolute) => wanted.has(absolute)),
   );
+  for (const absolute of wanted) {
+    if (seen.has(absolute)) continue;
+    try {
+      if (fs.statSync(absolute).isFile()) seen.add(absolute);
+    } catch {
+      // Missing or unreadable targets are skipped.
+    }
+  }
+  return [...seen];
 }
 
 /** Hosts' shell tool names: a `sed -i` or `>` through them edits files too. */
@@ -407,10 +520,12 @@ function lineCount(
   const arg = args[index] as string;
   if (arg === "-n" || arg === "--lines") {
     const value = args[index + 1];
-    return value === undefined ? undefined : { value, used: 2 };
+    return value !== undefined && /^[+-]?\d+$/.test(value)
+      ? { value, used: 2 }
+      : undefined;
   }
   const attached =
-    /^(?:-n|--lines=)(\+?\d+)$/.exec(arg) ?? /^-(\d+)$/.exec(arg);
+    /^(?:-n|--lines=)([+-]?\d+)$/.exec(arg) ?? /^-(\d+)$/.exec(arg);
   return attached ? { value: attached[1] as string, used: 1 } : undefined;
 }
 
@@ -446,42 +561,119 @@ function readStage(words: readonly string[]): Stage | undefined {
   const [name, ...args] = words;
   const program = path.basename(String(name));
   if (program === "sed") {
-    if (!args.includes("-n")) return undefined;
-    const rest = args.filter((arg) => arg !== "-n");
-    const scriptIndex = rest.findIndex((arg) => !arg.startsWith("-"));
-    if (scriptIndex === -1) return undefined;
-    const print = SED_PRINT.exec(unquote(rest[scriptIndex] as string));
-    if (!print) return undefined;
-    const start = Number(print[1]);
-    const endText = print[2] ?? print[1];
-    return {
-      operands: rest
-        .slice(scriptIndex + 1)
-        .filter((arg) => !arg.startsWith("-")),
-      range: (absolute) => ({
-        start,
-        end: endText === "$" ? fileLineCount(absolute) : Number(endText),
-      }),
-      recursive: false,
-      whole: false,
-    };
+    if (args.some((arg) => IN_PLACE_FLAG.test(arg))) return undefined;
+    let quiet = false;
+    const scripts: string[] = [];
+    const operands: string[] = [];
+    let expectExpr = false;
+    let expectFile = false;
+    let hasScriptFile = false;
+    for (let index = 0; index < args.length; index++) {
+      const arg = args[index] as string;
+      if (expectExpr) {
+        scripts.push(unquote(arg));
+        expectExpr = false;
+        continue;
+      }
+      if (expectFile) {
+        expectFile = false;
+        continue;
+      }
+      if (arg === "--") {
+        operands.push(...args.slice(index + 1));
+        break;
+      }
+      if (arg === "--quiet" || arg === "--silent") {
+        quiet = true;
+        continue;
+      }
+      if (arg === "-e" || arg === "--expression") {
+        expectExpr = true;
+        continue;
+      }
+      if (arg.startsWith("--expression=")) {
+        scripts.push(unquote(arg.slice("--expression=".length)));
+        continue;
+      }
+      if (arg === "-f" || arg === "--file") {
+        expectFile = true;
+        hasScriptFile = true;
+        continue;
+      }
+      if (arg.startsWith("--file=")) {
+        hasScriptFile = true;
+        continue;
+      }
+      if (arg.startsWith("-") && arg.length > 1) {
+        if (!arg.startsWith("--")) {
+          const flags = arg.slice(1);
+          if (flags.includes("n")) quiet = true;
+          const exprPos = flags.indexOf("e");
+          if (exprPos >= 0) {
+            const attached = flags.slice(exprPos + 1);
+            if (attached.length > 0) scripts.push(unquote(attached));
+            else expectExpr = true;
+          }
+          const filePos = flags.indexOf("f");
+          if (filePos >= 0) {
+            hasScriptFile = true;
+            if (filePos === flags.length - 1) expectFile = true;
+          }
+        }
+        continue;
+      }
+      if (scripts.length === 0 && !hasScriptFile) scripts.push(unquote(arg));
+      else operands.push(arg);
+    }
+    if (quiet && scripts.length === 1) {
+      const print = SED_PRINT.exec(scripts[0] as string);
+      if (print) {
+        const start = Number(print[1]);
+        const endText = print[2] ?? print[1];
+        return {
+          operands,
+          range: (absolute) => ({
+            start,
+            end: endText === "$" ? fileLineCount(absolute) : Number(endText),
+          }),
+          recursive: false,
+          whole: false,
+        };
+      }
+    }
+    return operands.length > 0
+      ? { operands, recursive: false, whole: true }
+      : undefined;
   }
   if (program === "head" || program === "tail") {
     let count = String(DEFAULT_HEAD_LINES);
     const operands: string[] = [];
     for (let index = 0; index < args.length; index++) {
+      const arg = args[index] as string;
+      if (
+        arg === "-c" ||
+        arg === "--bytes" ||
+        /^-c.+/.test(arg) ||
+        arg.startsWith("--bytes=")
+      )
+        return undefined;
       const found = lineCount(args, index);
       if (found) {
         count = found.value;
         index += found.used - 1;
-      } else if (!(args[index] as string).startsWith("-"))
-        operands.push(args[index] as string);
+      } else if (!arg.startsWith("-")) operands.push(arg);
     }
-    const lines = Number(count.replace(/^\+/, ""));
+    const lines = Number(count.replace(/^[+-]/, ""));
     return {
       operands,
       range: (absolute) => {
-        if (program === "head") return { start: 1, end: lines };
+        if (program === "head") {
+          if (count.startsWith("-")) {
+            const total = fileLineCount(absolute);
+            return { start: 1, end: Math.max(0, total - lines) };
+          }
+          return { start: 1, end: lines };
+        }
         const total = fileLineCount(absolute);
         return count.startsWith("+")
           ? { start: lines, end: total }
@@ -502,13 +694,17 @@ function readStage(words: readonly string[]): Stage | undefined {
 }
 
 /** The pattern, flags and operands of a grep, egrep, fgrep or rg command. */
-function searchStage(program: string, args: readonly string[]): Stage {
+function searchStage(
+  program: string,
+  args: readonly string[],
+): Stage | undefined {
   let pattern: string | undefined;
   let ignoreCase = false;
   let fixed = program === "fgrep";
   let basic = program === "grep";
   let word = false;
   let recursive = program === "rg";
+  let skipSearchView = false;
   const operands: string[] = [];
   for (let index = 0; index < args.length; index++) {
     const arg = args[index] as string;
@@ -534,6 +730,12 @@ function searchStage(program: string, args: readonly string[]): Stage {
         basic = false;
       else if (arg === "--word-regexp") word = true;
       else if (arg === "--recursive") recursive = true;
+      else if (
+        arg === "--invert-match" ||
+        arg === "--files-without-match" ||
+        arg === "--count"
+      )
+        skipSearchView = true;
       continue;
     }
     if (arg.startsWith("-") && arg.length > 1) {
@@ -545,19 +747,22 @@ function searchStage(program: string, args: readonly string[]): Stage {
         else if (flag === "E" || flag === "P") basic = false;
         else if (flag === "w") word = true;
         else if (flag === "r" || flag === "R") recursive = true;
+        else if (flag === "v" || flag === "L" || flag === "c")
+          skipSearchView = true;
       }
       continue;
     }
     if (pattern === undefined) pattern = unquote(arg);
     else operands.push(arg);
   }
+  if (skipSearchView) return undefined;
   return {
     operands,
     ...(pattern === undefined || pattern.length === 0
       ? {}
       : { grep: { pattern, ignoreCase, fixed, basic: basic && !fixed, word } }),
     recursive,
-    whole: false,
+    whole: pattern === "",
   };
 }
 
@@ -685,8 +890,46 @@ export function commandReadViews(command: string, cwd: string): ShellRead[] {
     }
   };
   visit(scanned, 0);
-  for (const absolute of commandFilePaths(scanned, cwd))
-    if (!views.has(absolute))
-      views.set(absolute, { absolute, directory: false });
   return [...views.values()];
+}
+
+/**
+ * The `--level` value a shell command passes to `kibi init` (including via
+ * `npx`, `bun`, `node`, or `bash -c`), or undefined when the command does not
+ * invoke `kibi init --level`.
+ */
+export function kibiInitLevelTarget(command: string): string | undefined {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const find = (line: string, depth: number): string | undefined => {
+    for (const stages of pipelines(line)) {
+      for (const words of stages) {
+        const script = shellScript(words);
+        if (script !== undefined && depth < 2) {
+          const nested = find(unquote(script), depth + 1);
+          if (nested !== undefined) return nested;
+          continue;
+        }
+        const cleaned = words.map(unquote);
+        const initIndex = cleaned.findIndex(
+          (word, index) =>
+            word === "init" &&
+            index > 0 &&
+            /(?:^|[\\/])kibi(?:\.[cm]?js)?$/.test(cleaned[index - 1] as string),
+        );
+        if (initIndex < 0) continue;
+        for (let index = initIndex + 1; index < cleaned.length; index++) {
+          const arg = cleaned[index] as string;
+          if (arg === "--level") {
+            const value = cleaned[index + 1];
+            if (value !== undefined && value.length > 0) return value;
+          } else if (arg.startsWith("--level=")) {
+            const value = arg.slice("--level=".length);
+            if (value.length > 0) return value;
+          }
+        }
+      }
+    }
+    return undefined;
+  };
+  return find(scanned, 0);
 }

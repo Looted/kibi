@@ -293,6 +293,7 @@ export function signoffLevel(
   git: (args: readonly string[]) => string,
   scope: SignoffScope,
   hasBase: boolean,
+  baseRef = "HEAD",
 ): { level: SignoffLevel; decision?: SignoffDecision } {
   const now = levelOf((file) =>
     currentContent(workspaceRoot, git, scope, file),
@@ -302,7 +303,7 @@ export function signoffLevel(
     setting: now.set ? now.setting : "the default",
   };
   if (!hasBase) return { level };
-  const before = levelOf((file) => tryGit(git, ["show", `HEAD:${file}`]));
+  const before = levelOf((file) => tryGit(git, ["show", `${baseRef}:${file}`]));
   if (before.level === now.level) return { level };
   return {
     level: { ...level, previous: before.level },
@@ -353,6 +354,36 @@ function headExists(git: (args: readonly string[]) => string): boolean {
   );
 }
 
+const DEFAULT_BASE_CANDIDATES = [
+  "origin/develop",
+  "develop",
+  "origin/main",
+  "main",
+  "origin/master",
+  "master",
+] as const;
+
+/**
+ * When reviewing a clean working tree on a branch ahead of a default branch,
+ * compare against the merge base so committed changes (such as a Kibi level
+ * flip or lowered floor) still surface at signoff.
+ */
+function resolveWorkingBase(
+  git: (args: readonly string[]) => string,
+  scope: SignoffScope,
+): string {
+  if (scope !== "working") return "HEAD";
+  const status = tryGit(git, ["status", "--porcelain"]);
+  if (status === undefined || status.trim() !== "") return "HEAD";
+  const head = tryGit(git, ["rev-parse", "HEAD"])?.trim();
+  if (!head) return "HEAD";
+  for (const ref of DEFAULT_BASE_CANDIDATES) {
+    const mergeBase = tryGit(git, ["merge-base", "HEAD", ref])?.trim();
+    if (mergeBase && mergeBase !== head) return mergeBase;
+  }
+  return "HEAD";
+}
+
 /**
  * The end-of-work signoff summary: the requirements the change adds, rewrites,
  * retires, or leaves unchanged while changing code that implements them, each
@@ -367,7 +398,8 @@ export async function collectSignoffSummary(
   const notes: string[] = [];
   const hasBase = headExists(git);
   const base = hasBase ? "HEAD" : EMPTY_TREE;
-  const level = signoffLevel(workspaceRoot, git, scope, hasBase);
+  let effectiveBase = base;
+  let level = signoffLevel(workspaceRoot, git, scope, hasBase, base);
   const decisions: SignoffDecision[] = level.decision ? [level.decision] : [];
   const readRequirement = workspaceRequirements(workspaceRoot);
   // A closed requirement is done and still governs, unless a current
@@ -441,11 +473,40 @@ export async function collectSignoffSummary(
       `Changed requirement documents could not be listed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  if (
+    hasBase &&
+    scope === "working" &&
+    files.length === 0 &&
+    level.decision === undefined
+  ) {
+    const mergeBase = resolveWorkingBase(git, scope);
+    if (mergeBase !== "HEAD") {
+      effectiveBase = mergeBase;
+      const branchLevel = signoffLevel(
+        workspaceRoot,
+        git,
+        scope,
+        true,
+        effectiveBase,
+      );
+      if (branchLevel.decision) {
+        level = branchLevel;
+        decisions.unshift(branchLevel.decision);
+      }
+      try {
+        files = changedRequirementFiles(git, scope, effectiveBase);
+      } catch (error) {
+        notes.push(
+          `Changed requirement documents could not be listed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+  }
   for (const { status, file } of files) {
     const before =
       status === "A"
         ? undefined
-        : parseEntity(tryGit(git, ["show", `${base}:${file}`]), file);
+        : parseEntity(tryGit(git, ["show", `${effectiveBase}:${file}`]), file);
     if (status === "D") {
       if (before?.type === "req") {
         drafts.set(before.id, draftFor(before, "retired", file));
@@ -505,7 +566,7 @@ export async function collectSignoffSummary(
       workspaceRoot,
       git,
       scope,
-      base,
+      effectiveBase,
     )) {
       const existing = drafts.get(id);
       if (existing) {

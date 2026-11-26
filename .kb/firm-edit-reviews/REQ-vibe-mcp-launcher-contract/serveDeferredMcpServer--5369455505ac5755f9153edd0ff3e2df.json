@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "serveDeferredMcpServer",
+  "verdict": "keeps",
+  "note": "Preserves workspace-gated full MCP tools and zero-tool silent fallback outside Kibi workspaces while guarding queued request flushes against racing an in-flight attach.",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:2c232abd0ba2dd40988954b70d7ae9d19ce4eb8abeb9358ebe5e04a4012b33a1",
+  "startLine": 685,
+  "endLine": 1015,
+  "recordedAt": "2026-11-26T19:03:15.131Z"
+}

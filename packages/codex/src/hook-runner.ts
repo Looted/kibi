@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  shellToolCommand,
   shellToolEditPaths,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
@@ -57,6 +58,7 @@ import {
 import {
   guardedChangeNotice,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import {
   canonicalizeWorkspacePath,
@@ -256,6 +258,7 @@ export function guardedNotice(
   input: ReturnType<typeof parseHookInput>,
   trace: HookTrace,
 ): string | undefined {
+  const shellCommand = shellToolCommand(input.toolName, input.toolInput);
   const changes = isKibiMcpToolName(input.toolName)
     ? [
         guardedChangeOf({
@@ -264,16 +267,24 @@ export function guardedNotice(
           toolInput: input.toolInput,
         }),
       ]
-    : isEditLikeTool(input.toolName)
-      ? editTargets(workspaceRoot, input).map((target) =>
-          guardedChangeOf({
+    : shellCommand !== undefined
+      ? [
+          guardedChangeOfShellCommand(
             workspaceRoot,
-            toolName: input.toolName,
-            toolInput: input.toolInput,
-            relativePath: target.relative,
-          }),
-        )
-      : [];
+            shellCommand,
+            input.cwd ?? workspaceRoot,
+          ),
+        ]
+      : isEditLikeTool(input.toolName)
+        ? editTargets(workspaceRoot, input).map((target) =>
+            guardedChangeOf({
+              workspaceRoot,
+              toolName: input.toolName,
+              toolInput: input.toolInput,
+              relativePath: target.relative,
+            }),
+          )
+        : [];
   const change = changes.find((candidate) => candidate !== undefined);
   if (change === undefined) return undefined;
   trace.action =

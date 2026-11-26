@@ -46,6 +46,7 @@ jobs:
     outputs:
       execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') && (steps.member.outcome != 'success' || steps.member.outputs.reuse != 'true') }}
       train-run-id: ${{ steps.train.outputs.source_run_id }}
+      train-report-run-id: ${{ steps.train.outputs.report_run_id }}
       train-run-url: ${{ steps.train.outputs.source_run_url }}
       member: ${{ steps.member.outputs.reuse }}
       member-run-id: ${{ steps.member.outputs.source_run_id }}
@@ -729,13 +730,14 @@ jobs:
           retention-days: 7
 
       # A develop push that reused a train's proof keeps that train's
-      # report: it describes this exact snapshot.
+      # report (or the member run's report when a single-PR train reused it):
+      # it describes this exact snapshot.
       - name: Download the reused train's proof report
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: kibi-requirement-proof
-          run-id: ${{ needs.reuse.outputs.train-run-id }}
+          run-id: ${{ needs.reuse.outputs.train-report-run-id || needs.reuse.outputs.train-run-id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/kibi-train-proof
 

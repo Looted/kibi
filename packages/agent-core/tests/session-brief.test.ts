@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import * as entry from "../src/index.js";
 import {
   NO_GIT_FINISH_LINE,
+  REMEMBER_FINISH_LINE,
   SESSION_BRIEF,
   SESSION_BRIEF_LINES,
   sessionBriefFor,
@@ -49,6 +50,9 @@ describe("session brief", () => {
       `${SESSION_BRIEF}\nhost one\nhost two`,
     );
     expect(sessionBriefWith([" "])).toBe(`${SESSION_BRIEF}\n `);
+    const rememberLines = sessionBriefWith(["host"], "remember").split("\n");
+    expect(rememberLines[3]).toBe(REMEMBER_FINISH_LINE);
+    expect(rememberLines.at(-1)).toBe("host");
   });
 
   test("is exported from the package entry point", () => {

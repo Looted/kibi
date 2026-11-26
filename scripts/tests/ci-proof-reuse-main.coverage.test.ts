@@ -48,7 +48,7 @@ if (args[0] === "api") {
   const name = endpoint.includes("/branches/develop") ? "branch" :
     endpoint.includes("status=success") ? "runs-success" :
     endpoint.includes("/workflows/proof.yml/runs?") ? "runs-wait" :
-    endpoint.includes("/artifacts?") ? "artifacts" : null;
+    endpoint.includes("/artifacts") ? "artifacts" : null;
   if (!name) process.exit(2);
   process.stdout.write(fs.readFileSync(next(name), "utf8"));
 } else if (args[0] === "run" && args[1] === "download") {
@@ -148,9 +148,10 @@ function makeFixture(sha: string): Fixture {
     workflow_runs: [proofRun(sha)],
   });
   writeJson(dir, "artifacts", {
-    total_count: 1,
+    total_count: 2,
     artifacts: [
       { name: "kibi-proof-attestation", expired: false, size_in_bytes: 1024 },
+      { name: "kibi-requirement-proof", expired: false, size_in_bytes: 2048 },
     ],
   });
   writeJson(dir, "attestation", attestationFor(sha));
@@ -875,7 +876,7 @@ describe("merge train proof attestation and develop reuse", () => {
       sourceRun: trainUrl,
     });
     expect(outputs).toBe(
-      `reuse=true\nsource_run_id=456\nsource_run_url=${trainUrl}\n`,
+      `reuse=true\nsource_run_id=456\nreport_run_id=456\nsource_run_url=${trainUrl}\n`,
     );
     expect(logSpy.mock.calls.flat().join("\n")).toContain(
       `full proof skipped; reusing successful train proof ${trainUrl}`,
@@ -895,7 +896,7 @@ describe("merge train proof attestation and develop reuse", () => {
       reason: "no unique successful train proof run for the merged head",
     });
     expect((await decideTrain(repo, fixture)).outputs).toBe(
-      "reuse=false\nsource_run_id=\nsource_run_url=\n",
+      "reuse=false\nsource_run_id=\nreport_run_id=\nsource_run_url=\n",
     );
     writeJson(fixture.dir, "runs-success", {
       total_count: 3,

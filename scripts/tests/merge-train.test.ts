@@ -327,6 +327,13 @@ describe("settings", () => {
     ]);
     // A single line is still comma separated.
     expect(settings.trainChecks).toEqual(["slow", "proof"]);
+    // A single-entry block scalar (ending in a newline) keeps commas intact.
+    const singleBlock = settingsFromEnv({
+      MERGE_TRAIN_BASE: "develop",
+      GH_REPO: "o/r",
+      MERGE_TRAIN_CHECKS: "Secrets, dependencies, code\n",
+    });
+    expect(singleBlock.checks).toEqual(["Secrets, dependencies, code"]);
   });
 
   test("settingsFromEnv reads the action's configuration", () => {
@@ -1051,7 +1058,7 @@ describe("merge train step", () => {
         ).stdout,
       ).toBe("gone\n");
     } finally {
-      delete process.env.MERGE_TRAIN_TEST_SECRET;
+      Reflect.deleteProperty(process.env, "MERGE_TRAIN_TEST_SECRET");
     }
     expect(processRunner.exec("/nonexistent/command", []).status).toBe(1);
     // Check runs go out with the checks token; everything else with GH_TOKEN.

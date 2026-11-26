@@ -708,3 +708,63 @@ describe("host hook rows after an edit snippet", () => {
     ).toBeUndefined();
   });
 });
+
+describe("ReDoS and time-budget safety", () => {
+  test("catastrophic-backtracking patterns fall back to literal matching and return immediately", () => {
+    const root = tempDir();
+    const evilLine = `${"a".repeat(120)}!\n`;
+    write(root, "src/long.ts", `${evilLine}${"x".repeat(1200)}\nmatch_me\n`);
+    const file = path.join(root, "src/long.ts");
+    const started = Date.now();
+    for (const pattern of [
+      "(\\w+\\s?)+$",
+      "(a+)+$",
+      "(a|aa)+$",
+      "(a)\\1+",
+      "a".repeat(600),
+    ]) {
+      const re = grepRegExp({
+        pattern,
+        ignoreCase: false,
+        fixed: false,
+        basic: false,
+        word: false,
+      });
+      expect(re).toBeInstanceOf(RegExp);
+      expect(
+        matchingLines(file, {
+          pattern,
+          ignoreCase: false,
+          fixed: false,
+          basic: false,
+          word: false,
+        }),
+      ).toEqual([]);
+    }
+    expect(Date.now() - started).toBeLessThan(200);
+    // An expired deadline exits immediately without scanning.
+    expect(
+      matchingLines(
+        file,
+        {
+          pattern: "match_me",
+          ignoreCase: false,
+          fixed: false,
+          basic: false,
+          word: false,
+        },
+        0,
+      ),
+    ).toEqual([]);
+    // Overlong lines (> 1000 chars) are skipped while normal lines match.
+    expect(
+      matchingLines(file, {
+        pattern: "match_me",
+        ignoreCase: false,
+        fixed: false,
+        basic: false,
+        word: false,
+      }),
+    ).toEqual([3]);
+  });
+});

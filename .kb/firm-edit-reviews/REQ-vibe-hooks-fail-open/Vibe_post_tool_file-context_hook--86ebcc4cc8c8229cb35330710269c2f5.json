@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/hooks/kibi-file-context.mjs",
   "symbol": "Vibe post_tool file-context hook",
   "verdict": "keeps",
-  "note": "The read path resolves the workspace from the payload cwd, runs only in a Kibi workspace through guardNote, and stays inside the outer try, so any error exits 0 with no output.",
+  "note": "Preserves payload cwd workspace resolution and fail-open exit 0 outside Kibi workspaces or on errors while hardening temp state permissions and frontmatter id lookup.",
   "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
-  "codeHash": "sha256:fcdbd7eead5569999f337aeace2caac14eefa5c0d44551a06ed32034ed454067",
+  "codeHash": "sha256:a30513942f2de15bc35eac07e70b85ca3ed805d99b6da3c85f11808a1f7c678d",
   "startLine": 1,
-  "endLine": 68,
-  "recordedAt": "2026-11-25T14:41:33.676Z"
+  "endLine": 71,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
 }

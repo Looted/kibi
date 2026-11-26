@@ -33,21 +33,33 @@ describe("kibi-antigravity kb-tools edge cases", () => {
       argumentsKey: "arguments",
       argumentsAsJsonString: false,
     });
+    // call_mcp_tool without ServerName is ambiguous and must not be stamped.
     expect(
       unwrapKibiMcpCall("call_mcp_tool", {
+        ToolName: "kb_query",
+        Arguments: "{",
+      }),
+    ).toBeUndefined();
+    expect(
+      unwrapKibiMcpCall("call_mcp_tool", {
+        ServerName: "kibi",
         ToolName: "kb_query",
         Arguments: "{",
       })?.payload,
     ).toEqual({});
     expect(
       unwrapKibiMcpCall("call_mcp_tool", {
+        ServerName: "kibi",
         ToolName: "kb_query",
         Arguments: "[]",
       })?.payload,
     ).toEqual({});
     expect(
-      unwrapKibiMcpCall("call_mcp_tool", { ToolName: "kb_query", Arguments: 3 })
-        ?.argumentsAsJsonString,
+      unwrapKibiMcpCall("call_mcp_tool", {
+        ServerName: "kibi",
+        ToolName: "kb_query",
+        Arguments: 3,
+      })?.argumentsAsJsonString,
     ).toBe(false);
     expect(
       unwrapKibiMcpCall("call_mcp_tool", { ToolName: 7, ServerName: "kibi" }),
@@ -58,7 +70,21 @@ describe("kibi-antigravity kb-tools edge cases", () => {
         { ToolName: "kb_query", Arguments: { id: "x" } },
         "/repo",
       ),
+    ).toBeUndefined();
+    expect(
+      workspaceOverwrite(
+        "call_mcp_tool",
+        { ServerName: "kibi", ToolName: "kb_query", Arguments: { id: "x" } },
+        "/repo",
+      ),
     ).toEqual({ Arguments: { id: "x", workspaceRoot: "/repo" } });
+    // Direct tools from other servers or bare kb_* must not be stamped.
+    expect(
+      workspaceOverwrite("mcp__docs__kb_search", { query: "x" }, "/repo"),
+    ).toBeUndefined();
+    expect(
+      workspaceOverwrite("kb_search", { query: "x" }, "/repo"),
+    ).toBeUndefined();
     expect(workspaceOverwrite("kibi_kb_query", {}, undefined)).toBeUndefined();
   });
 

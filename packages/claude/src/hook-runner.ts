@@ -34,6 +34,7 @@ import {
   guardedChangeConfirmation,
   guardedChangeContext,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import {
   globFilter,
@@ -705,6 +706,7 @@ function bashPreToolUse(
     return context("PreToolUse", text);
   };
   const cwd = input.cwd ?? workspace.root;
+  const guarded = guardedChangeOfShellCommand(workspace.root, command, cwd);
   const edited = new Set(commandEditPaths(command, cwd));
   const firm = [...edited]
     .map((absolute) => {
@@ -732,6 +734,7 @@ function bashPreToolUse(
     events,
     emit,
   );
+  if (guarded) return guardedChangeAsk(guarded, trace);
   return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;
 }
 
@@ -748,8 +751,11 @@ function bashContext(
   let namesKb = false;
   const cwd = input.cwd ?? workspace.root;
   const reads = commandReadViews(command, cwd);
-  for (const { absolute, directory } of reads) {
-    if (directory) continue;
+  const inspected = new Set<string>([
+    ...edited,
+    ...reads.filter((r) => !r.directory).map((r) => r.absolute),
+  ]);
+  for (const absolute of inspected) {
     const target = toWorkspacePath(workspace.root, absolute, input.cwd);
     if (!target) continue;
     const kind = classifyPath(target.relative);

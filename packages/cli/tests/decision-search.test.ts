@@ -9,6 +9,7 @@ import {
   DECISION_CARD_LIMIT,
   MEANING_LIST_LIMIT,
   MEANING_WEIGHT,
+  MIN_MEANING_SCORE,
   WEAK_COVERAGE,
   creditedScore,
   searchDecisions,
@@ -302,5 +303,26 @@ describe("decision search", () => {
     } finally {
       rmSync(empty, { recursive: true, force: true });
     }
+  });
+
+  test("filters low-similarity meaning noise below MIN_MEANING_SCORE and flags close governing candidates as ambiguous", async () => {
+    const noise = meaningOf({
+      "REQ-filler-1": MIN_MEANING_SCORE - 0.05,
+      "REQ-filler-2": 0.08,
+    });
+    const abstained = await searchDecisions(workspace, {
+      query: "the of and a",
+      meaning: noise.rank,
+    });
+    expect(abstained.weak).toBe(true);
+    expect(abstained.cards).toEqual([]);
+    expect(abstained.meaning).toEqual([]);
+
+    const close = await searchDecisions(workspace, {
+      query: "unrelated filler rule",
+    });
+    expect(close.weak).toBe(false);
+    expect(close.ambiguous).toBe(true);
+    expect(close.supersededBy["REQ-old-export"]).toBe("REQ-export-pdf");
   });
 });

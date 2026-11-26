@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   type ShellRead,
+  shellToolCommand,
   shellToolEditPaths,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
@@ -52,6 +53,7 @@ import {
 import {
   guardedChangeNotice,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import {
@@ -488,6 +490,21 @@ export function guardedNotice(
   input: ReturnType<typeof parseHookInput>,
   trace: HookTrace,
 ): string | undefined {
+  const shellCommand = shellToolCommand(input.toolName, input.toolInput);
+  if (shellCommand !== undefined) {
+    const change = guardedChangeOfShellCommand(
+      workspaceRoot,
+      shellCommand,
+      input.cwd ?? workspaceRoot,
+    );
+    if (change !== undefined) {
+      trace.action =
+        change.kind === "level"
+          ? "level_change_notice"
+          : "evidence_lowering_notice";
+      return guardedChangeNotice(change);
+    }
+  }
   const targets: { relativePath?: string }[] = isKibiMcpToolName(input.toolName)
     ? [{}]
     : isEditLikeTool(input.toolName)

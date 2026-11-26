@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-agent-core-shared-hook-inputs",
+  "sourceFile": "packages/agent-core/src/kb-mcp-tools.ts",
+  "symbol": "canonicalKbToolName",
+  "verdict": "keeps",
+  "note": "Preserves shared hook input tool-name normalization across hosts while extending support to mcp_<server>.<tool> prefixes.",
+  "statementHash": "sha256:d5ceb4a4ff3c0df848a33ffba649c15eb1f41f2addad2b90871850daa12d414c",
+  "codeHash": "sha256:90b4bb40b09ea814b79333f01ef6703ee22934d4476260aada0424b883b71ca1",
+  "startLine": 71,
+  "endLine": 84,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/migrate.ts",
   "symbol": "migrateCommand",
   "verdict": "keeps",
-  "note": "The change adds the schema 20 step that only prints the level note and writes nothing; the schema 13 gitignore and index handling for symbol-coordinates.yaml is untouched.",
+  "note": "Preserves locally derived symbol coordinates while safely skipping symlinks and catching read errors when refreshing Kibi-managed instruction blocks during migrate.",
   "statementHash": "sha256:201c86e5ee4e66d300d6ecf7402f47dd6a2cf6eda6a2e9b0c36ce755586f792c",
-  "codeHash": "sha256:ec51a8a74325c3c25f3049364ac63a9f62c47336c40c1c6b4d0a8449cc3c71ef",
-  "startLine": 881,
-  "endLine": 1622,
-  "recordedAt": "2026-11-25T10:42:18.328Z"
+  "codeHash": "sha256:7a13a2ccc983dd36b22bf8e77cc08ad5af428ebdaf67e3c2ff378ea93fcdc2bd",
+  "startLine": 976,
+  "endLine": 1721,
+  "recordedAt": "2026-11-26T19:03:15.131Z"
 }

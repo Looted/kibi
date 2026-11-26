@@ -46,9 +46,13 @@ const catalog = JSON.parse(
 const sbom = JSON.parse(
   await readFile(join(packageRoot, "SBOM.spdx.json"), "utf8"),
 );
+const basePackageVersion = packageJson.version.replace(/-dev\..*$/, "");
+const matchesPackageVersion = (value) =>
+  value === packageJson.version ||
+  (packageJson.version.includes("-dev.") && value === basePackageVersion);
 if (
   catalog.plugin !== packageJson.name ||
-  catalog.pluginVersion !== packageJson.version
+  !matchesPackageVersion(catalog.pluginVersion)
 ) {
   throw new Error(
     "catalog.json plugin identity/version must match package.json",
@@ -56,9 +60,14 @@ if (
 }
 if (
   sbom.packages[0]?.name !== packageJson.name ||
-  sbom.packages[0]?.versionInfo !== packageJson.version ||
-  sbom.packages[0]?.externalRefs?.[0]?.referenceLocator !==
-    `pkg:npm/${packageJson.name}@${packageJson.version}`
+  !matchesPackageVersion(sbom.packages[0]?.versionInfo) ||
+  (sbom.packages[0]?.externalRefs?.[0]?.referenceLocator !==
+    `pkg:npm/${packageJson.name}@${packageJson.version}` &&
+    !(
+      packageJson.version.includes("-dev.") &&
+      sbom.packages[0]?.externalRefs?.[0]?.referenceLocator ===
+        `pkg:npm/${packageJson.name}@${basePackageVersion}`
+    ))
 ) {
   throw new Error("SBOM plugin identity/version must match package.json");
 }

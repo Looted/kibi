@@ -65,6 +65,10 @@ export type OwnerFindingSymbol = Readonly<{
   /** The extractor's role: anything but behavioral is a type-like shape. */
   role: string;
   callable?: boolean;
+  /** Present when the extractor matched an existing manifest record. */
+  relationships?: readonly unknown[];
+  /** Present on extracted symbols; absent on synthetic test inputs. */
+  reqLinks?: readonly string[];
 }>;
 
 const key = (file: string, name: string) => `${file}\0${name}`;
@@ -212,7 +216,12 @@ export function collectOwnerFindings(input: {
       manifestMissing.get(id) ??
       symbol?.location.startLine ??
       0;
-    const state = manifestMissing.has(id) ? "new" : "unlinked";
+    const unrecorded =
+      symbol !== undefined &&
+      symbol.reqLinks !== undefined &&
+      symbol.relationships === undefined &&
+      symbol.reqLinks.length === 0;
+    const state = manifestMissing.has(id) || unrecorded ? "new" : "unlinked";
     const causes = [
       ...(manifestMissing.has(id) ? ["symbols_manifest_stale"] : []),
       ...(evidenceMissing.has(id) ? ["kibi_impact_evidence_missing"] : []),

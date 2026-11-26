@@ -50,6 +50,31 @@ export const DECISION_CARD_LIMIT = 5;
 /** Decisions shown as related by meaning beside the cards, at most. */
 export const MEANING_LIST_LIMIT = 7;
 /**
+ * Minimum similarity a meaning hit needs to appear in the related-by-meaning
+ * list or produce meaning-only cards. Keeps stop-word and punctuation queries
+ * from filling the list with unrelated decisions.
+ */
+export const MIN_MEANING_SCORE = 0.22;
+/**
+ * Minimum coverage gap between the top two governing requirements for the
+ * top one to be named without treating the list as close candidates.
+ */
+const CLEAR_COVERAGE_MARGIN = 0.15;
+/**
+ * When two governing requirements have similar coverage, the second must stay
+ * below this share of the first's score for the first to count as a clear win.
+ */
+const CLOSE_SCORE_RATIO = 0.85;
+const NON_CURRENT_STATUS = new Set([
+  "superseded",
+  "deprecated",
+  "rejected",
+  "retired",
+  "obsolete",
+  "archived",
+  "closed",
+]);
+/**
  * A card that covers less than this share of the question's weight is not
  * named as governing it, and an answer none of whose cards reaches it is
  * weak: the cards stay as the nearest decisions, but no requirement is said
@@ -135,6 +160,12 @@ export type DecisionSearchResult = Readonly<{
   seeds: readonly AnswerSeed[];
   /** No card covers enough of the question to govern it. */
   weak: boolean;
+  /** Top governing requirements are close and should be confirmed as candidates. */
+  ambiguous: boolean;
+  /** Corpus supersession map (superseded id -> superseding id). */
+  supersededBy: Readonly<Record<string, string>>;
+  /** Corpus source path per entity id (for stale-store reporting). */
+  sources: Readonly<Record<string, string>>;
   /** Decisions in the corpus. */
   decisionCount: number;
 }>;
@@ -242,10 +273,14 @@ export async function searchDecisions(
   const meaningScores = scores
     ? credited.map((ids) => creditedScore(ids.map((id) => scores.get(id) ?? 0)))
     : undefined;
-  // The ranking is fused with each decision's own similarity; the credit
-  // from linked entities only orders the meaning list beside the cards.
+  // The ranking is fused with each decision's own similarity; scores below
+  // MIN_MEANING_SCORE are dropped so unrelated queries never manufacture
+  // meaning-only cards.
   const vectorScores = scores
-    ? index.cards.map((card) => scores.get(card.id) ?? 0)
+    ? index.cards.map((card) => {
+        const raw = scores.get(card.id) ?? 0;
+        return raw >= MIN_MEANING_SCORE ? raw : 0;
+      })
     : undefined;
   const retrieval = retrieve(index, {
     text: input.query,
@@ -264,7 +299,7 @@ export async function searchDecisions(
         .map((card, at) => ({ card, score: meaningScores[at] ?? 0 }))
         .filter(
           ({ card, score }) =>
-            score > 0 &&
+            score >= MIN_MEANING_SCORE &&
             types.has(card.type) &&
             card.scope !== "other" &&
             card.supersededBy === undefined &&
@@ -279,10 +314,27 @@ export async function searchDecisions(
         }))
     : [];
   const byId = new Map(index.cards.map((card) => [card.id, card]));
+  const supersededBy: Record<string, string> = {};
+  for (const card of index.cards) {
+    if (card.supersededBy !== undefined)
+      supersededBy[card.id] = card.supersededBy;
+  }
+  const sources: Record<string, string> = {};
+  for (const entity of corpus.entities) {
+    if (typeof entity.source === "string" && entity.source !== "")
+      sources[entity.id] = entity.source;
+  }
   const seeds: AnswerSeed[] = [];
+  const governingCards: DecisionCard[] = [];
   retrieval.cards.forEach((card, rank) => {
     const score = 1 / (rank + 1);
-    if (card.coverage >= WEAK_COVERAGE)
+    if (card.coverage >= WEAK_COVERAGE) {
+      if (
+        card.type === "req" &&
+        !NON_CURRENT_STATUS.has(card.status) &&
+        supersededBy[card.id] === undefined
+      )
+        governingCards.push(card);
       seeds.push({
         id: card.id,
         type: card.type,
@@ -291,6 +343,7 @@ export async function searchDecisions(
         score,
         reasons: card.evidence,
       });
+    }
     for (const id of card.folded) {
       const folded = byId.get(id);
       if (folded && decisionCoverage(index, input.query, id) >= WEAK_COVERAGE)
@@ -305,6 +358,13 @@ export async function searchDecisions(
         });
     }
   });
+  const [topGov, secondGov] = governingCards;
+  const ambiguous =
+    topGov !== undefined &&
+    secondGov !== undefined &&
+    topGov.coverage - secondGov.coverage < CLEAR_COVERAGE_MARGIN &&
+    topGov.score > 0 &&
+    secondGov.score / topGov.score >= CLOSE_SCORE_RATIO;
   return {
     cards,
     retrieval,
@@ -312,6 +372,9 @@ export async function searchDecisions(
     fused: vectorScores !== undefined,
     seeds: offset === 0 ? seeds : [],
     weak: seeds.length === 0,
+    ambiguous,
+    supersededBy,
+    sources,
     decisionCount: index.cards.length,
   };
 }

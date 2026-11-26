@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
   "symbol": "spawnKibiMcp",
   "verdict": "keeps",
-  "note": "The launcher still serves the full tool list inside a Kibi workspace, a silent zero-tool server outside, and kibi.mjs still exits 3 before spawning; changes are the WSL planning error, the version in serverInfo and the debug-log name (launcher-contract.test.mjs, runtime.test.mjs).",
+  "note": "Preserves project-local kibi-mcp spawning while adding stdio option forwarding and JSDoc annotations for deferred stdio proxying.",
   "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
-  "codeHash": "sha256:b6531f20a05c1e30e3c39ac9e0e3a2b2078da61362a434842b830c66a6258ade",
-  "startLine": 487,
-  "endLine": 512,
-  "recordedAt": "2026-11-24T10:07:01.482Z"
+  "codeHash": "sha256:75fe2ad1d745a778b4304328592a02435bf0d83d72f3cb94b73fbc83d618f813",
+  "startLine": 512,
+  "endLine": 541,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
 }
