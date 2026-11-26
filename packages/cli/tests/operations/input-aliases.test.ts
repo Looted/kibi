@@ -77,6 +77,26 @@ describe("kb_search query aliases", () => {
     );
   });
 
+  test("another name kb_search does not declare is refused", () => {
+    const result = prepareOperationInput({ search: "label limit" }, contract);
+    expect(result.valid ? [] : result.errors).toEqual([
+      "/ must have required property 'query': query",
+      "/ must NOT have additional properties: search",
+    ]);
+  });
+
+  test("a question is refused for a query that declares no other name", () => {
+    const { [INPUT_ALIASES]: _aliases, ...query } = contract.properties.query;
+    const result = prepareOperationInput(
+      { question: "label limit" },
+      { ...contract, properties: { ...contract.properties, query } },
+    );
+    expect(result.valid ? [] : result.errors).toEqual([
+      "/ must have required property 'query': query",
+      "/ must NOT have additional properties: question",
+    ]);
+  });
+
   test("the advertised schema names only query", () => {
     const advertised = advertisedInputSchema(contract) as {
       properties: Record<string, Record<string, unknown>>;
