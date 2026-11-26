@@ -107,9 +107,11 @@
     "packages/codex": {
       "name": "kibi-codex",
       "version": "2.15.0",
+      "dependencies": {
+        "kibi-agent-core": "^0.16.0",
+      },
       "devDependencies": {
         "@types/node": "latest",
-        "kibi-agent-core": "^0.16.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {

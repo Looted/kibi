@@ -1044,5 +1044,34 @@ describe("init-helpers", () => {
       expect(snippetRes.status).toBe(0);
       expect(readFileSync(logFile, "utf8")).toContain("nvm-strict|");
     });
+
+    test("exits promptly on Windows-style C:/ PWD when kibi CLI cannot be located", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      const fakeBin = path.join(tmpDir, "win-pwd-bin");
+      writeFakeNode(fakeBin, "win-pwd", logFile);
+
+      // Simulate Git for Windows setting PWD to a drive-letter path (C:/...)
+      // where ${kibi_dir%/*} stops changing at "C:".
+      const preCommit = readFileSync(path.join(hooksDir, "pre-commit"), "utf8");
+      const probe = path.join(tmpDir, "win-pwd-probe.sh");
+      writeFileSync(
+        probe,
+        preCommit.replace('kibi_dir="$PWD"', 'kibi_dir="C:/Users/demo/repo"'),
+        { mode: 0o755 },
+      );
+
+      const res = spawnSync("/bin/sh", [probe], {
+        cwd: repoDir,
+        env: {
+          PATH: `${fakeBin}:${STRIPPED_PATH}`,
+          HOME: fakeHome,
+        },
+        encoding: "utf8",
+        timeout: 5_000,
+      });
+      expect(res.signal).toBeNull();
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain("cannot locate the kibi CLI");
+    });
   });
 });

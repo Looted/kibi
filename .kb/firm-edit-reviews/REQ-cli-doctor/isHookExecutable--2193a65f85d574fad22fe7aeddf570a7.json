@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-doctor",
+  "sourceFile": "packages/cli/src/commands/doctor.ts",
+  "symbol": "isHookExecutable",
+  "verdict": "keeps",
+  "note": "Fixes false-positive hook permission failures on Windows NTFS where Node reports mode 0o666 for extensionless hook scripts; POSIX 0o111 check and remediation guidance are preserved.",
+  "statementHash": "sha256:a5e375ec89b77691766f2ef2d9bc9c1ec6cbfa2fbd31d4195e74505ebf6a2d41",
+  "codeHash": "sha256:8cbf5bc7a47fe52911dea93b60c41865d1bd4df24a947ad2fbd6a41c3dc1aeb1",
+  "startLine": 1488,
+  "endLine": 1493,
+  "recordedAt": "2026-11-26T23:51:05.335Z"
+}
