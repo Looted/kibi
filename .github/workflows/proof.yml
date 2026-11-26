@@ -728,7 +728,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # A develop push that reused a train's proof publishes that train's
+      # A develop push that reused a train's proof keeps that train's
       # report: it describes this exact snapshot.
       - name: Download the reused train's proof report
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
@@ -744,39 +744,18 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
         run: cp -R "$RUNNER_TEMP/kibi-train-proof/kibi-report" kibi-report
 
-      - name: Build documentation site at the Pages root
+      # Pages deploys from master (pages.yml), so the public site matches the
+      # release. Master holds a tree this develop run proved, so keep the
+      # report of that tree for the master deploy to publish under
+      # /kibi-report/, whether this run proved it or reused a train's proof.
+      - name: Upload the proof report for the master Pages deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        env:
-          KIBI_UMAMI_WEBSITE_ID: 197fb489-cdd4-4d95-ae8a-119dc6422a45
-        run: bun run docs:site -- --out pages
-
-      - name: Namespace the proof report under /kibi-report/
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        run: |
-          mkdir -p pages/kibi-report
-          cp -R kibi-report/. pages/kibi-report/
-
-      - name: Upload Kibi Pages artifact
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          path: pages
-
-  deploy:
-    name: Deploy proof report and documentation
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
-    needs: proof
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy proof report and documentation to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+          name: kibi-pages-report
+          path: kibi-report
+          if-no-files-found: error
+          retention-days: 90
 
   # The one CI check a ruleset requires. It needs every other job, runs even
   # when one fails or is skipped, and passes only when all of them succeeded,

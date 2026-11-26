@@ -1,0 +1,110 @@
+name: Publish documentation and proof report
+
+# The public site follows what is released: it deploys from master, never from
+# develop. Master holds the tree of the develop commit its release pull request
+# merged, so the site publishes the requirement-health report that develop's
+# proof run wrote for that same tree.
+
+concurrency:
+  group: kibi-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  KIBI_TELEMETRY: "0"
+
+jobs:
+  build:
+    name: Build documentation site and proof report
+    if: ${{ github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          # Depth 2 keeps both parents of a release merge commit, one of
+          # which is the develop commit with the same tree.
+          fetch-depth: 2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.4"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Only a commit whose tree is master's own describes what master holds,
+      # so a merge that changed the tree publishes no report instead of a
+      # report of different code.
+      - name: Find develop's proof run of this tree
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          run_id=""
+          for sha in $(git rev-list --parents -n 1 HEAD); do
+            [ "$(git rev-parse "$sha^{tree}")" = "$tree" ] || continue
+            run_id="$(gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/proof.yml/runs" \
+              -f head_sha="$sha" -f event=push -f branch=develop -f status=success -f per_page=1 \
+              --jq '.workflow_runs[0].id // empty')"
+            if [ -n "$run_id" ]; then
+              echo "Publishing the proof report of develop $sha (run $run_id)."
+              break
+            fi
+          done
+          if [ -z "$run_id" ]; then
+            echo "::error::No successful develop proof run holds master's tree $tree; the site was not deployed."
+            exit 1
+          fi
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download that run's proof report
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kibi-pages-report
+          run-id: ${{ steps.source.outputs.run-id }}
+          github-token: ${{ github.token }}
+          path: kibi-report
+
+      - name: Build documentation site at the Pages root
+        env:
+          KIBI_UMAMI_WEBSITE_ID: 197fb489-cdd4-4d95-ae8a-119dc6422a45
+        # Source links point at master, the branch the site was built from.
+        run: bun run docs:site -- --out pages --branch master
+
+      - name: Namespace the proof report under /kibi-report/
+        run: |
+          mkdir -p pages/kibi-report
+          cp -R kibi-report/. pages/kibi-report/
+
+      - name: Upload Kibi Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: pages
+
+  deploy:
+    name: Deploy proof report and documentation
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy proof report and documentation to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
