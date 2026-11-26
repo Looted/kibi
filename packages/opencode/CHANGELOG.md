@@ -1,5 +1,95 @@
 # kibi-opencode
 
+## 3.5.0
+
+### Minor Changes
+
+- da54a73: The person now decides two changes the agent used to be able to make alone: changing the project's Kibi level, and lowering a requirement's `required_evidence`.
+
+  - **Agent hooks.** An edit of the setting that changes the Kibi level, and an edit or `kb_upsert` call that lowers a requirement's `required_evidence`, are put to the person as far as each host allows:
+    - Claude Code and Antigravity show a permission prompt that names the change.
+    - Codex, Cursor and ZCode tell the agent to ask the person first, and grant no permission for the call.
+    - OpenCode stops the change once per session with that notice, so the agent asks.
+    - Vibe, which has no pre-tool hook, tells the agent after the edit or `kb_upsert` to ask the person and undo the change unless they agree. Its post-tool hook now also matches `kb_upsert`.
+  - **Signoff.** `kibi signoff` shows the project's Kibi level in the summary and the questions view. The summary lists a change of the level against the base commit, and each changed requirement whose evidence floor is now lower, under "Decisions only you make". The JSON view carries them as `level` and `decisions`.
+
+- 1743450: Reading or searching linked code now shows the requirements of the code in view in every host. When the agent reads a line range, runs a search, or reads files through the shell (`cat`, `sed -n`, `head`, `tail`, `grep -n`, `rg`), the hook adds one compact row per requirement of the symbols in view (id, firmness, title and the symbol that implements it), the focused symbol's requirements first. A shell command that reads several linked files gets rows from each of them. A search gets rows only when its matches fall inside symbols that implement at most 6 requirements, and shows the 3 with the most matching lines; a file-name search (Glob) gets none. A whole-file read of a file with more than 5 requirements names their ids on one line.
+
+  Rows stay small: at most 3 per event (5 for a whole file), at most 10 rows and 2,300 characters per session, and each requirement once per session, counting what Kibi tool results already showed; a firm requirement of the focused symbol is shown once. The one-time search tip is skipped when the first search already shows rows. Codex, ZCode, OpenCode and Vibe, which had no read context before, now add the rows too (ZCode's PreToolUse matcher adds `Read`, `Grep` and `Bash`; Vibe's post_tool hook adds `grep` and `bash`), and Cursor's read snippet after a Read is replaced by the same rows.
+
+  Technical summary: new `kibi-agent-core/read-context` (`readContext`, `hookReadRows`, `resolveReadViews`, `searchToolRead`, `globFilter`) and shell read parsing in `kibi-agent-core/bash-command` (`commandReadViews`, `shellToolReadViews`, `shellToolCommand`); each host hook builds its rows with them.
+
+### Patch Changes
+
+- 71f0537: Agents now get Kibi's change steps where they actually look, and stop asking you about things that are not decisions. The session brief every Kibi surface opens with says when to take each step: record a rule you state in the same turn, without asking, and run the linked tests and `kb_check` with `changed: true` before the final message. `kibi init` now builds the `AGENTS.md` section from those same lines, so agents without a Kibi plugin read the same steps. A rule you state is approved by your own words: `kb_record` no longer asks you to confirm its statement, and the stop reminder skips the signoff view when that is all a session recorded. Run `kibi init` again to refresh the `AGENTS.md` section; `kibi doctor` reports it as outdated until then.
+
+  Technical summary:
+
+  - `kibi-agent-core`: `SESSION_BRIEF_LINES` reworded (record in the same turn, no permission needed; tests and `kb_check` with `changed: true` before the final message); the no-Git variant replaces that step. The firm-edit notices and the signoff stop reminder say a keeps receipt needs no approval from the person and that a rule recorded in their own words needs no signoff view.
+  - `kibi-cli`: `agentInstructionsFor` builds the managed `AGENTS.md` section from `sessionBriefFor`, adds whom to ask, firm-code edits, committing and the skill line; `captureFollowUp` no longer lists a statement `signoff` in `approvalsNeeded` (`CaptureApproval.kind` drops `signoff`); `kb_review_firm_edit`'s description says a receipt needs no approval.
+  - Skills: `kibi-usage` 3.2.0 (load-trigger description, the ask-only-for-decisions rule, call shapes, `nextActions` sent as returned, tests and changed check before the final message, levels, commit only when committing, new `resources/proof-first.md`); `kibi-decisions` 1.16.0 ("What needs the person, and what does not", level-aware recording, shorter validation list, inline `kb_review_firm_edit` shape); `recording.md` "After kb_record"; `workflows.md` recipes record through `kb_record` and the closeout contract becomes "Finishing a change"; `hook-snippets.md` documents the changed check line and `symbol_semantic_review_needed`.
+  - KB: `REQ-kb-upsert-approvals-needed` no longer lists the statement signoff; new `REQ-init-agent-instructions-carry-brief` and `REQ-kibi-skills-ask-only-for-decisions` with scenarios and tests.
+
+- 708d968: Hook notes on every host waste fewer turns on rules that are already recorded.
+
+  - A prompt sentence that only restates a current requirement (every topic word, number and negation already in its title or one sentence of its statement) no longer triggers the rule note or the stop-time capture reminder. A new number, term or negation still reads as a rule.
+  - The capture reminder and the rule template say that `kb_record` returns every remaining step and approval at once, and that the approvals go to the person in one question.
+  - A busy file's snippet names the requirements it cannot show in full ("Also linked (N more): ...") before it drops them on the tightest budget.
+
+- 8cb077c: Kibi now works in a directory that is not inside a Git repository. Before, `kibi init` there failed with a long diagnostic that led with `KIBI_BRANCH`, and following it left every later command failing again. Now `kibi init` sets up the workspace, and search, query, record, upsert, check and sync work on one knowledge store for the directory, reading every `.kb` file on disk as input.
+
+  Kibi says what is missing instead of failing: `kibi init`, `kibi doctor`, the agent hosts' session start, `kibi status`, `kibi check` and the first MCP result of a session carry a `no_git_repository` advisory that names what is off (the commit gate, Git hooks, impact review and per-branch knowledge) and recommends `git init`, then `kibi init`. The agent instructions and the session brief say to finish each change with `kibi check`. The features that need Git (`kibi check --staged`, `kibi check-generated --staged`, `kibi check-diff`, `kibi hooks install`, `kibi branch ensure` / `migrate`, `kibi gc`, impact review, `kibi signoff`) refuse with the new code `GIT_REQUIRED` and name the Git-free alternative.
+
+  After `git init`, the first Kibi call carries the knowledge over to the new branch (pending-source receipts bind the untracked `.kb` files) and keeps the old store under `.kb/recovery/no-git-adoption/`. A `.git` entry that Git cannot read is still a failure, now coded `GIT_REPOSITORY_UNREADABLE`, so knowledge is never split from the branch it belongs to. The error reference has a "Working without Git" entry, and usage telemetry records whether a workspace has version control (`vcs`, `vcs_reason`), never a path.
+
+  Technical summary: `kibi-agent-core` adds `version-control` (`findRepositoryMarker`, `noGitAdvisory`, `noGitAdoptionNotice`, `NO_GIT_UNAVAILABLE_FEATURES`) and `checkoutSessionNote` / `workspaceTelemetryVcs` in `checkout-hooks`, which every host's session start now uses. The branch resolver attaches the reserved store `kibi-internal/no-git` (refused as a `KIBI_BRANCH` value) when the workspace probe finds no repository. `kibi-cli` adds `vcs/` (workspace probe, source inventory, Git boundary, adoption, advisory) and the `GitRequired` operation error, re-exported through `kibi-runtime`. `NOT_A_GIT_REPO` is replaced by `GIT_REPOSITORY_UNREADABLE`.
+
+- b0168ac: The `kibi://docs` constraints resource no longer says the server sends no telemetry and makes no network requests. It now says what does leave the machine: anonymous usage telemetry (operation names, outcomes and durations, never code, paths, queries or KB content), which `kibi telemetry disable`, `KIBI_TELEMETRY=0` or `DO_NOT_TRACK=1` turns off and which is off in CI and under test runners; git fetches of pinned KB dependencies; and the opt-in `kb_sparql_remote` tool. The `kibi_overview` prompt and the overview resource now list the whole tool set, including `kb_record`, `kb_skills`, `kb_review_firm_edit`, `kb_model` and the planning tools.
+
+  The kibi-opencode README describes the decision hooks the plugin runs on OpenCode v1: stated-rule capture with a `kb_record` template, a one-time stop before an edit of code that implements a firm requirement, and a capture or signoff request when a session goes idle.
+
+- e477332: Kibi's harness plugins now display the Kibi icon consistently across Claude Code, Cursor, Codex, and light- or dark-theme MCP clients. The Claude Code npm package now includes its bundled slash commands (`commands/kibi-signoff.md`), the Codex plugin adds `interface` metadata and starter prompts in `.codex-plugin/plugin.json`, and the VS Code extension now registers the Kibi MCP server through VS Code's `mcpServerDefinitionProviders` API instead of an unsupported static `contributes.mcp` block.
+
+  Technical summary:
+
+  - `kibi-claude`: bundled `assets/logo.png`, added `icon` and `displayName` to `.claude-plugin/plugin.json` (removing the unsupported `icon` field from the `kibi-claude` entry in `.claude-plugin/marketplace.json`), and added `assets` and `commands` to `package.json` `files`.
+  - `kibi-codex`: kept `.codex-plugin/plugin.json` (so Codex continues loading `.mcp.json` and `hooks/hooks.json`), bundled `assets/logo.png` and `assets/composer-icon.svg`, and added `interface` presentation metadata (`displayName`, `shortDescription`, `defaultPrompt`, `brandColor`).
+  - `kibi-cursor`: bundled `assets/logo.svg`, declared `logo` in `.cursor-plugin/plugin.json`, included `assets` and `LICENSE` in package outputs, and synced `plugins/kibi-cursor`.
+  - `kibi-mcp`: removed `theme: "dark"` from `KIBI_ICONS` so MCP clients render the icon on both light and dark backgrounds.
+  - `kibi-vscode`: replaced the non-functional static `contributes.mcp.servers` block with `contributes.mcpServerDefinitionProviders` and `vscode.lm.registerMcpServerDefinitionProvider` (workspace-gated on `.kb/manifest.json`, passing `KIBI_MCP_ATTACH_ROOT`, resolving `kibi.mcp.serverPath` → project-local `node_modules/.bin/kibi-mcp` → PATH, and degrading gracefully on older VS Code hosts).
+  - `kibi-zcode`, `kibi-vibe`, `kibi-opencode`: added `LICENSE` to package payloads, standardized marketplace `homepage` URLs to `https://looted.github.io/kibi/`, removed the stray nested `packages/opencode/.changeset/` file, and added an icon drift test (`scripts/tests/plugin-icons-drift.test.ts`).
+
+- df6dbfd: Fixes across setup guard rails, `kb_search`, host integrations, coverage/modeling parity, and release gates ahead of 2026.11.6. Staged commit checks now read the Kibi level from the staged snapshot, shell hooks and non-interactive `kibi init --level` protect recorded Kibi levels and `required_evidence` floors consistently across all hosts, `kb_search` respects branch-store freshness, marks close governing matches as candidates, filters low-similarity meaning noise, and renders readable CLI tables, and `kibi-antigravity` / `kibi-vibe` hooks and MCP launchers work reliably in both workspace and user-global installs.
+
+  Technical summary:
+
+  - Setup & levels: `kibi check --staged` reads `kibi.level` from the captured staged/base Git trees and notes level changes; `kibi init --level` refuses to overwrite a different recorded level non-interactively without `--change-level` and warns instead of crashing on malformed `package.json`; `kibi check` prints unknown-level diagnostics in text and JSON, filters verification quality reviews (`coverage_depth_review`, `logical_coverage_review`) at level `remember`; `kibi doctor` reports the Kibi level and marks Git hooks not applicable outside Git; `kibi migrate` previews managed hook refreshes on schema upgrades and refreshes outdated Kibi-managed blocks in `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`; `kibi signoff` compares against merge-base on clean branches; `kibi-runtime` filters `kibi-provable-code` from `kb_skills list` at `remember`; `kibi-mcp` server instructions omit test-run prompts at `remember`; `evidence-floor` guidance asks the person instead of lowering floors; `result-budget` keeps a truncated prefix and `source` hint for oversized single fields; `kibi init` records fixed telemetry error categories on every refusal.
+  - Guard rails & hosts: `kibi-agent-core` parses requirement frontmatter with `yaml` (fail-safe on malformed YAML), resolves requirements by frontmatter `id`, handles Codex `apply_patch` multi-hunk edits, guards `kb_delete`/`kb_apply_plan` and shell `kibi init --level` / file writes, bounds regex execution in read-context matching, fixes shell redirection (`2>file`), destructive command detection, and `sed`/`head`/`tail`/`grep` read parsing, and recognizes `mcp_<server>.<tool>` tool names. `kibi-antigravity` returns `allow` (never spurious `ask` or `auto_approve`) as `PreToolUse` pass-through, hardens Windows `run-node.cmd` and `hooks.json` quoting, scopes `kb-tools.ts` `workspaceRoot` injection to Kibi MCP servers, uses `0700` uid-checked temp state dirs, and adds hook-bundle drift checks in CI/publish workflows. `kibi-vibe` supports deferred MCP `roots/list` + `workspaceRoot` attach for user-scope installs, guards `bash` edits and `mcp_kibi.kb_*` / `kb_record` calls, and secures temp launcher logs/state. `kibi-cursor` delivers held rule-capture notes on any next pre-tool call. `kibi-usage` skill (`3.2.1`) documents read/search hook rows across all host mirrors.
+  - Search: `kb_search` cross-checks decision corpus cards and seeds against the attached branch store (never naming un-ingested or corpus-superseded requirements as `Governing`, emitting stale metadata when corpus and store diverge), flags close top governing requirements as `ambiguous` with candidate wording (`REQ-kb-search-close-matches-candidates`), applies a `MIN_MEANING_SCORE` floor (`0.22`), restores `kb_query` title-listing `nextActions` on weak/abstained searches, fixes empty-KB notes, renders card lines and digest headers in CLI tables, places `[retired]`/`[superseded]`/`[closed]` beside card IDs while preserving prohibition clauses on truncation, excludes rationale/context sections from governing coverage, seeds folded decisions by parent card coverage, and rejects whitespace-only queries with `VALIDATION_FAILED`.
+  - Modeling, coverage, bootstrap & gates: `kb_coverage` preserves caller `limit` when all rows fit within the result budget so CLI and MCP return identical `repairPlanId` and `legacyMigrationPlan.planId`; `kb_model` preserves existing requirement `title`, `status`, `text_ref` and `tags` when targeting an existing `requirementId` (fixing `kb_record(saidBy: "user")` -> `kb_model` -> `kb_upsert` on firm requirements); bootstrap skips `<!-- BEGIN/END kibi-managed -->` blocks in `AGENTS.md`; `ci-proof-reuse.ts` and `proof.yml` resolve `kibi-requirement-proof` from `derived_from` on member-reused trains and fall back to full proof if the report artifact is missing; merge-train treats newline-containing check lists (including single-entry YAML block scalars) as one check per line; `owner-findings` marks unrecorded extracted declarations as `new`; Playwright narrowing regex-escapes bound spec paths; `plugin-search-hints` and `plugin-treesitter` asset verifiers accept `-dev.` stamped prerelease versions; release docs list all post-`version-packages` refresh steps.
+
+- Updated dependencies [71f0537]
+- Updated dependencies [6b4bb5d]
+- Updated dependencies [708d968]
+- Updated dependencies [1a01cfe]
+- Updated dependencies [8cb077c]
+- Updated dependencies [4f85076]
+- Updated dependencies [6cdc2ee]
+- Updated dependencies [da54a73]
+- Updated dependencies [c1fe951]
+- Updated dependencies [15c0170]
+- Updated dependencies [bf18c03]
+- Updated dependencies [1743450]
+- Updated dependencies [df6dbfd]
+- Updated dependencies [17bb194]
+- Updated dependencies [0851175]
+- Updated dependencies [79f5a84]
+- Updated dependencies [4cddea5]
+- Updated dependencies [a4019b7]
+- Updated dependencies [5892438]
+  - kibi-agent-core@0.16.0
+  - kibi-runtime@2.34.0
+
 ## 3.4.0
 
 ### Minor Changes
@@ -24,6 +114,7 @@
 ### Patch Changes
 
 - 7db492d: `kibi check --changed` and `kb_check` with `changed: true` give the pre-commit hook's verdict on every current change before anything is staged, and every finding now says what it stops. The check the hooks used to recommend after an edit looked only at the edit's impact: on a test project it returned no violations for a new function no requirement owned, and `kibi check --staged` then refused the commit of the same diff. The new mode refused it in 35 seconds with the real index untouched.
+
   - `kibi check --changed [paths...]` runs the `--staged` gate over a scratch copy of the index with the working tree added (only the named paths and `.kb` when paths are given). The real index is never written and the scratch file is removed.
   - `kb_check` `changed: true` (with optional `sourceFiles`) runs it in a child process and returns `commitAllowed` and the gate's findings.
   - Every finding carries `blocks`: `"commit"`, `"merge"` or `"none"`. The full check tags its violations `merge`; the staged and changed gates tag theirs `commit`; advice is `none`.
@@ -33,6 +124,7 @@
 - 9e09a88: A requirement written through the CLI (`kibi record`, or `kibi upsert` of a requirement) now raises the end-of-session signoff reminder on every host, as one written through `kb_record` or `kb_upsert` already did.
 - 0fef7b0: The pre-edit firm-requirement question no longer depends on `.kb/symbol-coordinates.yaml` being present and current. That file is a local cache, missing in a fresh clone and stale once a file changes after the last sync, and without it an edit of firm code got no question or notice on any host. A symbol whose coordinates are missing, run past the end of the file, or no longer name it near its first line now counts as touched by any edit of its file, as do file-level records, so the hooks ask (Claude Code) or tell the agent to ask (Codex, Cursor, ZCode, OpenCode).
 - d5b01c4: Host hook fixes:
+
   - Cursor stays quiet in a workspace that never adopted Kibi: no session-start advisory, no `.kb/` warning, no state written. A window opened on a subdirectory of a Kibi project now belongs to it.
   - Cursor counts in-place shell edits (`sed -i`, `>`, `tee`) as source edits, and the stated-rule note and capture template follow such an edit.
   - Shell edits run through `bash -c "..."` (string or argv form) are counted on every host.
@@ -43,6 +135,7 @@
   - The kibi-usage skill says how to read its resources (`resources/<name>`), and the managed AGENTS.md section points a stated rule at `kb_record`.
 
 - c180e2d: A rule someone states is now recorded with one small call: `kb_record` (CLI `kibi record --input -`) takes the rule, why it exists, who said it, their words and the code that implements it, and answers with whether a commit would pass. The agent no longer has to read the full `kb_upsert` schema and assemble a requirement payload by hand for a first write: on a test rule the call is 238 characters against a 1,608-character tool definition, where the same write through `kb_upsert` was a 436-character payload against a 10,511-character one.
+
   - `kb_record` inputs: `statement`, `why`, `saidBy` (`user`, `maintainer` or `agent`), optional `quote`, `code` (`[{file, symbol}]`), optional `test` and `dryRun`.
   - It builds exactly one `kb_upsert` payload (a new open requirement, `firm` with a human origin and the quote as `origin.ref` when a person stated it, `default` with an agent origin when the agent chose it; the code as `implementedBy`; a test as `verified_by` and `coveredBy`) and runs it through `kb_upsert` unchanged: the same schema, advisor, firmness, approval and write path. It never sets `origin.approved_by`.
   - It then runs `kb_check` with `changed: true` for the files the code names and returns that verdict (`commitAllowed`, each finding with `blocks`) and the remaining steps as `nextActions`. The result equals `kb_upsert` of the returned payload followed by that check.
@@ -134,6 +227,7 @@
 ### Minor Changes
 
 - 0087d57: Kibi no longer reads `// implements REQ-...` comments in source code as traceability links. The symbol manifest (`.kb/symbols.yaml`) is now the only record of which requirements a symbol implements, so a comment can no longer pass `kibi check --staged` on its own, and a stale comment can no longer hide that the manifest links a symbol to something else. `kibi migrate` lists the comments left in your repository so you can move each link that still holds into the manifest and delete the comment.
+
   - `kibi check --staged` takes a changed symbol's requirement links only from the manifest. Before, a leading `implements` comment replaced the manifest links of that symbol for the staged gate. The failure message no longer suggests writing a comment.
   - The ts-morph and tree-sitter extractors no longer collect comment text. `SourceSymbolAnalysis.directiveText` in `kibi-plugin-sdk` is deprecated and ignored by every host; extractors that still send it keep validating.
   - OpenCode's risk classifier counts a code file as traced when a manifest symbol of that file has an `implements` link, not when the file contains an `implements` comment. Cursor's post-edit guidance, the bundled skills, `AGENTS.md`-style guidance and the docs no longer recommend comments.
@@ -142,6 +236,7 @@
   ## Migration
 
   This is a hard change: a commit that touches a symbol whose only requirement link was a comment now fails `kibi check --staged` with "fewer than 1 requirement link(s)".
+
   1. Run `kibi migrate` (or `kibi migrate --format json`) and open the `review_inline_implements_comment` action.
   2. For each listed comment whose `manifestLinked` does not cover every id it names, and whose code still implements that requirement, add the link with `kb_upsert` (CLI: `kibi upsert --input -`): the symbol's `title`, `sourceFile` and `implements -> REQ-...`.
   3. Delete the comments. They have no effect any more.
@@ -260,12 +355,14 @@
 ### Patch Changes
 
 - 5e3541e: Two new bundled skills cover the moments where agents most often went wrong with Kibi.
+
   - `kibi-decisions` loads when a person states a rule ("must", "never", "from now on"), when a hook asks before an edit to code that implements a firm requirement, when the session ends without recording what changed, or when a request conflicts with a recorded rule. It shows how to read a requirement's firmness and origin, record a person's rule as firm with a reference to their words, supersede a rule with a "Why this changed" section, work through `kb_compile_intent` review candidates, and ask before overriding a firm rule.
   - `kibi-commit-review` loads when `kibi check --staged` or the pre-commit hook blocks a commit, or when preparing a commit or pull-request impact review. It explains the per-file `Detail:` lines, how to add the missing symbols and refresh coordinates, which Kibi files to stage, how to prepare an impact-review record with `kb_prepare_impact_review`, and how merge commits and migration renames are judged.
 
   `kibi-usage` now points to these skills instead of repeating their detail, and the OpenCode guidance routes rule and commit questions to them.
 
 - 180196c: The requirements signoff view now reads well on every host, not only in the hosts that draw Kibi's fenced block.
+
   - `kibi signoff` prints plain Markdown by default (`--format chat`): headings, quoted statements and lists that render in any chat window, and in messaging tools for agents whose replies go through one (cloud and project sessions). The path of the self-contained page `.kb/briefs/signoff/latest.html` goes to stderr, so an agent can attach or publish it next to the message. `--format md` keeps the fenced block for the OpenCode terminal card, and `KIBI_SIGNOFF_FORMAT` sets the default per host.
   - After a session writes a requirement, the Claude Code, Codex, Cursor and ZCode stop hooks ask once for the signoff view before the work is reported done, unless `kibi signoff` already ran since. A requirement the agent wrote is put to the person through the view, not retold in the agent's words.
   - `/kibi-signoff` is a new command in Claude Code, Cursor and ZCode.
@@ -346,6 +443,7 @@
 ### Patch Changes
 
 - cd4723e: Rules a person wrote or imported are no longer treated as an agent's own default choice when they carry no `firmness`. A requirement or ADR without `firmness` now reads as `firm` unless an agent wrote it, so an agent asks before replacing it, and bootstrap records the rules it imports from your documents as firm with a reference to the passage. The usage skill now treats any request that conflicts with a recorded rule as a question: the agent names the rule and asks, whatever the rule's firmness, and changes it only when the person says so. Run `kibi migrate --yes` to move a KB to schema 10; existing supersedes are acknowledged and no source file is rewritten.
+
   - `effectiveFirmness` takes the entity's origin: an absent value is `default` for `origin.kind: agent` and `firm` otherwise (human, import, migration or no origin). `kb_query` rows and `kb_search` answers show the derived value.
   - Hook snippets label a current firm decision `[firm: ask before changing]` (was `[firm]`) and no longer label retired decisions. The Claude Code and ZCode session-start context adds one sentence: a request that conflicts with a recorded requirement or ADR is a question, so the agent names the rule and asks before changing the code or the rule.
   - `decision-firm-superseded` applies to origin-derived firm targets; `decision-firm-unreferenced` still applies only to an explicit `firmness: firm`.
@@ -488,6 +586,7 @@
 ### Minor Changes
 
 - f8fff87: The telemetry acceptance and remediation reports now show whether agents look requirements up before they change requirement-linked code. A new `lookup_before_first_edit` metric gives, per host session, the share of sessions that ran `kb_search` or `kb_query` (through MCP or the CLI) before their first edit of a file whose symbols implement a requirement. Sessions that edited first appear in the report with the file and its exact `.kb/usage.log` line. The data comes from opt-in hook rows that every Kibi host plugin now writes when `KIBI_DIAGNOSTIC_MODE` is set; nothing is recorded otherwise.
+
   - `kibi usage-metrics` / `kb_check` telemetry acceptance: new metric `lookup_before_first_edit` (threshold `>=` policy `lookupBeforeFirstEditMinimum`, default 1) with evidence `unguidedEditPaths` and `lookupOperations`. It is `not_applicable` when no host hook recorded a requirement-linked edit, so logs without hook rows are judged as before. A failed metric adds the advisory diagnostic `lookup_before_first_edit_bypassed` (rank 35).
   - `kibi usage-remediation`: one event item per session whose first linked edit had no earlier lookup, pointing at that hook row.
   - `parseTelemetryUsageLog` still returns only Kibi operation rows; hook rows stay attached to the returned array (read them with `partitionTelemetryUsage`). Remediation `logLine` values now count hook rows and blank lines, so they match the file.
@@ -514,6 +613,7 @@
   Migration: KB schema 7 makes `strict-fact-shape` a blocking canonical check. Run `kibi migrate --yes`, then `kibi sync`. The migration rewrites legacy polarity-only property facts to the typed boolean encoding while preserving IDs, polarity, relationships, and document bodies. Other malformed strict facts require explicit correction; they are not treated as proof.
 
 - 15356de: Host hooks no longer ask for a `kb_check` after a `kb_upsert` dry run. A dry run only validates, so the Cursor, Codex, ZCode and OpenCode hooks now count it as validation rather than a KB write.
+
   - `extractKbMcpToolCall` reports `kb_upsert` with `dryRun: true` as `kb_validate_upsert`.
   - OpenCode's freshness evidence records a dry-run upsert as `kb_validate_upsert`, which carries no mutation evidence.
 
@@ -533,6 +633,7 @@
 ### Patch Changes
 
 - 25f11b1: The badge that `kibi init --github` adds to your README now links to the published explanation of the `% proven` metric at https://looted.github.io/kibi/ instead of the GitHub rendering of the Markdown source. The Kibi documentation site moved to the root of that domain, with the requirement-health report still under `/kibi-report/`. The Cursor and OpenCode package READMEs also link to the published guides, so the links work when you read them on npm.
+
   - cli: `KIBI_METRIC_DOCS_URL` points at `https://looted.github.io/kibi/guide/github-integration.html#what-the-badge-means`.
   - cursor, opencode: README setup and troubleshooting links point at the published guide pages instead of repository-relative or GitHub blob URLs.
   - repo tooling (not published): the docs site builds into the GitHub Pages root and renders `llms.txt` as one H2 link list per catalog group from the shared page metadata.
@@ -542,6 +643,7 @@
   When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
 
   Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
+
   - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
   - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
   - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
@@ -562,6 +664,7 @@
 ### Patch Changes
 
 - This coordinated release includes the OpenCode adapter and VS Code extension after their package manifests were reformatted. Their runtime behavior and package metadata values are unchanged.
+
   - Publish fresh package versions for the two manifest-only changes alongside the other packages changed since the previous versioning commit.
 
 - Updated dependencies [783cc75]
@@ -579,6 +682,7 @@
 ### Major Changes
 
 - 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
   - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
   - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
   - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
@@ -594,6 +698,7 @@
   suggestion reset, source-hash warnings) are testable, and a vanished
   relationship shard after a successful commit is reported as a repair instead
   of being silently skipped.
+
   - Export small CLI, OpenCode, MCP, and SkillOpt test seams and report vanished relationship shards.
   - Keep migration `--yes` and legacy-delete blocks unchanged.
 
@@ -602,6 +707,7 @@
   OpenCode without lowering Codecov gates. Previously unreachable catch,
   tie-break, workspace-escape, and package-walk paths are exported as small
   helpers and covered by in-process remaining-coverage tests.
+
   - Export leftover defensive helpers and add remaining-coverage tests.
   - Keep migration `--yes` and delete `migrationRequired` blocks unchanged.
 
@@ -619,6 +725,7 @@
 - 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
 
   Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
   - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
   - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
   - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
@@ -670,6 +777,7 @@
 ### Patch Changes
 
 - Existing Kibi installations now receive an agent-guided migration workflow instead of opaque repair advice. Status, checks, and coverage expose one deterministic, hash-bound action plan; agents can safely apply only explicitly approved automatic repairs while semantic, proof, package, and operator work remains visible for review. This makes damaged or legacy KBs recoverable without direct `.kb` edits and gives every run an auditable post-application readback.
+
   - Add `kibi.migration-plan.v2` fragments to the 21-operation surfaces and support hash/action authorization in `kb_apply_plan` and `kibi migrate --apply-safe`.
   - Add lazy status/planning and deterministic schema, branch, storage, coordinate, and recovery action execution with workspace-root-safe CLI/MCP parity.
   - Refresh agent skills, traceability fixtures, and SkillOpt coverage for migration safety boundaries and five-axis closeout reporting.
@@ -682,6 +790,7 @@
 ### Patch Changes
 
 - Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
   - Remove implicit branch-name normalization and add previewed legacy branch migration.
   - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
 
@@ -713,12 +822,14 @@
 ### Patch Changes
 
 - 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
   - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
   - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
   - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
   - Re-sync the Cursor and Codex skill bundles.
 
 - 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
   - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
   - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
   - Preserve logical claim and predicate-schema fields through Markdown sync.
@@ -766,10 +877,12 @@
 ### Patch Changes
 
 - 23e815a: Agents can now keep using Kibi when MCP tools are unavailable but a trusted project-local CLI is ready. Guidance across Cursor, OpenCode, and MCP documentation now selects the interface by capability and stops for operator action only when neither safe surface is available.
+
   - Replace MCP-exclusive guidance with the visible-MCP, trusted-CLI JSON route, and blocked state machine.
   - Preserve direct `.kb/` access prohibitions, discovery-before-mutation, sequential writes, and completion validation gates.
 
 - 0a8a5d3: CLI and MCP users now receive real requirement-modeling and predicate-suggestion plans through the same shared operation executors. Prolog-backed status and reports work reliably again, nested skill commands accept JSON input, and compatibility errors no longer block parity verification.
+
   - Move modeling execution into `kibi-cli` and keep MCP handlers as thin adapters.
   - Split modeling internals into reviewable modules and use the operation workspace context for migration checks.
   - Restore compatible Prolog query, validation, deletion, and error behavior.
@@ -795,6 +908,7 @@
 ### Patch Changes
 
 - da91ada: OpenCode guidance now emits safer Kibi impact-check snippets for edited source paths and cleaner advisory diagnostics during background maintenance. Paths with quotes or other JSON-sensitive characters are escaped correctly, and advisory failures stay focused on actionable Kibi review work instead of noisy implementation detail.
+
   - JSON-escape edited source paths before embedding them in `kb_check` guidance.
   - Clean advisory diagnostic handling in the OpenCode sync scheduler.
   - Add regression coverage for source-path escaping and advisory diagnostic quality.
@@ -811,6 +925,7 @@
 - f1db710: OpenCode background checks now surface advisory Kibi quality diagnostics without turning a clean check into an operational plugin failure. Users get concise structured maintenance logs for review-only findings while hard `kibi check` violations keep the existing failure behavior and exit status. The CLI check command also exposes a JSON format so background integrations can consume the same structured diagnostics reliably.
 
   Technical summary:
+
   - Add `kibi check --format json` output with `structuredContent.violations`, `count`, `diagnostics`, and `qualityDiagnostics`.
   - Run OpenCode targeted background checks with JSON output and parse non-blocking `qualityDiagnostics` on successful checks.
   - Log advisory diagnostic summaries through structured warning logs, preserving terminal silence and existing hard check failure routing.
@@ -833,6 +948,7 @@
 - Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
 
   Technical summary:
+
   - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
   - Extend MCP `kb_check` with source-file impact options and structured impact output.
   - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
@@ -857,6 +973,7 @@
 ### Patch Changes
 
 - 4612928: Clarify that the OpenCode plugin is optional and does not replace the base Kibi CLI or MCP server packages. Users should install and configure `kibi-cli`, `kibi-mcp`, and `kibi-core` in their project first, then add `kibi-opencode` only when they want OpenCode-specific guidance and background maintenance.
+
   - Document project-local package-manager execution separately from plugin loading.
   - Clarify that the plugin expects the project-local `kibi` CLI to be resolvable for internal maintenance.
 
@@ -868,6 +985,7 @@
 ### Patch Changes
 
 - 8b73781: Bootstrap guidance is now easier for agents to apply correctly in OpenCode. The `/init-kibi` workflow and bundled Kibi usage skill explain that OpenCode can expose canonical `kb_*` MCP tools with a `kibi_` server prefix, and autopilot bootstrap output now includes an explicit `applyPlan` so agents can preview exact writes before asking for approval.
+
   - `kibi-mcp`: expose aggregate `structuredContent.applyPlan`/top-level `applyPlan` from `kb_autopilot_generate`, preserve `/init-kibi` as a post-hoc bootstrap prompt, mention it in visible output, and advertise typed fact fields in the `kb_upsert` input schema.
   - `kibi-opencode`: document the OpenCode `kibi_kb_*` tool-name convention in `/init-kibi` alias guidance and README.
   - `kibi-cli`: update the bundled `kibi-usage` skill with host-prefix guidance for OpenCode users.
@@ -890,6 +1008,7 @@
 - OpenCode users no longer receive automatic or manual Kibi brief delivery from the plugin. Prompt guidance, background sync, smart enforcement, and KB freshness reminders remain available without brief generation, brief toasts, or brief TUI routes. This reduces noisy single-file briefing behavior while preserving the core Kibi guidance loop.
 
   Technical summary:
+
   - Regenerate OpenCode dist after removing idle, prompt, and TUI briefing paths.
   - Keep non-brief prompt guidance and sync/check functionality intact.
 
@@ -903,6 +1022,7 @@
 - 818858d: OpenCode sessions now surface a visible KB freshness status when source, test, or documentation changes leave the Kibi knowledge base unresolved. The plugin detects meaningful changes and requires agents to resolve KB impact as updated, no-impact with rationale, or deferred before completion. No new public commands were added — all enforcement uses existing MCP tools and the existing `kibi check --staged` hook boundary.
 
   ***
+
   - feat: add internal KB freshness state machine and evidence store (kibi-opencode)
   - feat: add meaningful-change classifier to distinguish source/document edits from lockfiles and build artifacts
   - feat: extend enforcement policy to accept structured KB freshness evidence in checkpoint evaluation
@@ -913,6 +1033,7 @@
 ### Patch Changes
 
 - 4aa9830: Kibi now has a reusable markdown skill subsystem across CLI, MCP, and OpenCode. The CLI exposes bundled skills with manifest validation and safe resource loading. The MCP server provides progressive-disclosure tools (`kb_skills_list`, `kb_skills_load`, `kb_skills_read`) for agents to discover and read skills without starting Prolog or touching the KB. OpenCode routes its guidance through the `kibi-usage` skill, giving agents a single source of truth for Kibi usage patterns. An official `kibi-usage` skill bundle ships with all three packages, covering fact lanes, relationship directions, and canonical workflows.
+
   - feat(cli): add markdown skill loader with manifest types, validation errors, secure path/resource validation, and size limits
   - feat(cli): expose `kibi-cli/skills` public export with `skills list`, `skills load`, `skills read`, `skills validate`
   - feat(mcp): add `kb_skills_list`, `kb_skills_load`, `kb_skills_read` tool definitions, handlers, runtime wiring, and docs rendering
@@ -925,6 +1046,7 @@
 - b5c53ad: OpenCode users will now see reliable Kibi package versions in the startup toast regardless of whether the plugin is loaded from a repo-local copy or an installed package. The toast now displays opencode, mcp, cli, and core versions alongside structured logging. A 3-tier runtime resolver gracefully handles any resolution mode without throwing.
 
   ***
+
   - feat: embed package version metadata into dist/version-metadata.json at build time
   - feat: display kibi-opencode, kibi-mcp, kibi-cli, and kibi-core versions in startup toast
   - feat: add 3-tier runtime resolver (generated-dist, workspace-packages, unknown) that never throws
@@ -940,12 +1062,14 @@
 - 5d1bd5a: OpenCode guidance now uses one lifecycle enforcement policy for created, edited, and deleted relevant files. In hard mode, authoritative Kibi roots get a single aggregated checkpoint block that tells agents exactly which MCP tools to use before continuing, including sourceFile cleanup guidance for deleted files with no linked IDs.
 
   Technical summary:
+
   - Add a pure enforcement-policy module with advisory, hard-block, skip, and checkpoint-passed decisions.
   - Route file-operation reminders through the policy and cover edited-file, deletion, non-authoritative, and aggregation cases with focused tests.
 
 - 2ee60fc: OpenCode hard enforcement can now complete a plugin-owned checkpoint instead of relying on prompt guidance alone. Authoritative roots only pass when the exact dirty fingerprint has rendered hard guidance and the internal Kibi sync/check cycle succeeds; degraded authoritative roots fail closed with restoration guidance while non-authoritative roots continue to skip hard enforcement.
 
   Technical summary:
+
   - Add a hard Kibi checkpoint runner with scoped in-memory evidence, scheduler flush coordination, targeted-check validation, and 30-second timeout handling.
   - Cover pass, sync failure, check failure, timeout, degraded, non-authoritative, and fingerprint-isolation behavior in opencode scheduler tests.
 
@@ -954,6 +1078,7 @@
 - 882017f: OpenCode hard mode now surfaces a clear stop-state in the prompt when authoritative files are dirty and the Kibi checkpoint has not been satisfied. Agents see deterministic MCP-only recovery steps instead of advisory guidance, while non-authoritative workspaces continue without a hard block.
 
   Technical summary:
+
   - Add hard-gate prompt rendering with bounded affected paths and public MCP tool instructions.
   - Thread hard-mode file-operation policy results through the plugin prompt transform and preserve non-authoritative skip behavior.
   - Cover hard-block and no-block behavior in prompt and hook contract tests.
@@ -961,6 +1086,7 @@
 - 1ff797b: The kibi-opencode README now fully documents the three smart-enforcement modes so users can choose the right posture for their workflow. This repository's dogfood configuration has also switched to `hard` mode, which means authoritative roots and linked git worktrees will fail closed until the Kibi checkpoint passes.
 
   Technical summary:
+
   - Document `advisory`, `strict`, and `hard` modes in the Smart Enforcement section with authoritative-root and linked-worktree fail-closed semantics.
   - Update the config keys table to list `advisory`, `strict`, and `hard` as valid values for `guidance.smartEnforcement.mode`.
   - Update the Hook Policy section to clarify that enforcement is advisory by default with opt-in strict and hard modes available.
@@ -977,6 +1103,7 @@
 ### Patch Changes
 
 - f8a3a88: This update introduces a split symbol coordinate workflow that separates logical symbol definitions from their physical source locations. Symbol coordinates are now managed in `documentation/symbol-coordinates.yaml`, which improves git diff readability and reduces merge conflicts when only line numbers change. The `kibi sync` command now supports a `--refresh-symbol-coordinates` flag to explicitly update these locations.
+
   - **kibi-cli**: Added `--refresh-symbol-coordinates` flag to `kibi sync` and updated pre-commit hooks to enforce coordinate staging.
   - **kibi-mcp**: Updated symbol resolution logic to read from the new split coordinate manifest.
   - **kibi-opencode**: Updated background sync behavior and documentation to support the split manifest workflow.
@@ -995,10 +1122,12 @@
   The `kibi check --staged` command now enforces a hard gate: behavior-changing source edits must be accompanied by staged Kibi impact evidence (KB entity documentation or refreshed `documentation/symbols.yaml`). This prevents commits that change behavior without updating the knowledge base.
 
   **New diagnostics:**
+
   - `kibi_impact_evidence_missing` — emitted when behavior source edits lack staged KB evidence
   - `symbols_manifest_stale` — emitted when source edits alter symbol coordinates but the staged manifest is missing or stale
 
   **What this means for users:**
+
   - If you change behavior-bearing source code, stage relevant KB entity markdown or refresh `documentation/symbols.yaml`
   - Test-only edits (`tests/`, `*.test.*`) and docs-only edits (`.md`) are exempt
   - The no-impact override is available only for classifier false positives, not genuine behavior changes
@@ -1006,6 +1135,7 @@
   **OpenCode guidance updated** to remind agents that Kibi impact evidence is required before completion/commit.
 
   **Technical changes:**
+
   - Added `packages/cli/src/traceability/evidence-model.ts` — typed Kibi impact evidence interfaces
   - Added `packages/cli/src/traceability/staged-diagnostics.ts` — `collectStagedKibiDiagnostics()` with stable diagnostic IDs
   - Added `packages/cli/src/traceability/staged-impact-contract.ts` — behavior classification and evidence parsing
@@ -1014,6 +1144,7 @@
   - Updated pre-commit hook comments and contributor docs
 
 - 4557485: OpenCode users can now see which kibi-opencode version started because the startup toast includes the version when available. This helps confirm local dogfood or package wiring after upgrades, making it immediately obvious if an older version is still running.
+
   - Pass the kibi-opencode package version into startup notification config.
   - Append the version to the startup toast message when available.
   - Cover version-present and version-absent paths in startup notifier tests.
@@ -1058,21 +1189,25 @@
 ### Patch Changes
 
 - 2dd07e5: OpenCode bootstrap command support is now more reliable in fresh CI and Bun installations. The plugin can detect native `/init-kibi` command support when OpenCode installs the SDK as a transitive dependency of the plugin, preventing supported hosts from silently falling back to the namespaced MCP prompt.
+
   - Resolve `@opencode-ai/sdk` metadata from Bun's plugin-sibling dependency layout during native command capability detection.
   - Add regression coverage for the transitive SDK resolution path used by fresh installs.
 
 - b62a9a8: OpenCode sessions are now more resilient to transient background failures and idle timeouts. The plugin automatically suppresses repetitive background sync attempts after a persistent failure is detected, while ensuring manual developer actions still trigger fresh attempts to recover.
+
   - Implement background sync suppression after latched operational failures to prevent log noise during idle periods.
   - Add diagnostic metadata to sync failure payloads for improved observability.
   - Ensure manual edits and tool executions bypass idle suppression to allow for graceful recovery.
   - Restore standard operational sync behavior once the workspace state is resolved.
 
 - 2a00e15: Kibi discovery is now less noisy for broad agent queries. When agents send multi-intent natural-language searches, targeted domain-specific entities now rank above unrelated generic results. No-signal queries (containing only common stop words) return an empty result instead of arbitrary token-coverage matches. OpenCode agents are now guided to decompose broad queries into focused probes and follow up with exact `kb_query` lookups.
+
   - `kibi-cli`: Add stop-word filtering, hyphen normalization, plural normalization, and minimum-score threshold to `search-ranking.ts`; add synthetic regression corpus tests.
   - `kibi-mcp`: Add wrapper-level regression tests asserting improved ranking is preserved end-to-end.
   - `kibi-opencode`: Update injected agent guidance to instruct query decomposition with concrete examples.
 
 - c06b245: Kibi brief toasts now show the specific entity-level knowledge base changes that triggered the notification (e.g. "Added requirement REQ-009", "Modified fact FACT-002") instead of a generic "Why it matters" message that always read the same. Toast and full brief now come from the same persisted reason data so the brief is always a deeper view of the same content surfaced by the toast. Automatic zero-change notifications are now suppressed — Kibi will not send a "Knowledge Update" toast or brief when no meaningful entity changes, validations, or briefing impacts occurred. The `kibi-brief` command is now available as a TUI alias to open the latest full brief without typing the full route.
+
   - Persist `deliveryReasons` model on brief envelopes to support unified rendering.
   - Consolidate toast and full brief content generation from a single source of truth.
   - Implement zero-change suppression logic in `generateIdleBrief` and `announceBriefTui` to eliminate redundant notifications.
@@ -1101,6 +1236,7 @@
 - 3aad975: Document render-first idle briefing behavior and mark deprecated config keys. The OpenCode and VS Code READMEs now reflect the shift from notification-based delivery to render-first briefings. Several legacy configuration knobs (`briefs.tui.toast`, `briefs.tui.appendPrompt`, `ux.briefs.autoSubmit`) are now marked as deprecated/no-op for idle rendering while remaining parseable for compatibility. Shared channel gating in `.kb/config.json` remains the authoritative source of truth.
 - 4000488: Improve briefing reliability for programmatic file edits by adding session-delta reconciliation. The plugin now detects risky edits via both the `file.edited` event fast-path and a prompt-cycle fallback that reconciles the current session scope before building guidance. This ensures briefings are available even when programmatic Edit/Write tools bypass the host event bus.
 - 4fe5c7e: Fix OpenCode toast delivery and structured logging behavior:
+
   - Remove raw HTTP `fetch()` fallback to `/tui/show-toast` and all associated `[KIBI-TRACE]` console.error noise from the toast transport path.
   - Repair `sendToast()` to use the official OpenCode SDK contract: prefers legacy `client.tui.toast(payload)` when available, otherwise uses `client.tui.showToast({ body: payload })`.
   - Add discriminated `SendToastResult` union (`delivered`, `unavailable`, `failed`) for explicit, testable toast outcomes.
@@ -1155,10 +1291,12 @@
 - 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
 - 0ec1cb1: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
   - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
   - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
 
 - 0ec1cb1: fix(cli): restore prolog codec exports
+
   - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
 
 - de5dbaf: Enable `exactOptionalPropertyTypes` across source packages and tighten optional property handling in exported type surfaces.
@@ -1179,10 +1317,12 @@
 
 - 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - d344f57: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
   - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
   - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
 
   fix(cli): restore prolog codec exports
+
   - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
 
 ## 0.6.0
@@ -1205,18 +1345,22 @@
   This release fixes the false "workspace needs Kibi bootstrap" warning that appeared for workspaces already configured with `.kb/config.json` pointing at relocated `kibi-docs/*` paths.
 
   **Bug fix:**
+
   - The `checkWorkspaceHealth` function now correctly reads `.kb/config.json` to determine expected directory paths, instead of using hardcoded `documentation/*` paths that caused false positives for relocated documentation setups.
 
   **Prevention:**
+
   - Added packed-artifact regression tests (`documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts`) that verify healthy relocated paths don't emit warnings and missing targets still emit exactly one real warning.
   - Added release-gate step in `.github/workflows/publish.yml` to validate the actual npm tarball behavior before publishing, preventing future source/dist/tarball drift.
   - Updated `test:e2e:local` to rebuild `packages/opencode/dist` before running tests, ensuring dogfood always uses fresh builds.
 
   **Troubleshooting:**
+
   - Added documentation for cache recovery in `docs/troubleshooting.md` and `packages/opencode/README.md`.
   - Users experiencing this issue should clear the stale plugin cache: `rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"`
 
 - Add source-linked micro-briefs and complete targeted-check routing for traceability and fact edits.
+
   - Source-linked guidance: when 1-3 concrete requirement links exist in `documentation/symbols.yaml`, risky code edits now prepend `- Existing Kibi links: REQ-...` to the contextual guidance block.
   - Targeted validation routing: `traceability_candidate` code edits schedule `symbol-traceability`, and fact KB-doc edits include `strict-fact-shape` alongside the standard structural checks.
   - Keeps the plugin advisory-only; all enforcement remains non-blocking in the editor.
@@ -1244,6 +1388,7 @@
 ### Patch Changes
 
 - 7bd2adf: Internal code quality improvements and refactoring.
+
   - Deduplicate `splitTopLevel` into single canonical function in `codec.ts`.
   - Deduplicate `Violation`, `ChecksConfig`, and rule definitions between CLI and MCP.
   - Extract `safeCleanupProlog` helper to eliminate duplicated teardown patterns.
@@ -1309,24 +1454,29 @@
 - 1552f46: Fix plugin loader compatibility: root entrypoint now exports only plugin function to match OpenCode loader contract. Runtime helpers (config, prompt, scheduler, file-filter) moved to subpath exports (`./config`, `./prompt`, `./scheduler`, `./file-filter`). Fixes issue #82.
 
   ### Package entrypoint
+
   - Remove named exports `config`, `fileFilter`, `createSyncScheduler`, `injectPrompt`, `SENTINEL` from root
   - Keep only `default` export (plugin factory) and type-only exports
 
   ### Subpath exports
+
   - Add `./config` for config helpers (loadConfig, DEFAULTS, isPluginEnabled)
   - Add `./prompt` for prompt helpers (injectPrompt, buildPrompt, SENTINEL)
   - Add `./scheduler` for sync scheduler (createSyncScheduler, types)
   - Add `./file-filter` for file filtering (shouldHandleFile)
 
   ### Tests
+
   - Update packed e2e test to verify loader-safe root exports and test subpath access
   - Update local e2e test with same loader-safety verification
   - Tests now fail if any root export is a function (would be invoked by OpenCode)
 
   ### Documentation
+
   - Fix README example: use `"plugin"` instead of `"plugins"` key
 
   ### Notes
+
   - OpenCode loader imports module and iterates all exports, calling each as `fn(input)`.
   - Only functions exported from root are called; helper objects/constants now isolated to subpaths.
 

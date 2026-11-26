@@ -15,6 +15,11 @@ const coreRoot = path.join(repoRoot, "packages", "core");
 const pluginSdkRoot = path.join(repoRoot, "packages", "plugin-sdk");
 const agentCoreRoot = path.join(repoRoot, "packages", "agent-core");
 const pluginBuiltinRoot = path.join(repoRoot, "packages", "plugin-builtin");
+const pluginSearchHintsRoot = path.join(
+  repoRoot,
+  "packages",
+  "plugin-search-hints",
+);
 const cliRoot = path.join(repoRoot, "packages", "cli");
 const runtimeRoot = path.join(repoRoot, "packages", "runtime");
 const swiplRoot = path.join(repoRoot, "packages", "swipl");
@@ -77,6 +82,7 @@ function buildProofArtifacts(): Promise<void> {
       runBun(["run", "build:plugin-sdk"], repoRoot);
       runBun(["run", "build:agent-core"], repoRoot);
       runBun(["run", "build:plugin-builtin"], repoRoot);
+      runBun(["run", "build:plugin-search-hints"], repoRoot);
       runBun(["run", "build:cli"], repoRoot);
       runBun(["run", "build:runtime"], repoRoot);
       runBun(["run", "build:mcp"], repoRoot);
@@ -179,6 +185,10 @@ describe("packed kibi-mcp consumer resolution", () => {
         pluginBuiltinRoot,
         "kibi-plugin-builtin",
       );
+      const pluginSearchHintsTarball = makeTarball(
+        pluginSearchHintsRoot,
+        "kibi-plugin-search-hints",
+      );
       const cliTarball = makeTarball(cliRoot, "kibi-cli");
       // kibi-runtime depends on the unpublished-until-release resolver package.
       const swiplTarball = makeTarball(swiplRoot, "kibi-swipl");
@@ -213,6 +223,7 @@ describe("packed kibi-mcp consumer resolution", () => {
           swiplTarball,
           coreTarball,
           pluginBuiltinTarball,
+          pluginSearchHintsTarball,
           pluginSdkTarball,
           agentCoreTarball,
         ],

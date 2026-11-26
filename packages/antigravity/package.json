@@ -1,6 +1,6 @@
 {
   "name": "kibi-antigravity",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Kibi Antigravity plugin - progressive-disclosure knowledge snippets, firm-edit confirmation, advisory freshness hooks, bundled skills, rules, and the workspace-gated Kibi MCP server",
   "type": "module",
   "main": "dist/index.js",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.8",
-    "kibi-agent-core": "^0.15.0",
+    "kibi-agent-core": "^0.16.0",
     "typescript": "^5.7.0",
     "yaml": "^2.9.1"
   }

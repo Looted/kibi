@@ -649,6 +649,7 @@ async function bootstrapSharedInstallInTurn(
     tarballs["plugin-sdk"],
     tarballs["agent-core"],
     tarballs["plugin-builtin"],
+    tarballs["plugin-search-hints"],
     tarballs.swiplPlatform ?? "",
   ].join("|");
   const existing = sharedInstallations.get(installKey);

@@ -1,6 +1,6 @@
 {
   "name": "kibi-swipl-darwin-x64",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Relocatable SWI-Prolog 10.0.2 runtime for Kibi on macOS on Intel (macOS 12 or newer)",
   "os": ["darwin"],
   "cpu": ["x64"],

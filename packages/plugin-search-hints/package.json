@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-search-hints",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Offline meaning-based hints for weak Kibi search answers",
   "type": "module",
   "main": "./dist/index.js",
@@ -48,10 +48,10 @@
   },
   "devDependencies": {
     "@types/node": "25.9.8",
-    "kibi-plugin-sdk": "^0.8.0",
+    "kibi-plugin-sdk": "^0.9.0",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
-    "kibi-plugin-sdk": "^0.8.0"
+    "kibi-plugin-sdk": "^0.9.0"
   }
 }
