@@ -167,7 +167,7 @@ describe("Kibi outside a Git repository", () => {
     );
     expect(init.stdout).toContain("! No Git repository: Kibi is working");
     expect(readFileSync(path.join(root, "AGENTS.md"), "utf8")).toContain(
-      "finish each change with `kibi check`",
+      "then `kibi check` (this directory has no Git repository, so there is no commit check)",
     );
     expect(stores(root)).toEqual([NO_GIT]);
 
