@@ -51903,3 +51903,21 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-26T10:36:50.889Z
+  - id: SYM-docs-site-pages-workflow
+    title: Pages deploy workflow (.github/workflows/pages.yml)
+    status: active
+    sourceFile: .github/workflows/pages.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - ci
+      - docs
+      - pages
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:21:06.369Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages
