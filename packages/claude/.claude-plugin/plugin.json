@@ -1,7 +1,7 @@
 {
   "name": "kibi-claude",
   "displayName": "Kibi",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Kibi for Claude Code: requirement and test context surfaced before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Silent in workspaces without Kibi.",
   "icon": "./assets/logo.png",
   "author": {

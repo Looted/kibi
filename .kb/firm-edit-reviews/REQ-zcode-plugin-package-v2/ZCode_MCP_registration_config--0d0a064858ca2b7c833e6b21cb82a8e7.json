@@ -4,10 +4,10 @@
   "sourceFile": "packages/zcode/.zcode-plugin/plugin.json",
   "symbol": "ZCode MCP registration config",
   "verdict": "keeps",
-  "note": "Removed unsupported homepage, repository, and keywords keys to restore the exact develop manifest; skills, commands, and mcpServers launcher configuration are unchanged.",
+  "note": "Synced kibi-zcode plugin manifest version from 0.16.0 to 0.17.0 via sync-plugin-manifest-versions during 2026.11.6 version bump; skills, commands, mcpServers, and hooks entries are unchanged.",
   "statementHash": "sha256:cae0ee23560dc6b0025bf8ba490806fbafd1f5c6fbda6ed0859c549428301028",
-  "codeHash": "sha256:c581bbcbb03a0d360ec98219b2c409d20c44b3b9026cfce48b0b69f2cbbafb1d",
+  "codeHash": "sha256:6068c138be31c4b62cd5b571551b5332348d2147ddb9f9de08014aebf47e8533",
   "startLine": 1,
   "endLine": 21,
-  "recordedAt": "2026-11-25T18:13:08.870Z"
+  "recordedAt": "2026-11-26T21:06:14.116Z"
 }
