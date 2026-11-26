@@ -8,6 +8,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { isHookExecutable } from "../../src/commands/doctor.js";
 import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi doctor", () => {
@@ -235,5 +236,12 @@ describe("kibi doctor", () => {
       expect(index).toBeGreaterThan(lastIndex);
       lastIndex = index;
     }
+  });
+
+  test("treats extensionless hook files as executable on win32 without POSIX exec bits", () => {
+    expect(isHookExecutable(0o100666, "win32")).toBe(true);
+    expect(isHookExecutable(0o100666, "linux")).toBe(false);
+    expect(isHookExecutable(0o100755, "linux")).toBe(true);
+    expect(isHookExecutable(0o100755)).toBe(true);
   });
 });
