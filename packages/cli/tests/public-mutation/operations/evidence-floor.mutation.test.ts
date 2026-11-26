@@ -53,7 +53,7 @@ const row = (overrides: Partial<EvidenceFloorRow>): EvidenceFloorRow => ({
 });
 
 const PROVED_TAIL =
-  ": model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain REQ-A shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.";
+  ": model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain REQ-A shows each claim's bindings. A claim with no such fact can only be attested, so ask the person whether tested is enough (with the reason in the requirement) instead of lowering required_evidence yourself.";
 
 describe("constants", () => {
   test("rule name and schema version", () => {
@@ -138,7 +138,7 @@ describe("evidenceFloorViolations", () => {
         description:
           "REQ-A is asserted but needs tested (its required_evidence)",
         suggestion:
-          "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (g1, g2); kibi proof explain REQ-A shows each one. Or lower required_evidence if a person decides it does not need tests.",
+          "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (g1, g2); kibi proof explain REQ-A shows each one. Or ask the person whether it does not need tests instead of lowering required_evidence yourself.",
         evidence: {
           evidenceLevel: "asserted",
           requiredEvidence: "tested",
@@ -153,7 +153,7 @@ describe("evidenceFloorViolations", () => {
         entityId: "REQ-B",
         description: "REQ-B is asserted but needs approved (its floor)",
         suggestion:
-          "Have a person approve REQ-B (origin.approved_by) or state it as firm with origin.ref to their words, or lower required_evidence.",
+          "Have a person approve REQ-B (origin.approved_by) or state it as firm with origin.ref to their words, or ask the person whether less evidence is enough.",
         evidence: {
           evidenceLevel: "asserted",
           requiredEvidence: "approved",
@@ -176,7 +176,7 @@ describe("evidenceFloorViolations", () => {
       "REQ-A is asserted but needs tested (the floor of a firm requirement)",
     );
     expect(finding?.suggestion).toBe(
-      "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (none listed; no receipt: T1; claims no certificate derives: c); kibi proof explain REQ-A shows each one. Or lower required_evidence if a person decides it does not need tests.",
+      "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (none listed; no receipt: T1; claims no certificate derives: c); kibi proof explain REQ-A shows each one. Or ask the person whether it does not need tests instead of lowering required_evidence yourself.",
     );
     expect(finding?.evidence).toStrictEqual({
       evidenceLevel: "asserted",
@@ -190,7 +190,7 @@ describe("evidenceFloorViolations", () => {
     expect(
       evidenceFloorViolations([row({ gapDetails: { a: [] } })])[0]?.suggestion,
     ).toBe(
-      "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (none listed); kibi proof explain REQ-A shows each one. Or lower required_evidence if a person decides it does not need tests.",
+      "Link REQ-A to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (none listed); kibi proof explain REQ-A shows each one. Or ask the person whether it does not need tests instead of lowering required_evidence yourself.",
     );
   });
 

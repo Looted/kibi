@@ -20,6 +20,7 @@ import * as path from "node:path";
 import {
   type KibiLevel,
   kibiLevelInSettings,
+  readKibiLevel,
 } from "kibi-agent-core/kibi-level";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import { EngineClient } from "../engine.js";
@@ -408,18 +409,25 @@ export function printStructuredCheckResult(input: {
 function readSnapshotKibiLevel(
   snapshot: { readGit(args: readonly string[]): Buffer },
   tree: string,
+  fallback?: () => KibiLevel,
 ): KibiLevel {
-  const readTreeFile = (file: string): string | undefined => {
+  const readTreeJson = (file: string): string | undefined => {
     try {
-      return snapshot.readGit(["show", `${tree}:${file}`]).toString("utf8");
+      const raw = snapshot
+        .readGit(["show", `${tree}:${file}`])
+        .toString("utf8");
+      const parsed: unknown = JSON.parse(raw);
+      return typeof parsed === "object" && parsed !== null ? raw : undefined;
     } catch {
       return undefined;
     }
   };
-  const pkg = readTreeFile("package.json");
+  const pkg = readTreeJson("package.json");
   if (pkg !== undefined) return kibiLevelInSettings(pkg, "package.json").level;
-  return kibiLevelInSettings(readTreeFile(".kb/setup.json"), "setup.json")
-    .level;
+  const setup = readTreeJson(".kb/setup.json");
+  if (setup !== undefined)
+    return kibiLevelInSettings(setup, "setup.json").level;
+  return fallback ? fallback() : "test";
 }
 
 const countFormat = new Intl.NumberFormat("en-US");
@@ -893,8 +901,16 @@ export async function checkCommand(
         const snapshot = captureStagedSnapshot(process.cwd());
         // The commit gate judges the commit itself, so the Kibi level comes
         // from the staged snapshot, never from unstaged working-tree edits.
-        const level = readSnapshotKibiLevel(snapshot, snapshot.headTree);
-        const baseLevel = readSnapshotKibiLevel(snapshot, snapshot.baseTree);
+        const level = readSnapshotKibiLevel(
+          snapshot,
+          snapshot.headTree,
+          () => readKibiLevel(process.cwd()).level,
+        );
+        const baseLevel = readSnapshotKibiLevel(
+          snapshot,
+          snapshot.baseTree,
+          () => level,
+        );
         const levelChangeNotice =
           baseLevel !== level
             ? `Note: this commit changes the Kibi level from ${baseLevel} to ${level}.`

@@ -89,6 +89,12 @@
         "description": "How hard Kibi holds the agent to its requirements: test (default; also asks for scenarios and linked tests) or remember (records requirements without them). Asked at a terminal when not given; recorded in package.json kibi.level or .kb/setup.json",
         "default": null,
         "mandatory": false
+      },
+      {
+        "flags": "--change-level",
+        "description": "Allow changing an already recorded Kibi level when running non-interactively with --level",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
@@ -207,7 +213,9 @@
   },
   {
     "name": "query",
-    "aliases": ["kb-query"],
+    "aliases": [
+      "kb-query"
+    ],
     "description": "Read entities from the KB with exact filters, or ask typed fact questions. Use for lookup by id, type, tags or sourceFile, and for precise questions about modeled facts: predicate facts by name with named arguments (predicate + where), property facts of a subject (subjectKey + propertyKey), the domain view of a subject (factKind 'subject' + subjectKey: its definition, broader and narrower subjects, every current requirement about it and the claims and scenarios on it), or the catalog of facts of one kind (factKind; 'predicate_schema' lists the predicates you can ask about with their argument names and constants). Typed answers return matching fact rows plus factQuery: the schema used, distinct counts, values that do exist when nothing matched, warnings about the question and the next call to make. Read-only. Tags filter by metadata tags only, not entity IDs.",
     "summary": "Read entities from the KB with exact filters, or ask typed fact questions.",
     "arguments": [

@@ -390,13 +390,16 @@ export async function initCommand(
     }
 
     const choices = settleSetupChoices(projectRoot, options);
-    const level = await settleKibiLevel(
-      projectRoot,
-      options.level,
-      initCanAsk(),
-      undefined,
-      { changeLevel: options.changeLevel === true },
-    );
+    const level =
+      options.changeLevel === true
+        ? await settleKibiLevel(
+            projectRoot,
+            options.level,
+            initCanAsk(),
+            undefined,
+            { changeLevel: true },
+          )
+        : await settleKibiLevel(projectRoot, options.level, initCanAsk());
     if ("error" in level) {
       noteCliErrorCategory("LEVEL_CHANGE_REQUIRES_CONFIRMATION");
       console.error(`Error: ${level.error}`);

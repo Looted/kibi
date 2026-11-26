@@ -466,16 +466,14 @@ describe("formatCardLine", () => {
     expect(prohibited).toContain("must never include payment card numbers");
   });
 
-  test("governing coverage ignores rationale-only words and reports best card coverage", () => {
+  test("statementOf skips rationale sections and retrieve reports best card coverage", () => {
     const idx = buildRetrievalIndex(
       [
         {
           id: "REQ-rationale-only",
           type: "req",
           title: "Retired status policy",
-          semantic_text:
-            "A retired requirement stays on record without blocking.",
-          body: "# Context\n\nAudit logging was retired under this rule.\n",
+          body: "# Context\n\nAudit logging was retired under this rule.\n\n# Statement\n\nA retired requirement stays on record without blocking.\n",
           status: "open",
         },
         {
@@ -488,12 +486,12 @@ describe("formatCardLine", () => {
       ],
       [],
     );
-    expect(decisionCoverage(idx, "audit logging", "REQ-rationale-only")).toBe(
-      0,
+    expect(idx.cards[0]?.statement).toContain(
+      "A retired requirement stays on record",
     );
-    expect(decisionCoverage(idx, "audit logging", "REQ-actual-audit")).toBe(1);
+    expect(idx.cards[0]?.statement).not.toContain("Audit logging was retired");
     const result = retrieve(idx, {
-      text: "audit logging",
+      text: "audit logging mutations",
       vectorScores: [0.99, 0.01],
       vectorWeight: 10,
     });

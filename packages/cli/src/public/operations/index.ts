@@ -31,4 +31,3 @@ export * from "../../operations/bootstrap/generate.js";
 export * from "../../operations/bootstrap/presentation.js";
 export type * from "../../operations/bootstrap/types.js";
 export * from "../../logic/ir.js";
-export { readKibiLevel } from "kibi-agent-core/kibi-level";
