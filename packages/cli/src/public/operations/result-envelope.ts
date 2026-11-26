@@ -13,6 +13,7 @@ export {
   isKbRejection,
 } from "../../cli-errors.js";
 export { prepareOperationInput } from "../../cli-validate.js";
+export { withInputAliases } from "./input-aliases.js";
 export type { CodedErrorFields } from "../../cli-errors.js";
 
 export const KIBI_PROTOCOL_VERSION = 1 as const;

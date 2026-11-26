@@ -615,3 +615,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f3cb9dd9cbc
+  - type: validates
+    from: TEST-kb-search-question-alias
+    to: SCEN-kb-search-question-alias
+    created_at: 2026-11-26T11:06:08.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d55db161780
+  - type: validates
+    from: TEST-kb-search-question-alias
+    to: SCEN-NEG-kb-search-question-alias
+    created_at: 2026-11-26T11:06:08.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22c4dbdf036b
