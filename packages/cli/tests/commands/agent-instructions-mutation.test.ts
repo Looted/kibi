@@ -8,12 +8,14 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { SESSION_BRIEF, sessionBriefFor } from "kibi-agent-core/session-brief";
 import {
   CLAUDE_IMPORT_SECTION,
   GEMINI_IMPORT_SECTION,
   KIBI_AGENT_INSTRUCTIONS,
   KIBI_INSTRUCTIONS_BEGIN,
   KIBI_INSTRUCTIONS_END,
+  agentInstructionsFor,
   managedSectionState,
   reportAgentInstructions,
   upsertManagedSection,
@@ -41,6 +43,54 @@ function tempRoot(): string {
 const section = (body: string) =>
   `${KIBI_INSTRUCTIONS_BEGIN}\n${body}\n${KIBI_INSTRUCTIONS_END}`;
 const read = (file: string) => readFileSync(file).toString();
+
+describe("agentInstructionsFor", () => {
+  /** The change steps of a brief: every line after its lead sentence. */
+  const steps = (brief: string) => brief.split("\n").slice(1);
+
+  test("carries each change step of the session brief word for word", () => {
+    for (const noGit of [false, true]) {
+      const lines = agentInstructionsFor(noGit).split("\n");
+      const briefSteps = steps(sessionBriefFor(noGit));
+      expect(briefSteps.length).toBeGreaterThan(0);
+      const start = lines.indexOf(briefSteps[0] ?? "");
+      expect(start, `noGit ${noGit}`).toBeGreaterThan(0);
+      expect(lines.slice(start, start + briefSteps.length)).toEqual(briefSteps);
+    }
+    expect(KIBI_AGENT_INSTRUCTIONS).toBe(agentInstructionsFor(false));
+    expect(KIBI_AGENT_INSTRUCTIONS).toContain(steps(SESSION_BRIEF).join("\n"));
+  });
+
+  test("adds whom to ask, firm edits, committing and the skill after the steps", () => {
+    const text = agentInstructionsFor(false);
+    expect(text.startsWith("## Kibi\n\n")).toBe(true);
+    expect(text).toContain("Ask the person only for a decision");
+    expect(text).toContain("kb_review_firm_edit");
+    expect(text).toContain("commits must pass `kibi check --staged`");
+    expect(text).toContain("the `kibi-usage` skill");
+    // The OpenCode plugin reads both names as the project's Kibi posture.
+    expect(text).toContain("kb_search");
+    expect(text).toContain("kb_query");
+  });
+
+  test("outside Git says there is no commit gate and never names --staged", () => {
+    const text = agentInstructionsFor(true);
+    expect(text).toContain("there is no commit gate");
+    expect(text).not.toContain("--staged");
+    expect(text).not.toBe(agentInstructionsFor(false));
+  });
+
+  test("a section that rewords the brief's steps no longer holds them", () => {
+    const reworded = agentInstructionsFor(false).replace(
+      "kb_check with changed: true",
+      "the commit check",
+    );
+    const lines = reworded.split("\n");
+    expect(steps(SESSION_BRIEF).every((step) => lines.includes(step))).toBe(
+      false,
+    );
+  });
+});
 
 describe("upsertManagedSection", () => {
   test("creates a missing file with the section", () => {

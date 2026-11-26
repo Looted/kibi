@@ -13,4 +13,4 @@ origin:
 id: SCEN-kb-upsert-approvals-needed
 type: scenario
 ---
-Given a firm requirement below a tested floor with a firm related requirement and no proof integration, when it is written, then approvalsNeeded lists the signoff first, the firm pair, the integration file and the failure-side waiver marked as an alternative.
+Given a firm requirement below a tested floor with a firm related requirement and no proof integration, when it is written, then approvalsNeeded lists the firm pair, the failure-side waiver marked as an alternative and the integration file, and does not put the requirement's own statement back to the person for sign-off.

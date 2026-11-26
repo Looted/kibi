@@ -2568,7 +2568,7 @@ function firmEditContext(ids) {
   const named = ids.slice(0, 2).join(", ");
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
-    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " + `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`
+    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " + `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your own judgment: record it without asking the person to approve it; kibi signoff lists it as yours.`
   ].join(`
 `);
 }
@@ -2837,7 +2837,7 @@ function claimSignoffReminder(session, workspaceRoot) {
 function signoffReminder() {
   return [
     "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
-    "Before reporting the work done, asking to commit, or opening or merging the pull request, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When they answer, record their answer on the same branch and push it to the same pull request, never to a separate one. When replies go through a messaging tool, pass the output there as the message text, and share `.kb/briefs/signoff/latest.html` only as a rendered page (the Artifact tool in Claude apps), never as an attached file, which chat apps show as raw source (kibi-decisions, resources/signoff-views.md)."
+    "A rule the person stated, recorded in their own words (their quote as origin.ref), is approved by those words: when that is all this session recorded, say so in one line and skip the view. Otherwise, before reporting the work done, asking to commit, or opening or merging the pull request, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When they answer, record their answer on the same branch and push it to the same pull request, never to a separate one. When replies go through a messaging tool, pass the output there as the message text, and share `.kb/briefs/signoff/latest.html` only as a rendered page (the Artifact tool in Claude apps), never as an attached file, which chat apps show as raw source (kibi-decisions, resources/signoff-views.md)."
   ].join(`
 `);
 }
@@ -4899,9 +4899,9 @@ function appendSessionEvents(dir, events) {
 var SESSION_BRIEF_LINES = [
   "Kibi records this repository's requirements and decisions with their reasons.",
   "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
-  "- When the person states a rule, record it with their reason (kb_record); a decision goes through kb_upsert.",
-  "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
-  "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
+  "- Record a rule the person states with kb_record in the same turn, with their reason; it needs no permission.",
+  "- Before your final message, run the tests linked to the code you changed, then kb_check with changed: true.",
+  "- A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
 ];
 var SESSION_BRIEF = SESSION_BRIEF_LINES.join(`
 `);

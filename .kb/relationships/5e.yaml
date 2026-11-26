@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b0e2611a90b
+  - type: executable_for
+    from: SYM-test-agent-instructions-mutation
+    to: TEST-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:43:05.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b48cdc6093

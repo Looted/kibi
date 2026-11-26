@@ -581,18 +581,26 @@ describe("executeUpsertRequest", () => {
     expect((error as Error).message).toBe("kb_upsert returned no payload");
   });
 
-  test("a written requirement gets its why applied, the steps left and the requirements on the same terms", async () => {
+  test("a written requirement gets its why applied, the steps left, the person's decisions and the requirements on the same terms", async () => {
     const reads: CaptureReads = {
+      // A firm requirement whose claim is not modeled yet, next to a
+      // current one on the same subject: the pair's verdict is the person's.
       entity: async (id) =>
         id === "REQ-key-expiry"
-          ? { title: "Keys expire", status: "open" }
+          ? {
+              title: "Keys expire",
+              status: "open",
+              firmness: "firm",
+              required_evidence: "asserted",
+              semantic_inventory: [{ claim_key: "C1", status: "missing" }],
+            }
           : undefined,
       exists: async () => false,
       implementingSymbols: async () => [],
       scenarios: async () => [],
       covered: async () => true,
       tested: async () => true,
-      neighbours: async () => [],
+      neighbours: async () => [{ id: "REQ-key-age", title: "Keys age out" }],
       proofIntegration: async () => true,
       subjectGaps: async () => [
         {
@@ -628,18 +636,30 @@ describe("executeUpsertRequest", () => {
     ]);
     expect(
       result.structuredContent?.nextActions?.map((step) => step.code),
-    ).toEqual(["claim-subject-missing"]);
+    ).toEqual([
+      "claim-subject-missing",
+      "related-requirement-unmodeled",
+      "missing_logic_grounding",
+    ]);
     expect(result.structuredContent?.relatedRequirements).toEqual([
       { id: "REQ-key-age", statement: "Keys expire after 90 days." },
     ]);
+    // The person's own words approve the statement; only the firm pair's
+    // verdict is theirs to settle.
     expect(
       result.structuredContent?.approvalsNeeded?.map((ask) => ask.kind),
-    ).toEqual(["signoff"]);
-    const step = result.structuredContent?.nextActions?.[0];
+    ).toEqual(["pair_review"]);
+    const steps = result.structuredContent?.nextActions ?? [];
     expect(result.content.map((part) => part.text)).toEqual([
       "wrote REQ-key-expiry",
-      `Left before kb_check passes: 1 step(s), also in nextActions:\n1. ${step?.operation} (claim-subject-missing): ${step?.reason} Input: ${JSON.stringify(step?.input)}`,
-      'Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):\n1. Does REQ-key-expiry say what was decided: "Keys expire"?',
+      [
+        "Left before kb_check passes: 3 step(s), also in nextActions:",
+        ...steps.map(
+          (step, index) =>
+            `${index + 1}. ${step.operation} (${step.code}): ${step.reason} Input: ${JSON.stringify(step.input)}`,
+        ),
+      ].join("\n"),
+      "Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):\n1. Do REQ-key-expiry and REQ-key-age both hold as written, and is the agent's verdict on the pair right? The person's name goes in that review's approved_by.",
       "Current requirements on the same terms: REQ-key-age. If REQ-key-expiry replaces one, add a supersedes link to it and close it.",
     ]);
 
@@ -650,6 +670,10 @@ describe("executeUpsertRequest", () => {
       deps({
         reads: {
           ...reads,
+          entity: async (id) =>
+            id === "REQ-key-expiry"
+              ? { title: "Keys expire", status: "open" }
+              : undefined,
           subjectGaps: async () => [],
           currentRequirements: async () => [],
         },
@@ -659,6 +683,7 @@ describe("executeUpsertRequest", () => {
       "wrote REQ-key-expiry",
     ]);
     expect(quiet.structuredContent).not.toHaveProperty("nextActions");
+    expect(quiet.structuredContent).not.toHaveProperty("approvalsNeeded");
     expect(quiet.structuredContent).not.toHaveProperty("relatedRequirements");
 
     // A store that fails a follow-up read leaves the write's own result.

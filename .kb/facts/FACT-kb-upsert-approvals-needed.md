@@ -7,8 +7,8 @@ property_key: person_decisions_missing_from_approvals_needed
 operator: eq
 value_type: int
 value_int: 0
-claim_key: CLAIM-C0E1CB332181CB94
-claim_text: 'A requirement write''s result must list under approvalsNeeded every decision only the person can settle before the requirement reaches its evidence floor: the statement signoff, each firm pair review''s approved_by, a new proof integration file, and a failure-side waiver as the alternative to the failure scenario'
+claim_key: CLAIM-98261BD569E579F4
+claim_text: 'A requirement write''s result must list under approvalsNeeded every decision only the person can settle before the requirement reaches its evidence floor: each firm pair review''s approved_by, a new proof integration file, and a failure-side waiver as the alternative to the failure scenario'
 text_ref: REQ-kb-upsert-approvals-needed
 tags:
   - strict-modeling

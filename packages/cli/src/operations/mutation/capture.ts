@@ -59,8 +59,8 @@ export type CaptureNextAction = Readonly<{
  * evidence floor, listed once so the agent asks the person one question.
  */
 export type CaptureApproval = Readonly<{
-  /** What is approved: the statement, a pair verdict, a tracked file, a waiver. */
-  kind: "signoff" | "pair_review" | "proof_integration" | "failure_side_waiver";
+  /** What is approved: a pair verdict, a tracked file, a waiver. */
+  kind: "pair_review" | "proof_integration" | "failure_side_waiver";
   /** The requirement, pair or file the approval is about. */
   about: string;
   /** The question, in plain words, to put to the person. */
@@ -584,27 +584,6 @@ export function proofIntegrationFollowUp(testId: string): FollowUp {
   };
 }
 
-/**
- * The person sees the statement once, with every other approval, in one
- * question rather than one per check result.
- */
-export function withSignoff(
-  id: string,
-  statement: string,
-  hasSteps: boolean,
-  approvals: readonly CaptureApproval[],
-): CaptureApproval[] {
-  if (!hasSteps && approvals.length === 0) return [];
-  return [
-    {
-      kind: "signoff",
-      about: id,
-      ask: `Does ${id} say what was decided: "${statement}"?`,
-    },
-    ...approvals,
-  ];
-}
-
 export async function captureFollowUp(
   input: UpsertInput,
   payload: UpsertPayload,
@@ -867,12 +846,10 @@ export async function captureFollowUp(
   return {
     warnings,
     nextActions: actions,
-    approvalsNeeded: withSignoff(
-      id,
-      text(entity.semantic_text) || head.title,
-      actions.length > 0,
-      approvals,
-    ),
+    // A rule the person stated is approved by their own words (its quote is
+    // origin.ref), so its statement is not put back to them; only the
+    // decisions no write can make on their behalf are listed.
+    approvalsNeeded: approvals,
   };
 }
 
