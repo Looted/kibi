@@ -28,6 +28,7 @@ export interface Tarballs {
   mcp: string;
   "plugin-sdk": string;
   "plugin-builtin": string;
+  "plugin-search-hints": string;
   swipl: string;
 }
 
@@ -329,6 +330,7 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
     mcp: tarballs.mcp,
     "plugin-sdk": tarballs["plugin-sdk"],
     "plugin-builtin": tarballs["plugin-builtin"],
+    "plugin-search-hints": tarballs["plugin-search-hints"],
     swipl: tarballs.swipl,
   };
 }

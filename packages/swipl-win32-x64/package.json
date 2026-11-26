@@ -1,6 +1,6 @@
 {
   "name": "kibi-swipl-win32-x64",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Relocatable SWI-Prolog 10.0.2 runtime for Kibi on Windows x64",
   "os": ["win32"],
   "cpu": ["x64"],
