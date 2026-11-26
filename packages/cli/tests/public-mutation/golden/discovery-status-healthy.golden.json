@@ -22,7 +22,7 @@
       "state": "healthy",
       "path": "/ws/.kb/branches/kb-main"
     },
-    "sessionBrief": "Kibi records this repository's requirements and decisions with their reasons.\n- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.\n- When the person states a rule, record it with their reason (kb_record); a decision goes through kb_upsert.\n- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.\nA request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask.",
+    "sessionBrief": "Kibi records this repository's requirements and decisions with their reasons.\n- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.\n- Record a rule the person states with kb_record in the same turn, with their reason; it needs no permission.\n- Before your final message, run the tests linked to the code you changed, then kb_check with changed: true.\n- A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask.",
     "staleReasonCount": 0,
     "staleReasonsTruncated": false,
     "proofSnapshot": "ws-hash",

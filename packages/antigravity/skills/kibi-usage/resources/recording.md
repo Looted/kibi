@@ -79,7 +79,10 @@ Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
 plus optional `ref` and `approved_by`). `kb_upsert` records `kind: agent` on
 entities you create; leave `origin.approved_by` to the person who reviews them,
 and ask for that review with `kibi signoff` (see `kibi-decisions`), never with
-a summary in your own words.
+a summary in your own words. A rule the person stated needs no such review:
+`kb_record` with `saidBy: "user"` and their `quote` records their words as
+`origin.ref`. Ask only when your statement says more, less or something else
+than they said.
 An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
@@ -98,6 +101,35 @@ merge the pull request, and when the person answers, record their answer
 request. Writing down an answer the person gave is not approving it yourself.
 Never open a separate pull request only to carry a signoff, firmness or waiver
 approval.
+
+## After kb_record
+
+`kb_record` writes the requirement and returns what is left as `nextActions`
+(each with an `operation`, an `input` and a `reason`) and what only the
+person can settle as `approvalsNeeded`. Work through them like this:
+
+1. Send each action's `input` to its `operation` as returned, in order. Fill
+   only the `<placeholders>` it carries. The input already holds the id, the
+   stored title and the inventory fields, so do not rebuild it from
+   `kb_model` output and do not resend `title`, `statement` or
+   `semantic_text` of a firm requirement: a firm requirement's title is
+   stored as written, and a different one reads as an edit of its statement.
+2. A `claim-subject-missing` step already carries the inventory with the
+   subjects added: send it as is.
+3. A `related-requirement-unmodeled` step carries one `pair_reviews` entry
+   per partner. Replace its `verdict` placeholder with `no_conflict` (and
+   `separated_by` with what separates the two rules), `interacts` (send
+   `resolved_by`, naming what resolves it, instead of `separated_by`) or
+   `conflict`, which stays blocking until a person decides. A verdict on a
+   firm pair counts only with the person's `approved_by`, so it is listed in
+   `approvalsNeeded`.
+4. Every relationship in one write starts from the entity that write
+   upserts (see `relationship-directions.md`).
+5. Put everything in `approvalsNeeded` to the person in one question, after
+   the other steps are done. When nothing is listed there, do not ask.
+
+If the same write is refused twice, stop repairing by hand: run `kb_check`
+with `changed: true` and follow the `nextActions` it returns.
 
 ## Decision firmness
 
