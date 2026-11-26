@@ -45,6 +45,7 @@ type KibiPackage =
   | "opencode"
   | "plugin-sdk"
   | "plugin-builtin"
+  | "plugin-search-hints"
   | "swipl";
 
 const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
@@ -52,6 +53,7 @@ const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
   "agent-core",
   "plugin-sdk",
   "plugin-builtin",
+  "plugin-search-hints",
   "swipl",
   "cli",
   "runtime",
@@ -302,6 +304,7 @@ export function installOpencodeTarball(
     "agent-core",
     "plugin-sdk",
     "plugin-builtin",
+    "plugin-search-hints",
     "swipl",
     "cli",
     "runtime",

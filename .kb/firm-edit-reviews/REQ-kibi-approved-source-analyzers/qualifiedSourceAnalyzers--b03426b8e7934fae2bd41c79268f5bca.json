@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/plugins/approved-source-analyzers.generated.ts",
   "symbol": "qualifiedSourceAnalyzers",
   "verdict": "keeps",
-  "note": "Regenerated approval for kibi-plugin-treesitter 4.0.1 with the new file digests; the host still runs only approved analyzers whose files match.",
+  "note": "Regenerated release qualification hashes for kibi-plugin-treesitter@5.0.0 via scripts/qualify-source-analyzers.mjs --write during 2026.11.6 version bump; release-qualified analyzer enforcement is unchanged.",
   "statementHash": "sha256:0e292e9e37e185c701bafe608c6aacea467e0f894951a88b429bd879e18b2c33",
-  "codeHash": "sha256:b99253fdc9f0943cf8cb003d52e915939745cf539e38e7107efb315bcd4acdfd",
+  "codeHash": "sha256:0c18221e878dc335f23fe8652df864aaf93901333be0f946f6a72677e51fc91b",
   "startLine": 3,
   "endLine": 106,
-  "recordedAt": "2026-11-18T11:03:12.048Z"
+  "recordedAt": "2026-11-26T21:06:14.116Z"
 }

@@ -52143,3 +52143,21 @@ symbols:
         target: TEST-agent-hosts-shell-edits-count
       - type: implements
         target: REQ-agent-hosts-shell-edits-count
+  - id: SYM-pnpm-upgrade-utils-tarballs
+    title: Tarballs
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T21:20:58.879Z
+  - id: SYM-opencode-packed-utils-install-opencode-tarball
+    title: installOpencodeTarball
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-packed-utils.ts
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T21:38:30.826Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-opencode-enforcement-surface
