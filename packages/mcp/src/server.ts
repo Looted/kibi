@@ -40,6 +40,7 @@ import {
   OPTIONAL_TOOL_NAMES,
   REMEMBER_UNLISTED_TOOLS,
   TOOLS,
+  hasImpactPolicy,
   knowledgeBaseIsEmpty,
   profileToolNames,
   resolveToolProfile,
@@ -105,6 +106,7 @@ export async function startServer(): Promise<void> {
     resolveToolProfile(workspaceRoot),
     knowledgeBaseIsEmpty(workspaceRoot),
     level,
+    hasImpactPolicy(workspaceRoot),
   );
 
   // Create MCP server

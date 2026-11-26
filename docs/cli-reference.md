@@ -178,7 +178,7 @@ A project that sets no level is at `test`, which is what Kibi ran before levels 
 
 - A current requirement whose `required_evidence` is `tested` or `proved` is reported by the advisory `required-evidence-above-level` rule (non-blocking) instead of enforced, and `kb_upsert`/`kb_record` refuse a write that raises `required_evidence` to `tested` or `proved`: a person chooses `test` first.
 - A requirement write's `nextActions` ask for the pair reviews and the `kb_model` step of its unmodeled claims (as at every level) and for no scenario, test or proof.
-- The MCP server does not list `kb_ingest_proof`, and `kb_skills` (and `kibi skills list`) does not offer `kibi-provable-code`, which still loads by id.
+- The MCP server does not list `kb_ingest_proof`, and `kb_skills` (and `kibi skills list`) does not offer `kibi-provable-code`, which still loads by id. The server lists only the knowledge tools, and names `kb_find_gaps`, `kb_coverage` and the planning tools as CLI commands instead (see the [MCP reference](mcp-reference.md)).
 
 The bootstrap skill has the agent ask the person for the level before it runs `kibi init --level <level>`.
 

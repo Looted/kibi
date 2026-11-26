@@ -20,17 +20,17 @@ id: TEST-mcp-default-tool-profile
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-292401d80d8e9d4672407454
+    receipt_id: PR-752b64857e1cd0e9164ddffe
     test_id: TEST-mcp-default-tool-profile
     scope: end_to_end
     outcome: passed
-    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-11-20T07:56:44.843Z'
-    finished_at: '2026-11-20T08:30:48.727Z'
-    artifact_digest: a61dd1ad2002c8afb89c31fa8f15d0e615ffba59e8970ba0e97f7d06dbed27be
+    code_snapshot: 584b201788942f9172213d51f1a3a79b8f74aafa37fa0ab60003c5b3a454b4b6
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-26T10:41:34.756Z'
+    finished_at: '2026-11-26T10:41:48.828Z'
+    artifact_digest: bcbdb40061cb3cf1984900ff3c06575f18168ad417b5735355545e4bf17a36de
     contract_hash: b8fd8042617774c50b7f73d41c1e3a2e5f84809075b20f678ae8b7c735a305ad
-    binding_hash: 1859cd1bd8d7ea4f8e0b6bf232ac76aeb0426fd293582c8c018b9c9b931ce509
+    binding_hash: cddbca2615e11ce2c7d155baa0661913094be578c7fc5bd4d7d50dd2530ca64c
     fingerprint: 01ae8339b3d295dbd92c709d007a17f15835a5fcda993c0c8a28b4d0e78250b5
     fingerprint_components:
       contract: b8fd8042617774c50b7f73d41c1e3a2e5f84809075b20f678ae8b7c735a305ad
@@ -55,4 +55,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Asserts profile resolution from KIBI_MCP_TOOLS, package.json kibi.mcpTools and .kb/setup.json mcpTools, the empty-knowledge-base check, the listed set per profile and the initialize instructions (packages/mcp/tests/server/tool-profile.test.ts); that registration lists only the profile's tools plus optional tools enabled by name (tool-registration-exact); that startServer passes the default six and their instructions (server-start-exact); and the default and full tool-list budgets over a real server (tool-surface-consumer).
+Asserts profile resolution from KIBI_MCP_TOOLS, package.json kibi.mcpTools and .kb/setup.json mcpTools, the empty-knowledge-base check, the listed set per profile, Kibi level, empty knowledge base and impact policy, and the initialize instructions (which name every hidden tool but kb_ingest_proof at level remember) (packages/mcp/tests/server/tool-profile.test.ts); that registration lists only the profile's tools plus optional tools enabled by name (tool-registration-exact); that startServer passes the default six and their instructions (server-start-exact); and the default and full tool-list budgets over a real server (tool-surface-consumer).
