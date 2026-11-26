@@ -16,7 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
 import { spawnSync as rawSpawnSync } from "node:child_process";
 import {
   chmodSync,
@@ -26,6 +33,7 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -518,7 +526,58 @@ describe("init-helpers", () => {
   });
 
   describe("generated POSIX sh hook node version-manager resolution", () => {
-    const STRIPPED_PATH = "/usr/bin:/bin";
+    const buildNodeFreePath = (): string => {
+      if (!existsSync("/usr/bin/node") && !existsSync("/bin/node")) {
+        return "/usr/bin:/bin";
+      }
+      const dir = path.join(tmpdir(), `kibi-node-free-path-${process.pid}`);
+      mkdirSync(dir, { recursive: true });
+      for (const tool of [
+        "sh",
+        "env",
+        "dirname",
+        "basename",
+        "uname",
+        "tr",
+        "sed",
+        "awk",
+        "grep",
+        "cat",
+        "printf",
+        "ls",
+        "head",
+        "tail",
+        "sort",
+        "mkdir",
+        "rm",
+        "cp",
+        "mv",
+        "test",
+        "[",
+        "readlink",
+        "realpath",
+      ]) {
+        const dest = path.join(dir, tool);
+        if (existsSync(dest)) continue;
+        const src = existsSync(`/usr/bin/${tool}`)
+          ? `/usr/bin/${tool}`
+          : existsSync(`/bin/${tool}`)
+            ? `/bin/${tool}`
+            : null;
+        if (src) {
+          try {
+            symlinkSync(src, dest);
+          } catch {}
+        }
+      }
+      return dir;
+    };
+    const STRIPPED_PATH = buildNodeFreePath();
+    afterAll(() => {
+      if (STRIPPED_PATH !== "/usr/bin:/bin") {
+        rmSync(STRIPPED_PATH, { recursive: true, force: true });
+      }
+    });
 
     function createHookFixture() {
       const repoDir = path.join(tmpDir, "repo");

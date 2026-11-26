@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-skills-ask-only-for-decisions",
+  "sourceFile": "packages/cli/src/public/skills/kibi-usage/SKILL.md",
+  "symbol": "Kibi Usage",
+  "verdict": "keeps",
+  "note": "Preserves the rule that agents ask the person only for decisions; only updates hook-snippet documentation for read and search rows.",
+  "statementHash": "sha256:842f8f9cfa9724abb511dd37a0a97a5541b7e8f591977c3379e7d95b7e37abd7",
+  "codeHash": "sha256:51d174aa0427e2d22e5060b2cdb6fbb3db3d3d2747b7c0b2ad5a7633d29642a8",
+  "startLine": 1,
+  "endLine": 131,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

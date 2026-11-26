@@ -436,7 +436,68 @@ describe("formatCardLine", () => {
     ).toBe("REQ-x: Tags are capped");
     const long = formatCardLine({ ...base, statement: "y".repeat(400) });
     expect(long.length).toBe(300);
-    expect(long.endsWith("…")).toBe(true);
+    expect(long).toContain("…");
+    expect(long).toContain("(linked to code here) +1 similar");
+  });
+
+  test("marks non-current statuses beside id and preserves prohibition clauses on cut", () => {
+    const retired = formatCardLine({
+      ...base,
+      firm: false,
+      status: "retired",
+      statement: "x".repeat(350),
+    });
+    expect(retired.startsWith("REQ-x [retired]: Tags are capped")).toBe(true);
+    expect(retired.length).toBeLessThanOrEqual(300);
+    const closed = formatCardLine({
+      ...base,
+      firm: false,
+      status: "closed",
+      evidence: ["linked to code here", "closed"],
+    });
+    expect(closed.startsWith("REQ-x [closed]: ")).toBe(true);
+    const prohibited = formatCardLine({
+      ...base,
+      firm: false,
+      statement:
+        "A bulk export of customer records may be started by any support agent from the admin console while other work continues in the background across the active queue, but must never include payment card numbers or leave the company network.",
+    });
+    expect(prohibited.length).toBeLessThanOrEqual(300);
+    expect(prohibited).toContain("must never include payment card numbers");
+  });
+
+  test("governing coverage ignores rationale-only words and reports best card coverage", () => {
+    const idx = buildRetrievalIndex(
+      [
+        {
+          id: "REQ-rationale-only",
+          type: "req",
+          title: "Retired status policy",
+          semantic_text:
+            "A retired requirement stays on record without blocking.",
+          body: "# Context\n\nAudit logging was retired under this rule.\n",
+          status: "open",
+        },
+        {
+          id: "REQ-actual-audit",
+          type: "req",
+          title: "Audit logging records mutations",
+          semantic_text: "Audit logging must record every mutation.",
+          status: "open",
+        },
+      ],
+      [],
+    );
+    expect(decisionCoverage(idx, "audit logging", "REQ-rationale-only")).toBe(
+      0,
+    );
+    expect(decisionCoverage(idx, "audit logging", "REQ-actual-audit")).toBe(1);
+    const result = retrieve(idx, {
+      text: "audit logging",
+      vectorScores: [0.99, 0.01],
+      vectorWeight: 10,
+    });
+    expect(result.coverage).toBe(1);
   });
 });
 

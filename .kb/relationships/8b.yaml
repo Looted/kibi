@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-62b052b2fbcb
+  - type: implements
+    from: SYM-level-guard-guarded-change-of-shell-command
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-26T17:45:52.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb207d9c03f1
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-of-shell-command
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-26T17:45:52.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-851a710703b1

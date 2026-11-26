@@ -2,6 +2,6 @@
 "kibi-cli": patch
 ---
 
-`kb_search` hints now list first the requirements that several provider hits agree on. Before, one hit on a test or scenario linked to several requirements took one of the ten places for each of them and could push the requirement the question was about off the list. The ten shown hints, the 0.44 trigger and the provider contract are unchanged.
+`kb_search` meaning hints now rank decisions by combining their own similarity with the scenarios, tests and facts they link, instead of letting one hit on a shared test crowd the list with unrelated requirements.
 
-`queryAnalysis.hints.items` is ordered by the summed score of every provider hit that led to an item, highest first; items with equal sums keep the order of their best hits, and each item still carries the `score` and `via` of its best hit.
+Each decision's meaning score is the mean of the two highest provider scores across the decision and its linked scenarios, tests and facts. Up to seven related-by-meaning items (`{id, title, score}`) appear in `queryAnalysis.hints.items` beside the decision cards on every search when a search-hints provider is active.

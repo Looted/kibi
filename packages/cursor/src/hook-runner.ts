@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   type ShellRead,
+  shellToolCommand,
   shellToolEditPaths,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
@@ -51,6 +52,7 @@ import {
   type GuardedChange,
   guardedChangeNotice,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import {
@@ -510,6 +512,16 @@ export async function runHook(
           };
         }
 
+        const shellCmd = kibiReady
+          ? shellToolCommand(input.toolName, input.toolInput)
+          : undefined;
+        const shellGuarded =
+          shellCmd !== undefined
+            ? guardedChangeOfShellCommand(cwd, shellCmd, input.cwd ?? cwd)
+            : undefined;
+        if (shellGuarded)
+          return { agent_message: guardedNotice(shellGuarded, trace) };
+
         // A shell call that writes files in place gets the firm notice an
         // edit of those files would, read as a whole-file write.
         if (kibiReady && !isKnownEditableTool(input.toolName)) {
@@ -528,8 +540,12 @@ export async function runHook(
               false,
             );
             if (notice === undefined) continue;
+            const held = takeRuleNote(session);
             trace.action = "edit_snippet";
-            return { permission: "allow", agent_message: notice };
+            return {
+              permission: "allow",
+              agent_message: held ? `${held}\n\n${notice}` : notice,
+            };
           }
         }
 
@@ -548,10 +564,14 @@ export async function runHook(
             input.conversationId,
             admits,
           );
-          if (rows) {
-            trace.action = "read_snippet";
-            trace.requirementIds = rows.ids;
-            return { permission: "allow", agent_message: rows.text };
+          const held = takeRuleNote(session);
+          if (rows || held) {
+            trace.action = rows ? "read_snippet" : "prompt_rule_note";
+            if (rows) trace.requirementIds = rows.ids;
+            const parts = [held, rows?.text].filter(
+              (part): part is string => part !== undefined,
+            );
+            return { permission: "allow", agent_message: parts.join("\n\n") };
           }
         }
         if (

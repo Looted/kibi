@@ -432,6 +432,7 @@
             "description": "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
             "maxLength": 4096,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "rankingMode": {

@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Merging develop adds the outside-Git refusal for --staged before any rule runs; rule selection, staged focus and non-zero exit on violations are unchanged.",
+  "note": "Preserves check validation and exit codes while reading staged Kibi level from the staged snapshot and printing unknown-level diagnostics.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:60b83f48f24b6c540c31d7aac37078a8c47b1b3c0cba274ed3dd859c773f438e",
-  "startLine": 832,
-  "endLine": 1871,
-  "recordedAt": "2026-11-25T14:39:36.452Z"
+  "codeHash": "sha256:11ce6d4149f16676d98f8a43b2c968980e1c3db43a1c1925b00ff823e74e23a0",
+  "startLine": 859,
+  "endLine": 1915,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
 }

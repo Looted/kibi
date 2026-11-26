@@ -111,6 +111,7 @@ describe("opencode packed utility helpers", () => {
       "kibi-cursor": `file:${tarballs.cursor}`,
       "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
       "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+      "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
       "kibi-swipl": `file:${tarballs.swipl}`,
     };
 

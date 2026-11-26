@@ -190,6 +190,7 @@ export const searchSpec = {
         type: "string",
         minLength: 1,
         maxLength: 4096,
+        pattern: "\\S",
         description:
           "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
         // Agents that call kb_search before its schema is in their prompt

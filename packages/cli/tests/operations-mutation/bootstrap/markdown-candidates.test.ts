@@ -258,6 +258,30 @@ describe("heading candidates and signals", () => {
     expect(candidate?.applyPlan[0]?.id).toBe("FACT-GEN-NOTES");
   });
 
+  test("ignores Kibi-managed agent instruction blocks", () => {
+    const content = [
+      "<!-- BEGIN kibi-managed: written by `kibi init`; edit outside these markers -->",
+      "## Kibi",
+      "- Commits must pass `kibi check --staged`.",
+      "- Before editing code that implements a firm requirement, ask the person.",
+      "<!-- END kibi-managed -->",
+      "",
+      "# Billing",
+      "Refunds must be logged with an audit entry.",
+    ].join("\n");
+    const result = markdownCandidates(
+      doc(content, { relativePath: "AGENTS.md" }),
+      NONE,
+      0.5,
+    );
+    expect(
+      result.diagnostics.some((line) => line.includes("kibi check --staged")),
+    ).toBe(false);
+    expect(result.candidates.some((item) => item.title.includes("Kibi"))).toBe(
+      false,
+    );
+  });
+
   test("heading signals name the lanes a heading points at", () => {
     const result = markdownCandidates(
       doc(

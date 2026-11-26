@@ -71,6 +71,13 @@ export type RetrievalIndex = Readonly<{
   cards: readonly DecisionCardData[];
   /** Token to the cards that contain it with the token's field weight. */
   postings: Readonly<Record<string, readonly Posting[]>>;
+  /**
+   * Token to the card positions that hold it in their governing text (title,
+   * id, statement without rationale/context sections, decision, and facts).
+   * Used for governing coverage so rationale-only words do not make a
+   * requirement govern a question.
+   */
+  governingPostings?: Readonly<Record<string, readonly number[]>>;
   /** Each card's field-weighted length, for length normalization. */
   lengths: readonly number[];
   averageLength: number;
@@ -189,6 +196,7 @@ export function buildRetrievalIndex(
 
   const cards: DecisionCardData[] = [];
   const fieldsOf: Array<Record<keyof typeof FIELD_WEIGHTS, string>> = [];
+  const governingTextOf: string[] = [];
   for (const decision of decisions) {
     const files = filesOf(decision);
     const source = tagsOf(decision).find((tag) => tag.startsWith(SOURCE_TAG));
@@ -216,6 +224,23 @@ export function buildRetrievalIndex(
     const symbols = symbolsOf.get(decision.id) ?? [];
     const facts = factsOf.get(decision.id) ?? [];
     const successor = successorOf.get(decision.id);
+    const factsText = facts
+      .map((fact) =>
+        [
+          fact.title,
+          fact.subject_key,
+          fact.canonical_key,
+          fact.property_key,
+          fact.claim_text,
+          fact.body,
+        ]
+          .map(text)
+          .join(" "),
+      )
+      .join(" ");
+    const governingStatement =
+      text(decision.semantic_text).trim() ||
+      stripRationaleSections(text(decision.body));
     cards.push({
       id: decision.id,
       type: decision.type as "req" | "adr",
@@ -229,28 +254,16 @@ export function buildRetrievalIndex(
       scope,
       scopeReason,
     });
+    const strippedId = decision.id.replace(/^(?:REQ|ADR)-/, "");
     fieldsOf.push({
       title: text(decision.title),
-      id: decision.id.replace(/^(?:REQ|ADR)-/, ""),
+      id: strippedId,
       statement: [
         text(decision.semantic_text),
         text(decision.body),
         text(decision.decision),
       ].join(" "),
-      facts: facts
-        .map((fact) =>
-          [
-            fact.title,
-            fact.subject_key,
-            fact.canonical_key,
-            fact.property_key,
-            fact.claim_text,
-            fact.body,
-          ]
-            .map(text)
-            .join(" "),
-        )
-        .join(" "),
+      facts: factsText,
       symbols: symbols
         .map(
           (symbol) =>
@@ -261,9 +274,19 @@ export function buildRetrievalIndex(
         .filter((tag) => !BOOKKEEPING_TAG.test(tag))
         .join(" "),
     });
+    governingTextOf.push(
+      [
+        text(decision.title),
+        strippedId,
+        governingStatement,
+        text(decision.decision),
+        factsText,
+      ].join(" "),
+    );
   }
 
   const postings: Record<string, Posting[]> = {};
+  const governingPostings: Record<string, number[]> = {};
   const lengths: number[] = [];
   fieldsOf.forEach((fields, card) => {
     const weights = new Map<string, number>();
@@ -284,23 +307,108 @@ export function buildRetrievalIndex(
       if (list) list.push([card, weight]);
       else postings[token] = [[card, weight]];
     }
+    const governingTokens = new Set<string>();
+    for (const token of words(governingTextOf[card] ?? "")) {
+      if (!isStopToken(token)) governingTokens.add(token);
+    }
+    for (const token of governingTokens) {
+      const list = governingPostings[token];
+      if (list) list.push(card);
+      else governingPostings[token] = [card];
+    }
   });
   const averageLength =
     lengths.length === 0
       ? 0
       : lengths.reduce((sum, length) => sum + length, 0) / lengths.length;
-  return { format: INDEX_FORMAT, cards, postings, lengths, averageLength };
+  return {
+    format: INDEX_FORMAT,
+    cards,
+    postings,
+    governingPostings,
+    lengths,
+    averageLength,
+  };
 }
 
 const STATEMENT_CHARS = 240;
+const PROHIBITION =
+  /\b(?:must\s+not|never|forbidden|prohibited|cannot|shall\s+not|do\s+not)\b/i;
+const RATIONALE_HEADING =
+  /^\s{0,3}(#{1,6})\s+(?:rationale|why|context|background|notes|evidence)\b/i;
+
+/** Strip Markdown sections whose heading names rationale or background context. */
+function stripRationaleSections(body: string): string {
+  const kept: string[] = [];
+  let skippingLevel = 0;
+  let fenced = false;
+  for (const line of body.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      if (skippingLevel === 0) kept.push(line);
+      continue;
+    }
+    if (!fenced) {
+      const heading = /^\s{0,3}(#{1,6})\s+/.exec(line);
+      if (heading) {
+        const level = (heading[1] as string).length;
+        if (RATIONALE_HEADING.test(line)) {
+          skippingLevel = level;
+          continue;
+        }
+        if (skippingLevel > 0 && level <= skippingLevel) skippingLevel = 0;
+      }
+    }
+    if (skippingLevel === 0) kept.push(line);
+  }
+  return kept.join("\n");
+}
+
+/**
+ * Cut prose to `maxChars` while keeping a trailing prohibition clause
+ * ("must never ...", "must not ...") when the head alone would drop it.
+ */
+function clipPreservingProhibition(value: string, maxChars: number): string {
+  if (value.length <= maxChars) return value;
+  if (maxChars <= 1) return "…".slice(0, maxChars);
+  const head = value.slice(0, maxChars - 1);
+  if (!PROHIBITION.test(head)) {
+    const tailMatch = PROHIBITION.exec(value.slice(maxChars - 1));
+    if (tailMatch) {
+      const hitAt = maxChars - 1 + tailMatch.index;
+      const beforeHit = value.slice(0, hitAt);
+      const boundary = Math.max(
+        beforeHit.lastIndexOf(". "),
+        beforeHit.lastIndexOf("; "),
+        beforeHit.lastIndexOf(", "),
+      );
+      const clauseStart = boundary >= 0 ? boundary + 2 : hitAt;
+      const clause = value.slice(clauseStart).trim();
+      const separator = " … ";
+      const minHead = Math.min(48, Math.floor(maxChars / 3));
+      const clauseBudget = maxChars - minHead - separator.length;
+      if (clauseBudget >= 24) {
+        const keptClause =
+          clause.length > clauseBudget
+            ? `${clause.slice(0, clauseBudget - 1).trimEnd()}…`
+            : clause;
+        const headBudget = maxChars - keptClause.length - separator.length;
+        if (headBudget >= 12) {
+          const keptHead = value.slice(0, headBudget).trimEnd();
+          return `${keptHead}${separator}${keptClause}`;
+        }
+      }
+    }
+  }
+  return `${head}…`;
+}
 
 function statementOf(entity: RetrievalEntity): string {
   const statement =
     text(entity.semantic_text).trim() ||
+    stripRationaleSections(text(entity.body)).replace(/^#.*$/gm, "").trim() ||
     text(entity.body).replace(/^#.*$/gm, "").trim();
-  return statement.length > STATEMENT_CHARS
-    ? `${statement.slice(0, STATEMENT_CHARS - 1)}…`
-    : statement;
+  return clipPreservingProhibition(statement, STATEMENT_CHARS);
 }
 
 function push<T>(map: Map<string, T[]>, key: string, value: T): void {
@@ -660,12 +768,14 @@ export function retrieve(
   }
 
   const total = [...questionIdf.values()].reduce((sum, w) => sum + w, 0);
+  const tokenInGoverning = (token: string, position: number): boolean =>
+    index.governingPostings !== undefined
+      ? (index.governingPostings[token]?.includes(position) ?? false)
+      : (index.postings[token]?.some(([card]) => card === position) ?? false);
   const coverageOf = (position: number) =>
     total > 0
       ? questionTokens
-          .filter((token) =>
-            index.postings[token]?.some(([card]) => card === position),
-          )
+          .filter((token) => tokenInGoverning(token, position))
           .reduce((sum, token) => sum + (questionIdf.get(token) ?? 0), 0) /
         total
       : 0;
@@ -702,8 +812,10 @@ export function retrieve(
       if (postings?.some(([card]) => card === entry.card)) covered.add(token);
     }
   }
-  const best = shown[0];
-  const bestCovered = best ? coverageOf(best.card) : 0;
+  const bestCovered = cards.reduce(
+    (max, card) => Math.max(max, card.coverage),
+    0,
+  );
 
   return {
     cards,
@@ -717,8 +829,8 @@ export function retrieve(
 }
 
 /**
- * Share of the question's weight that decision `id`'s words cover, 0 to 1;
- * 0 for a decision the index does not hold.
+ * Share of the question's weight that decision `id`'s governing words cover,
+ * 0 to 1; 0 for a decision the index does not hold.
  */
 export function decisionCoverage(
   index: RetrievalIndex,
@@ -732,7 +844,9 @@ export function decisionCoverage(
   const total = [...idf.values()].reduce((sum, w) => sum + w, 0);
   const covered = tokens
     .filter((token) =>
-      index.postings[token]?.some(([card]) => card === position),
+      index.governingPostings !== undefined
+        ? (index.governingPostings[token]?.includes(position) ?? false)
+        : (index.postings[token]?.some(([card]) => card === position) ?? false),
     )
     .reduce((sum, token) => sum + (idf.get(token) ?? 0), 0);
   return covered / total;
@@ -774,19 +888,36 @@ function compare(left: string, right: string): number {
 const CARD_LINE_CHARS = 300;
 
 /**
- * One line per card: id, firmness, title, the statement when it says more than
- * the title, and the strongest evidence. Hooks and compact answers show this.
+ * One line per card: id, firmness, non-current status, title, the statement
+ * when it says more than the title, and the strongest evidence. Hooks and
+ * compact answers show this.
  */
 export function formatCardLine(card: DecisionCard): string {
-  const parts = [`${card.id}${card.firm ? " [firm]" : ""}: ${card.title}`];
+  const statusTag =
+    NON_GOVERNING.has(card.status) || card.status === "closed"
+      ? card.status
+      : card.evidence.includes("superseded")
+        ? "superseded"
+        : "";
+  const head = `${card.id}${card.firm ? " [firm]" : ""}${statusTag ? ` [${statusTag}]` : ""}: ${card.title}`;
   const statement = card.statement.trim();
-  if (statement && !card.title.includes(statement.slice(0, 40)))
-    parts.push(statement);
+  const hasStatement =
+    statement !== "" && !card.title.includes(statement.slice(0, 40));
   const evidence = card.evidence[0];
-  let line = parts.join(" — ");
-  if (evidence) line += ` (${evidence})`;
-  if (card.folded.length > 0) line += ` +${card.folded.length} similar`;
-  return line.length > CARD_LINE_CHARS
-    ? `${line.slice(0, CARD_LINE_CHARS - 1)}…`
-    : line;
+  let suffix = "";
+  if (evidence) suffix += ` (${evidence})`;
+  if (card.folded.length > 0) suffix += ` +${card.folded.length} similar`;
+  const full = `${head}${hasStatement ? ` — ${statement}` : ""}${suffix}`;
+  if (full.length <= CARD_LINE_CHARS) return full;
+  if (hasStatement) {
+    const budget = CARD_LINE_CHARS - head.length - 3 - suffix.length;
+    if (budget >= 24) {
+      return `${head} — ${clipPreservingProhibition(statement, budget)}${suffix}`;
+    }
+    const noSuffixBudget = CARD_LINE_CHARS - head.length - 3;
+    if (noSuffixBudget >= 24) {
+      return `${head} — ${clipPreservingProhibition(statement, noSuffixBudget)}`;
+    }
+  }
+  return `${full.slice(0, CARD_LINE_CHARS - 1)}…`;
 }

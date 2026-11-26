@@ -687,15 +687,17 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   if (!base) throw new Error("MERGE_TRAIN_BASE names the base branch");
   if (!repo || !/^[\w.-]+\/[\w.-]+$/.test(repo))
     throw new Error("GH_REPO names the repository as owner/name");
-  // One name per line when there are several lines, so a check name may hold
-  // a comma ("Secrets, dependencies"); a single line is comma separated.
+  // One name per line when the input contains a newline (including a
+  // single-entry YAML block scalar), so a check name may hold a comma
+  // ("Secrets, dependencies"); a single inline value is comma separated.
   const names = (value: string | undefined) => {
-    const lines = (value ?? "")
+    const raw = value ?? "";
+    const lines = raw
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
     const parts =
-      lines.length > 1
+      lines.length > 1 || raw.includes("\n")
         ? lines.map((line) => line.replace(/,$/, ""))
         : (lines[0] ?? "").split(",");
     return parts.map((name) => name.trim()).filter(Boolean);

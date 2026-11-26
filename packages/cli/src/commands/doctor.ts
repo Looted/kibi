@@ -21,6 +21,11 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  KIBI_LEVELS,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import { noGitAdvisory } from "kibi-agent-core/version-control";
 import {
   type BootstrapKibiEnvironmentResult,
@@ -180,6 +185,10 @@ export async function doctorCommand(
     {
       name: ".kb/ manifest",
       check: checkKbManifest,
+    },
+    {
+      name: "Kibi level",
+      check: checkKibiLevel,
     },
     {
       name: "Canonical storage",
@@ -1266,19 +1275,28 @@ function checkFreshCloneSetup(): DoctorCheckResult {
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
 let cachedRepositoryContext:
-  | { cwd: string; context: GitRepositoryContext | null }
+  | { cwd: string; status: string; context: GitRepositoryContext | null }
   | undefined;
 
-function doctorRepositoryContext(): GitRepositoryContext | null {
+function doctorRepositoryResolution(): {
+  cwd: string;
+  status: string;
+  context: GitRepositoryContext | null;
+} {
   const cwd = process.cwd();
   if (cachedRepositoryContext?.cwd !== cwd) {
     const resolution = resolveGitRepository(cwd);
     cachedRepositoryContext = {
       cwd,
+      status: resolution.status,
       context: resolution.status === "ok" ? resolution.context : null,
     };
   }
-  return cachedRepositoryContext.context;
+  return cachedRepositoryContext;
+}
+
+function doctorRepositoryContext(): GitRepositoryContext | null {
+  return doctorRepositoryResolution().context;
 }
 
 function effectiveHooksDir(): string {
@@ -1444,7 +1462,36 @@ function checkManagedHookSections(): DoctorCheckResult {
   return { passed: true, message: "Current for this Kibi CLI" };
 }
 
+function checkKibiLevel(): DoctorCheckResult {
+  const cwd = process.cwd();
+  const resolved = readKibiLevel(cwd);
+  const where = kibiLevelSettingName(cwd);
+  if (resolved.invalid !== undefined) {
+    return {
+      passed: true,
+      warning: true,
+      message: `${where} is ${JSON.stringify(resolved.invalid)}, which is not a Kibi level (expected ${KIBI_LEVELS.join(" or ")}); running at ${resolved.level}`,
+      remediation: `Set ${where} to ${KIBI_LEVELS.join(" or ")}`,
+    };
+  }
+  const source = resolved.source === "default" ? "default" : where;
+  return {
+    passed: true,
+    message: `${resolved.level} (${source})`,
+  };
+}
+
 function checkGitHooks(): DoctorCheckResult {
+  const repoStatus = doctorRepositoryResolution().status;
+  if (
+    (repoStatus === "not-a-repository" || repoStatus === "git-unavailable") &&
+    !existsSync(path.join(process.cwd(), ".git"))
+  ) {
+    return {
+      passed: true,
+      message: "Not applicable (no Git repository)",
+    };
+  }
   const manager = doctorHookManager();
   if (manager) {
     return checkHookManagerDelegation(

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "debugLaunch",
+  "verdict": "keeps",
+  "note": "Opt-in debug logging writes only when KIBI_VIBE_LAUNCHER_DEBUG is enabled to a private 0700 directory and never alters MCP server behavior.",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:e9260ad8a53500c7e23f4740960344b3b3482dbe71c82aeb1b8f0d6b09e353b3",
+  "startLine": 357,
+  "endLine": 375,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

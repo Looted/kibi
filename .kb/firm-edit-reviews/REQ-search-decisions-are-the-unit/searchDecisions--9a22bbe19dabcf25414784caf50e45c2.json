@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-search-decisions-are-the-unit",
+  "sourceFile": "packages/cli/src/decision-search.ts",
+  "symbol": "searchDecisions",
+  "verdict": "keeps",
+  "note": "Preserves decision-unit search ranking while adding the meaning score floor, close-match ambiguity detection, parent coverage seeding, and supersededBy metadata.",
+  "statementHash": "sha256:ef5557fb1b5c83be62f315b4548b0a3689dd80c2e5507c167ac5fb128cef3457",
+  "codeHash": "sha256:a93ab1b3610c57eb55f2b38e84d16f2ea31ab7fe07bab408fbed258baeaf8be0",
+  "startLine": 255,
+  "endLine": 378,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

@@ -10,9 +10,9 @@
 "kibi-antigravity": patch
 ---
 
-Search hints are now on by default. `kibi-plugin-search-hints` ships with `kibi-cli` and `kibi-runtime` (and so with the MCP server and every agent integration), and a weak or abstained `kb_search` answer suggests which requirements the question may mean, with no setup. A project that names its own `kibi.search-hints.v1` provider in `kibi.plugins` keeps it, in any mode, and `kb_search` with `hints: false` still skips hints for one call.
+Search hints are now on by default. `kibi-plugin-search-hints` ships with `kibi-cli` and `kibi-runtime` (and so with the MCP server and every agent integration). On every default `kb_search`, its meaning scores are fused into the decision-card ranking and up to seven additional related decisions appear in `queryAnalysis.hints.items`, with no setup. A project that names its own `kibi.search-hints.v1` provider in `kibi.plugins` keeps it, in any mode, and `kb_search` with `hints: false` still skips hints for one call.
 
-The plugin adds about 8 MB to an install. Its model is English-only. To turn the default off, for example because the knowledge base is not written in English, the environment does not allow a bundled model, or another provider is configured instead, list the package in `package.json`:
+The bundled model package adds about 33 MB to an install. Its model is English-only. To turn the default off, for example because the knowledge base is not written in English, the environment does not allow a bundled model, or another provider is configured instead, list the package in `package.json`:
 
 ```json
 { "kibi": { "declinedPlugins": ["kibi-plugin-search-hints"] } }
