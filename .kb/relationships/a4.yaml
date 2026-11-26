@@ -699,3 +699,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e2fc0d7e127
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: FACT-NEG-kibi-skills-stated-rule-signoff
+    created_at: 2026-11-26T11:44:18.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70ca491b503a
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: FACT-NEG-kibi-skills-ask-for-workflow-steps
+    created_at: 2026-11-26T11:44:19.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee5c8add83f2
+  - type: verified_by
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-26T11:44:19.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-854de369432f

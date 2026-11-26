@@ -1,37 +1,14 @@
 # Workflows
 
-## Closeout contract
+## Finishing a change
 
-End every task with these five independent fields (not a single inferred
-success flag):
-
-```text
-taskOutcome: complete | interim | blocked
-kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
-verificationState: fresh | dirty | unavailable | not_evaluated
-proofState: tested | mixed | unresolved | not_evaluated
-limitationDisposition: none | accepted | unaccepted | not_applicable
-```
-
-`taskOutcome` describes whether the requested objective was completed. The
-other fields describe observed system state. A clean check can coexist with a
-stale or dirty KB; unresolved proof can coexist with a complete maintenance
-task. An accepted limitation is an auditable operator decision, never logical
-grounding, receipt editing, or proof. For every quality diagnostic, record its
-ID, one of `fixed`, `accepted`, or `deferred`, and a rationale. Keep accepted
-ontology gaps and historical telemetry limitations explicit.
-
-Receipt reuse is safe only when the live verification snapshot, contract hash,
-freshness window, and every required case result still match. Otherwise rerun
-the contracted command. If the contract changed, retain every older receipt
-unchanged, append evidence for the current contract, and keep proof unresolved
-with `proof_contract_mismatch` until that current receipt exists.
-Obsolete symbols require current extraction or Git evidence before
-remap/deletion; transfer coverage only when existing test evidence supports it,
-then sync and read back status. Same-version packages with different export
-surfaces are a release defect: require a new package version and label any
-project override temporary. This skill never selects a package manager or
-edits dependency configuration.
+Before your final message: run the tests linked to the code you changed,
+then one `kb_check` with `changed: true` and the `sourceFiles` (CLI:
+`kibi check --changed <files>`), and fix what it reports about your change.
+Report what you recorded and changed, which tests ran, and anything left
+for the person (a conflict, a choice, an approval only they can give).
+Maintenance and migration work also reports, per quality diagnostic, its
+ID, one of `fixed`, `accepted` or `deferred`, and a rationale.
 
 ## Choosing a discovery mode
 
@@ -182,22 +159,20 @@ For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run 
 
 ## Creating a New Feature
 ```
-1. kb_search to discover existing requirements and related knowledge
-2. kb_query to confirm exact IDs and source-linked context
-3. kb_upsert for new or updated requirements (include relationship rows)
-4. kb_check with targeted rules
+1. kb_search for existing requirements and related knowledge; kb_query the hits.
+2. Record each rule the person stated with kb_record, in the same turn as the code.
+3. Send each nextActions input as returned, in order (fill only <placeholders>).
+4. Run the linked tests, then kb_check with changed: true and the sourceFiles.
 ```
 
 ## Small Behavior Fix With No Existing Requirement
 ```
-1. kb_search and kb_query by the changed source file and test file.
-2. If no requirement exists, create a REQ for the corrected behavior.
-3. Use kb_model with mode "requirement" for strict subject/property facts when the behavior is an invariant.
-4. Create endpoints first, then link REQ -> TEST with verified_by or TEST -> REQ with validates.
-5. Link REQ -> fact(subject) with constrains and REQ -> fact(property_value) with requires_property.
-6. Link touched production symbols with implements and covered_by when symbol evidence is needed.
-7. Author and stage tracked markdown/symbol evidence; MCP writes do not stage those files automatically.
-8. Run kb_check with targeted rules, then a final full check.
+1. kb_search, and kb_query by the changed source file and test file.
+2. If no requirement governs the corrected behaviour, record it with kb_record
+   (saidBy: "user" when the person stated it, else "agent"), naming the code
+   and an existing test.
+3. Send each nextActions input as returned, in order.
+4. Run the linked tests, then kb_check with changed: true and the sourceFiles.
 ```
 
 Do not create a test-fact pair. Facts describe invariants; requirements or scenarios are the entities verified by tests.

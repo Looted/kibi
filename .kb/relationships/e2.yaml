@@ -573,3 +573,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b188e7d2f4bd
+  - type: assumes
+    from: SCEN-kb-upsert-approvals-needed
+    to: FACT-kb-upsert-no-stated-rule-signoff
+    created_at: 2026-11-26T11:39:03.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88073b083cd5
