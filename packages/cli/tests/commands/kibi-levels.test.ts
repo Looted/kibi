@@ -137,12 +137,18 @@ describe("Kibi levels through the CLI", () => {
         JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).kibi
           .level,
       ).toBe("test");
-      // A recorded level is kept; --level changes it.
+      // A recorded level is kept; changing it non-interactively requires --change-level.
       expect(runKibi(["init", "--no-hooks"], root).stdout).not.toContain(
         "Recorded Kibi level",
       );
       expect(
-        runKibi(["init", "--no-hooks", "--level", "remember"], root).stdout,
+        runKibi(["init", "--no-hooks", "--level", "remember"], root).status,
+      ).toBe(1);
+      expect(
+        runKibi(
+          ["init", "--no-hooks", "--level", "remember", "--change-level"],
+          root,
+        ).stdout,
       ).toContain("✓ Recorded Kibi level remember in package.json");
     },
     TIMEOUT_MS,
@@ -162,7 +168,10 @@ describe("Kibi levels through the CLI", () => {
       expect(tested.rules).toContain("evidence-floor");
       expect(tested.advice).not.toContain("rule.required-evidence-above-level");
       // The person chooses remember: the floor is reported, not enforced.
-      const init = runKibi(["init", "--no-hooks", "--level", "remember"], root);
+      const init = runKibi(
+        ["init", "--no-hooks", "--level", "remember", "--change-level"],
+        root,
+      );
       expect(init.stdout).toContain(
         "✓ Recorded Kibi level remember in .kb/setup.json",
       );

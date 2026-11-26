@@ -1765,8 +1765,11 @@ async function executeDecisionSearch(
         ])
       : null;
   const missingList = unindexedIds ? [...unindexedIds].sort() : [];
+  const sources = found.sources ?? {};
+  const supersededBy = found.supersededBy ?? {};
+  const ambiguous = found.ambiguous ?? false;
   const unindexedReasons: Record<string, unknown>[] = missingList.map((id) => {
-    const source = found.sources[id];
+    const source = sources[id];
     return {
       code: "unindexed_corpus_entity",
       ...(source ? { path: source } : {}),
@@ -1821,10 +1824,8 @@ async function executeDecisionSearch(
           branch: context.branchAttachment?.kbBranch ?? null,
           detail: fields === "full" ? "full" : "summary",
           syncState,
-          ...(found.ambiguous ? { ambiguous: true } : {}),
-          ...(Object.keys(found.supersededBy).length > 0
-            ? { supersededBy: found.supersededBy }
-            : {}),
+          ...(ambiguous ? { ambiguous: true } : {}),
+          ...(Object.keys(supersededBy).length > 0 ? { supersededBy } : {}),
           ...(storeNotice !== null
             ? { staleReasonCount: 1 }
             : staleCount !== undefined
@@ -1856,7 +1857,7 @@ async function executeDecisionSearch(
     answer: answerLayer,
     hints,
     offset,
-    ambiguous: found.ambiguous,
+    ambiguous,
   })}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(query) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
   const analysis: DecisionSearchAnalysis = {
     rankingMode: "intent-v1",
@@ -1864,7 +1865,7 @@ async function executeDecisionSearch(
     decisionCount: found.decisionCount,
     fused: found.fused,
     weak: found.weak,
-    ambiguous: found.ambiguous,
+    ambiguous,
     abstained,
     coverage: Math.round(found.retrieval.coverage * 1000) / 1000,
     uncoveredTerms: found.retrieval.uncoveredTerms,

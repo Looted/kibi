@@ -71,13 +71,6 @@ export type RetrievalIndex = Readonly<{
   cards: readonly DecisionCardData[];
   /** Token to the cards that contain it with the token's field weight. */
   postings: Readonly<Record<string, readonly Posting[]>>;
-  /**
-   * Token to the card positions that hold it in their governing text (title,
-   * id, statement without rationale/context sections, decision, and facts).
-   * Used for governing coverage so rationale-only words do not make a
-   * requirement govern a question.
-   */
-  governingPostings?: Readonly<Record<string, readonly number[]>>;
   /** Each card's field-weighted length, for length normalization. */
   lengths: readonly number[];
   averageLength: number;
@@ -196,7 +189,6 @@ export function buildRetrievalIndex(
 
   const cards: DecisionCardData[] = [];
   const fieldsOf: Array<Record<keyof typeof FIELD_WEIGHTS, string>> = [];
-  const governingTextOf: string[] = [];
   for (const decision of decisions) {
     const files = filesOf(decision);
     const source = tagsOf(decision).find((tag) => tag.startsWith(SOURCE_TAG));
@@ -238,9 +230,6 @@ export function buildRetrievalIndex(
           .join(" "),
       )
       .join(" ");
-    const governingStatement =
-      text(decision.semantic_text).trim() ||
-      stripRationaleSections(text(decision.body));
     cards.push({
       id: decision.id,
       type: decision.type as "req" | "adr",
@@ -274,19 +263,9 @@ export function buildRetrievalIndex(
         .filter((tag) => !BOOKKEEPING_TAG.test(tag))
         .join(" "),
     });
-    governingTextOf.push(
-      [
-        text(decision.title),
-        strippedId,
-        governingStatement,
-        text(decision.decision),
-        factsText,
-      ].join(" "),
-    );
   }
 
   const postings: Record<string, Posting[]> = {};
-  const governingPostings: Record<string, number[]> = {};
   const lengths: number[] = [];
   fieldsOf.forEach((fields, card) => {
     const weights = new Map<string, number>();
@@ -307,15 +286,6 @@ export function buildRetrievalIndex(
       if (list) list.push([card, weight]);
       else postings[token] = [[card, weight]];
     }
-    const governingTokens = new Set<string>();
-    for (const token of words(governingTextOf[card] ?? "")) {
-      if (!isStopToken(token)) governingTokens.add(token);
-    }
-    for (const token of governingTokens) {
-      const list = governingPostings[token];
-      if (list) list.push(card);
-      else governingPostings[token] = [card];
-    }
   });
   const averageLength =
     lengths.length === 0
@@ -325,7 +295,6 @@ export function buildRetrievalIndex(
     format: INDEX_FORMAT,
     cards,
     postings,
-    governingPostings,
     lengths,
     averageLength,
   };
@@ -768,14 +737,12 @@ export function retrieve(
   }
 
   const total = [...questionIdf.values()].reduce((sum, w) => sum + w, 0);
-  const tokenInGoverning = (token: string, position: number): boolean =>
-    index.governingPostings !== undefined
-      ? (index.governingPostings[token]?.includes(position) ?? false)
-      : (index.postings[token]?.some(([card]) => card === position) ?? false);
   const coverageOf = (position: number) =>
     total > 0
       ? questionTokens
-          .filter((token) => tokenInGoverning(token, position))
+          .filter((token) =>
+            index.postings[token]?.some(([card]) => card === position),
+          )
           .reduce((sum, token) => sum + (questionIdf.get(token) ?? 0), 0) /
         total
       : 0;
@@ -844,9 +811,7 @@ export function decisionCoverage(
   const total = [...idf.values()].reduce((sum, w) => sum + w, 0);
   const covered = tokens
     .filter((token) =>
-      index.governingPostings !== undefined
-        ? (index.governingPostings[token]?.includes(position) ?? false)
-        : (index.postings[token]?.some(([card]) => card === position) ?? false),
+      index.postings[token]?.some(([card]) => card === position),
     )
     .reduce((sum, token) => sum + (idf.get(token) ?? 0), 0);
   return covered / total;

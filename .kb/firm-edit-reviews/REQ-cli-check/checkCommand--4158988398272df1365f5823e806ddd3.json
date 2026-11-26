@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Preserves check validation and exit codes while reading staged Kibi level from the staged snapshot and printing unknown-level diagnostics.",
+  "note": "Preserves kibi check validation and exit codes while reading staged Kibi level from valid JSON in the staged snapshot with fallback to readKibiLevel.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:11ce6d4149f16676d98f8a43b2c968980e1c3db43a1c1925b00ff823e74e23a0",
-  "startLine": 859,
-  "endLine": 1915,
-  "recordedAt": "2026-11-26T18:45:24.378Z"
+  "codeHash": "sha256:c373538399e104a21f3f6af48c043e24dc2f6c3a8ad9e762527756204481db28",
+  "startLine": 867,
+  "endLine": 1931,
+  "recordedAt": "2026-11-26T19:47:02.615Z"
 }
