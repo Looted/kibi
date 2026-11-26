@@ -13,6 +13,7 @@ import type {
   StatusInput,
   StatusPayload,
 } from "../discovery-executors.js";
+import { INPUT_ALIASES } from "../input-aliases.js";
 import type { OperationSpec } from "../types.js";
 
 const ENTITY_TYPES = [
@@ -191,6 +192,9 @@ export const searchSpec = {
         maxLength: 4096,
         description:
           "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+        // Agents that call kb_search before its schema is in their prompt
+        // ask it a `question`.
+        [INPUT_ALIASES]: ["question"],
       },
       type: {
         type: "string",

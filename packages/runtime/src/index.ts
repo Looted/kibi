@@ -223,6 +223,7 @@ export {
   prepareOperationInput,
   resultVersion,
   toKibiResult,
+  withInputAliases,
 } from "kibi-cli/operations/result-envelope";
 export type {
   CodedErrorFields,
