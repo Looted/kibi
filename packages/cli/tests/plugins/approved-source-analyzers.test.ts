@@ -1,8 +1,21 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { qualifiedSourceAnalyzers } from "../../src/plugins/approved-source-analyzers.generated.js";
 import { APPROVED_SOURCE_ANALYZERS } from "../../src/plugins/approved-source-analyzers.js";
 
 const SHA256 = /^[0-9a-f]{64}$/;
+const TREESITTER_PACKAGE_VERSION = (
+  JSON.parse(
+    readFileSync(
+      path.resolve(
+        import.meta.dirname,
+        "../../../plugin-treesitter/package.json",
+      ),
+      "utf8",
+    ),
+  ) as { version: string }
+).version;
 
 function expectDigests(files: Readonly<Record<string, string>>): void {
   for (const [file, digest] of Object.entries(files)) {
@@ -20,7 +33,7 @@ describe("approved source analyzers", () => {
       "kibi-plugin-treesitter",
     ]);
     const [analyzer] = APPROVED_SOURCE_ANALYZERS;
-    expect(analyzer.version).toBe("4.0.1");
+    expect(analyzer.version).toBe(TREESITTER_PACKAGE_VERSION);
     expect(Object.keys(analyzer.files)).toStrictEqual([
       "SBOM.spdx.json",
       "THIRD_PARTY_NOTICES.md",
