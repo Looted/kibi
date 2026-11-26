@@ -6,11 +6,15 @@
 // bin/hooks/kibi-guard.mjs, because a copied Vibe plugin has no
 // node_modules.
 import { createHash } from "node:crypto";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 import {
   type ShellRead,
+  commandEditPaths,
+  kibiInitLevelTarget,
+  shellToolCommand,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
 import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
@@ -29,7 +33,10 @@ import {
   statedReason,
 } from "kibi-agent-core/decision-guard";
 import { parseHookInput } from "kibi-agent-core/hook-input";
-import { canonicalKbToolName } from "kibi-agent-core/kb-mcp-tools";
+import {
+  canonicalKbToolName,
+  effectiveKbOperation,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type EntitySummary,
   loadKnowledgeIndex,
@@ -52,10 +59,30 @@ export function isEditTool(toolName: string | undefined): boolean {
   return EDIT_TOOLS.has(String(toolName ?? "").replace(/^file_system\./, ""));
 }
 
+function privateFallbackBase(): string {
+  const candidate = path.join(
+    os.tmpdir(),
+    `kibi-vibe-${process.getuid?.() ?? "user"}`,
+  );
+  try {
+    fs.mkdirSync(candidate, { recursive: true, mode: 0o700 });
+    const stat = fs.lstatSync(candidate);
+    if (
+      stat.isDirectory() &&
+      (typeof process.getuid !== "function" || stat.uid === process.getuid())
+    ) {
+      return candidate;
+    }
+  } catch {
+    // Fall through to a fresh private directory if candidate is unusable.
+  }
+  return fs.mkdtempSync(path.join(os.tmpdir(), "kibi-vibe-priv-"));
+}
+
 /**
  * Per-session marker directory, keyed by the workspace root and the hashed
- * Vibe session id, under a per-user directory in the OS temp dir (or
- * KIBI_VIBE_STATE_DIR). Events without a session id share one bucket.
+ * Vibe session id, under KIBI_VIBE_STATE_DIR, PLUGIN_DATA, or a 0700 per-user
+ * directory in the OS temp dir. Events without a session id share one bucket.
  */
 export function sessionStateDir(
   workspaceRoot: string,
@@ -64,7 +91,8 @@ export function sessionStateDir(
 ): string {
   const base =
     env.KIBI_VIBE_STATE_DIR?.trim() ||
-    path.join(os.tmpdir(), `kibi-vibe-${process.getuid?.() ?? "user"}`);
+    env.PLUGIN_DATA?.trim() ||
+    privateFallbackBase();
   const workspaceKey = createHash("sha256")
     .update(path.resolve(workspaceRoot))
     .digest("hex")
@@ -191,11 +219,141 @@ export function searchReplaceEdits(toolInput: unknown): unknown {
   return edits.length === 0 ? toolInput : { edits };
 }
 
+function findRequirementFileById(workspaceRoot: string, id: string): string {
+  const direct = `.kb/requirements/${id}.md`;
+  if (fs.existsSync(path.join(workspaceRoot, direct))) return direct;
+  const reqDir = path.join(workspaceRoot, ".kb", "requirements");
+  const stack = [reqDir];
+  while (stack.length > 0) {
+    const dir = stack.pop() as string;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (entry.isFile() && entry.name.endsWith(".md")) {
+        try {
+          const text = fs.readFileSync(full, "utf8");
+          if (
+            new RegExp(
+              `^id:\\s*["']?${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']?\\s*$`,
+              "m",
+            ).test(text)
+          ) {
+            const rel = workspaceRelative(workspaceRoot, full);
+            if (rel) return rel;
+          }
+        } catch {
+          // ignore unreadable files
+        }
+      }
+    }
+  }
+  return direct;
+}
+
+const GUARDED_KB_OPS = new Set(["kb_upsert", "kb_delete", "kb_apply_plan"]);
+
+function effectiveKbOp(
+  toolName: string | undefined,
+  fields: Fields,
+): string | undefined {
+  const canonical = canonicalKbToolName(toolName);
+  if (canonical === undefined) return undefined;
+  return effectiveKbOperation(canonical, fields);
+}
+
+function guardedRequirementIdsOfKbOp(kbOp: string, fields: Fields): string[] {
+  if (fields.dryRun === true) return [];
+  if (kbOp === "kb_upsert") {
+    return typeof fields.id === "string" && fields.id.trim() !== ""
+      ? [fields.id.trim()]
+      : [];
+  }
+  if (kbOp === "kb_delete") {
+    const ids: string[] = [];
+    if (typeof fields.id === "string" && fields.id.trim() !== "") {
+      ids.push(fields.id.trim());
+    }
+    if (Array.isArray(fields.ids)) {
+      for (const entry of fields.ids) {
+        if (typeof entry === "string" && entry.trim() !== "") {
+          ids.push(entry.trim());
+        }
+      }
+    }
+    return ids;
+  }
+  if (kbOp === "kb_apply_plan") {
+    const plan =
+      typeof fields.plan === "object" && fields.plan !== null
+        ? (fields.plan as Fields)
+        : undefined;
+    if (!plan) return [];
+    const ids = new Set<string>();
+    const collect = (list: unknown): void => {
+      if (!Array.isArray(list)) return;
+      for (const entry of list) {
+        if (typeof entry === "string" && entry.trim() !== "") {
+          ids.add(entry.trim());
+        } else if (typeof entry === "object" && entry !== null) {
+          const rec = entry as Fields;
+          if (typeof rec.id === "string" && rec.id.trim() !== "") {
+            ids.add(rec.id.trim());
+          }
+        }
+      }
+    };
+    collect(plan.entityIds);
+    collect(plan.entities);
+    collect(plan.requirements);
+    return [...ids];
+  }
+  return [];
+}
+
+function committedKibiLevel(workspaceRoot: string): {
+  level: "remember" | "test";
+  path: string;
+} {
+  const pkgPath = path.join(workspaceRoot, "package.json");
+  if (fs.existsSync(pkgPath)) {
+    const before = committedContent(workspaceRoot, "package.json");
+    if (before !== undefined) {
+      try {
+        const parsed = JSON.parse(before) as { kibi?: { level?: unknown } };
+        const lvl = parsed?.kibi?.level;
+        if (lvl === "remember" || lvl === "test") {
+          return { level: lvl, path: "package.json" };
+        }
+      } catch {
+        // Malformed committed package.json falls back to default test level.
+      }
+    }
+    return { level: "test", path: "package.json" };
+  }
+  const before = committedContent(workspaceRoot, ".kb/setup.json");
+  if (before !== undefined) {
+    try {
+      const parsed = JSON.parse(before) as { level?: unknown };
+      if (parsed?.level === "remember" || parsed?.level === "test") {
+        return { level: parsed.level, path: ".kb/setup.json" };
+      }
+    } catch {
+      // Malformed committed setup.json falls back to default test level.
+    }
+  }
+  return { level: "test", path: ".kb/setup.json" };
+}
+
 /**
  * The change the person decides that a tool Vibe has already run made: an
- * edit that changed the Kibi level or lowered a requirement's floor, or a
- * kb_upsert that lowered one. The earlier text is the edit turned back, or
- * the file in the last commit.
+ * edit or bash command that changed the Kibi level or lowered a requirement's
+ * floor, or a kb_upsert/kb_record/kb_delete/kb_apply_plan that lowered one.
  */
 export function guardedChangeAfter(
   workspaceRoot: string,
@@ -203,11 +361,13 @@ export function guardedChangeAfter(
   targets: readonly { absolute: string; relative: string }[],
 ): GuardedChange | undefined {
   const fields = asFields(input.toolInput);
+  const kbOp = effectiveKbOp(input.toolName, fields);
   const candidates =
-    canonicalKbToolName(input.toolName) === "kb_upsert"
-      ? typeof fields.id === "string" && fields.dryRun !== true
-        ? [{ relative: `.kb/requirements/${fields.id}.md`, before: undefined }]
-        : []
+    kbOp !== undefined && GUARDED_KB_OPS.has(kbOp)
+      ? guardedRequirementIdsOfKbOp(kbOp, fields).map((id) => ({
+          relative: findRequirementFileById(workspaceRoot, id),
+          before: undefined,
+        }))
       : targets.map((target) => ({
           relative: target.relative,
           before: contentBeforeEdit(
@@ -229,15 +389,44 @@ export function guardedChangeAfter(
     );
     if (change !== undefined) return change;
   }
+  const bashCmd =
+    String(input.toolName ?? "").replace(/^file_system\./, "") === "bash"
+      ? shellToolCommand("Bash", input.toolInput)
+      : undefined;
+  if (bashCmd !== undefined) {
+    const initTarget = kibiInitLevelTarget(bashCmd);
+    if (initTarget === "remember" || initTarget === "test") {
+      const prev = committedKibiLevel(workspaceRoot);
+      if (initTarget !== prev.level) {
+        return {
+          kind: "level",
+          path: prev.path,
+          from: prev.level,
+          to: initTarget,
+        };
+      }
+    }
+    const cwd = input.cwd ?? workspaceRoot;
+    for (const file of commandEditPaths(bashCmd, cwd)) {
+      const rel = path.relative(workspaceRoot, file).replace(/\\/g, "/");
+      if (rel.startsWith("..") || path.isAbsolute(rel)) continue;
+      const change = guardedChangeSince(
+        workspaceRoot,
+        rel,
+        committedContent(workspaceRoot, rel),
+      );
+      if (change !== undefined) return change;
+    }
+  }
   return undefined;
 }
 
 /**
- * post_tool after an edit or a kb_upsert: the notice to ask the person about
- * a change of the Kibi level or a lowered required_evidence (once per change
- * per session), the firm-requirement notice (once per requirement per
- * session), then the rule-capture template on the first source edit of a
- * session whose prompt stated a rule.
+ * post_tool after an edit, bash write, or kb_upsert/kb_record: the notice to
+ * ask the person about a change of the Kibi level or a lowered
+ * required_evidence (once per change per session), the firm-requirement notice
+ * (once per requirement per session), then the rule-capture template on the
+ * first source edit of a session whose prompt stated a rule.
  */
 export function postEditNote(
   workspaceRoot: string,
@@ -245,21 +434,34 @@ export function postEditNote(
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
   const input = parseHookInput(payload);
-  const kbWrite = canonicalKbToolName(input.toolName) === "kb_upsert";
-  if (!kbWrite && !isEditTool(input.toolName)) return undefined;
+  const fields = asFields(input.toolInput);
+  const kbOp = effectiveKbOp(input.toolName, fields);
+  const kbWrite = kbOp !== undefined && GUARDED_KB_OPS.has(kbOp);
+  const isBash =
+    String(input.toolName ?? "").replace(/^file_system\./, "") === "bash";
+  if (!kbWrite && !isEditTool(input.toolName) && !isBash) return undefined;
   const base = input.cwd ?? workspaceRoot;
-  const edited = kbWrite
+  const bashCommand = isBash
+    ? shellToolCommand("Bash", input.toolInput)
+    : undefined;
+  const rawPaths = kbWrite
     ? []
-    : extractEditedPaths(input.toolInput)
-        .map((raw) => path.resolve(base, raw))
-        .map((absolute) => ({
-          absolute,
-          relative: workspaceRelative(workspaceRoot, absolute),
-        }))
-        .filter(
-          (target): target is { absolute: string; relative: string } =>
-            target.relative !== undefined,
+    : isBash
+      ? bashCommand !== undefined
+        ? commandEditPaths(bashCommand, base)
+        : []
+      : extractEditedPaths(input.toolInput).map((raw) =>
+          path.resolve(base, raw),
         );
+  const edited = rawPaths
+    .map((absolute) => ({
+      absolute,
+      relative: workspaceRelative(workspaceRoot, absolute),
+    }))
+    .filter(
+      (target): target is { absolute: string; relative: string } =>
+        target.relative !== undefined,
+    );
   const decision = session(workspaceRoot, input, env);
   const guarded = guardedChangeAfter(workspaceRoot, input, edited);
   const guardedNote =
@@ -277,7 +479,9 @@ export function postEditNote(
     const summarize = createEntitySummarizer(workspaceRoot);
     const settled = settledFirmRequirements(decision);
     for (const target of targets) {
-      const focus = editFocus(target.absolute, afterEditInput(input.toolInput));
+      const focus = isBash
+        ? undefined
+        : editFocus(target.absolute, afterEditInput(input.toolInput));
       const { ids, symbol } = firmRequirementsTouched({
         symbols: files[target.relative] ?? [],
         focus,

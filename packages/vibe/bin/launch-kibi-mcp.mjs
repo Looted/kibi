@@ -21,6 +21,7 @@ import {
   isKibiWorkspace,
   planRuntime,
   resolveWorkspace,
+  serveDeferredMcpServer,
   serveEmptyMcpServer,
   spawnKibiMcp,
 } from "./kibi-runtime.mjs";
@@ -38,12 +39,13 @@ debugLaunch(
 );
 
 if (!isKibiWorkspace(workspace.root)) {
-  await serveEmptyMcpServer({
+  const code = await serveDeferredMcpServer({
+    env,
     instructions:
       "Kibi is not configured for this workspace, so no KB tools are available. " +
       "Initialize project memory explicitly with `kibi init` or the kibi-bootstrap skill if you want Kibi here.",
   });
-  process.exit(0);
+  process.exit(code);
 }
 
 let child;

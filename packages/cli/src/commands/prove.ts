@@ -334,7 +334,19 @@ export function narrowedPlaywrightCommand(
       };
     for (const file of own) files.add(file);
   }
-  return { argv: [...argv, ...[...files].sort()], narrowed: true };
+  return {
+    argv: [...argv, ...[...files].sort().map(escapePlaywrightFilter)],
+    narrowed: true,
+  };
+}
+
+/**
+ * Playwright interprets positional CLI arguments as regular expressions
+ * matched against file paths, so metacharacters like `[id]` or `(group)`
+ * must be escaped to match the bound spec file literally.
+ */
+function escapePlaywrightFilter(file: string): string {
+  return file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function proofSourceFiles(test: SelectedTest): string[] {

@@ -145,7 +145,8 @@ over. See [Working without Git](error-reference.md#working-without-git-no_git_re
 
 - `--format <format>` - With `--print-hook` only: `shell` (default), `lefthook` (entries to merge into `lefthook.yml`), `husky` (one shell snippet per `.husky/<hook>` file) or `pre-commit` (local hooks for `.pre-commit-config.yaml`). Every format runs the same commands under the same conditions as the managed hooks.
 - `--auto-sync` / `--no-auto-sync`, `--prepare-hooks` / `--no-prepare-hooks`, `--agent-instructions` / `--no-agent-instructions`, `--ci-gate` / `--no-ci-gate` - Set and record a [setup choice](#setup-choices). A flag left out keeps the recorded choice.
-- `--level <level>` - Set and record the [Kibi level](#kibi-level): `test` or `remember`. An unknown level is refused before anything is written. Without it, a project that already records a level keeps it; otherwise init asks at a terminal (test recommended) and records `test` without one (CI, an agent's shell, a pipe).
+- `--level <level>` - Set and record the [Kibi level](#kibi-level): `test` or `remember`. An unknown level is refused before anything is written. Without it, a project that already records a level keeps it; otherwise init asks at a terminal (test recommended) and records `test` without one (CI, an agent's shell, a pipe). Changing an already-recorded level to a different value non-interactively requires `--change-level`.
+- `--change-level` - Explicitly confirm changing an already-recorded Kibi level when passing `--level <level>` non-interactively.
 
 ```bash
 kibi init --print-hook pre-commit >> .husky/pre-commit

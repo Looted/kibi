@@ -40,6 +40,10 @@ export function renderDiscoveryTable(structured: unknown): string | null {
 function renderSearchTable(payload: Readonly<Record<string, unknown>>): string {
   // The dispatcher routes only payloads whose results are an array.
   const rows = payload.results as readonly unknown[];
+  const analysis = fieldsFrom(payload.queryAnalysis);
+  const isDecision =
+    analysis.unit === "decision" ||
+    rows.some((row) => typeof fieldsFrom(row).line === "string");
   const table = new Table({
     head: ["ID", "Type", "Title", "Score", "Reasons", "Snippet"],
     wordWrap: true,
@@ -56,20 +60,62 @@ function renderSearchTable(payload: Readonly<Record<string, unknown>>): string {
     const title = isFields(match.negativePath)
       ? negativePathTitle(stringifyCell(entity.title))
       : stringifyCell(entity.title);
+    const snippet =
+      typeof match.line === "string" && match.line !== ""
+        ? match.line
+        : stringifyCell(match.snippet);
     table.push([
       stringifyCell(entity.id),
       stringifyCell(entity.type),
       title,
       stringifyCell(match.score),
       reasons,
-      stringifyCell(match.snippet),
+      snippet,
     ]);
   }
 
-  return [
-    `Search results: ${stringifyCell(payload.count)} total`,
-    table.toString(),
-  ].join("\n");
+  const lines: string[] = [];
+  if (isDecision) {
+    if (analysis.weak === true) {
+      lines.push(
+        rows.length === 0
+          ? "No matching decisions found in this workspace's scope."
+          : "No strong match in this workspace's scope; showing nearest decisions (not confirmed to govern).",
+      );
+    }
+    const answer = fieldsFrom(payload.answer);
+    if (Array.isArray(answer.governing)) {
+      const governingIds = answer.governing
+        .map((entry) => fieldsFrom(entry).id)
+        .filter((id): id is string => typeof id === "string" && id !== "");
+      const label =
+        analysis.ambiguous === true && governingIds.length > 0
+          ? "Candidate requirements, not confirmed to govern"
+          : "Governing";
+      lines.push(
+        `${label}: ${governingIds.join(", ") || "no current requirement among the cards"}.`,
+      );
+    }
+    if (
+      Array.isArray(analysis.uncoveredTerms) &&
+      analysis.uncoveredTerms.length > 0
+    ) {
+      lines.push(
+        `Not in any card: ${analysis.uncoveredTerms.map(String).join(", ")}.`,
+      );
+    }
+    const hints = fieldsFrom(analysis.hints);
+    if (Array.isArray(hints.items) && hints.items.length > 0) {
+      const hintIds = hints.items
+        .map((entry) => fieldsFrom(entry).id)
+        .filter((id): id is string => typeof id === "string" && id !== "");
+      if (hintIds.length > 0)
+        lines.push(`Related by meaning: ${hintIds.join(", ")}.`);
+    }
+  }
+  lines.push(`Search results: ${stringifyCell(payload.count)} total`);
+  lines.push(table.toString());
+  return lines.join("\n");
 }
 
 function renderStatusTable(payload: Readonly<Record<string, unknown>>): string {

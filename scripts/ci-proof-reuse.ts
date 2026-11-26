@@ -22,6 +22,7 @@ const execFileAsync = promisify(execFile);
 const ATTESTATION_VERSION = "kibi.ci-proof-attestation.v1";
 const DECISION_VERSION = "kibi.ci-proof-decision.v1";
 const ARTIFACT_NAME = "kibi-proof-attestation";
+const REPORT_ARTIFACT_NAME = "kibi-requirement-proof";
 const WORKFLOW_PATH = ".github/workflows/proof.yml";
 const SHA = /^[a-f0-9]{40}$/;
 /** Branches the merge train assembles; their pull request proof runs attest. */
@@ -237,7 +238,50 @@ type TrainReuseInput = {
 };
 
 /**
- * The trust decision for a develop push that merged a merge train. The train
+ * The workflow run ID that holds `kibi-requirement-proof` for a reused train
+ * attestation. When a single-PR merge train reused its member PR's proof, its
+ * attestation carries `derived_from` pointing at that member run (the train
+ * run skipped the `proof` job and uploaded no report); otherwise the train run
+ * itself uploaded the report.
+ */
+export function reportRunIdFromAttestation(
+  repository: string,
+  trainRunId: number,
+  attestation: unknown,
+): number {
+  if (!isRecord(attestation) || typeof attestation.derived_from !== "string")
+    return trainRunId;
+  const prefix = `https://github.com/${repository.toLowerCase()}/actions/runs/`;
+  const normalized = attestation.derived_from.trim();
+  if (!normalized.toLowerCase().startsWith(prefix)) return trainRunId;
+  const suffix = normalized.slice(prefix.length);
+  if (!/^\d+$/.test(suffix)) return trainRunId;
+  const derivedId = Number(suffix);
+  return Number.isSafeInteger(derivedId) && derivedId > 0
+    ? derivedId
+    : trainRunId;
+}
+
+async function hasProofReportArtifact(
+  repository: string,
+  runId: number,
+): Promise<boolean> {
+  const payload = await ghApi(
+    `/repos/${repository}/actions/runs/${runId}/artifacts`,
+  );
+  const artifacts =
+    isRecord(payload) && Array.isArray(payload.artifacts)
+      ? payload.artifacts
+      : [];
+  return artifacts.some(
+    (entry) =>
+      isRecord(entry) &&
+      entry.name === REPORT_ARTIFACT_NAME &&
+      entry.expired !== true,
+  );
+}
+
+/** The trust decision for a develop push that merged a merge train. The train
  * pull request's proof run proved the train head merged into the commit the
  * train was assembled on; a develop merge commit with exactly those parents
  * and the attested snapshot holds that proven tree, so it reuses the proof.
@@ -801,6 +845,7 @@ async function findTrainProofRuns(
 async function decideTrain(outputPath: string): Promise<void> {
   let decision: ReuseDecision;
   let sourceRunId = "";
+  let reportRunId = "";
   try {
     const repository = requiredEnv("GITHUB_REPOSITORY");
     if (
@@ -846,7 +891,35 @@ async function decideTrain(outputPath: string): Promise<void> {
       runs: trainRuns,
       attestation,
     });
-    if (decision.mode === "reused" && onlyRun) sourceRunId = String(onlyRun.id);
+    if (decision.mode === "reused" && onlyRun) {
+      const candidateReportRunId = reportRunIdFromAttestation(
+        repository,
+        onlyRun.id,
+        attestation,
+      );
+      let resolvedReportRunId: number | null = null;
+      for (const candidate of [
+        ...new Set([candidateReportRunId, onlyRun.id]),
+      ]) {
+        if (await hasProofReportArtifact(repository, candidate)) {
+          resolvedReportRunId = candidate;
+          break;
+        }
+      }
+      if (resolvedReportRunId === null) {
+        decision = execute(
+          "reused train proof run has no kibi-requirement-proof artifact",
+          {
+            mergeSnapshot: decision.mergeSnapshot,
+            developSnapshot: decision.developSnapshot,
+            sourceRun: decision.sourceRun,
+          },
+        );
+      } else {
+        sourceRunId = String(onlyRun.id);
+        reportRunId = String(resolvedReportRunId);
+      }
+    }
   } catch (error) {
     decision = execute(
       `train reuse lookup failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -861,7 +934,7 @@ async function decideTrain(outputPath: string): Promise<void> {
   if (process.env.GITHUB_OUTPUT)
     await appendFile(
       process.env.GITHUB_OUTPUT,
-      `source_run_id=${sourceRunId}\nsource_run_url=${decision.mode === "reused" ? decision.sourceRun : ""}\n`,
+      `source_run_id=${sourceRunId}\nreport_run_id=${reportRunId}\nsource_run_url=${decision.mode === "reused" ? decision.sourceRun : ""}\n`,
     );
 }
 

@@ -19,7 +19,12 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { KIBI_LEVELS, isKibiLevel } from "kibi-agent-core/kibi-level";
+import {
+  KIBI_LEVELS,
+  isKibiLevel,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import { BranchResolutionFailure } from "../cli-errors.js";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
@@ -84,6 +89,8 @@ interface InitOptions {
   ciGate?: boolean;
   /** The Kibi level to record; asked at a terminal when not given. */
   level?: string;
+  /** Allow changing an already-recorded Kibi level non-interactively. */
+  changeLevel?: boolean;
 }
 
 /**
@@ -256,6 +263,7 @@ export async function initCommand(
     options.level !== undefined &&
     !isKibiLevel(options.level.trim().toLowerCase())
   ) {
+    noteCliErrorCategory("INVALID_LEVEL");
     console.error(
       `Error: unknown --level '${options.level}'. Expected one of: ${KIBI_LEVELS.join(", ")}.`,
     );
@@ -263,6 +271,7 @@ export async function initCommand(
   }
 
   if (options.badgeOnly === true && options.github !== true) {
+    noteCliErrorCategory("INVALID_OPTIONS");
     console.error(
       "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",
     );
@@ -277,6 +286,7 @@ export async function initCommand(
   // the no-Git store, with the advisory to use Git.
   const resolution = resolveGitRepository(process.cwd());
   if (resolution.status === "git-refused") {
+    noteCliErrorCategory("GIT_REPOSITORY_UNREADABLE");
     console.error(`Error: ${resolution.reason}`);
     console.error(
       "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
@@ -284,6 +294,7 @@ export async function initCommand(
     return { exitCode: 1 };
   }
   if (resolution.status === "unsupported") {
+    noteCliErrorCategory("UNSUPPORTED_REPOSITORY");
     console.error(`Error: ${resolution.reason}`);
     console.error(
       "Kibi requires a working-tree checkout; refusing to create workspace state.",
@@ -314,12 +325,34 @@ export async function initCommand(
     return { exitCode: 1 };
   }
   if (result.migrationRequired) {
+    noteCliErrorCategory("LEGACY_BRANCH_STORAGE");
     console.error(
       `Error: KB is attached through legacy branch storage for '${result.gitBranch}'. Run 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' first.`,
     );
     return { exitCode: 1 };
   }
   currentBranch = result.kbBranch;
+
+  if (
+    options.level !== undefined &&
+    !initCanAsk() &&
+    options.changeLevel !== true
+  ) {
+    const requestedLevel = options.level.trim().toLowerCase();
+    const recorded = readKibiLevel(projectRoot);
+    if (
+      recorded.source !== "default" &&
+      recorded.invalid === undefined &&
+      recorded.level !== requestedLevel
+    ) {
+      const where = kibiLevelSettingName(projectRoot);
+      noteCliErrorCategory("LEVEL_CHANGE_REQUIRES_CONFIRMATION");
+      console.error(
+        `Error: this project already records Kibi level '${recorded.level}' in ${where}. Changing the Kibi level is the person's decision: run 'kibi init --level ${requestedLevel}' at a terminal, or pass --change-level if the person explicitly asked to change it.`,
+      );
+      return { exitCode: 1 };
+    }
+  }
 
   try {
     // A repository created since Kibi last ran without Git takes over the
@@ -357,13 +390,23 @@ export async function initCommand(
     }
 
     const choices = settleSetupChoices(projectRoot, options);
-    const level = await settleKibiLevel(
-      projectRoot,
-      options.level,
-      initCanAsk(),
-    );
-    // --level was validated above, so the settlement holds a level.
-    if ("level" in level && level.written !== null)
+    const level =
+      options.changeLevel === true
+        ? await settleKibiLevel(
+            projectRoot,
+            options.level,
+            initCanAsk(),
+            undefined,
+            { changeLevel: true },
+          )
+        : await settleKibiLevel(projectRoot, options.level, initCanAsk());
+    if ("error" in level) {
+      noteCliErrorCategory("LEVEL_CHANGE_REQUIRES_CONFIRMATION");
+      console.error(`Error: ${level.error}`);
+      return { exitCode: 1 };
+    }
+    if (level.warning !== undefined) console.warn(level.warning);
+    if (level.written !== null)
       console.log(`✓ Recorded Kibi level ${level.level} in ${level.written}`);
     if (choices.agentInstructions) {
       reportAgentInstructions(
@@ -445,6 +488,7 @@ export async function initCommand(
 
     return { exitCode: 0 };
   } catch (error) {
+    noteCliErrorCategory("INIT_FAILED");
     console.error("Error during initialization:", error);
     return { exitCode: 1 };
   }

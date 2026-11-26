@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e3d28c96df5
+  - type: implements
+    from: SYM-bash-command-edit-paths
+    to: REQ-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T19:07:41.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67d6693aed2d
+  - type: covered_by
+    from: SYM-bash-command-edit-paths
+    to: TEST-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T19:07:41.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7e300f1ae9b

@@ -4,6 +4,7 @@ import path from "node:path";
 
 import {
   type ShellRead,
+  shellToolCommand,
   shellToolEditPaths,
   shellToolReadViews,
 } from "kibi-agent-core/bash-command";
@@ -38,6 +39,7 @@ import {
   type GuardedChange,
   guardedChangeNotice,
   guardedChangeOf,
+  guardedChangeOfShellCommand,
 } from "kibi-agent-core/level-guard";
 import {
   canonicalizeWorkspacePath,
@@ -126,6 +128,7 @@ export function guardedChangeStop(
   args: unknown,
 ): string | undefined {
   const kbTool = kibiToolName(tool);
+  const shellCommand = shellToolCommand(tool, args);
   let change: GuardedChange | undefined;
   if (kbTool !== undefined)
     change = guardedChangeOf({
@@ -133,6 +136,12 @@ export function guardedChangeStop(
       toolName: kbTool,
       toolInput: args,
     });
+  else if (shellCommand !== undefined)
+    change = guardedChangeOfShellCommand(
+      workspaceRoot,
+      shellCommand,
+      workspaceRoot,
+    );
   else if (EDIT_TOOLS.has(tool))
     for (const relativePath of editedRelativePaths(workspaceRoot, tool, args)) {
       change = guardedChangeOf({

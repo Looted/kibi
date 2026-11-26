@@ -17,6 +17,7 @@ import {
   assessProofReuse,
   pendingDevelopProofRuns,
   proofAgreesWithMember,
+  reportRunIdFromAttestation,
 } from "../ci-proof-reuse.js";
 
 const repository = "Looted/kibi";
@@ -546,5 +547,26 @@ describe("proofAgreesWithMember", () => {
         {},
       ).reason,
     ).toBe("trees differ");
+  });
+});
+
+describe("reportRunIdFromAttestation", () => {
+  test("resolves the originating member run from derived_from when it belongs to this repository", () => {
+    expect(
+      reportRunIdFromAttestation(repository, 900, {
+        derived_from: `https://github.com/${repository}/actions/runs/777`,
+      }),
+    ).toBe(777);
+    expect(reportRunIdFromAttestation(repository, 900, {})).toBe(900);
+    expect(
+      reportRunIdFromAttestation(repository, 900, {
+        derived_from: "https://github.com/other/repo/actions/runs/777",
+      }),
+    ).toBe(900);
+    expect(
+      reportRunIdFromAttestation(repository, 900, {
+        derived_from: `https://github.com/${repository}/actions/runs/not-a-number`,
+      }),
+    ).toBe(900);
   });
 });

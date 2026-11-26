@@ -1,9 +1,30 @@
 # Reading a hook snippet
 
-On hosts where Kibi hooks are installed, a short block
-arrives before you read or edit a file whose symbols are linked to
-requirements. It is projected from `.kb/symbols.yaml`, not from the store, so
-it is a pointer to the knowledge, never proof. Each line answers one question:
+On hosts where Kibi hooks are installed, a short block arrives when you read,
+search, or edit code whose symbols are linked to requirements. It is projected
+from `.kb/symbols.yaml`, not from the store, so it is a pointer to the
+knowledge, never proof.
+
+## Read and search rows
+
+Before a file read, search (`Grep`/`grep_search`), or shell read (`cat`,
+`sed -n`, `head`, `tail`, `grep`, `rg`), Kibi injects a compact block scoped
+to the lines in view:
+
+- `Kibi requirements for the code in view:` followed by `- REQ-… [firm: ask
+  before changing]: <title> — <symbol>` rows (at most 3 rows per event, firm
+  requirements first, each requirement shown once per session unless it is
+  firm and directly in view).
+- When a whole file implements more than five requirements, Kibi summarizes it
+  in one line: `- <path> implements N requirements: REQ-…; reading a line
+  range narrows them to the code in view.`
+- `kb_query({id:"<id>", includeBody:true}) gives a requirement's full text and
+  why it exists.`
+
+## Edit snippets
+
+Before an edit to a file whose symbols are linked to requirements, Kibi shows
+the richer edit block. Each line answers one question:
 
 - `Kibi knowledge for <path> (symbol manifest):` and the `- REQ-… — <symbol
   titles>` rows: the requirements the file's symbols implement, lead

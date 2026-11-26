@@ -7,7 +7,9 @@
       "proofRepairs": [],
       "proofStages": {
         "sourceCoordinates": {
-          "missingSymbols": ["SYM-gone"],
+          "missingSymbols": [
+            "SYM-gone"
+          ],
           "coordinateRepairs": [
             {
               "symbolId": "SYM-gone",
@@ -29,7 +31,9 @@
       "proofRepairs": [],
       "proofStages": {
         "sourceCoordinates": {
-          "missingSymbols": ["SYM-gone"]
+          "missingSymbols": [
+            "SYM-gone"
+          ]
         }
       }
     }
@@ -42,7 +46,9 @@
       "proofRepairs": [],
       "proofStages": {
         "sourceCoordinates": {
-          "missingSymbols": ["SYM-gone"]
+          "missingSymbols": [
+            "SYM-gone"
+          ]
         }
       }
     }

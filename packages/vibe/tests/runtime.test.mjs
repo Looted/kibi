@@ -622,27 +622,28 @@ test("resolvePackageBin prefers the workspace node_modules over require.resolve"
   }
 });
 
-test("debugLaunch is opt-in and writes a per-user 0600 log line (S5)", () => {
+test("debugLaunch is opt-in and writes a per-user 0600 log line inside a 0700 directory (S5)", () => {
   const tmp = makeTmp();
   const prevTmp = process.env.TMPDIR;
+  const prevPluginData = process.env.PLUGIN_DATA;
   const prevDebug = process.env.KIBI_VIBE_LAUNCHER_DEBUG;
   try {
     process.env.TMPDIR = tmp;
-    process.env.KIBI_VIBE_LAUNCHER_DEBUG = undefined;
+    Reflect.deleteProperty(process.env, "PLUGIN_DATA");
+    Reflect.deleteProperty(process.env, "KIBI_VIBE_LAUNCHER_DEBUG");
     debugLaunch({ kind: "off" });
-    assert.equal(existsSync(join(tmp, "kibi-vibe-launcher.log")), false);
-    assert.ok(
-      [...readdirSync(tmp)].every((n) => !n.startsWith("kibi-vibe-launcher")),
-    );
+    assert.equal(readdirSync(tmp).length, 0);
     process.env.KIBI_VIBE_LAUNCHER_DEBUG = "1";
     debugLaunch({ kind: "on", workspace: "/x" });
-    const logs = readdirSync(tmp).filter((n) =>
-      n.startsWith("kibi-vibe-launcher"),
+    const dirs = readdirSync(tmp).filter((n) => n.startsWith("kibi-vibe-"));
+    assert.equal(dirs.length, 1);
+    const dirPath = join(tmp, dirs[0]);
+    assert.equal(
+      statSync(dirPath).mode & 0o777,
+      0o700,
+      "private dir must be 0700",
     );
-    assert.equal(logs.length, 1);
-    // The documented name: kibi-vibe-launcher.log-<user>
-    assert.match(logs[0], /^kibi-vibe-launcher\.log-.+$/);
-    const logPath = join(tmp, logs[0]);
+    const logPath = join(dirPath, "launcher.log");
     const line = JSON.parse(readFileSync(logPath, "utf8").trim());
     assert.equal(line.kind, "on");
     assert.equal(line.workspace, "/x");
@@ -652,10 +653,13 @@ test("debugLaunch is opt-in and writes a per-user 0600 log line (S5)", () => {
       "debug log must be per-user 0600",
     );
   } finally {
-    if (prevTmp === undefined) process.env.TMPDIR = undefined;
+    if (prevTmp === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
     else process.env.TMPDIR = prevTmp;
+    if (prevPluginData === undefined)
+      Reflect.deleteProperty(process.env, "PLUGIN_DATA");
+    else process.env.PLUGIN_DATA = prevPluginData;
     if (prevDebug === undefined)
-      process.env.KIBI_VIBE_LAUNCHER_DEBUG = undefined;
+      Reflect.deleteProperty(process.env, "KIBI_VIBE_LAUNCHER_DEBUG");
     else process.env.KIBI_VIBE_LAUNCHER_DEBUG = prevDebug;
     rmSync(tmp, { recursive: true, force: true });
   }

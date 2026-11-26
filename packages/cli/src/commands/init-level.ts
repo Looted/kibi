@@ -24,6 +24,7 @@ import {
   KIBI_LEVELS,
   type KibiLevel,
   isKibiLevel,
+  kibiLevelSettingName,
   readKibiLevel,
 } from "kibi-agent-core/kibi-level";
 import { SETUP_FILE, serializeJson } from "./setup-choices.js";
@@ -77,7 +78,11 @@ export function writeKibiLevel(
   const packagePath = path.join(workspaceRoot, "package.json");
   if (existsSync(packagePath)) {
     const raw = readFileSync(packagePath, "utf8");
-    const manifest = JSON.parse(raw) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed)) {
+      throw new Error("package.json root must be a JSON object");
+    }
+    const manifest = parsed;
     const kibi = isRecord(manifest.kibi) ? manifest.kibi : {};
     if (kibi.level === level) return null;
     manifest.kibi = { ...kibi, level };
@@ -102,29 +107,64 @@ export function writeKibiLevel(
 }
 
 export type LevelSettlement =
-  | { readonly level: KibiLevel; readonly written: string | null }
+  | {
+      readonly level: KibiLevel;
+      readonly written: string | null;
+      readonly warning?: string;
+    }
   | { readonly error: string };
 
+function tryWriteKibiLevel(
+  workspaceRoot: string,
+  level: KibiLevel,
+): LevelSettlement {
+  try {
+    return { level, written: writeKibiLevel(workspaceRoot, level) };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    const where = kibiLevelSettingName(workspaceRoot);
+    return {
+      level,
+      written: null,
+      warning: `Warning: could not record Kibi level in ${where} (${reason}); this run used ${level} without recording.`,
+    };
+  }
+}
+
 /**
- * The level this init records: --level when given; else the level the
- * project already records; else the person's answer at a terminal, with
- * test recommended; else test.
+ * The level this init records: --level when given (refusing to overwrite a
+ * different already-recorded level non-interactively unless `changeLevel` is
+ * true); else the level the project already records; else the person's answer
+ * at a terminal, with test recommended; else test.
  */
 export async function settleKibiLevel(
   workspaceRoot: string,
   requested: string | undefined,
   interactive: boolean,
   ask: AskLevel = askAtTerminal,
+  options?: Readonly<{ changeLevel?: boolean }>,
 ): Promise<LevelSettlement> {
+  const recorded = readKibiLevel(workspaceRoot);
   if (requested !== undefined) {
     const level = requested.trim().toLowerCase();
     if (!isKibiLevel(level))
       return {
         error: `unknown --level '${requested}'. Expected one of: ${KIBI_LEVELS.join(", ")}.`,
       };
-    return { level, written: writeKibiLevel(workspaceRoot, level) };
+    if (
+      recorded.source !== "default" &&
+      recorded.invalid === undefined &&
+      recorded.level !== level &&
+      !interactive &&
+      options?.changeLevel !== true
+    ) {
+      const where = kibiLevelSettingName(workspaceRoot);
+      return {
+        error: `this project already records Kibi level '${recorded.level}' in ${where}. Changing the Kibi level is the person's decision: run 'kibi init --level ${level}' at a terminal, or pass --change-level if the person explicitly asked to change it.`,
+      };
+    }
+    return tryWriteKibiLevel(workspaceRoot, level);
   }
-  const recorded = readKibiLevel(workspaceRoot);
   if (recorded.source !== "default" && recorded.invalid === undefined)
     return { level: recorded.level, written: null };
   let level: KibiLevel = DEFAULT_KIBI_LEVEL;
@@ -136,7 +176,7 @@ export async function settleKibiLevel(
       );
     level = answer;
   }
-  return { level, written: writeKibiLevel(workspaceRoot, level) };
+  return tryWriteKibiLevel(workspaceRoot, level);
 }
 
 /** Whether init can ask a person: both ends are a terminal and not CI. */

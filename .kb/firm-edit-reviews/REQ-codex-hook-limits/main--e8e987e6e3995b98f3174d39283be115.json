@@ -4,10 +4,10 @@
   "sourceFile": "packages/codex/src/hook-runner.ts",
   "symbol": "main",
   "verdict": "keeps",
-  "note": "The new read rows only add context to PreToolUse output; nothing denies a call, and the row ledger lives in the plugin data directory, never under .kb.",
+  "note": "Preserves Codex warning-only hook limits and fail-open behavior while warning on shell commands that mutate Kibi level or evidence floors.",
   "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
-  "codeHash": "sha256:05b553010575cb36b2b257632597b6ab48f24fd8688d2a0321de432d1c71e9d1",
+  "codeHash": "sha256:d74846150257d7329e2a4a7d53b6cbaaea6fdd1579831ca466f2b653a2a2f30a",
   "startLine": 1,
-  "endLine": 847,
-  "recordedAt": "2026-11-25T14:41:33.676Z"
+  "endLine": 939,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
 }

@@ -29,12 +29,11 @@ Install globally from GitHub with the Antigravity CLI (use `tree/develop/package
 agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
 ```
 
-Or copy the built `kibi-antigravity` npm package directory into `~/.gemini/config/plugins/kibi`:
+Or copy the built plugin directory from a local Kibi checkout into `~/.gemini/config/plugins/kibi` (`kibi-antigravity` is installed from git rather than published to npm; exclude `node_modules` so workspace symlinks are not copied):
 
 ```bash
 mkdir -p ~/.gemini/config/plugins
-rm -rf ~/.gemini/config/plugins/kibi
-cp -R "$(npm root)/kibi-antigravity" ~/.gemini/config/plugins/kibi
+rsync -a --delete --exclude node_modules ./packages/antigravity/ ~/.gemini/config/plugins/kibi/
 ```
 
 No `node_modules` are needed in the copied plugin directory: `bin/hook-runner.mjs` is a self-contained bundle with `kibi-agent-core` inlined, `bin/mcp-launcher.cjs` uses only Node built-ins (and automatically discovers the opened Kibi workspace via MCP `roots/list` when installed globally), `bin/run-node.cmd` is a cross-platform POSIX/Windows hook launcher, and `bin/run-node.sh` lets hooks find Node even when Antigravity's Language Server launches with a minimal non-login `PATH` (for example under `nvm`, `volta`, `fnm`, `mise`, or `asdf`).
@@ -68,7 +67,7 @@ Remove-Item -Recurse -Force $tmp
 | --- | --- |
 | `SessionStart` | Injects the shared Kibi session brief (`kibi-agent-core/session-brief`), linked source file count, MCP/CLI surface summary, and a note when Kibi git hooks are missing. |
 | `PreInvocation` | Evaluates each new `lastUserInput` once per prompt hash for stated rules (`"must"`, `"never"`, `"from now on"` -> `kb_upsert` note) and drains any Kibi knowledge snippets queued by tool hooks into `injectSteps`. |
-| `PreToolUse` | Stamps `workspaceRoot` via `overwrite` on Kibi MCP (`*kb_*`) calls. Queues progressive-disclosure read/edit snippets (requirements, what the lead requirement must keep true, ADR decision, covering tests, `kb_check` call) for linked source/test files and unowned-source notes for unlinked source files. Returns `decision: "force_ask"` with the requirement title and symbol before edits that change code implementing a current `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables this). Never auto-allows `BypassSandbox: true` commands or out-of-workspace writes. |
+| `PreToolUse` | Stamps `workspaceRoot` via `overwrite` on Kibi MCP (`*kb_*`) calls. Queues progressive-disclosure read/edit snippets (requirements, what the lead requirement must keep true, ADR decision, covering tests, `kb_check` call) for linked source/test files and unowned-source notes for unlinked source files. Returns `decision: "force_ask"` with the requirement title and symbol before edits that change code implementing a current `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables this) or guarded changes to the Kibi level / `required_evidence`. All other tool calls (including outside Kibi workspaces) pass through with `decision: "allow"`, delegating to Antigravity's default policy without ever returning `"auto_approve"`. |
 | `PostToolUse` | Records successful edits (confirming firm edits only when `error` is absent), shell file modifications, CLI/MCP `kb_*` usage, verified `git commit` checks, opt-in `.kb/usage.log` diagnostic rows (`KIBI_DIAGNOSTIC_MODE=1`, `host: "antigravity"`), and rule-capture templates. |
 | `Stop` | On `NO_TOOL_CALL` when `continuationActive` is `false`, returns `decision: "continue"` once to remind the agent about unchecked edited source files (`kb_check`), unrecorded decisions (`kb_upsert`), or pending requirements signoff (`kibi signoff`). |
 

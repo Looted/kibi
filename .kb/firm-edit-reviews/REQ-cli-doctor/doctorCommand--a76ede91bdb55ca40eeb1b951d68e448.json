@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-doctor",
+  "sourceFile": "packages/cli/src/commands/doctor.ts",
+  "symbol": "doctorCommand",
+  "verdict": "keeps",
+  "note": "Preserves all existing doctor checks while adding a Kibi level check and marking Git hooks not applicable outside Git repositories.",
+  "statementHash": "sha256:a5e375ec89b77691766f2ef2d9bc9c1ec6cbfa2fbd31d4195e74505ebf6a2d41",
+  "codeHash": "sha256:0d3b7d616f8cab64eb9b4600e4b5ddf77b00af8eb8a43806772e8d0c0d00cbe9",
+  "startLine": 157,
+  "endLine": 296,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

@@ -52,8 +52,19 @@ When `kibi-core` is bumped, `kibi-cli` and `kibi-mcp` will automatically update 
 
 1. Create changeset files on `develop` with human-readable user impact first
 2. Run `bun run version-packages` on `develop` to consume changesets, bump versions, update changelogs, and sync plugin manifests
-3. Review and commit the generated release changes
-4. Merge `develop` into `master`
-5. Let the `master` publish workflow build, verify, and publish packages
+3. Refresh lockfile, formatting, plugin integrity manifests, analyzer qualifications, builds, and symbol coordinates in order:
+   ```bash
+   bun install && bun install --frozen-lockfile
+   bunx biome format --write packages/*/package.json
+   bun run --cwd packages/plugin-treesitter build && node packages/plugin-treesitter/scripts/verify-assets.mjs --write
+   bun run --cwd packages/plugin-search-hints build && node packages/plugin-search-hints/scripts/verify-assets.mjs --write
+   node scripts/qualify-source-analyzers.mjs --write
+   bun run build
+   npx --no-install kibi sync --refresh-symbol-coordinates
+   bun run release:check
+   ```
+4. Review and commit the generated release changes
+5. Merge `develop` into `master`
+6. Let the `master` publish workflow build, verify, and publish packages
 
 Do not publish manually or merge `master` back into `develop`.

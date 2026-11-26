@@ -372,11 +372,43 @@ export function rowsWithinBudget(
   return count;
 }
 
+function readPathValue(node: unknown, path: readonly string[]): unknown {
+  let cur: unknown = node;
+  for (const key of path) {
+    if (Array.isArray(cur)) cur = cur[Number(key)];
+    else if (isRecord(cur)) cur = cur[key];
+    else return undefined;
+  }
+  return cur;
+}
+
+function withPathValue(
+  node: unknown,
+  path: readonly string[],
+  value: unknown,
+): unknown {
+  const [head, ...rest] = path;
+  if (head === undefined) return value;
+  if (Array.isArray(node)) {
+    const index = Number(head);
+    return node.map((item, at) =>
+      at === index ? withPathValue(item, rest, value) : item,
+    );
+  }
+  if (isRecord(node)) {
+    return { ...node, [head]: withPathValue(node[head], rest, value) };
+  }
+  return node;
+}
+
+const STRING_TRUNCATION_MARKER = "… [truncated; full text in source]";
+const MIN_TRUNCATED_PREFIX_CHARS = 160;
+
 /**
  * `row` cut to `budget` characters: its largest parts are left out, deepest
- * first, and `omittedFields` names each one by its dotted path. The keys in
- * `keep` stay at the top level, and an array's only element is stepped into
- * rather than dropped.
+ * first, and `omittedFields` names each one by its dotted path. When a single
+ * oversized string field is the only reason the row exceeds the budget, a
+ * prefix is kept with a truncation marker instead of dropping the whole field.
  */
 export function cutRowToBudget(
   row: unknown,
@@ -390,12 +422,65 @@ export function cutRowToBudget(
     omitted.length > OMITTED_PATHS_SHOWN
       ? [...omitted.slice(0, OMITTED_PATHS_SHOWN), "…and more"]
       : omitted;
-  // Each pass removes one part, so the loop ends.
+  // Each pass removes or truncates one part, so the loop ends.
   while (sizeOf({ ...cut, omittedFields: named() }) > budget) {
     const path = largestPart(cut, budget, keep);
     if (path.length === 0) break;
-    cut = withoutPath(cut, path) as Data;
-    omitted.push(path.join("."));
+    const key = path.join(".");
+    const value = readPathValue(cut, path);
+    const removed = withoutPath(cut, path) as Data;
+    if (
+      typeof value === "string" &&
+      !Array.isArray(readPathValue(cut, path.slice(0, -1))) &&
+      !omitted.includes(key)
+    ) {
+      const nextOmitted = [...omitted, key];
+      const shownOmitted =
+        nextOmitted.length > OMITTED_PATHS_SHOWN
+          ? [...nextOmitted.slice(0, OMITTED_PATHS_SHOWN), "…and more"]
+          : nextOmitted;
+      const baseWithEmpty = withPathValue(
+        cut,
+        path,
+        STRING_TRUNCATION_MARKER,
+      ) as Data;
+      const overhead = sizeOf({
+        ...baseWithEmpty,
+        omittedFields: shownOmitted,
+      });
+      const room = budget - overhead;
+      if (room >= MIN_TRUNCATED_PREFIX_CHARS) {
+        let low = MIN_TRUNCATED_PREFIX_CHARS;
+        let high = Math.min(room, value.length);
+        let best: Data | undefined;
+        while (low <= high) {
+          let mid = Math.floor((low + high) / 2);
+          // Avoid splitting a UTF-16 surrogate pair at the cut boundary.
+          const code = mid > 0 ? value.charCodeAt(mid - 1) : 0;
+          if (code >= 0xd800 && code <= 0xdbff && mid > low) {
+            mid -= 1;
+          }
+          const candidate = withPathValue(
+            cut,
+            path,
+            `${value.slice(0, mid)}${STRING_TRUNCATION_MARKER}`,
+          ) as Data;
+          if (sizeOf({ ...candidate, omittedFields: shownOmitted }) <= budget) {
+            best = candidate;
+            low = Math.floor((low + high) / 2) + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+        if (best !== undefined) {
+          cut = best;
+          omitted.push(key);
+          break;
+        }
+      }
+    }
+    cut = removed;
+    omitted.push(key);
   }
   const shown = omitted.slice(0, OMITTED_PATHS_SHOWN);
   return {
@@ -600,6 +685,13 @@ export function fitOperationResult<T>(
         ? Math.max(0, total - offset - kept.length)
         : undefined;
     const pages = count < rows.length || (omitted ?? 0) > 0;
+    const singleRowSource =
+      count === 1 &&
+      isRecord(kept[0]) &&
+      typeof kept[0].source === "string" &&
+      kept[0].source.trim().length > 0
+        ? kept[0].source
+        : undefined;
     const truncation: ResultTruncation = {
       budgetChars: budget,
       returned: kept.length,
@@ -610,7 +702,9 @@ export function fitOperationResult<T>(
       hint:
         count < rows.length
           ? "Rows past the budget were left out; page with offset, or narrow the filters."
-          : "The row was cut to the budget; omittedFields names the parts left out.",
+          : singleRowSource !== undefined
+            ? `The row was cut to the budget; omittedFields names the parts left out or truncated. Full text is in ${singleRowSource}.`
+            : "The row was cut to the budget; omittedFields names the parts left out.",
     };
     let fitted: Data = {
       ...data,

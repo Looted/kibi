@@ -4,10 +4,10 @@
   "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
   "symbol": "spawnKibiMcp",
   "verdict": "keeps",
-  "note": "Maintainer-approved reword (2026-11-24) of the first claim: every wsl.exe call, including wslpath and the distribution probe, uses --exec with literal argv and never a shell string. This code already does: buildWslArgs, toWslPath (wslpath -a) and probeWslNode (bash -lc with a constant script) all pass --exec. No code change.",
+  "note": "Preserves wsl.exe --exec literal argv spawning with -d for UNC paths and loud failure on unconvertible Windows paths.",
   "statementHash": "sha256:0d03d2dbf38e0376a711e82ecbae23f065c08f89dc077207b1f3a184d639b119",
-  "codeHash": "sha256:b6531f20a05c1e30e3c39ac9e0e3a2b2078da61362a434842b830c66a6258ade",
-  "startLine": 482,
-  "endLine": 507,
-  "recordedAt": "2026-11-24T15:41:43.829Z"
+  "codeHash": "sha256:75fe2ad1d745a778b4304328592a02435bf0d83d72f3cb94b73fbc83d618f813",
+  "startLine": 512,
+  "endLine": 541,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
 }

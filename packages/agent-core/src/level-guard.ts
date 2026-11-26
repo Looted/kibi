@@ -1,7 +1,9 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { parse as parseYaml } from "yaml";
 
+import { commandEditPaths, kibiInitLevelTarget } from "./bash-command.js";
 import { canonicalKbToolName } from "./kb-mcp-tools.js";
 import {
   DEFAULT_KIBI_LEVEL,
@@ -10,7 +12,11 @@ import {
   kibiLevelInSettings,
   readKibiLevel,
 } from "./kibi-level.js";
-import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
+import {
+  extractPatchTexts,
+  normalizeWorkspacePath,
+  toWorkspacePath,
+} from "./path-policy.js";
 
 /**
  * Host-neutral checks for the two edits a person decides: one that changes
@@ -114,7 +120,14 @@ export function proposedContent(
 }
 
 /** The added and removed lines a patch makes to one file. */
-type PatchLines = { added: string[]; removed: string[] };
+type PatchLines = {
+  added: string[];
+  removed: string[];
+  sections: Array<{
+    kind: "Update" | "Add" | "Delete";
+    lines: string[];
+  }>;
+};
 
 const PATCH_SECTION_HEADER = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
 
@@ -123,23 +136,109 @@ function patchLinesFor(
   relativePath: string,
 ): PatchLines | undefined {
   const target = normalizeWorkspacePath(relativePath);
-  const found: PatchLines = { added: [], removed: [] };
+  const found: PatchLines = { added: [], removed: [], sections: [] };
   let matched = false;
   for (const patch of extractPatchTexts(toolInput)) {
     let current: string | undefined;
+    let currentSection:
+      | { kind: "Update" | "Add" | "Delete"; lines: string[] }
+      | undefined;
     for (const line of patch.split(/\r?\n/)) {
       const header = PATCH_SECTION_HEADER.exec(line.trim());
-      if (header?.[2]) {
+      if (header?.[1] && header[2]) {
         current = normalizeWorkspacePath(header[2]);
-        if (current === target) matched = true;
+        if (current === target) {
+          matched = true;
+          currentSection = {
+            kind: header[1] as "Update" | "Add" | "Delete",
+            lines: [],
+          };
+          found.sections.push(currentSection);
+        } else {
+          currentSection = undefined;
+        }
         continue;
       }
-      if (current !== target) continue;
+      if (line.trim() === "*** End Patch") {
+        current = undefined;
+        currentSection = undefined;
+        continue;
+      }
+      if (current !== target || !currentSection) continue;
+      currentSection.lines.push(line);
       if (line.startsWith("+")) found.added.push(line.slice(1));
       else if (line.startsWith("-")) found.removed.push(line.slice(1));
     }
   }
   return matched ? found : undefined;
+}
+
+/**
+ * Reconstruct a file's text after applying a Codex-style patch when all hunks
+ * match `currentText` (or when the file is freshly added). Returns undefined
+ * when the patch cannot be applied cleanly.
+ */
+function applyPatchToText(
+  currentText: string | undefined,
+  lines: PatchLines,
+): string | undefined {
+  let text = currentText;
+  for (const section of lines.sections) {
+    if (section.kind === "Delete") {
+      text = "";
+      continue;
+    }
+    if (section.kind === "Add") {
+      text = `${section.lines
+        .filter((line) => line.startsWith("+"))
+        .map((line) => line.slice(1))
+        .join("\n")}\n`;
+      continue;
+    }
+    if (text === undefined) return undefined;
+    const hunks: string[][] = [];
+    let currentHunk: string[] | undefined;
+    for (const line of section.lines) {
+      if (line.startsWith("@@")) {
+        if (currentHunk && currentHunk.length > 0) hunks.push(currentHunk);
+        currentHunk = [];
+      } else if (
+        line.startsWith(" ") ||
+        line.startsWith("+") ||
+        line.startsWith("-")
+      ) {
+        currentHunk ??= [];
+        currentHunk.push(line);
+      }
+    }
+    if (currentHunk && currentHunk.length > 0) hunks.push(currentHunk);
+    if (hunks.length === 0) return undefined;
+    let fileLines = text.split(/\r?\n/);
+    for (const hunk of hunks) {
+      const before = hunk
+        .filter((line) => !line.startsWith("+"))
+        .map((line) => line.slice(1));
+      const after = hunk
+        .filter((line) => !line.startsWith("-"))
+        .map((line) => line.slice(1));
+      if (before.length === 0) return undefined;
+      let matchAt = -1;
+      for (let i = 0; i <= fileLines.length - before.length; i++) {
+        if (before.every((line, offset) => fileLines[i + offset] === line)) {
+          matchAt = i;
+          break;
+        }
+      }
+      if (matchAt < 0) return undefined;
+      fileLines = [
+        ...fileLines.slice(0, matchAt),
+        ...after,
+        ...fileLines.slice(matchAt + before.length),
+      ];
+    }
+    text = fileLines.join("\n");
+  }
+  return text;
 }
 
 // ---------------------------------------------------------------------------
@@ -158,7 +257,8 @@ function levelInJson(text: string, settings: "package" | "setup"): KibiLevel {
  * The change of Kibi level an edit makes, or undefined when it makes none.
  * Only the file the project reads its level from counts: the root
  * package.json, or `.kb/setup.json` when there is no root package.json.
- * A patch counts when a line it adds or removes in that file sets `level`.
+ * A patch counts when the resulting file or any line it adds or removes sets
+ * a Kibi `level`.
  */
 function levelChangeOfEdit(
   workspaceRoot: string,
@@ -183,18 +283,22 @@ function levelChangeOfEdit(
   } else {
     const lines = patchLinesFor(toolInput, normalized);
     if (lines === undefined) return undefined;
-    const added = lines.added
-      .map((line) => LEVEL_LINE.exec(line))
-      .find((match) => match !== null);
-    const removed = lines.removed.some((line) =>
-      isKibiLevel(LEVEL_LINE.exec(line)?.[2]),
-    );
-    // A "level" key whose value is no Kibi level belongs to something else
-    // in the file, so it changes nothing.
-    if (added) {
-      if (!isKibiLevel(added[2])) return undefined;
-      to = added[2];
-    } else if (removed) to = DEFAULT_KIBI_LEVEL;
+    const patched = applyPatchToText(readText(absolutePath), lines);
+    if (patched !== undefined) {
+      to = levelInJson(patched, settings);
+    } else {
+      const addedLevel = lines.added
+        .map((line) => LEVEL_LINE.exec(line)?.[2])
+        .find(isKibiLevel);
+      const removed = lines.removed.some((line) =>
+        isKibiLevel(LEVEL_LINE.exec(line)?.[2]),
+      );
+      if (addedLevel !== undefined) {
+        to = addedLevel;
+      } else if (removed) {
+        to = DEFAULT_KIBI_LEVEL;
+      }
+    }
   }
   if (to === undefined || to === from) return undefined;
   return { kind: "level", path: normalized, from, to };
@@ -203,33 +307,52 @@ function levelChangeOfEdit(
 // ---------------------------------------------------------------------------
 // A requirement's required_evidence
 
-const REQUIREMENT_PATH = /^\.kb\/requirements\/([^/]+)\.md$/;
+const REQUIREMENT_PATH = /^\.kb\/requirements\/.+\.md$/;
 
-type Frontmatter = Map<string, string>;
+type ParsedFrontmatter = {
+  id?: string | undefined;
+  required_evidence?: unknown;
+  requiredEvidenceInvalid?: boolean | undefined;
+  firmness?: string | undefined;
+  originKind?: string | undefined;
+  approvedBy?: string | undefined;
+  malformed?: boolean | undefined;
+};
 
-/** The top-level scalar fields of a document's frontmatter. */
-function frontmatter(text: string): Frontmatter | undefined {
+/** Parse a document's YAML frontmatter using the real YAML parser. */
+function frontmatter(text: string): ParsedFrontmatter | undefined {
   const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
   if (!match?.[1]) return undefined;
-  const fields: Frontmatter = new Map();
-  let section: string | undefined;
-  for (const line of match[1].split(/\r?\n/)) {
-    const top = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
-    if (top?.[1] !== undefined) {
-      section = top[1];
-      fields.set(top[1], unquote(top[2] ?? ""));
-      continue;
-    }
-    const nested = /^\s+([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
-    if (section !== undefined && nested?.[1] !== undefined)
-      fields.set(`${section}.${nested[1]}`, unquote(nested[2] ?? ""));
+  let parsed: unknown;
+  try {
+    parsed = parseYaml(match[1]);
+  } catch {
+    return { malformed: true };
   }
-  return fields;
-}
-
-function unquote(value: string): string {
-  const trimmed = value.trim();
-  return /^(['"]).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+  if (!isRecord(parsed)) return { malformed: true };
+  const id =
+    typeof parsed.id === "string" && parsed.id.trim() !== ""
+      ? parsed.id.trim()
+      : undefined;
+  const rawEvidence = parsed.required_evidence;
+  const hasExplicitEvidence =
+    rawEvidence !== undefined && rawEvidence !== null && rawEvidence !== "";
+  const requiredEvidenceInvalid =
+    hasExplicitEvidence && !isEvidenceLevel(rawEvidence);
+  const firmness =
+    typeof parsed.firmness === "string" ? parsed.firmness : undefined;
+  const origin = isRecord(parsed.origin) ? parsed.origin : undefined;
+  const originKind = typeof origin?.kind === "string" ? origin.kind : undefined;
+  const approvedBy =
+    typeof origin?.approved_by === "string" ? origin.approved_by : undefined;
+  return {
+    id,
+    required_evidence: rawEvidence,
+    requiredEvidenceInvalid,
+    firmness,
+    originKind,
+    approvedBy,
+  };
 }
 
 /**
@@ -258,23 +381,61 @@ export function evidenceFloor(fields: {
   return "unverified";
 }
 
-function floorOfDocument(fields: Frontmatter): EvidenceLevel {
+function floorOfDocument(fields: ParsedFrontmatter): EvidenceLevel {
+  // Unreadable frontmatter or an invalid explicit required_evidence fails
+  // closed (treated as lowest floor) so tricky YAML cannot bypass the guard.
+  if (fields.malformed || fields.requiredEvidenceInvalid) return "unverified";
   return evidenceFloor({
-    required_evidence: fields.get("required_evidence"),
-    firmness: fields.get("firmness"),
-    originKind: fields.get("origin.kind"),
-    approvedBy: fields.get("origin.approved_by"),
+    required_evidence: fields.required_evidence,
+    firmness: fields.firmness,
+    originKind: fields.originKind,
+    approvedBy: fields.approvedBy,
   });
+}
+
+function walkMarkdownFiles(dir: string, out: string[]): void {
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkMarkdownFiles(full, out);
+    else if (entry.isFile() && entry.name.endsWith(".md")) out.push(full);
+  }
 }
 
 function currentRequirement(
   workspaceRoot: string,
   requirementId: string,
-): Frontmatter | undefined {
-  const text = readText(
-    path.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`),
+): ParsedFrontmatter | undefined {
+  const directPath = path.join(
+    workspaceRoot,
+    ".kb",
+    "requirements",
+    `${requirementId}.md`,
   );
-  return text === undefined ? undefined : frontmatter(text);
+  const directText = readText(directPath);
+  if (directText !== undefined) {
+    const direct = frontmatter(directText);
+    if (
+      direct !== undefined &&
+      (direct.id === undefined || direct.id === requirementId)
+    )
+      return direct;
+  }
+  const files: string[] = [];
+  walkMarkdownFiles(path.join(workspaceRoot, ".kb", "requirements"), files);
+  for (const file of files) {
+    if (file === directPath) continue;
+    const text = readText(file);
+    if (text === undefined) continue;
+    const parsed = frontmatter(text);
+    if (parsed?.id === requirementId) return parsed;
+  }
+  return undefined;
 }
 
 function lowering(
@@ -287,10 +448,22 @@ function lowering(
     : undefined;
 }
 
+/** Parse one YAML mapping line (`key: value` or `"key": value # comment`). */
+function parseYamlLine(line: string): Record<string, unknown> | undefined {
+  const trimmed = line.trim();
+  if (trimmed === "" || trimmed.startsWith("#")) return undefined;
+  try {
+    const parsed = parseYaml(trimmed);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * The lowering of a requirement's floor an edit of its document makes, or
- * undefined when it makes none. A patch counts by the required_evidence,
- * firmness and approved_by lines it adds or removes.
+ * undefined when it makes none. A patch applies hunks to the document when
+ * possible and falls back to YAML-parsing added/removed frontmatter lines.
  */
 function evidenceLoweringOfEdit(
   workspaceRoot: string,
@@ -298,44 +471,84 @@ function evidenceLoweringOfEdit(
   toolInput: unknown,
 ): EvidenceLowering | undefined {
   const normalized = normalizeWorkspacePath(relativePath);
-  const requirementId = REQUIREMENT_PATH.exec(normalized)?.[1];
-  if (requirementId === undefined) return undefined;
-  const current = currentRequirement(workspaceRoot, requirementId);
+  if (!REQUIREMENT_PATH.test(normalized)) return undefined;
+  const absolutePath = path.join(workspaceRoot, normalized);
+  const currentText = readText(absolutePath);
+  if (currentText === undefined) return undefined;
+  const current = frontmatter(currentText);
   if (current === undefined) return undefined;
+  const requirementId = current.id ?? path.basename(normalized, ".md");
   const from = floorOfDocument(current);
-  const after = proposedContent(
-    path.join(workspaceRoot, normalized),
-    toolInput,
-  );
+  const after = proposedContent(absolutePath, toolInput);
   if (after !== undefined) {
     const proposed = frontmatter(after);
-    return proposed === undefined
-      ? undefined
-      : lowering(requirementId, from, floorOfDocument(proposed));
+    const to =
+      proposed === undefined ? "unverified" : floorOfDocument(proposed);
+    return lowering(requirementId, from, to);
   }
   const lines = patchLinesFor(toolInput, normalized);
   if (lines === undefined) return undefined;
-  // The frontmatter lines a patch adds or removes that set the floor: each
-  // removed field is dropped, then each added one is set.
-  const fields: readonly [string, RegExp][] = [
-    ["required_evidence", /^required_evidence:\s*(.*)$/],
-    ["firmness", /^firmness:\s*(.*)$/],
-    ["origin.approved_by", /^\s+approved_by:\s*(.*)$/],
-  ];
-  const next = new Map(current);
+  const patched = applyPatchToText(currentText, lines);
+  if (patched !== undefined) {
+    const proposed = frontmatter(patched);
+    const to =
+      proposed === undefined ? "unverified" : floorOfDocument(proposed);
+    return lowering(requirementId, from, to);
+  }
+  const next: ParsedFrontmatter = { ...current };
   let touched = false;
-  for (const [key, pattern] of fields) {
-    if (lines.removed.some((line) => pattern.test(line))) {
-      next.delete(key);
+  for (const line of lines.removed) {
+    const parsed = parseYamlLine(line);
+    if (!parsed) continue;
+    if ("required_evidence" in parsed) {
+      next.required_evidence = undefined;
+      next.requiredEvidenceInvalid = false;
+      touched = true;
+    }
+    if ("firmness" in parsed) {
+      next.firmness = undefined;
+      touched = true;
+    }
+    if ("approved_by" in parsed) {
+      next.approvedBy = undefined;
+      touched = true;
+    }
+    if ("origin" in parsed) {
+      next.originKind = undefined;
+      next.approvedBy = undefined;
       touched = true;
     }
   }
-  for (const [key, pattern] of fields) {
-    const added = lines.added
-      .map((line) => pattern.exec(line))
-      .find((match) => match !== null);
-    if (added) {
-      next.set(key, unquote(added[1] ?? ""));
+  for (const line of lines.added) {
+    const parsed = parseYamlLine(line);
+    if (!parsed) continue;
+    if ("required_evidence" in parsed) {
+      const value = parsed.required_evidence;
+      next.required_evidence = value;
+      next.requiredEvidenceInvalid =
+        value !== undefined &&
+        value !== null &&
+        value !== "" &&
+        !isEvidenceLevel(value);
+      touched = true;
+    }
+    if ("firmness" in parsed) {
+      next.firmness =
+        typeof parsed.firmness === "string" ? parsed.firmness : undefined;
+      touched = true;
+    }
+    if ("approved_by" in parsed) {
+      next.approvedBy =
+        typeof parsed.approved_by === "string" ? parsed.approved_by : undefined;
+      touched = true;
+    }
+    if ("origin" in parsed && isRecord(parsed.origin)) {
+      next.originKind =
+        typeof parsed.origin.kind === "string" ? parsed.origin.kind : undefined;
+      next.approvedBy =
+        typeof parsed.origin.approved_by === "string"
+          ? parsed.origin.approved_by
+          : undefined;
       touched = true;
     }
   }
@@ -344,54 +557,120 @@ function evidenceLoweringOfEdit(
     : undefined;
 }
 
-/** The Kibi operation that can change an existing requirement. */
-const REQUIREMENT_WRITE = "kb_upsert";
+function loweringFromUpsertFields(
+  workspaceRoot: string,
+  id: string,
+  properties: Record<string, unknown>,
+): EvidenceLowering | undefined {
+  const current = currentRequirement(workspaceRoot, id);
+  if (current === undefined) return undefined;
+  const sent = properties.required_evidence;
+  // A value that is no evidence level is refused by the write itself.
+  if (typeof sent === "string" && sent !== "" && !isEvidenceLevel(sent))
+    return undefined;
+  const next: ParsedFrontmatter = { ...current };
+  if ("required_evidence" in properties) {
+    const value = properties.required_evidence;
+    next.required_evidence =
+      typeof value === "string" && value !== "" ? value : undefined;
+    next.requiredEvidenceInvalid = false;
+  }
+  if ("firmness" in properties) {
+    const value = properties.firmness;
+    next.firmness =
+      typeof value === "string" && value !== "" ? value : undefined;
+  }
+  if ("origin" in properties) {
+    next.originKind = undefined;
+    next.approvedBy = undefined;
+    const origin = properties.origin;
+    if (isRecord(origin)) {
+      if (typeof origin.kind === "string") next.originKind = origin.kind;
+      if (typeof origin.approved_by === "string")
+        next.approvedBy = origin.approved_by;
+    }
+  }
+  return lowering(id, floorOfDocument(current), floorOfDocument(next));
+}
+
+function loweringFromPlan(
+  workspaceRoot: string,
+  plan: unknown,
+): EvidenceLowering | undefined {
+  if (!isRecord(plan)) return undefined;
+  const lists = [plan.actions, plan.steps, plan.entities].filter(Array.isArray);
+  for (const list of lists) {
+    for (const item of list) {
+      if (!isRecord(item)) continue;
+      const target = isRecord(item.payload)
+        ? item.payload
+        : isRecord(item.entity)
+          ? item.entity
+          : item;
+      const id =
+        typeof target.id === "string"
+          ? target.id
+          : typeof item.entityId === "string"
+            ? item.entityId
+            : typeof item.id === "string"
+              ? item.id
+              : undefined;
+      if (!id) continue;
+      const op = String(item.operation ?? item.kind ?? item.action ?? "");
+      if (/delete|remove/i.test(op)) {
+        const current = currentRequirement(workspaceRoot, id);
+        if (current) {
+          const found = lowering(id, floorOfDocument(current), "unverified");
+          if (found) return found;
+        }
+        continue;
+      }
+      const props = isRecord(target.properties) ? target.properties : target;
+      const found = loweringFromUpsertFields(workspaceRoot, id, props);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
 
 /**
- * The lowering of a requirement's floor a kb_upsert call makes, or undefined
- * when it makes none: a requirement already in the knowledge base whose call
- * lowers its floor, by required_evidence, firmness or origin. kb_record only creates requirements, so it
- * lowers none.
+ * The lowering of a requirement's floor a Kibi write call makes, or undefined
+ * when it makes none: `kb_upsert`, `kb_delete`, or `kb_apply_plan` lowering
+ * an existing requirement's floor. `kb_record` only creates requirements.
  */
 function evidenceLoweringOfKbCall(
   workspaceRoot: string,
   operation: string | undefined,
   toolInput: unknown,
 ): EvidenceLowering | undefined {
-  if (operation !== REQUIREMENT_WRITE || !isRecord(toolInput)) return undefined;
+  if (!isRecord(toolInput)) return undefined;
   // A dry run validates and writes nothing.
   if (toolInput.dryRun === true) return undefined;
+  const targetWorkspace = kbCallWorkspace(workspaceRoot, toolInput);
+  if (operation === "kb_delete") {
+    const ids: string[] = [];
+    if (typeof toolInput.id === "string") ids.push(toolInput.id);
+    if (Array.isArray(toolInput.ids)) {
+      for (const entry of toolInput.ids)
+        if (typeof entry === "string") ids.push(entry);
+    }
+    for (const id of ids) {
+      const current = currentRequirement(targetWorkspace, id);
+      if (current === undefined) continue;
+      const found = lowering(id, floorOfDocument(current), "unverified");
+      if (found) return found;
+    }
+    return undefined;
+  }
+  if (operation === "kb_apply_plan") {
+    return loweringFromPlan(targetWorkspace, toolInput.plan);
+  }
+  if (operation !== "kb_upsert") return undefined;
   const { id, properties } = toolInput;
   if (typeof id !== "string" || !isRecord(properties)) return undefined;
   const type = toolInput.type;
   if (type !== undefined && type !== "req") return undefined;
-  const current = currentRequirement(
-    kbCallWorkspace(workspaceRoot, toolInput),
-    id,
-  );
-  if (current === undefined) return undefined;
-  // kb_upsert keeps the stored value of each property the call omits, so the
-  // floor after the call is the stored document with the sent fields applied.
-  const sent = properties.required_evidence;
-  // A value that is no evidence level is refused by the write itself.
-  if (typeof sent === "string" && sent !== "" && !isEvidenceLevel(sent))
-    return undefined;
-  const next = new Map(current);
-  for (const field of ["required_evidence", "firmness"] as const) {
-    if (!(field in properties)) continue;
-    const value = properties[field];
-    if (typeof value === "string" && value !== "") next.set(field, value);
-    else next.delete(field);
-  }
-  if ("origin" in properties) {
-    for (const key of [...next.keys()])
-      if (key.startsWith("origin.")) next.delete(key);
-    const origin = properties.origin;
-    if (isRecord(origin))
-      for (const [key, value] of Object.entries(origin))
-        if (typeof value === "string") next.set(`origin.${key}`, value);
-  }
-  return lowering(id, floorOfDocument(current), floorOfDocument(next));
+  return loweringFromUpsertFields(targetWorkspace, id, properties);
 }
 
 /** The workspace a Kibi call names with workspaceRoot, else the hook's own. */
@@ -403,6 +682,78 @@ function kbCallWorkspace(
   return typeof named === "string" && named.trim() !== ""
     ? path.resolve(workspaceRoot, named.trim())
     : workspaceRoot;
+}
+
+const LEVEL_SHELL_HINT = /\b(?:level|remember|test)\b/i;
+const EVIDENCE_SHELL_HINT =
+  /\b(?:required_evidence|firmness|origin|approved_by|unverified|asserted|tested)\b/i;
+const DESTRUCTIVE_OR_REWRITE_SHELL =
+  /(?:>|>>|\b(?:tee|rm|mv|cp|truncate|dd)\b|\bgit\s+(?:checkout|restore)\b)/;
+
+/**
+ * The guarded change a shell command would make (either `kibi init --level`
+ * changing a recorded level, or an in-place shell write touching the active
+ * level file or a requirement's evidence floor).
+ */
+export function guardedChangeOfShellCommand(
+  workspaceRoot: string,
+  command: string,
+  cwd: string = workspaceRoot,
+): GuardedChange | undefined {
+  const hasPackage = fs.existsSync(path.join(workspaceRoot, "package.json"));
+  const levelPath = hasPackage ? "package.json" : ".kb/setup.json";
+  const fromLevel = readKibiLevel(workspaceRoot).level;
+
+  const initLevel = kibiInitLevelTarget(command)?.trim().toLowerCase();
+  if (
+    initLevel !== undefined &&
+    isKibiLevel(initLevel) &&
+    initLevel !== fromLevel
+  ) {
+    return {
+      kind: "level",
+      path: levelPath,
+      from: fromLevel,
+      to: initLevel,
+    };
+  }
+
+  for (const absolute of commandEditPaths(command, cwd)) {
+    const target = toWorkspacePath(workspaceRoot, absolute, cwd);
+    if (!target) continue;
+    const relative = normalizeWorkspacePath(target.relative);
+    if (
+      relative === levelPath &&
+      (LEVEL_SHELL_HINT.test(command) ||
+        DESTRUCTIVE_OR_REWRITE_SHELL.test(command))
+    ) {
+      return {
+        kind: "level",
+        path: levelPath,
+        from: fromLevel,
+        to: fromLevel === "test" ? "remember" : "test",
+      };
+    }
+    if (
+      REQUIREMENT_PATH.test(relative) &&
+      (EVIDENCE_SHELL_HINT.test(command) ||
+        DESTRUCTIVE_OR_REWRITE_SHELL.test(command))
+    ) {
+      const text = readText(absolute);
+      const current = text === undefined ? undefined : frontmatter(text);
+      if (current === undefined) continue;
+      const from = floorOfDocument(current);
+      if (rank(from) > 0) {
+        return {
+          kind: "evidence",
+          requirementId: current.id ?? path.basename(relative, ".md"),
+          from,
+          to: "unverified",
+        };
+      }
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -533,7 +884,13 @@ export function guardedChangeSince(
     return levelChangeSinceCommit(workspaceRoot, relativePath);
   const normalized = normalizeWorkspacePath(relativePath);
   const now = readText(path.join(workspaceRoot, normalized));
-  if (now === undefined) return undefined;
+  if (now === undefined) {
+    if (!REQUIREMENT_PATH.test(normalized)) return undefined;
+    const earlier = frontmatter(before);
+    if (earlier === undefined) return undefined;
+    const requirementId = earlier.id ?? path.basename(normalized, ".md");
+    return lowering(requirementId, floorOfDocument(earlier), "unverified");
+  }
   const settings =
     normalized === "package.json"
       ? "package"
@@ -548,16 +905,14 @@ export function guardedChangeSince(
       ? undefined
       : { kind: "level", path: normalized, from, to };
   }
-  const requirementId = REQUIREMENT_PATH.exec(normalized)?.[1];
-  if (requirementId === undefined) return undefined;
+  if (!REQUIREMENT_PATH.test(normalized)) return undefined;
   const earlier = frontmatter(before);
+  if (earlier === undefined) return undefined;
   const current = frontmatter(now);
-  if (earlier === undefined || current === undefined) return undefined;
-  return lowering(
-    requirementId,
-    floorOfDocument(earlier),
-    floorOfDocument(current),
-  );
+  const requirementId =
+    current?.id ?? earlier.id ?? path.basename(normalized, ".md");
+  const to = current === undefined ? "unverified" : floorOfDocument(current);
+  return lowering(requirementId, floorOfDocument(earlier), to);
 }
 
 // ---------------------------------------------------------------------------
