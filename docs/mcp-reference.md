@@ -129,6 +129,17 @@ lists `kb_ingest_proof`, and the server instructions do not offer it through
 the CLI: that level asks for no proof. `kb_skills` with `action: list` leaves
 out `kibi-provable-code` there too; it still loads by id.
 
+At `remember` the `full` profile also lists only the knowledge tools:
+`kb_query`, `kb_search`, `kb_status`, `kb_skills`, `kb_graph`, `kb_model`,
+`kb_upsert`, `kb_record`, `kb_delete`, `kb_check`, `kb_review_firm_edit` and
+`kb_apply_plan`. It adds `kb_plan_bootstrap` and `kb_compile_intent` while the
+knowledge base is empty, and `kb_prepare_impact_review` and
+`kb_author_impact_review` while the project has an impact policy
+(`.kibi/impact-policy.json`). The server instructions name the other tools
+(`kb_find_gaps`, `kb_coverage` and the planning tools) as project CLI
+commands. The list is decided by the server, so it is the same in every host
+and for any MCP client.
+
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
 environment to a comma-separated list of names, or `all`; a tool named
 there is listed in either profile:

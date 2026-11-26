@@ -51899,3 +51899,54 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-26T12:01:46.152Z
+  - id: SYM-tools-config-remember-knowledge-tools
+    title: REMEMBER_KNOWLEDGE_TOOLS
+    sourceFile: packages/mcp/src/tools-config.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:29:13.092Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-kibi-remember-level-tool-list
+  - id: SYM-tools-config-has-impact-policy
+    title: hasImpactPolicy
+    sourceFile: packages/mcp/src/tools-config.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:29:14.697Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-kibi-remember-level-tool-list
+  - id: SYM-tools-config-impact-review-tools
+    title: IMPACT_REVIEW_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T10:36:50.889Z
+  - id: SYM-docs-site-pages-workflow
+    title: Pages deploy workflow (.github/workflows/pages.yml)
+    status: active
+    sourceFile: .github/workflows/pages.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - ci
+      - docs
+      - pages
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:21:06.369Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages

@@ -573,3 +573,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ecfe8a31183c
+  - type: assumes
+    from: SCEN-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-full-profile-tools
+    created_at: 2026-11-26T10:32:59.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb33b3d9238
+  - type: assumes
+    from: SCEN-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-instructions-unnamed-tools
+    created_at: 2026-11-26T10:32:59.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1502a62ef10

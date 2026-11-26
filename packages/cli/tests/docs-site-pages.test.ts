@@ -84,12 +84,14 @@ describe("documentation site pages", () => {
       const index = readFileSync(path.join(out, "index.html"), "utf8");
       expect(index).toContain("Say what the software should do.");
       const workflow = readFileSync(
-        path.join(repoRoot, ".github/workflows/proof.yml"),
+        path.join(repoRoot, ".github/workflows/pages.yml"),
         "utf8",
       );
       // The site owns the Pages root; the report is namespaced beside it.
-      expect(workflow).toContain("bun run docs:site -- --out pages\n");
-      expect(workflow.indexOf("--out pages\n")).toBeLessThan(
+      expect(workflow).toContain(
+        "bun run docs:site -- --out pages --branch master\n",
+      );
+      expect(workflow.indexOf("--out pages")).toBeLessThan(
         workflow.indexOf("mkdir -p pages/kibi-report"),
       );
       expect(index).toContain('href="kibi-report/"');
@@ -127,6 +129,37 @@ describe("documentation site pages", () => {
       writeFileSync(source, original);
       rmSync(brokenOut, { recursive: true, force: true });
     }
+  });
+
+  test("Pages deploys only from master, with develop's report of the same tree", () => {
+    type Step = {
+      name?: string;
+      uses?: string;
+      with?: Record<string, unknown>;
+    };
+    type Workflow = {
+      on: { push?: { branches?: string[] } };
+      jobs: Record<string, { if?: string; needs?: string; steps?: Step[] }>;
+    };
+    const read = (name: string) =>
+      readFileSync(path.join(repoRoot, ".github/workflows", name), "utf8");
+    const pages = Bun.YAML.parse(read("pages.yml")) as Workflow;
+    // The public site matches the release, not unreleased develop work.
+    expect(pages.on.push?.branches).toEqual(["master"]);
+    expect(pages.jobs.build?.if).toBe(
+      "${{ github.ref == 'refs/heads/master' }}",
+    );
+    expect(pages.jobs.deploy?.needs).toBe("build");
+    // The report it publishes is develop's proof of master's exact tree.
+    const build = JSON.stringify(pages.jobs.build?.steps);
+    expect(build).toContain("HEAD^{tree}");
+    expect(build).toContain("event=push -f branch=develop -f status=success");
+    expect(build).toContain('"name":"kibi-pages-report"');
+    // No other workflow deploys Pages; develop only keeps the report.
+    const proof = read("proof.yml");
+    expect(proof).not.toContain("actions/deploy-pages");
+    expect(proof).not.toContain("upload-pages-artifact");
+    expect(proof).toContain("name: kibi-pages-report\n");
   });
 
   test("every page publishes a large link preview whose URLs share the published origin", async () => {
@@ -235,7 +268,7 @@ describe("documentation site pages", () => {
       expect(index).toContain('track("install-tab"');
 
       const workflow = readFileSync(
-        path.join(repoRoot, ".github/workflows/proof.yml"),
+        path.join(repoRoot, ".github/workflows/pages.yml"),
         "utf8",
       );
       expect(workflow).toContain(`KIBI_UMAMI_WEBSITE_ID: ${id}\n`);
