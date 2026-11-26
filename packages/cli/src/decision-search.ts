@@ -24,6 +24,7 @@ import {
   type RetrievalIndex,
   type RetrievalResult,
   buildRetrievalIndex,
+  decisionCoverage,
   retrieve,
 } from "kibi-agent-core/retrieval";
 import type { SearchHintsEntity } from "kibi-plugin-sdk";
@@ -327,24 +328,25 @@ export async function searchDecisions(
   const governingCards: DecisionCard[] = [];
   retrieval.cards.forEach((card, rank) => {
     const score = 1 / (rank + 1);
-    if (card.coverage < WEAK_COVERAGE) return;
-    if (
-      card.type === "req" &&
-      !NON_CURRENT_STATUS.has(card.status) &&
-      supersededBy[card.id] === undefined
-    )
-      governingCards.push(card);
-    seeds.push({
-      id: card.id,
-      type: card.type,
-      title: card.title,
-      status: card.status,
-      score,
-      reasons: card.evidence,
-    });
+    if (card.coverage >= WEAK_COVERAGE) {
+      if (
+        card.type === "req" &&
+        !NON_CURRENT_STATUS.has(card.status) &&
+        supersededBy[card.id] === undefined
+      )
+        governingCards.push(card);
+      seeds.push({
+        id: card.id,
+        type: card.type,
+        title: card.title,
+        status: card.status,
+        score,
+        reasons: card.evidence,
+      });
+    }
     for (const id of card.folded) {
       const folded = byId.get(id);
-      if (folded)
+      if (folded && decisionCoverage(index, input.query, id) >= WEAK_COVERAGE)
         seeds.push({
           id,
           type: folded.type,
