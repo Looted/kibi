@@ -25,6 +25,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
+import { sessionBriefFor } from "kibi-agent-core/session-brief";
 
 /**
  * Agent instructions travel with the repository: AGENTS.md is read by Codex,
@@ -42,35 +43,53 @@ export const KIBI_INSTRUCTIONS_BEGIN =
   "<!-- BEGIN kibi-managed: written by `kibi init`; edit outside these markers -->";
 export const KIBI_INSTRUCTIONS_END = "<!-- END kibi-managed -->";
 
-// The OpenCode plugin reads kb_search/kb_query in AGENTS.md as the project's
-// Kibi posture, so both names stay in the section.
-export const KIBI_AGENT_INSTRUCTIONS = `## Kibi
-
-This repository records its requirements, decisions, tests and code ownership in a Kibi knowledge base (\`.kb/\`).
-
-- Before changing behavior, ask it: \`kb_search\` with the question, and \`kb_query\` with \`sourceFile\` for a file you edit. Without the MCP tools, use the project-local CLI (\`npx --no-install kibi search "<question>"\`, or your package manager's runner).
-- A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question for the person, not a task. Ask when unsure.
-- Record a rule the person states with \`kb_record\` (other new or changed behavior with \`kb_upsert\`) and finish with \`kb_check\`. Do not edit \`.kb/\` files by hand.
-- Before editing code that implements a firm requirement (a rule the person set), ask the person unless the edit keeps that rule. After the edit, record your verdict for each edited symbol with \`kb_review_firm_edit\` (without MCP: \`kibi review-firm-edit --input -\`), "keeps" or "changes"; the commit is blocked until each has a current keeps receipt.
-- Commits must pass \`kibi check --staged\`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or \`kibi hooks install\` runs.
-- Workflow guidance: the \`kibi-usage\` skill (\`kb_skills\` with \`action: "load"\`, or \`kibi skills load kibi-usage\`).`;
-
-const COMMIT_GATE_LINE =
-  "- Commits must pass `kibi check --staged`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or `kibi hooks install` runs.";
-
-const NO_GIT_FINISH_LINE =
-  "- This directory has no Git repository, so there is no commit gate: finish each change with `kibi check`. After `git init`, run `kibi init` to install the gate.";
+const INSTRUCTIONS_LEAD =
+  "This repository records its requirements, decisions, tests and code ownership in a Kibi knowledge base (`.kb/`). Without the MCP tools, each `kb_*` call has a project-local CLI route that takes the same JSON object (`printf '%s\\n' '{\"query\":\"...\"}' | npx --no-install kibi search --input -`, or your package manager's runner).";
 
 /**
- * The managed section for this workspace: outside any Git repository the
- * commit-gate line says how to finish a change instead, and `kibi init` run
- * after `git init` writes the Git version back.
+ * What the session brief leaves to the skills, said where every agent reads
+ * it: whom to ask, firm-code edits, hand edits and the skill to load.
+ */
+const INSTRUCTIONS_RULES: readonly string[] = [
+  "- Ask the person only for a decision: a request that conflicts with a recorded rule, a choice between behaviours, an exception, or a rule you recorded in words that say more or less than theirs. Do the steps a Kibi result lists (`nextActions`, `kb_check` findings about your change) without asking, then report them.",
+  '- Before editing code that implements a firm requirement (a rule the person set), ask the person unless the edit keeps that rule. After the edit, record your verdict for each edited symbol with `kb_review_firm_edit` (without MCP: `kibi review-firm-edit --input -`), "keeps" or "changes"; the commit is blocked until each has a current keeps receipt.',
+  "- Do not edit `.kb/` files by hand.",
+];
+
+const COMMIT_GATE_LINE =
+  "- When you commit, stage the `.kb` files with the code; commits must pass `kibi check --staged`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or `kibi hooks install` runs.";
+
+const NO_GIT_COMMIT_LINE =
+  "- This directory has no Git repository, so there is no commit gate. After `git init`, run `kibi init` to install it.";
+
+const SKILL_LINE =
+  '- Workflow guidance: the `kibi-usage` skill (`kb_skills` with `action: "load"`, or `kibi skills load kibi-usage`).';
+
+/**
+ * The managed section for this workspace. Its change steps are the session
+ * brief's own lines, so AGENTS.md (the one channel every fresh clone and
+ * every host has) and the brief hosts and the MCP server send cannot drift
+ * apart. Outside any Git repository the brief's check step and the commit
+ * line say how to finish a change instead; `kibi init` run after `git init`
+ * writes the Git version back. The OpenCode plugin reads kb_search/kb_query
+ * in AGENTS.md as the project's Kibi posture; the brief names both.
  */
 export function agentInstructionsFor(noGit: boolean): string {
-  return noGit
-    ? KIBI_AGENT_INSTRUCTIONS.replace(COMMIT_GATE_LINE, NO_GIT_FINISH_LINE)
-    : KIBI_AGENT_INSTRUCTIONS;
+  const steps = sessionBriefFor(noGit).split("\n").slice(1);
+  return [
+    "## Kibi",
+    "",
+    INSTRUCTIONS_LEAD,
+    "",
+    ...steps,
+    ...INSTRUCTIONS_RULES,
+    noGit ? NO_GIT_COMMIT_LINE : COMMIT_GATE_LINE,
+    SKILL_LINE,
+  ].join("\n");
 }
+
+/** The managed section of a workspace with Git. */
+export const KIBI_AGENT_INSTRUCTIONS: string = agentInstructionsFor(false);
 
 export const CLAUDE_IMPORT_SECTION = `## Kibi
 

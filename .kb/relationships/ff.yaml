@@ -580,3 +580,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb03c0bdb97c
+  - type: constrains
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
+    created_at: 2026-11-26T11:44:21.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1563790ffcdb
+  - type: requires_property
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:21.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a43d78542a8
+  - type: requires_property
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-stated-rule-self-approved
+    created_at: 2026-11-26T11:44:21.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f78f61b4381
+  - type: specified_by
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: SCEN-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:21.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa1d0f03c162
+  - type: specified_by
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    created_at: 2026-11-26T11:44:21.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c73d75acfe00

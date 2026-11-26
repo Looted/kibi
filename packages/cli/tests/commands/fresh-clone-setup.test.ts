@@ -166,7 +166,7 @@ describe("agent instructions", () => {
     expect(read("CLAUDE.md")).toBe("# Claude\n\n@AGENTS.md\n");
 
     write("AGENTS.md", `${first}\n## Later\n\nKeep this.\n`);
-    const edited = read("AGENTS.md").replace("kb_upsert", "kb_upsert (old)");
+    const edited = read("AGENTS.md").replace("kb_record", "kb_record (old)");
     write("AGENTS.md", edited);
     expect(writeAgentInstructions(root).agents).toBe("updated");
     expect(read("AGENTS.md")).toBe(`${first}\n## Later\n\nKeep this.\n`);

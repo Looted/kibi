@@ -24,9 +24,12 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
   lands in.
 - `Next layer: …`: the exact `kb_query` and `kb_search(... sourceLocations)`
   calls that return the full detail.
-- The `kb_check({sourceFiles:[…], includeImpactDiagnostics:true,
-  includeWorkingTreeDiff:true})` line (edit only): run it after the edit. The
-  Stop hook reminds you once per session of files edited without it.
+- The `kb_check({changed:true, sourceFiles:[…]})` line (edit only): the
+  commit gate's verdict on the edit. Run it once, after the linked tests and
+  before your final message, for all the files you changed. The Stop hook
+  reminds you once per session of files edited without it.
+- `symbol_semantic_review_needed` from `kb_check`, naming a linked TEST: run
+  that test. It is a prompt to check the behaviour, not a finding to report.
 
 A file already shown this session gets only the one-line `Kibi: this edit to
 <path> is inside <symbol>` update; the facts and tests from its first snippet

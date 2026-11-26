@@ -4718,6 +4718,8 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
       - type: implements
+        target: REQ-kibi-skills-ask-only-for-decisions
+      - type: implements
         target: REQ-kibi-skills-write-without-ritual
       - type: implements
         target: REQ-kibi-usage-core-arc
@@ -43458,6 +43460,8 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-init-agent-instructions-carry-brief
+      - type: executable_for
         target: TEST-init-gemini-instructions
   - id: SYM-agent-core-SESSION_BRIEF_LINES
     title: SESSION_BRIEF_LINES
@@ -44093,6 +44097,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-skills-core-arc
       - type: implements
+        target: REQ-kibi-skills-ask-only-for-decisions
+      - type: implements
         target: REQ-kibi-skills-write-without-ritual
   - id: SYM-kibi-freshness-skill-guidance
     title: kibi-freshness
@@ -44556,6 +44562,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-approvals-needed
       - type: implements
         target: REQ-kb-upsert-capture-next-actions
   - id: SYM-capture-prolog-capture-reads
@@ -49039,19 +49047,6 @@ symbols:
         target: TEST-kb-upsert-capture-with-why
       - type: implements
         target: REQ-kb-upsert-capture-proof-setup-named
-  - id: SYM-capture-with-signoff
-    title: withSignoff
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-24T20:12:47.542Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-approvals-needed
   - id: SYM-decision-guard-record-follow-up-line
     title: RECORD_FOLLOW_UP_LINE
     sourceFile: packages/agent-core/src/decision-guard.ts
@@ -49530,7 +49525,11 @@ symbols:
       recorded_at: 2026-11-25T09:19:58.490Z
     relationships:
       - type: covered_by
+        target: TEST-init-agent-instructions-carry-brief
+      - type: covered_by
         target: TEST-kibi-no-git-advisory
+      - type: implements
+        target: REQ-init-agent-instructions-carry-brief
       - type: implements
         target: REQ-kibi-no-git-advisory
   - id: SYM-session-brief-for
@@ -51870,3 +51869,33 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-search-decision-answers
+  - id: SYM-kibi-usage-proof-first-guidance
+    title: From a recorded rule to tested
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-usage/resources/proof-first.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T11:45:52.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-usage-core-arc
+  - id: SYM-session-brief-no-git-finish-line
+    title: NO_GIT_FINISH_LINE
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T12:01:43.050Z
+  - id: SYM-capture-capture-approval
+    title: CaptureApproval
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T12:01:46.152Z
