@@ -1,6 +1,6 @@
 {
   "plugin": "kibi-plugin-search-hints",
-  "pluginVersion": "1.0.1",
+  "pluginVersion": "2.0.0",
   "model": {
     "id": "minishlab/potion-retrieval-32M",
     "revision": "6fc8051fab2a1e0ee76689cf08c853792ac285e7",

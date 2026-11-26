@@ -1,6 +1,6 @@
 {
   "name": "kibi-vibe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Kibi Mistral Vibe plugin - Agent Plugins 1.0 package with the kibi MCP server (automatic WSL/Windows runtime detection), bundled skills, and context hooks",
   "type": "module",
   "license": "AGPL-3.0-or-later",
@@ -45,6 +45,6 @@
     }
   },
   "devDependencies": {
-    "kibi-agent-core": "^0.15.0"
+    "kibi-agent-core": "^0.16.0"
   }
 }

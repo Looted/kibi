@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-search-hints",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 4475,
-      "sha256": "0dacf3a4471ea8d3e00ab3ca5f09a7449a6f60721db6de3cd974fbda9958a0ec"
+      "bytes": 12850,
+      "sha256": "6c38baac9d4174d805231027e74a9e39b0b7c857096bc70cee477e815ad4043d"
     },
     {
       "path": "LICENSE.md",
@@ -27,7 +27,7 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 2464,
-      "sha256": "51ab0713dc12c7d9aed892dfb047d19d2b54f700f9ce405a635de6890e2f2218"
+      "sha256": "800d20ceff75f0f129932c400c2cf45635f0024ead125e555b28cdb2ac9c0b24"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -47,7 +47,7 @@
     {
       "path": "catalog.json",
       "bytes": 983,
-      "sha256": "80aca0cf479b5b23331e97502342bc8c77949a7a0ce2a3d784d9b2b3f62ec0fd"
+      "sha256": "fa6ad09ba0169181a11df59f035dc58d91820fa60e0306286b374f88c8723a03"
     },
     {
       "path": "dist/cache.d.ts",
@@ -122,7 +122,7 @@
     {
       "path": "package.json",
       "bytes": 1340,
-      "sha256": "8a799fe94f9fc2adfeb7f3cd42d175e63438e05b3cbc8172dbf19c9030e91ee2"
+      "sha256": "1ce85f94ae5b29cebfee4fa25fdcbc29b9603c0d5d1072f9d74d888314a3fca3"
     }
   ]
 }
