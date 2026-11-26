@@ -4720,7 +4720,7 @@
         "readOnlyHint": false,
         "title": "Record a firm-edit review"
       },
-      "description": "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
+      "description": "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your own judgment and needs no approval from the person. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,

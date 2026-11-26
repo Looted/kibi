@@ -1662,6 +1662,7 @@ against the schema in CI.
 
 ## For agent workflows
 
-Bundled skill guidance is in `kibi-usage` → `resources/proof.md`
+Bundled skill guidance is in `kibi-usage` → `resources/proof-first.md` (the
+short path from a recorded rule to `tested`) and `resources/proof.md`
 (`kb_skills` with `action: "load"` and `id: "kibi-usage"`, then `action: "read"`).
 Deterministic discovery: `kibi proof inspect --json`.

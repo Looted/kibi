@@ -863,14 +863,10 @@ describe("captureFollowUp", () => {
         required: true,
       },
     ]);
-    // The person is asked once: the statement first, the waiver only as the
-    // alternative to the failure-side scenario.
+    // The person's own words approve the statement, so it is not put back
+    // to them; the waiver is listed only as the alternative to the
+    // failure-side scenario.
     expect(result.approvalsNeeded).toEqual([
-      {
-        kind: "signoff",
-        about: "REQ-snippet-cap",
-        ask: 'Does REQ-snippet-cap say what was decided: "Snippets show at most seven lines"?',
-      },
       {
         kind: "failure_side_waiver",
         about: "REQ-snippet-cap",
@@ -952,18 +948,14 @@ describe("captureFollowUp", () => {
       json: true,
     });
     expect(result.approvalsNeeded.map((approval) => approval.kind)).toEqual([
-      "signoff",
       "pair_review",
       "failure_side_waiver",
       "proof_integration",
     ]);
-    expect(result.approvalsNeeded[0]?.ask).toBe(
-      'Does REQ-snippet-cap say what was decided: "Snippets show at most seven lines."?',
-    );
-    expect(result.approvalsNeeded[1]?.about).toBe(
+    expect(result.approvalsNeeded[0]?.about).toBe(
       "REQ-snippet-cap and REQ-firm",
     );
-    expect(result.approvalsNeeded[3]?.about).toBe(
+    expect(result.approvalsNeeded[2]?.about).toBe(
       ".kb/proof/integrations.json",
     );
   });
@@ -1004,10 +996,8 @@ describe("captureFollowUp", () => {
       ["kb_upsert", "related-requirement-unmodeled"],
       ["kb_model", "missing_logic_grounding"],
     ]);
-    // Neither requirement is firm, so only the statement needs the person.
-    expect(result.approvalsNeeded.map((approval) => approval.kind)).toEqual([
-      "signoff",
-    ]);
+    // Neither requirement is firm, so nothing needs the person.
+    expect(result.approvalsNeeded).toEqual([]);
     // The same write at level test asks for the floor's steps too.
     const tested = await captureFollowUp(
       req(),
@@ -1050,7 +1040,6 @@ describe("captureFollowUp", () => {
       "missing_logic_grounding",
     ]);
     expect(firm.approvalsNeeded.map((approval) => approval.about)).toEqual([
-      "REQ-snippet-cap",
       "REQ-snippet-cap and REQ-soft",
     ]);
     const modeled = store({

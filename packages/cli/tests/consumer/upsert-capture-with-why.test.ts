@@ -123,7 +123,7 @@ describe("kb_upsert records why and returns the remaining steps", () => {
     ]);
     expect(
       (data.approvalsNeeded as { kind: string }[]).map((ask) => ask.kind),
-    ).toEqual(["signoff", "failure_side_waiver"]);
+    ).toEqual(["failure_side_waiver"]);
     expect(steps.every((step) => step.required)).toBe(true);
     expect(data.relatedRequirements).toEqual([
       {

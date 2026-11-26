@@ -9,7 +9,7 @@ import {
 } from "../src/session-brief.js";
 
 describe("session brief", () => {
-  test("names the three steps of a change and the conflict rule", () => {
+  test("names the three steps of a change, when to take them, and the conflict rule", () => {
     expect(SESSION_BRIEF_LINES).toHaveLength(5);
     const [lead, search, record, check, conflict] = SESSION_BRIEF_LINES;
     expect(lead).toBe(
@@ -17,12 +17,15 @@ describe("session brief", () => {
     );
     expect(search).toStartWith("- Before changing behaviour, kb_search");
     expect(search).toContain("kb_query the requirement that governs it");
-    expect(record).toStartWith("- When the person states a rule");
-    expect(record).toContain(
-      "with their reason (kb_record); a decision goes through kb_upsert",
+    expect(record).toStartWith(
+      "- Record a rule the person states with kb_record",
     );
-    expect(check).toStartWith("- Before finishing, stage the change");
-    expect(check).toContain("`kibi check --staged`");
+    expect(record).toContain("in the same turn, with their reason");
+    expect(record).toEndWith("it needs no permission.");
+    expect(check).toStartWith(
+      "- Before your final message, run the tests linked",
+    );
+    expect(check).toContain("kb_check with changed: true");
     expect(conflict).toContain(
       "would make a recorded requirement or decision false",
     );
