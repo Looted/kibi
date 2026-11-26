@@ -127,7 +127,9 @@ describe("MCP tool profile", () => {
       "kb_compile_intent",
       "kb_apply_plan",
     ]);
-    expect([...REMEMBER_KNOWLEDGE_TOOLS].sort()).toEqual([...knowledge].sort());
+    expect([...REMEMBER_KNOWLEDGE_TOOLS].map(String).sort()).toEqual(
+      [...knowledge].sort(),
+    );
     expect([...IMPACT_REVIEW_TOOLS]).toEqual([
       "kb_prepare_impact_review",
       "kb_author_impact_review",

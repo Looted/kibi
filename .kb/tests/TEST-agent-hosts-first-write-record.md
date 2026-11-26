@@ -22,15 +22,15 @@ id: TEST-agent-hosts-first-write-record
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-eab91c202be40e837d27e9e4
+    receipt_id: PR-015c846e281013e4c83cca6b
     test_id: TEST-agent-hosts-first-write-record
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6e1a35595507b0061b876834b1a8d6f939d847c9e3f9eb75fe8995ff242c19cc
+    code_snapshot: 584b201788942f9172213d51f1a3a79b8f74aafa37fa0ab60003c5b3a454b4b6
     environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
-    started_at: '2026-11-26T10:33:34.677Z'
-    finished_at: '2026-11-26T10:33:39.350Z'
-    artifact_digest: 06e3b6a7f55f52ddc738266afae501b812e1f82759584a579b9cc0410004c08e
+    started_at: '2026-11-26T10:41:51.847Z'
+    finished_at: '2026-11-26T10:41:56.527Z'
+    artifact_digest: d0ff29cddbe80f99dc6c7990f5216684b45079f7b71c77699ea48ba12d3cdbe3
     contract_hash: 991a4af2db1eeeeaa001cad76eff6246a020958492851ed0fcb9e9400438e098
     binding_hash: 27ca3ed398a1141eab293ea71d822a6f59c3ea2721c40873c3974b9fd9ee0b72
     fingerprint: 29b76c61bfe79fcf3e2307567045235cf96ada0df4bf6cf23512573a73dc02c6
