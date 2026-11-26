@@ -1,5 +1,5 @@
 ---
-title: Without the core tool profile, the MCP server leaves no tool unlisted
+title: At level test, without the core tool profile, the MCP server leaves no tool unlisted
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
@@ -11,9 +11,9 @@ origin:
   recorded_at: '2026-11-16T20:00:00.000Z'
 tags:
   - tool-surface
-claim_text: The MCP server must list every MCP tool unless the core tool profile is chosen
+claim_text: At level test, the MCP server must list every MCP tool unless the core tool profile is chosen
 value_int: 0
-claim_key: CLAIM-CA13AD582348339C
+claim_key: CLAIM-0847E496AC7607B2
 id: FACT-mcp-full-profile-unlisted-count
 type: fact
 ---
