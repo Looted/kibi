@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a3c5b025131c
+  - type: implements
+    from: SYM-sync-agent-skills-sync-agent-skills
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-11-26T23:49:25.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41c943a05573
+  - type: covered_by
+    from: SYM-sync-agent-skills-sync-agent-skills
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-11-26T23:49:25.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d363f5d56139

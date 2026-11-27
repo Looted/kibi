@@ -189,8 +189,8 @@ if [ -z "$KIBI_BIN" ]; then
       break
     fi
     kibi_parent="\${kibi_dir%/*}"
-    if [ -z "$kibi_parent" ]; then
-      kibi_parent="/"
+    if [ -z "$kibi_parent" ] || [ "$kibi_parent" = "$kibi_dir" ]; then
+      break
     fi
     kibi_dir="$kibi_parent"
   done

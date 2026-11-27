@@ -930,7 +930,7 @@ async function probeEngineSocket(
   timeoutMs = 150,
 ): Promise<SocketProbeResult> {
   if (!isWindowsNamedPipe(socketPath)) {
-    let stat;
+    let stat: ReturnType<typeof lstatSync>;
     try {
       stat = lstatSync(socketPath);
     } catch (error) {
