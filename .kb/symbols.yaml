@@ -52171,9 +52171,9 @@ symbols:
       recorded_at: 2026-11-26T23:49:17.563Z
     relationships:
       - type: covered_by
-        target: TEST-cli-doctor-workflows
+        target: TEST-git-hook-effective-install
       - type: implements
-        target: REQ-cli-doctor
+        target: REQ-git-hook-effective-install
   - id: SYM-sync-agent-skills-sync-agent-skills
     title: syncAgentSkills
     sourceFile: scripts/sync-agent-skills.ts
