@@ -41,12 +41,16 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_record` | `kibi record --input <file|->` |
 | `kb_delete` | `kibi delete --input <file|->` |
 | `kb_check` | `kibi check --input <file|->` |
+| `kb_review_firm_edit` | `kibi review-firm-edit --input <file|->` |
+| `kb_prepare_impact_review` | `kibi prepare-impact-review --input <file|->` |
+| `kb_author_impact_review` | `kibi author-impact-review --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP catalog has 18 tools rather than one per operation, and a session
-lists all of them unless the `core` profile is chosen (see the
-[MCP reference](mcp-reference.md#tool-list)); under `core` the rest run through
-the routes above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
+The MCP catalog has 19 tools rather than one per operation, and a session
+lists all of them at level `test` unless the `core` profile is chosen (at level
+`remember`, `full` lists only the knowledge tools; see the
+[MCP reference](mcp-reference.md#tool-list)); under `core` or `remember`, the
+rest run through the routes above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
 
 - `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and

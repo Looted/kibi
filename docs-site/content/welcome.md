@@ -26,10 +26,19 @@ You keep working the way you already do: prompt your agent, review its changes, 
 
 Nothing about this requires you to maintain a parallel requirements bureaucracy. The prompt is the interface; humans resolve genuine product decisions, agents own the bookkeeping.
 
+## Two levels: `remember` and `test`
+
+Not every repository wants scenarios, linked tests, and end-to-end proofs on day one. During `kibi init`, you choose a [Kibi level](../reference/cli.md#kibi-level) recorded in `package.json` (`kibi.level`) or `.kb/setup.json` (`level`):
+
+- **`test` (default)** — Full loop: requirements, code links, hooks, contradiction checks, scenarios, linked tests, and fresh proofs.
+- **`remember`** — Requirements, why they exist, code links, hooks, the firm-edit guard, the commit gate, and contradiction checks, with no scenarios, tests, or proofs required and a trimmed knowledge-only MCP tool list.
+
+Changing the project's level or lowering a requirement's `required_evidence` is guarded as a person-only decision across every supported agent host.
+
 ## What you will see
 
-- A `.kb/` directory in your repository holding the branch-local project model.
-- Git hooks that keep the model synchronized as you work.
+- A `.kb/` directory in your repository holding the branch-local project model (or a single local store if you are working outside Git; running `git init` and `kibi init` later carries it over).
+- Git hooks that keep the model synchronized as you work (in Git repositories).
 - New tools available to your agent, through MCP or the `kibi` CLI: search, query, gap analysis, coverage, validation, and proof.
 - Optionally, read-only answers from the KBs of repositories you depend on, each pinned to a commit and kept apart from your own.
 - A self-contained HTML health report and a status badge you can publish, showing the percentage of requirements with current proof.
