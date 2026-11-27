@@ -29,6 +29,7 @@ import {
   PUBLISHABLE_DIRS,
   type ReleaseContext,
   determineReleaseAction,
+  planStagedPublish,
 } from "../release-state.ts";
 
 // ---------------------------------------------------------------------------
@@ -498,6 +499,70 @@ describe("release invariants: develop-to-master model", () => {
         expect(f.endsWith(".md")).toBe(true);
         expect(f).not.toBe("README.md");
       }
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 6. Staged npm publishing & fail-fast new-package ordering
+  // -------------------------------------------------------------------------
+  describe("staged publish planning", () => {
+    test("places brand-new packages first in toUpload while preserving canonical order in toPromote", () => {
+      const ctx = makeContext({
+        changesetFiles: NO_CHANGESETS,
+        isPublishedOnNpm: nothingPublished,
+        isPackageOnNpm: (name) => name !== "kibi-swipl-win32-x64",
+      });
+
+      const decision = determineReleaseAction(ctx);
+      expect(decision.action).toBe("PREPARE_RELEASE");
+
+      const plan = planStagedPublish(decision.packages);
+      expect(plan.toUpload[0]?.name).toBe("kibi-swipl-win32-x64");
+      expect(plan.toUpload[0]?.isNewPackage).toBe(true);
+      expect(plan.toUpload.slice(1).map((p) => p.dir)).toEqual(
+        PUBLISHABLE_DIRS.filter((d) => d !== "swipl-win32-x64"),
+      );
+      expect(plan.toPromote.map((p) => p.dir)).toEqual([...PUBLISHABLE_DIRS]);
+    });
+
+    test("triggers PUBLISH_ONLY_RERUN when tarballs are staged on npm but not yet promoted to latest", () => {
+      const ctx = makeContext({
+        changesetFiles: NO_CHANGESETS,
+        isPublishedOnNpm: everythingPublished,
+        isLatestOnNpm: (name) => name !== "kibi-cli" && name !== "kibi-mcp",
+      });
+
+      const decision = determineReleaseAction(ctx);
+      expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
+      expect(decision.packages.map((p) => p.dir)).toEqual(["cli", "mcp"]);
+
+      const plan = planStagedPublish(decision.packages);
+      expect(plan.toUpload).toHaveLength(0);
+      expect(plan.toPromote.map((p) => p.dir)).toEqual(["cli", "mcp"]);
+    });
+
+    test("skips already-staged tarballs in toUpload while promoting both staged and newly uploaded packages", () => {
+      const staged = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES["swipl-win32-x64"].name}@${ALL_PACKAGES["swipl-win32-x64"].version}`,
+      ]);
+      const ctx = makeContext({
+        changesetFiles: NO_CHANGESETS,
+        isPublishedOnNpm: (name, ver) => staged.has(`${name}@${ver}`),
+        isLatestOnNpm: () => false,
+        isPackageOnNpm: (name) => name !== "kibi-cursor",
+      });
+
+      const decision = determineReleaseAction(ctx);
+      expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
+
+      const plan = planStagedPublish(decision.packages);
+      expect(plan.toUpload[0]?.name).toBe("kibi-cursor");
+      expect(plan.toUpload.some((p) => p.dir === "core")).toBe(false);
+      expect(plan.toUpload.some((p) => p.dir === "swipl-win32-x64")).toBe(
+        false,
+      );
+      expect(plan.toPromote.map((p) => p.dir)).toEqual([...PUBLISHABLE_DIRS]);
     });
   });
 });

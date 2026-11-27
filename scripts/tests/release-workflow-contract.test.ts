@@ -477,11 +477,19 @@ describe("publish.yml CI workflow contract", () => {
   });
 
   // ── publish ─────────────────────────────────────────────────────────
-  test("publish: checkout-free, artifact-driven", () => {
+  test("publish: checkout-free, artifact-driven, two-phase staged dist-tag promotion", () => {
     const block = extractJobBlock(workflowContent, "publish");
     expect(block).not.toMatch(CHECKOUT_PINNED);
     expect(block).toContain("Download package tarballs");
-    expect(block).toContain("npm publish");
+    expect(block).toContain(
+      'npm publish "$tarball" --provenance --access public --tag staging',
+    );
+    expect(block).toContain('npm dist-tag add "${pkg_spec}" latest');
+    expect(block).toContain('npm dist-tag rm "${pkg_name}" staging');
+    expect(block.indexOf("--tag staging")).toBeLessThan(
+      block.indexOf("npm dist-tag add"),
+    );
+    expect(workflowContent).toContain("workflow_dispatch:");
   });
 
   test("publishes MCP Registry metadata only for a successfully released MCP package", () => {

@@ -52187,3 +52187,40 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
+  - id: SYM-release-state-package-info
+    title: PackageInfo
+    status: active
+    sourceFile: scripts/release-state.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-27T08:22:34.728Z
+  - id: SYM-release-state-staged-publish-plan
+    title: StagedPublishPlan
+    status: active
+    sourceFile: scripts/release-state.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-27T08:22:38.937Z
+  - id: SYM-release-state-release-context
+    title: ReleaseContext
+    status: active
+    sourceFile: scripts/release-state.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-27T08:22:42.905Z
+  - id: SYM-release-state-plan-staged-publish
+    title: planStagedPublish
+    sourceFile: scripts/release-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-27T08:22:50.556Z
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
