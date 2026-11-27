@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-docs-site-root-pages",
+  "sourceFile": "docs-site/theme.ts",
+  "symbol": "landingContent",
+  "verdict": "keeps",
+  "note": "Added the Two levels (remember vs test) comparison section, working-without-Git setup note, and updated FAQ entries on the landing page without changing the Pages root deployment path, report link, or link-preview/analytics behavior.",
+  "statementHash": "sha256:bbb72da0341ce2d0d55f3550a2328be8eb13b67264e7eb399fd382270840d469",
+  "codeHash": "sha256:d0904e60e096eb6cf66f1782412ed557efca2b375537cb716a0f3fa1e874cde1",
+  "startLine": 1449,
+  "endLine": 1851,
+  "recordedAt": "2026-11-27T05:02:14.552Z"
+}

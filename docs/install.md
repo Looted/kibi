@@ -500,7 +500,7 @@ On OpenCode v2:
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
 - **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
   OpenCode v2.0.32 the catalog lists
-  `kibi (18 tools, 1 shown)` (eight with the `core` profile), `search({ query:
+  `kibi (19 tools, 1 shown)` at level `test` (fewer at level `remember`, or eight with the `core` profile), `search({ query:
   "kibi" })` finds all of them, and the tools are reachable
   through `execute` under `tools.kibi`. To call the native `kibi_*` tools
   directly, set `codemode: false` on a v2-native server entry under
