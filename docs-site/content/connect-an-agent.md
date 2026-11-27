@@ -7,13 +7,23 @@ If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-int
 
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — all 18 tools show up in the client's tool list. With `KIBI_MCP_TOOLS=core` only eight are listed (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and `kb_review_firm_edit`), and the others run through the project CLI with the same input. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
+- **MCP server** (`kibi-mcp`) — all 19 tools show up in the client's tool list at Kibi level `test`. At Kibi level `remember`, the `full` profile lists only the knowledge tools (plus bootstrap tools while the KB is empty and impact-review tools when an impact policy is active, omitting `kb_ingest_proof`). With `KIBI_MCP_TOOLS=core` only eight are listed (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and `kb_review_firm_edit`), and the others run through the project CLI with the same input. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with decision cards and bundled meaning hints. The [MCP reference](../reference/mcp.md) lists every tool.
 - **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Antigravity, Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Antigravity, Claude Code, Cursor, Codex, OpenCode, Mistral Vibe, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent linked requirements when reading, searching, or editing code, and guards firm requirements, the project's Kibi level, and requirement evidence floors. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+
+## Antigravity
+
+Install the optional `kibi-antigravity` plugin (bundled skills, always-on workflow rules, workspace-gated MCP server with automatic `roots/list` workspace discovery, and lifecycle hooks for read/search/edit requirement context, firm-edit and level/floor prompts, and stop reminders):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+Without the plugin, add `npx --no-install kibi-mcp` to `~/.gemini/config/mcp_config.json`. See [Antigravity plugin](install.md#optional-antigravity-plugin).
 
 ## Claude Code
 
