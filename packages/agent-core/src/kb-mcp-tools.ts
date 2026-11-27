@@ -65,36 +65,43 @@ function readRecord(
 /**
  * Canonical Kibi operation name for a host tool name. Hosts prefix MCP tools
  * (`mcp__kibi__kb_check`, `mcp__plugin_<plugin>_kibi__kb_check`,
- * `MCP:kb_check`, `kibi_kb_check`); an unprefixed `kb_check` passes through.
+ * `mcp_kibi.kb_check`, `MCP:kb_check`, `kibi_kb_check`); an unprefixed
+ * `kb_check` passes through.
  */
 export function canonicalKbToolName(
   toolName: string | undefined,
 ): string | undefined {
   // `String(undefined)` is "undefined", which is no kb_ operation either.
   const trimmed = String(toolName).trim();
+  const vibeDot = /^mcp_[^.]+\.(.+)$/i.exec(trimmed)?.[1];
   const lastSegment = trimmed.includes("__")
     ? (trimmed.split("__").at(-1) as string)
-    : trimmed.replace(/^MCP:/i, "");
+    : vibeDot !== undefined
+      ? vibeDot
+      : trimmed.replace(/^MCP:/i, "");
   const operation = lastSegment.replace(/^kibi_/, "");
   return operation.startsWith("kb_") ? operation : undefined;
 }
 
 /**
  * The public tool argument naming the workspace a Kibi MCP call is about.
- * Host pre-tool hooks fill it from the agent's current directory on every
- * Kibi MCP call; kibi-mcp answers from that workspace, so a session working
- * in a git worktree is never answered from another checkout's branch.
+ * Host pre-tool hooks fill it from the agent's current directory on a Kibi
+ * MCP call that carries none; kibi-mcp answers from that workspace, so a
+ * session working in a git worktree is never answered from another
+ * checkout's branch. A workspace the agent names itself is kept.
  */
 export const KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 
 /**
  * True for a Kibi MCP tool as hosts name it in pre-tool hooks:
- * `mcp__<server>__kb_*` from a server whose name mentions kibi, or Cursor's
- * `MCP:kb_*` (Cursor does not name the server there).
+ * `mcp__<server>__kb_*` from a server whose name mentions kibi, Vibe's
+ * `mcp_<server>.kb_*` from a kibi server, or Cursor's `MCP:kb_*` (Cursor
+ * does not name the server there).
  */
 export function isKibiMcpToolName(toolName: string | undefined): boolean {
   const name = String(toolName).trim();
   if (/^MCP:kb_[a-z_]+$/i.test(name)) return true;
+  if (/^mcp_[^.]*kibi[^.]*\.(?:kibi_)?kb_[a-z_]+$/i.test(name)) return true;
   const segments = name.split("__");
   if (segments[0] !== "mcp") return false;
   // Fewer than three segments leave the server empty, which never matches.
@@ -104,7 +111,10 @@ export function isKibiMcpToolName(toolName: string | undefined): boolean {
 
 /**
  * The Kibi MCP tool input with the workspace stamp added, or undefined when
- * the tool is not a Kibi MCP tool or no workspace is known.
+ * the tool is not a Kibi MCP tool, no workspace is known, or the call
+ * already names a workspace. An argument the agent chose names the
+ * workspace the answer must come from; replacing it would answer a call
+ * meant for a worktree from the session's checkout.
  */
 export function stampKibiWorkspace(
   toolName: string | undefined,
@@ -113,6 +123,8 @@ export function stampKibiWorkspace(
 ): Record<string, unknown> | undefined {
   if (!workspaceRoot || !isKibiMcpToolName(toolName)) return undefined;
   const base = isRecord(toolInput) ? toolInput : {};
+  const named = base[KIBI_WORKSPACE_ARGUMENT];
+  if (typeof named === "string" && named.trim().length > 0) return undefined;
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 

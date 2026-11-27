@@ -14,6 +14,7 @@ import path from "node:path";
 import {
   COVERAGE_SHARDS,
   UnitCoverageFailure,
+  activeShardCosts,
   mergeUnitCoveragePartitions,
   partitionShards,
   runUnitCoverage,
@@ -405,7 +406,12 @@ describe("runUnitCoverage mocked shards", () => {
       await runUnitCoverageIfMain(true, options, ["--partition=3/30"]);
       // Each shard publishes its per-file results; outside a git checkout
       // they bind to no commit, and a partition leaves the ledger to --merge.
-      for (const shard of partitionShards({ index: 3, count: 30 })) {
+      const costs = activeShardCosts();
+      for (const shard of partitionShards(
+        { index: 3, count: 30 },
+        COVERAGE_SHARDS,
+        costs,
+      )) {
         if (shard.runtime === "node-parser") continue;
         const results = JSON.parse(
           readFileSync(
@@ -425,7 +431,11 @@ describe("runUnitCoverage mocked shards", () => {
       const published = readdirSync(options.coverageDir)
         .filter((name) => /^lcov\..+\.info$/.test(name))
         .sort();
-      const expected = partitionShards({ index: 3, count: 30 })
+      const expected = partitionShards(
+        { index: 3, count: 30 },
+        COVERAGE_SHARDS,
+        costs,
+      )
         .map((shard) => `lcov.${shard.label}.info`)
         .sort();
       expect(expected.length).toBeGreaterThan(0);
@@ -474,6 +484,7 @@ describe("mergeUnitCoveragePartitions", () => {
           shard: shard.label,
           commit: "c".repeat(40),
           dirty: false,
+          durationMs: 1_500,
           files: {
             [`${shard.label}.test.ts`]: { tests: 1, failures: 0, skipped: 0 },
           },
@@ -525,6 +536,13 @@ describe("mergeUnitCoveragePartitions", () => {
       failures: 0,
       skipped: 0,
     });
+    const costs = JSON.parse(
+      readFileSync(path.join(fixture.coverageDir, "shard-costs.json"), "utf8"),
+    );
+    // 1500ms rounds up to 2s and replaces the seed for every shard that ran.
+    expect(costs.version).toBe("kibi.unit-coverage-costs.v1");
+    expect(costs.shards["cli.commands"]).toBe(2);
+    expect(costs.shards.skillopt).toBe(2);
     expect(
       readFileSync(
         path.join(fixture.coverageDir, "coverage-summary.txt"),

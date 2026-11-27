@@ -1011,6 +1011,9 @@ describe("Cursor hook runner decisions", () => {
   function optIn(cwd: string): void {
     fs.mkdirSync(path.join(cwd, ".kb"), { recursive: true });
     fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
+    // Inside Git, so the session brief carries no no-Git advisory.
+    if (!fs.existsSync(path.join(cwd, ".git")))
+      fs.mkdirSync(path.join(cwd, ".git"));
   }
 
   test("sessionStart stays quiet in a workspace that never adopted Kibi", async () => {
@@ -1018,7 +1021,10 @@ describe("Cursor hook runner decisions", () => {
     const pluginData = tempDir("kibi-cursor-data-");
     for (const workspaceTrusted of [false, true]) {
       expect(
-        await runHook({ event: "sessionStart", cwd }, { pluginData, workspaceTrusted }),
+        await runHook(
+          { event: "sessionStart", cwd },
+          { pluginData, workspaceTrusted },
+        ),
       ).toStrictEqual({});
     }
     // A .kb folder without a manifest is not an adopted workspace either.

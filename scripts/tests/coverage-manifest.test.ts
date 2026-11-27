@@ -32,6 +32,44 @@ describe("coverage manifest", () => {
     }
   });
 
+  test("includes the importable antigravity and vibe bin modules when they exist", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
+    try {
+      mkdirSync(join(root, "packages", "antigravity", "bin"), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(root, "packages", "antigravity", "bin", "mcp-launcher.cjs"),
+        "",
+      );
+      mkdirSync(join(root, "packages", "vibe", "bin"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "kibi-runtime.mjs"),
+        "",
+      );
+      mkdirSync(join(root, "packages", "vibe", "bin", "hooks"), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "hooks", "kibi-common.mjs"),
+        "",
+      );
+      // Script entrypoints that run on import stay out of the manifest.
+      writeFileSync(join(root, "packages", "vibe", "bin", "kibi.mjs"), "");
+      writeFileSync(
+        join(root, "packages", "vibe", "bin", "hooks", "kibi-file-context.mjs"),
+        "",
+      );
+      expect(collectProductionSourceFiles(root)).toEqual([
+        "packages/antigravity/bin/mcp-launcher.cjs",
+        "packages/vibe/bin/hooks/kibi-common.mjs",
+        "packages/vibe/bin/kibi-runtime.mjs",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test("writes an auditable list of source files missing from LCOV", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
     const coverageDir = join(root, "coverage");

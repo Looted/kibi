@@ -1,5 +1,5 @@
 ---
-title: The search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23, by a regex proof
+title: The search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7, by a regex proof
 status: passing
 tags:
   - proof
@@ -16,7 +16,7 @@ proof_contract:
   success_policy: all_required_first_attempt
   kind: regex
   proves:
-    - CLAIM-1B88D98CB3D0A5CB
+    - CLAIM-906A2E255020711F
   pattern_source:
     symbol_id: SYM-const-search-hints-model-revision
 origin:
@@ -26,20 +26,20 @@ id: TEST-proof-search-hints-model-revision
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e2d6404c7b8b02334388ff38
+    receipt_id: PR-68c35f3a90e6dcc483edd614
     test_id: TEST-proof-search-hints-model-revision
     scope: unit
     outcome: passed
-    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:24:43.511Z'
-    finished_at: '2026-11-16T12:24:47.390Z'
-    artifact_digest: c302c7e24a7620ef48186a4712785c1415b13bf1adc13e148ea4b8358965a583
-    contract_hash: f8ffe04f1d519a2c2c4158d0843062a0515844c2c8c0e2b68116fc60e561b2a0
-    binding_hash: cedea82c5eb842dd1f6c1c052968186b2509acf75b14ae0967f5d3726c173c25
-    fingerprint: 8c9a711def2d3e0da3e6014b08835548fe97e3ed8a98de48989bd34097a3a620
+    code_snapshot: 5cf1f3c42e74e0fb26fa20e3b699037c8ed23ee0c308ebb628690b15abc9ff4c
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-24T18:41:26.508Z'
+    finished_at: '2026-11-24T18:41:27.324Z'
+    artifact_digest: 3fefa43a3267dd1c7891341d7927aa9a8e9f90d47dfd34f86c7a05455edea05e
+    contract_hash: 39ccdb30212e43752f55c8b015881575e58c81c754fd7fe9b1137df8fd96d40d
+    binding_hash: 9db51835a59c779809a6134e7e4aa97803aed549ce36a057136a9cd351647c03
+    fingerprint: 5d6d1d71a7a1318456a9a2deb18e115136d710848669500af4353617f29d348a
     fingerprint_components:
-      contract: f8ffe04f1d519a2c2c4158d0843062a0515844c2c8c0e2b68116fc60e561b2a0
+      contract: 39ccdb30212e43752f55c8b015881575e58c81c754fd7fe9b1137df8fd96d40d
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -67,10 +67,10 @@ proof_receipts:
       pattern:
         symbol_id: SYM-const-search-hints-model-revision
         type: string
-        value: bf8b056651a2c21b8d2565580b8569da283cab23
-    certificate_digest: 87019b863df411a858baf49866909c63d614f194bdfab3a6d3aafaf9ff601405
+        value: 6fc8051fab2a1e0ee76689cf08c853792ac285e7
+    certificate_digest: 8600661a5c2d23d6793d336adffe2a73413db71af082b7fb96a36022cd35782f
     claim_bindings:
-      - claim_key: CLAIM-1B88D98CB3D0A5CB
+      - claim_key: CLAIM-906A2E255020711F
         requirement_id: REQ-search-hints-model-pin
         fact_id: FACT-search-hints-model-revision
         binding: derived
@@ -79,6 +79,6 @@ proof_receipts:
           kind: string_constraint
           operator: eq
           polarity: require
-          value: bf8b056651a2c21b8d2565580b8569da283cab23
+          value: 6fc8051fab2a1e0ee76689cf08c853792ac285e7
 ---
-Proves that the search hints embedding model revision shall be bf8b056651a2c21b8d2565580b8569da283cab23, against the code Kibi reads at ingest.
+Proves that the search hints embedding model revision shall be 6fc8051fab2a1e0ee76689cf08c853792ac285e7, against the code Kibi reads at ingest.

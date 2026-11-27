@@ -349,3 +349,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce595018eef1
+  - type: implements
+    from: SYM-hook-runner-run-hook
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:51.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25f0b5081134
+  - type: covered_by
+    from: SYM-hook-runner-run-hook
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:51.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83252af5c35a
+  - type: implements
+    from: SYM-discovery-entities-build-entity-goal
+    to: REQ-kb-query-source-file-requirements
+    created_at: 2026-11-24T19:59:54.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdaefd05ff94
+  - type: covered_by
+    from: SYM-discovery-entities-build-entity-goal
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T19:59:54.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28dbb8e3675d
+  - type: covered_by
+    from: SYM-hook-runner-run-hook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:13.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0dfa98ec98
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c01
+    created_at: 2026-11-25T09:49:38.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f576faf7a5b0
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c02
+    created_at: 2026-11-25T09:49:38.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d7ff318522
+  - type: assumes
+    from: SCEN-kibi-init-level-choice
+    to: FACT-PROP-kibi-init-level-choice-c03
+    created_at: 2026-11-25T09:49:38.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5987e81623af
+  - type: implements
+    from: SYM-model-level-label
+    to: REQ-kibi-signoff-level
+    created_at: 2026-11-25T13:42:58.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e56b3b0b4f19
+  - type: covered_by
+    from: SYM-model-level-label
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:42:58.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f38afd10ed5a
+  - type: constrains
+    from: REQ-init-agent-instructions-carry-brief
+    to: FACT-SUBJECT-kibi-init-agent-instructions
+    created_at: 2026-11-26T11:42:22.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-911588c9caa7
+  - type: requires_property
+    from: REQ-init-agent-instructions-carry-brief
+    to: FACT-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:42:22.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a75aaf4b01f9
+  - type: specified_by
+    from: REQ-init-agent-instructions-carry-brief
+    to: SCEN-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:42:22.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebfc6d8ea27b
+  - type: specified_by
+    from: REQ-init-agent-instructions-carry-brief
+    to: SCEN-NEG-init-agent-instructions-brief-drift
+    created_at: 2026-11-26T11:42:22.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-947b9f92fb47

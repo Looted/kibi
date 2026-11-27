@@ -447,3 +447,143 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6056c9b40dd
+  - type: specified_by
+    from: REQ-impact-review-author-carry
+    to: SCEN-impact-review-author-carry
+    created_at: 2026-11-19T19:12:36.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccafbd56a760
+  - type: specified_by
+    from: REQ-impact-review-author-carry
+    to: SCEN-NEG-impact-review-author-carry-STALE-KEPT
+    created_at: 2026-11-19T19:12:36.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90c86d2912dd
+  - type: verified_by
+    from: REQ-impact-review-author-carry
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:36.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-affaf3f59857
+  - type: constrains
+    from: REQ-impact-review-author-carry
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:12:36.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83a80498bdc0
+  - type: requires_property
+    from: REQ-impact-review-author-carry
+    to: FACT-impact-review-author-carry
+    created_at: 2026-11-19T19:12:36.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554f1c3a5aea
+  - type: requires_property
+    from: REQ-impact-review-author-carry
+    to: FACT-impact-review-author-dropped-reported
+    created_at: 2026-11-19T19:12:36.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e712cae46597
+  - type: verified_by
+    from: SCEN-NEG-cli-prove-ingest-refusal-reported-THROWN
+    to: TEST-cli-prove-ingest-refusal-reported
+    created_at: 2026-11-20T16:11:09.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17daa3afcbe9
+  - type: assumes
+    from: SCEN-NEG-cli-prove-ingest-refusal-reported-THROWN
+    to: FACT-NEG-cli-prove-ingest-refusal-reported-THROWN
+    created_at: 2026-11-20T16:29:08.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b00550f482a
+  - type: implements
+    from: SYM-cli-json-alias-resolve-json-format
+    to: REQ-cli-json-format-alias
+    created_at: 2026-11-22T17:43:12.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c75ea55f81b
+  - type: covered_by
+    from: SYM-cli-json-alias-resolve-json-format
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:43:12.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b11bf5ba99e3
+  - type: assumes
+    from: SCEN-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    to: FACT-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    created_at: 2026-11-25T09:44:06.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afd42a1f6c40
+  - type: verified_by
+    from: SCEN-NEG-cli-migrate-managed-hooks-refresh-hook-manager
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:11.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15728e0b0365
+  - type: implements
+    from: SYM-retrieval-eval-cards-retriever
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:14:46.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9d3ac8eb390
+  - type: covered_by
+    from: SYM-retrieval-eval-cards-retriever
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:14:46.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d34ae505b8f
+  - type: implements
+    from: SYM-src-hook-runner-requirement-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T15:04:41.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6de5d0537327
+  - type: covered_by
+    from: SYM-src-hook-runner-requirement-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:41.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dddbe1ed4b7b
+  - type: implements
+    from: SYM-cli-rule-registry-validateRuleName
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:06.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5086872a98cb
+  - type: covered_by
+    from: SYM-cli-rule-registry-validateRuleName
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:06.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecfe8a31183c
+  - type: assumes
+    from: SCEN-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-full-profile-tools
+    created_at: 2026-11-26T10:32:59.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb33b3d9238
+  - type: assumes
+    from: SCEN-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-instructions-unnamed-tools
+    created_at: 2026-11-26T10:32:59.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1502a62ef10

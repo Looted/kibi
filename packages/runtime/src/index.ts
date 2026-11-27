@@ -206,16 +206,24 @@ export {
   getBranchDiagnostic,
 } from "kibi-cli/public/branch-resolver";
 export {
+  BranchResolutionFailure,
+  GitRequired,
   KIBI_PROTOCOL_VERSION,
   KbRejection,
+  RESULT_BUDGET_CHARS,
+  RESULT_CEILING_CHARS,
+  RESULT_TOO_LARGE,
+  RESULT_TRUNCATED,
   appendPayloadCountField,
   codedErrorOf,
+  fitOperationResult,
   isKbRejection,
   normalizeResultPayload,
   operationData,
   prepareOperationInput,
   resultVersion,
   toKibiResult,
+  withInputAliases,
 } from "kibi-cli/operations/result-envelope";
 export type {
   CodedErrorFields,

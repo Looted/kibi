@@ -321,3 +321,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36f22562cc35
+  - type: constrains
+    from: REQ-vibe-hooks-fail-open
+    to: FACT-SUBJ-VIBE-HOOKS-FAIL-OPEN
+    created_at: 2026-11-19T20:09:49.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a1ee1fbbc88
+  - type: requires_property
+    from: REQ-vibe-hooks-fail-open
+    to: FACT-PROP-VIBE-HOOKS-FAIL-OPEN-N01
+    created_at: 2026-11-19T20:09:49.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b64501e3c05b
+  - type: requires_property
+    from: REQ-vibe-hooks-fail-open
+    to: FACT-PROP-VIBE-HOOKS-FAIL-OPEN-N02
+    created_at: 2026-11-19T20:09:49.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8c4e806705e
+  - type: specified_by
+    from: REQ-vibe-hooks-fail-open
+    to: SCEN-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:16:14.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3e11b411651
+  - type: specified_by
+    from: REQ-vibe-hooks-fail-open
+    to: SCEN-NEG-vibe-hooks-block-session
+    created_at: 2026-11-19T22:37:33.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb96eb141855
+  - type: executable_for
+    from: SYM-vibe-common-test
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:01:01.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd86416ea656
+  - type: implements
+    from: SYM-cache-vector-cache-save
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:07.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff3d0b3159e
+  - type: covered_by
+    from: SYM-cache-vector-cache-save
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:07.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c59dcfaeb16d
+  - type: relates_to
+    from: REQ-kibi-git-required-refusal
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:17:33.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b077f7205513
+  - type: constrains
+    from: REQ-kibi-git-required-refusal
+    to: FACT-SUBJ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:17:33.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d35c4ecc632f
+  - type: requires_property
+    from: REQ-kibi-git-required-refusal
+    to: FACT-kibi-git-required-refusal-error-code
+    created_at: 2026-11-25T09:17:47.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca9eb857797b
+  - type: requires_property
+    from: REQ-kibi-git-required-refusal
+    to: FACT-kibi-git-required-retryable
+    created_at: 2026-11-25T09:17:47.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59b6153c16b
+  - type: specified_by
+    from: REQ-kibi-git-required-refusal
+    to: SCEN-kibi-git-required
+    created_at: 2026-11-25T09:17:47.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87437d3412a8
+  - type: specified_by
+    from: REQ-kibi-git-required-refusal
+    to: SCEN-NEG-kibi-git-required
+    created_at: 2026-11-25T09:17:47.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4584aaaa7d4
+  - type: covered_by
+    from: SYM-kb-mcp-tools-is-kibi-mcp-tool-name
+    to: TEST-agent-core-shared-hook-inputs
+    created_at: 2026-11-26T17:45:49.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37eb3ee3085e
+  - type: implements
+    from: SYM-kb-mcp-tools-is-kibi-mcp-tool-name
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-26T18:50:46.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89fb7dc75dc9
+  - type: covered_by
+    from: SYM-kb-mcp-tools-is-kibi-mcp-tool-name
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-26T18:50:46.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a95e54d69e52

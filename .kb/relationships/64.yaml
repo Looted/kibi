@@ -132,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b822b6172c0
-  - type: validates
-    from: TEST-proof-search-hint-shown-limit
-    to: SCEN-kibi-search-hints-host
-    created_at: 2026-10-29T21:35:34.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-69dc056ed180
   - type: constrains
     from: REQ-kibi-distribution-parity-matrix
     to: FACT-kibi-distribution-parity-component
@@ -398,3 +391,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5949b6963361
+  - type: specified_by
+    from: REQ-impact-review-schema-resource
+    to: SCEN-impact-review-schema-resource
+    created_at: 2026-11-19T19:11:28.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46f8ae146a68
+  - type: specified_by
+    from: REQ-impact-review-schema-resource
+    to: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:11:28.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89ac46abf75d
+  - type: constrains
+    from: REQ-impact-review-schema-resource
+    to: FACT-SUBJECT-kibi-impact-review-preparation
+    created_at: 2026-11-19T19:11:28.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-747c51291b8e
+  - type: requires_property
+    from: REQ-impact-review-schema-resource
+    to: FACT-impact-review-schema-resource
+    created_at: 2026-11-19T19:11:28.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c54182c1d9e2
+  - type: verified_by
+    from: REQ-impact-review-schema-resource
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:21:14.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e78a64b450dd
+  - type: implements
+    from: SYM-rule-registry-get-layer-rules
+    to: REQ-kibi-check-rule-layers
+    created_at: 2026-11-25T08:31:08.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d95c7a599c06
+  - type: covered_by
+    from: SYM-rule-registry-get-layer-rules
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:32:04.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bad0581343e9

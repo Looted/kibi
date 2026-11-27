@@ -20,17 +20,17 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e8e016b0b4d5cbdfd7cee48c
+    receipt_id: PR-d4657a6eaefcc0039c808bbd
     test_id: TEST-capability-plugin-jev-mocked-v1
     scope: unit
     outcome: passed
-    code_snapshot: c78d87453534f34be23060678a90114386641b97f24f1f909f008a3c1ad06ae5
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:27:32.212Z'
-    finished_at: '2026-10-25T12:27:32.292Z'
-    artifact_digest: 9cefa6f1042f3e01600ec1dd2842336abd171040f63c977947602a50902a9a60
+    code_snapshot: abd26843632015172efc51d372c5c7cfaa6ff8ff4c960017406f5e79698cca8f
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-24T08:51:44.061Z'
+    finished_at: '2026-11-24T08:51:44.119Z'
+    artifact_digest: 04968db5681aed070f138a62568fcc3ffa8cbb8ba08cd1c08867abb7baa70a1d
     contract_hash: 94b719e8d7bd9c1d066a2901109d39016fbf3f80c627373c0b71cb9d4fe263a2
-    binding_hash: dcac67cae37ac2522c8493fc31919aba96759f85292c707af6d525d7332a79eb
+    binding_hash: 27dd4f33fb84d8eb642735d43477eeb46a3d61440fc9021d313903e7fd45a701
     fingerprint: b129d1f9cfee213d9a4ac391924d1cf5004708f46d751f8fa75038e95a7ddf30
     fingerprint_components:
       contract: 94b719e8d7bd9c1d066a2901109d39016fbf3f80c627373c0b71cb9d4fe263a2

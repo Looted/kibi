@@ -5,7 +5,9 @@ import {
   FIRM_EDIT_REVIEWS_DIR,
   parseFirmEditReceipt,
 } from "kibi-agent-core/firm-edit-review";
+import { kibiLevelInSettings } from "kibi-agent-core/kibi-level";
 import { supersedingRequirement } from "kibi-agent-core/knowledge-index";
+import { EVIDENCE_LEVELS, evidenceFloor } from "kibi-agent-core/level-guard";
 import { isRetiredStatus } from "kibi-agent-core/snippets";
 import { effectiveFirmness } from "../decision-firmness.js";
 import {
@@ -16,8 +18,10 @@ import { readAllShards } from "../relationships/shards.js";
 import {
   SIGNOFF_VERSION,
   type SignoffChange,
+  type SignoffDecision,
   type SignoffFirmEditReview,
   type SignoffFirmness,
+  type SignoffLevel,
   type SignoffProof,
   type SignoffQuestion,
   type SignoffQuestionInput,
@@ -252,10 +256,132 @@ function changedFirmEditReviews(
   return byRequirement;
 }
 
+/** A settings file's text, or undefined when there is none. */
+type SettingsReader = (file: string) => string | undefined;
+
+/**
+ * The level the settings files hold: `kibi.level` in the root package.json,
+ * or `level` in `.kb/setup.json` when there is no root package.json.
+ */
+function levelOf(read: SettingsReader): {
+  level: string;
+  setting: string;
+  set: boolean;
+} {
+  const manifest = read("package.json");
+  const resolved =
+    manifest !== undefined
+      ? kibiLevelInSettings(manifest, "package.json")
+      : kibiLevelInSettings(read(".kb/setup.json"), "setup.json");
+  return {
+    level: resolved.level,
+    setting:
+      manifest !== undefined
+        ? "kibi.level in package.json"
+        : "level in .kb/setup.json",
+    set: resolved.source !== "default",
+  };
+}
+
+/**
+ * The project's Kibi level in the reviewed scope (the index for staged
+ * changes, the working tree otherwise), and the level at the base commit
+ * when the change moves it.
+ */
+export function signoffLevel(
+  workspaceRoot: string,
+  git: (args: readonly string[]) => string,
+  scope: SignoffScope,
+  hasBase: boolean,
+  baseRef = "HEAD",
+): { level: SignoffLevel; decision?: SignoffDecision } {
+  const now = levelOf((file) =>
+    currentContent(workspaceRoot, git, scope, file),
+  );
+  const level = {
+    level: now.level,
+    setting: now.set ? now.setting : "the default",
+  };
+  if (!hasBase) return { level };
+  const before = levelOf((file) => tryGit(git, ["show", `${baseRef}:${file}`]));
+  if (before.level === now.level) return { level };
+  return {
+    level: { ...level, previous: before.level },
+    decision: {
+      kind: "level",
+      from: before.level,
+      to: now.level,
+      setting: now.setting,
+    },
+  };
+}
+
+/** A requirement's evidence floor, as kibi check computes it. */
+function floorOf(entity: ExtractedEntity): number {
+  return EVIDENCE_LEVELS.indexOf(
+    evidenceFloor({
+      required_evidence: entity.required_evidence,
+      firmness: entity.firmness,
+      originKind: entity.origin?.kind,
+      approvedBy: entity.origin?.approved_by,
+    }),
+  );
+}
+
+/**
+ * The decision a rewrite of a requirement asks for when its evidence floor
+ * is now lower than at the base commit; undefined otherwise.
+ */
+export function loweredFloorDecision(
+  before: ExtractedEntity,
+  after: ExtractedEntity,
+): SignoffDecision | undefined {
+  const from = floorOf(before);
+  const to = floorOf(after);
+  if (to >= from) return undefined;
+  return {
+    kind: "evidence",
+    requirementId: after.id,
+    title: flat(after.title),
+    from: EVIDENCE_LEVELS[from] as string,
+    to: EVIDENCE_LEVELS[to] as string,
+  };
+}
+
 function headExists(git: (args: readonly string[]) => string): boolean {
   return (
     tryGit(git, ["rev-parse", "--verify", "--quiet", "HEAD"]) !== undefined
   );
+}
+
+const DEFAULT_BASE_CANDIDATES = [
+  "origin/develop",
+  "develop",
+  "origin/main",
+  "main",
+  "origin/master",
+  "master",
+] as const;
+
+/**
+ * When reviewing a clean working tree on a branch ahead of a default branch,
+ * compare against the merge base so committed changes (such as a Kibi level
+ * flip or lowered floor) still surface at signoff.
+ */
+function resolveWorkingBase(
+  git: (args: readonly string[]) => string,
+  scope: SignoffScope,
+): string {
+  if (scope !== "working") return "HEAD";
+  const status = tryGit(git, ["status", "--porcelain"]);
+  if (status === undefined || status.trim() !== "") return "HEAD";
+  const head = tryGit(git, ["rev-parse", "HEAD"])?.trim();
+  if (!head) return "HEAD";
+  for (const ref of DEFAULT_BASE_CANDIDATES) {
+    const mergeBase = tryGit(git, ["merge-base", "HEAD", ref])?.trim();
+    if (mergeBase && mergeBase !== head) return mergeBase;
+  }
+  return "HEAD";
 }
 
 /**
@@ -270,7 +396,11 @@ export async function collectSignoffSummary(
 ): Promise<SignoffSummary> {
   const git = deps.git ?? gitRunner(workspaceRoot);
   const notes: string[] = [];
-  const base = headExists(git) ? "HEAD" : EMPTY_TREE;
+  const hasBase = headExists(git);
+  const base = hasBase ? "HEAD" : EMPTY_TREE;
+  let effectiveBase = base;
+  let level = signoffLevel(workspaceRoot, git, scope, hasBase, base);
+  const decisions: SignoffDecision[] = level.decision ? [level.decision] : [];
   const readRequirement = workspaceRequirements(workspaceRoot);
   // A closed requirement is done and still governs, unless a current
   // requirement supersedes it.
@@ -343,11 +473,40 @@ export async function collectSignoffSummary(
       `Changed requirement documents could not be listed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  if (
+    hasBase &&
+    scope === "working" &&
+    files.length === 0 &&
+    level.decision === undefined
+  ) {
+    const mergeBase = resolveWorkingBase(git, scope);
+    if (mergeBase !== "HEAD") {
+      effectiveBase = mergeBase;
+      const branchLevel = signoffLevel(
+        workspaceRoot,
+        git,
+        scope,
+        true,
+        effectiveBase,
+      );
+      if (branchLevel.decision) {
+        level = branchLevel;
+        decisions.unshift(branchLevel.decision);
+      }
+      try {
+        files = changedRequirementFiles(git, scope, effectiveBase);
+      } catch (error) {
+        notes.push(
+          `Changed requirement documents could not be listed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+  }
   for (const { status, file } of files) {
     const before =
       status === "A"
         ? undefined
-        : parseEntity(tryGit(git, ["show", `${base}:${file}`]), file);
+        : parseEntity(tryGit(git, ["show", `${effectiveBase}:${file}`]), file);
     if (status === "D") {
       if (before?.type === "req") {
         drafts.set(before.id, draftFor(before, "retired", file));
@@ -371,6 +530,11 @@ export async function collectSignoffSummary(
     const change: SignoffChange =
       status === "A" ? "new" : retiredNow ? "retired" : "changed";
     drafts.set(entity.id, draftFor(entity, change, file, before));
+    const lowered =
+      change === "changed" && before?.type === "req"
+        ? loweredFloorDecision(before, entity)
+        : undefined;
+    if (lowered) decisions.push(lowered);
   }
 
   try {
@@ -402,7 +566,7 @@ export async function collectSignoffSummary(
       workspaceRoot,
       git,
       scope,
-      base,
+      effectiveBase,
     )) {
       const existing = drafts.get(id);
       if (existing) {
@@ -466,6 +630,8 @@ export async function collectSignoffSummary(
     scope,
     generatedAt: (deps.now ?? (() => new Date()))().toISOString(),
     ...(branch && branch !== "HEAD" ? { branch } : {}),
+    level: level.level,
+    decisions,
     requirements,
     notes,
   };
@@ -534,6 +700,12 @@ export function collectSignoffQuestions(
     version: SIGNOFF_VERSION,
     kind: "questions",
     generatedAt: now().toISOString(),
+    level: signoffLevel(
+      workspaceRoot,
+      gitRunner(workspaceRoot),
+      "working",
+      false,
+    ).level,
     questions,
     notes,
   };

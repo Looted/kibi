@@ -1,5 +1,5 @@
 ---
-title: kb_search search hints host tests
+title: kb_search meaning ranking tests
 status: passing
 tags:
   - search
@@ -21,17 +21,17 @@ id: TEST-kibi-search-hints-host
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f2f59c8a36e3d11308995920
+    receipt_id: PR-eacc11e3635c64433bc2ae5d
     test_id: TEST-kibi-search-hints-host
     scope: end_to_end
     outcome: passed
-    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:24:56.621Z'
-    finished_at: '2026-11-16T12:25:00.016Z'
-    artifact_digest: 6c8634cac1ce07fa01e37c527df2e2aafcfd220a3eaa232c0bcaf50a6332fd27
+    code_snapshot: 4b66676736e4ffd3d568ebd40c071d55c0a0c605ee2bb57b0941bd7a509e70d6
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-25T19:50:34.314Z'
+    finished_at: '2026-11-25T19:50:37.032Z'
+    artifact_digest: 6fcfa78a1ac1d9dc7a685041f7165d8f263ca3d9f3ce5c9191ed874044db6566
     contract_hash: 4f0dd1922bf5b05bf8986aaf0c245d881c31a7168a487695adb2928c9dd93487
-    binding_hash: dcb25256f754e6ea5ff08fe1ea3c1c7192cfb19380885d37315a6c97f7da399d
+    binding_hash: 9ff51c6066f805acea7b064e5a9ec124f2065c7e085d92b900ac2af931033d5a
     fingerprint: 2af39c1ddc2e600fac4cd39effc728dca8240393b637fcfd3d696653defcc141
     fingerprint_components:
       contract: 4f0dd1922bf5b05bf8986aaf0c245d881c31a7168a487695adb2928c9dd93487
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-CLI tests for the search hints host: the trigger matrix, the current-entity corpus and its query-independent text, replace and shadow composition, failure, invalid result and timeout handling, the operation allowlist, lifting hits to linked requirements, and kb_search answers with hints on, off and with a provider that cannot load.
+CLI tests for the meaning ranking of kb_search: replace and shadow composition, a throwing, invalid or late provider giving no scores and a diagnostic, the operation allowlist, the provider's first and warm time budgets and its per-workspace cache directory (packages/cli/tests/search-hints.test.ts), and decision search fusing the provider's scores, crediting each decision with its linked scenarios, tests and assumed facts and listing the closest decisions that are not cards (packages/cli/tests/decision-search.test.ts), with kb_search answers with a provider, without one and with one that cannot load.

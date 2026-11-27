@@ -495,7 +495,7 @@ describe("fileKnowledgeSnippet", () => {
       "- R2 — s",
       "- R3 — s",
       "- R4 — s",
-      '- +2 more requirements: kb_query({sourceFile:"a.ts"})',
+      '- Also linked (2 more): R5, R6; kb_query({sourceFile:"a.ts", type:"req"}) lists them',
       "Covered by: T1, T2, T3 +1.",
       "Test code for: R8, R9.",
       'Next layer: kb_query({id:"R1", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"a.ts"}]}) answers with governing requirements, facts, decisions, and tests.',
@@ -506,7 +506,32 @@ describe("fileKnowledgeSnippet", () => {
       surface: "read",
       summarize,
     });
-    expect(four).not.toContain("more requirements");
+    expect(four).not.toContain("more");
+  });
+
+  test("a tight budget names the hidden requirements before it drops them", () => {
+    const ids = ["REQ-a1", "REQ-a2", "REQ-a3", "REQ-a4", "REQ-a5", "REQ-a6"];
+    const symbols = [sym("s", 1, 2, { implements: ids })];
+    const tight = fileKnowledgeSnippet({
+      relativePath: "a.ts",
+      symbols,
+      surface: "read",
+      summarize,
+      maxChars: 450,
+    });
+    expect(tight).toContain(
+      'Also linked (2 more): REQ-a5, REQ-a6; kb_query({sourceFile:"a.ts", type:"req"}) lists them',
+    );
+    const tighter = fileKnowledgeSnippet({
+      relativePath: "a.ts",
+      symbols,
+      surface: "read",
+      summarize,
+      maxChars: 360,
+    });
+    expect(tighter).toContain(
+      '- +5 more requirements: kb_query({sourceFile:"a.ts", type:"req"})',
+    );
   });
 
   test("a test-only file has no lead requirement; the edit names an unowned symbol", () => {

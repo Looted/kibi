@@ -61,6 +61,23 @@ function createContext(
   };
 }
 
+/** A workspace whose .kb holds three requirements. */
+function decisionWorkspace(): string {
+  const root = mkdtempSync(path.join(tmpdir(), "kibi-discovery-decisions-"));
+  const write = (id: string, title: string) => {
+    const file = path.join(root, ".kb", "requirements", `${id}.md`);
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(
+      file,
+      `---\nid: ${id}\ntitle: ${title}\nstatus: open\n---\n${title}.\n`,
+    );
+  };
+  write("REQ-1", "OAuth login flow");
+  write("REQ-EXPORT", "Export report as CSV");
+  write("REQ-LOGIN", "Authenticate an account");
+  return root;
+}
+
 const ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT = 12_000;
 const ABOVE_BOUNDED_TRANSPORT_CAPACITY_COUNT = 70_000;
 const TRANSPORT_PADDING = "x".repeat(128);
@@ -472,7 +489,7 @@ describe("shared discovery operation executors", () => {
 
     // When
     const result = await searchSpec.execute(
-      { query: "  OAuth login  ", limit: 1, offset: 1 },
+      { query: "  OAuth login  ", limit: 1, offset: 1, rankingMode: "legacy" },
       createContext(query),
     );
     expect(query.mock.calls[0]?.[0]).toBe(
@@ -515,7 +532,7 @@ describe("shared discovery operation executors", () => {
 
     // When
     const result = await searchSpec.execute(
-      { query: "OAuth login", limit: 5, offset: 0 },
+      { query: "OAuth login", limit: 5, offset: 0, rankingMode: "legacy" },
       { ...context, prolog },
     );
 
@@ -531,67 +548,99 @@ describe("shared discovery operation executors", () => {
     expect(result.structuredContent?.results).toHaveLength(5);
   });
 
-  test("kb_search summarizes entities by default and returns full bodies on request", async () => {
-    // Candidates are projected rows; `fields: "full"` reloads the returned
-    // page by id.
-    const query = mock(
-      async (goal: string): Promise<PrologQueryResult> =>
-        goal.startsWith("kb_search_entities(")
-          ? {
-              success: true,
-              bindings: {
-                Rows: '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth]]]]',
-                Count: "1",
-              },
-            }
-          : {
-              success: true,
-              bindings: {
-                Results:
-                  '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth],proof_receipts="[]"]]]',
-              },
-            },
-    );
+  test("kb_search answers with decision cards and returns full bodies on request", async () => {
+    // Decisions are read from the authored .kb files; `fields: "full"`
+    // reloads the returned cards by id.
+    const workspace = decisionWorkspace();
+    try {
+      const query = mock(
+        async (goal: string): Promise<PrologQueryResult> =>
+          goal.startsWith("findall(['REQ-1'")
+            ? {
+                success: true,
+                bindings: {
+                  Results:
+                    '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth],proof_receipts="[]"]]]',
+                },
+              }
+            : { success: true, bindings: { Results: "[]", Rows: "[]" } },
+      );
+      const summary = await searchSpec.execute(
+        { query: "OAuth login flow", answer: false },
+        createContext(query, workspace),
+      );
+      const card = summary.structuredContent?.results[0] as
+        | Record<string, unknown>
+        | undefined;
+      expect(Object.keys(card ?? {}).sort()).toEqual([
+        "entity",
+        "line",
+        "reasons",
+        "scope",
+        "score",
+      ]);
+      expect(card?.entity).toEqual({
+        id: "REQ-1",
+        type: "req",
+        title: "OAuth login flow",
+        status: "open",
+      });
+      expect(String(card?.line)).toContain("REQ-1");
+      expect(Number(card?.score)).toBeGreaterThan(0);
 
-    const summary = await searchSpec.execute(
-      { query: "OAuth login" },
-      createContext(query),
-    );
-    const summarized = summary.structuredContent?.results[0];
-    expect(summarized?.entity).toEqual({
-      id: "REQ-1",
-      type: "req",
-      title: "OAuth login flow",
-      status: "open",
-      tags: ["auth"],
-    });
-    // Ranking evidence survives the projection; only the body is withheld.
-    expect(summarized?.score).toBeGreaterThan(0);
-    expect(summarized?.reasons.length).toBeGreaterThan(0);
-
-    const full = await searchSpec.execute(
-      { query: "OAuth login", fields: "full" },
-      createContext(query),
-    );
-    expect(full.structuredContent?.results[0]?.entity.semantic_text).toBe(
-      "a very long normative body",
-    );
-    expect(
-      (full.structuredContent?.results[0]?.entity as Record<string, unknown>)
-        .proof_receipts,
-    ).toBeDefined();
-    expect(query.mock.calls.at(-1)?.[0]).toBe(
-      "findall(['REQ-1','req',Props], kb_entity('REQ-1', 'req', Props), Results)",
-    );
+      const full = await searchSpec.execute(
+        { query: "OAuth login flow", fields: "full", answer: false },
+        createContext(query, workspace),
+      );
+      expect(full.structuredContent?.results[0]?.entity.semantic_text).toBe(
+        "a very long normative body",
+      );
+      expect(
+        (full.structuredContent?.results[0]?.entity as Record<string, unknown>)
+          .proof_receipts,
+      ).toBeDefined();
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
   });
 
-  test("kb_search intent-v1 returns semantic evidence and analysis", async () => {
+  test("kb_search ranks decisions with the words of the semantic facets", async () => {
+    const workspace = decisionWorkspace();
+    try {
+      const query = mock(
+        async (): Promise<PrologQueryResult> => ({
+          success: true,
+          bindings: { Results: "[]", Rows: "[]" },
+        }),
+      );
+      const result = await searchSpec.execute(
+        {
+          query: "download report",
+          rankingMode: "intent-v1",
+          semanticFacets: { actions: ["export"], objects: ["CSV file"] },
+          answer: false,
+        },
+        createContext(query, workspace),
+      );
+      expect(result.structuredContent?.queryAnalysis).toMatchObject({
+        rankingMode: "intent-v1",
+        unit: "decision",
+      });
+      expect(result.structuredContent?.results[0]?.entity.id).toBe(
+        "REQ-EXPORT",
+      );
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test("kb_search of a typed row returns semantic evidence and analysis", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("kb_relationship")) {
         return { success: true, bindings: { Edges: "[]" } };
       }
       const rows =
-        '[[REQ-EXPORT,req,[title="Export report as CSV",status=open,tags=[download,reporting]]] , [REQ-LOGIN,req,[title="Authenticate an account",status=open]]]';
+        '[[FACT-EXPORT,fact,[title="Export report as CSV",status=active,tags=[download,reporting]]] , [FACT-LOGIN,fact,[title="Authenticate an account",status=active]]]';
       return {
         success: true,
         bindings: goal.startsWith("findall(")
@@ -603,6 +652,7 @@ describe("shared discovery operation executors", () => {
     const result = await searchSpec.execute(
       {
         query: "download report",
+        type: "fact",
         rankingMode: "intent-v1",
         semanticFacets: { actions: ["export"], objects: ["CSV file"] },
       },
@@ -612,7 +662,7 @@ describe("shared discovery operation executors", () => {
     expect(result.structuredContent?.queryAnalysis?.rankingMode).toBe(
       "intent-v1",
     );
-    expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-EXPORT");
+    expect(result.structuredContent?.results[0]?.entity.id).toBe("FACT-EXPORT");
     const firstResult = result.structuredContent?.results[0];
     expect(
       firstResult !== undefined && "evidence" in firstResult
@@ -1054,7 +1104,7 @@ describe("shared discovery operation executors", () => {
       }
     });
 
-    test("executeStatus reports missing stores and wraps attachment errors", async () => {
+    test("executeStatus reports missing stores and a workspace outside Git", async () => {
       const root = mkdtempSync(path.join(tmpdir(), "kibi-disco-"));
       mkdirSync(path.join(root, ".kb"), { recursive: true });
       try {
@@ -1089,15 +1139,24 @@ describe("shared discovery operation executors", () => {
           // This case requires no branch authority. Proof CI supplies an explicit
           // override, which intentionally permits status outside a Git checkout.
           Reflect.deleteProperty(process.env, "KIBI_BRANCH");
-          await expect(
-            executeStatus(
-              {},
-              context(root, {
-                branchAttachment: undefined,
-                git: undefined,
-              }),
-            ),
-          ).rejects.toThrow("Status execution failed");
+          const outside = await executeStatus(
+            {},
+            context(root, {
+              branchAttachment: undefined,
+              git: undefined,
+            }),
+          );
+          // Outside Git the status answers from the no-Git store and says so.
+          expect(
+            (
+              outside.structuredContent as unknown as {
+                versionControl?: { reason?: unknown; kbBranch?: unknown };
+              }
+            ).versionControl,
+          ).toMatchObject({
+            reason: "not_a_repository",
+            kbBranch: "kibi-internal/no-git",
+          });
         } finally {
           if (originalBranchOverride === undefined) {
             Reflect.deleteProperty(process.env, "KIBI_BRANCH");

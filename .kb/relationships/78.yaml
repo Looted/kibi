@@ -342,3 +342,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1b63941b9b4
+  - type: assumes
+    from: SCEN-result-budget-paging-notice
+    to: FACT-result-budget-paging-notice
+    created_at: 2026-11-19T15:26:14.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47596127c5ff
+  - type: assumes
+    from: SCEN-NEG-antigravity-no-local-proxy
+    to: FACT-NEG-antigravity-no-local-proxy
+    created_at: 2026-11-24T05:07:22.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eeb4048e2a20
+  - type: verified_by
+    from: SCEN-NEG-antigravity-no-local-proxy
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:22.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eb01868799c

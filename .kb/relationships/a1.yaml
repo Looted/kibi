@@ -307,3 +307,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbfea8d3d5aa
+  - type: implements
+    from: SYM-impact-review-preparation-build-preparation
+    to: REQ-impact-review-preparation-paging
+    created_at: 2026-11-19T19:11:15.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff5b0c365e10
+  - type: implements
+    from: SYM-impact-review-authoring-carried-decisions
+    to: REQ-impact-review-author-carry
+    created_at: 2026-11-19T19:12:38.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a61b01aeba97
+  - type: covered_by
+    from: SYM-impact-review-authoring-carried-decisions
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:38.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b136c77aacc4
+  - type: covered_by
+    from: SYM-impact-review-preparation-build-preparation
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:59.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80bebf44d446
+  - type: assumes
+    from: SCEN-NEG-prolog-release-pack-foreign-target
+    to: FACT-NEG-prolog-release-pack-foreign-target
+    created_at: 2026-11-24T15:49:03.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ace4123bd21
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-foreign-target
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-24T15:49:03.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eade06f837d3
+  - type: validates
+    from: TEST-kibi-check-rule-layers
+    to: SCEN-kibi-check-rule-layers
+    created_at: 2026-11-25T08:31:57.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13665436ad36
+  - type: assumes
+    from: SCEN-search-decision-card-line-one-line-at-most-300-AT
+    to: FACT-search-decision-card-line-one-line-at-most-300-AT
+    created_at: 2026-11-25T14:35:55.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c1ca12f933
+  - type: verified_by
+    from: SCEN-search-decision-card-line-one-line-at-most-300-AT
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:55.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-580f0037ce68
+  - type: assumes
+    from: SCEN-NEG-kibi-schema-20-level-c01-neq-0
+    to: FACT-NEG-kibi-schema-20-level-c01-neq-0
+    created_at: 2026-11-25T10:19:51.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b8be80507e1

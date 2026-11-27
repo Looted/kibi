@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-search-decisions-are-the-unit",
+  "sourceFile": "packages/cli/src/decision-search.ts",
+  "symbol": "searchDecisions",
+  "verdict": "keeps",
+  "note": "Restores per-folded-card decisionCoverage seeding so superseded folded predecessors still appear in notGoverning without elevating low-coverage successors; decision ranking, crediting, and weak-match behavior remain unchanged.",
+  "statementHash": "sha256:ef5557fb1b5c83be62f315b4548b0a3689dd80c2e5507c167ac5fb128cef3457",
+  "codeHash": "sha256:365551a9926739ba21d62bfdd2f9234973c2f5c03501d0aa521b6037dafe39fa",
+  "startLine": 256,
+  "endLine": 380,
+  "recordedAt": "2026-11-26T20:13:47.150Z"
+}

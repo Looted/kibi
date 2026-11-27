@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-prove-ingest-refusal-reported",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/commands/prove-mutation.test.ts"
+    ]
+  ]
+}

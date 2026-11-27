@@ -433,3 +433,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf50cedbb352
+  - type: assumes
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: FACT-NEG-VIBE-WORKSPACE-CWD-ONLY
+    created_at: 2026-11-19T22:37:23.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df5145331e0
+  - type: verified_by
+    from: SCEN-NEG-vibe-workspace-cwd-only
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:23.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6e2f51d7b1
+  - type: implements
+    from: SYM-impact-review-preparation-requirement-bindings
+    to: REQ-impact-review-requirements-once
+    created_at: 2026-11-19T19:10:25.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1d464effb42
+  - type: covered_by
+    from: SYM-impact-review-preparation-requirement-bindings
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:32.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52d1fb38eb5e
+  - type: implements
+    from: SYM-engine-socket-key-engine-socket-key
+    to: REQ-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T17:51:25.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5b239d8545d
+  - type: covered_by
+    from: SYM-engine-socket-key-engine-socket-key
+    to: TEST-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T17:51:25.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a00901196f6b
+  - type: constrains
+    from: REQ-kb-query-source-file-requirements
+    to: FACT-SUBJ-REQ-MCP-TAG-FILTERING-SERVER-SIDE
+    created_at: 2026-11-24T20:01:05.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c8da84a8713
+  - type: requires_property
+    from: REQ-kb-query-source-file-requirements
+    to: FACT-kb-query-source-file-requirements
+    created_at: 2026-11-24T20:01:05.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-420876e47b36
+  - type: specified_by
+    from: REQ-kb-query-source-file-requirements
+    to: SCEN-kb-query-source-file-requirements
+    created_at: 2026-11-24T20:01:05.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9cea6cffdb0
+  - type: specified_by
+    from: REQ-kb-query-source-file-requirements
+    to: SCEN-NEG-kb-query-source-file-requirements-LOOKUP
+    created_at: 2026-11-24T20:01:05.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fad12d78c7e
+  - type: implements
+    from: SYM-cla-workflow
+    to: REQ-contributions-require-cla
+    created_at: 2026-11-25T06:08:37.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2ac3f891d90
+  - type: covered_by
+    from: SYM-cla-workflow
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:37.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6561b18951ea
+  - type: implements
+    from: SYM-level-guard-guarded-change-confirmation
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:47.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f9dd9f39092
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-confirmation
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:47.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4503559f7901
+  - type: executable_for
+    from: SYM-vscode-mock-default-mcp-stdio-server-definition-cwd
+    to: TEST-vscode-traceability
+    created_at: 2026-11-25T14:52:32.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed95502f14c4

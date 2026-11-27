@@ -458,3 +458,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6b120cc5703
+  - type: implements
+    from: SYM-guard-session-state-dir
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:29:54.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7361a0e64f7e
+  - type: covered_by
+    from: SYM-guard-session-state-dir
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:29:54.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8207dee34e5
+  - type: covered_by
+    from: SYM-cli-signoff-collect-questions
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:42:57.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17c55252662e

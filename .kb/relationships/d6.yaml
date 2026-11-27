@@ -584,3 +584,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40a31d6b6389
+  - type: assumes
+    from: SCEN-NEG-cli-engine-janitor-workspace-sockets-SKIPPED
+    to: FACT-NEG-cli-engine-janitor-workspace-sockets-SKIPPED
+    created_at: 2026-11-22T15:54:17.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89a60b407897
+  - type: verified_by
+    from: SCEN-NEG-cli-engine-janitor-workspace-sockets-SKIPPED
+    to: TEST-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T15:54:17.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6211b7d0ce04
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-unreadable-repository
+    to: FACT-NEG-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:41.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78e0f2fba5d4
+  - type: assumes
+    from: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    to: FACT-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    created_at: 2026-11-25T14:35:49.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3671d5447e29
+  - type: verified_by
+    from: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:49.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8c7ebdb1990

@@ -23,6 +23,8 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  accessSync,
+  constants,
   cpSync,
   existsSync,
   lstatSync,
@@ -96,6 +98,11 @@ export function verifyArchiveSidecar(archivePath, sidecarPath) {
 }
 
 /** Verified extraction through the pipeline's own archive verifier. */
+// The win32-x64 payload is repackaged from the pinned upstream installer, so
+// its archive is verified by the repack script's platform-neutral verifier;
+// the spike verifier only knows the source-build targets.
+const WIN32_X64 = "win32-x64";
+
 export function extractWithPipelineVerifier({
   archive,
   sidecar,
@@ -105,10 +112,12 @@ export function extractWithPipelineVerifier({
   env = process.env,
   python = env.PYTHON ?? "python3",
 }) {
+  const verifier =
+    target === WIN32_X64 ? "swipl-windows-repack.py" : "swipl-spike.py";
   const result = spawnSync(
     python,
     [
-      path.join(repoRoot, "scripts", "swipl-spike.py"),
+      path.join(repoRoot, "scripts", verifier),
       "extract-archive",
       "--target",
       target,
@@ -253,8 +262,8 @@ export function materializeSymlinks(payloadRoot) {
   return summary;
 }
 
-function copyPayload(prefix, destination) {
-  for (const entry of PAYLOAD_ENTRIES) {
+function copyPayload(prefix, destination, entries = PAYLOAD_ENTRIES) {
+  for (const entry of entries) {
     const source = path.join(prefix, entry);
     if (!existsSync(source)) {
       throw new Error(`archive prefix has no ${entry}`);
@@ -332,13 +341,18 @@ export function populatePlatformPackage({
       repoRoot,
       env: cachedBuild ? withoutRunBinding(env) : env,
     });
-    // Only the four shipped entries leave the verified prefix (share/ holds
-    // man pages and pkg-config metadata that the runtime never reads).
+    // Only the shipped entries leave the verified prefix (share/ holds
+    // man pages and pkg-config metadata that the runtime never reads). The
+    // win32 payload keeps its binary under lib/swipl/bin and ships no bin/.
+    const payloadEntries =
+      target === WIN32_X64
+        ? PAYLOAD_ENTRIES.filter((entry) => entry !== "bin")
+        : PAYLOAD_ENTRIES;
     const staged = path.join(work, "staged");
     mkdirSync(staged);
-    copyPayload(prefix, staged);
+    copyPayload(prefix, staged, payloadEntries);
     const links = materializeSymlinks(staged);
-    copyPayload(staged, packageDir);
+    copyPayload(staged, packageDir, payloadEntries);
     const problems = verifySwiplPayload(packageDir);
     if (problems.length > 0) {
       throw new Error(
@@ -349,7 +363,11 @@ export function populatePlatformPackage({
       readFileSync(path.join(packageDir, "build-manifest.json"), "utf8"),
     );
     const binary = path.join(packageDir, manifest.binary.path);
-    if ((statSync(binary).mode & 0o111) === 0) {
+    // X_OK keeps the exec-bit check on POSIX (where tar modes survive) and
+    // degrades to an existence check on Windows, matching the resolver.
+    try {
+      accessSync(binary, constants.X_OK);
+    } catch {
       throw new Error(
         `${manifest.binary.path} is not executable after extraction`,
       );

@@ -405,3 +405,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9d7f3bc5edb
+  - type: verified_by
+    from: REQ-cli-json-format-alias
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:43:10.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5e88a21ea3a
+  - type: constrains
+    from: REQ-cli-json-format-alias
+    to: FACT-SUBJ-kibi-cli-json-format-alias
+    created_at: 2026-11-22T17:45:52.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f60ef0b1779
+  - type: requires_property
+    from: REQ-cli-json-format-alias
+    to: FACT-cli-json-format-alias
+    created_at: 2026-11-22T17:45:52.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a10308a34360
+  - type: specified_by
+    from: REQ-cli-json-format-alias
+    to: SCEN-cli-json-format-alias
+    created_at: 2026-11-22T17:45:52.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11a2d56d40ce
+  - type: specified_by
+    from: REQ-cli-json-format-alias
+    to: SCEN-NEG-cli-json-format-alias-SILENT
+    created_at: 2026-11-22T17:45:52.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4370d39eb9b
+  - type: specified_by
+    from: REQ-cli-json-format-alias
+    to: SCEN-NEG-cli-json-format-alias-OTHER-CODE
+    created_at: 2026-11-22T17:47:38.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d98e5396ea3
+  - type: assumes
+    from: SCEN-NEG-kibi-remember-level-surface-c02-eq-true
+    to: FACT-NEG-kibi-remember-level-surface-c02-eq-true
+    created_at: 2026-11-25T10:20:37.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed91c32c66ae

@@ -131,7 +131,7 @@ describe("branch attachment", () => {
     const cwd = process.cwd();
     expect(events).toEqual([
       `resolve ${cwd}`,
-      `compile ${cwd} true {"name":"kb_check"}`,
+      `compile ${cwd} true {"name":"kb_check","syncDrift":true}`,
       "engine start",
       "execute",
       "engine terminate",
@@ -203,7 +203,7 @@ describe("branch attachment", () => {
     expect(events.slice(0, 3)).toEqual([
       `resolve ${process.cwd()}`,
       `refresh ${process.cwd()} true`,
-      `compile ${process.cwd()} true {"name":"kb_check"}`,
+      `compile ${process.cwd()} true {"name":"kb_check","syncDrift":true}`,
     ]);
   });
 

@@ -27,18 +27,18 @@ proof_bindings:
     source_file: packages/cli/tests/consumer/staged-entity-context.test.ts
     line: 57
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-c4931dc514b257493a432aad
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-3c461748af316c1b1d0b5113
     test_id: TEST-cli-staged-entity-context
     scope: end_to_end
     outcome: passed
-    code_snapshot: 41881deebf8ec3697db8320dcaa508fecd148666d50247e408a64449f1e9a1ea
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-16T09:02:59.378Z'
-    finished_at: '2026-10-16T09:03:05.431Z'
-    artifact_digest: 00e0043e3b9e3c77e29848cab511db241ce147b3564cc7385d71c072258c4df1
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 6aeff85f9ecba07fec50edf732bbb50c5280e5d0e1c8ff8675dfdfc09afd0561
-    binding_hash: f13992667151b61e4f179e3854c04fcb03d83bda0efd5aea8982c72ee088c614
+    binding_hash: 21bb152327f5be3e388a1fb929f3ae6cdf42e6898b61e1241038fcd0450a83c3
     fingerprint: 869f63551157ef2eca10402d88d8de7673f3489b7cfce0035401eca711fcaa54
     fingerprint_components:
       contract: 6aeff85f9ecba07fec50edf732bbb50c5280e5d0e1c8ff8675dfdfc09afd0561
@@ -60,5 +60,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Drives a fresh workspace through the built `kibi` binary (`packages/cli/tests/consumer/staged-entity-context.test.ts`). It stages a new test entity without a body and asserts `kibi check --staged` exits 1 with `entity-context-missing` for that entity only, then asserts that the same file with a prose body, an edit to a committed entity that already lacked context, and an entity listed under `contextAcknowledged` in the manifest all pass.

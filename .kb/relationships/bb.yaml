@@ -566,3 +566,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9917ffd35d5a
+  - type: implements
+    from: SYM-engine-engine-client-get-pid
+    to: REQ-engine-client-reclaim-dead-unix-socket
+    created_at: 2026-11-23T10:34:29.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e14757f5585d
+  - type: covered_by
+    from: SYM-engine-engine-client-get-pid
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-23T10:34:29.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1838ff08c09
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c01
+    created_at: 2026-11-25T14:06:57.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29ad4fb8bd8d
+  - type: assumes
+    from: SCEN-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c02
+    created_at: 2026-11-25T14:06:57.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-570c28193517
+  - type: assumes
+    from: SCEN-NEG-search-weak-answer-NOTHING-GOVERNS
+    to: FACT-NEG-search-weak-answer-nothing-governs-SAID
+    created_at: 2026-11-25T19:25:01.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6957d5c2c5
+  - type: verified_by
+    from: SCEN-NEG-search-weak-answer-NOTHING-GOVERNS
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:13.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66f8ce5e93e4
+  - type: executable_for
+    from: SYM-opencode-packed-utils-install-opencode-tarball
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-11-26T21:38:32.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eca32694cb0b

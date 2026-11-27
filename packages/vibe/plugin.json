@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kibi",
+  "version": "0.2.0",
+  "description": "Repo-local, per-branch, queryable knowledge base for Mistral Vibe: bundled Agent Skills, the kibi MCP server with automatic WSL/Windows runtime detection, and context hooks.",
+  "author": { "name": "Kibi" },
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": "https://github.com/Looted/kibi.git",
+  "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "kibi",
+    "vibe",
+    "mistral",
+    "mcp",
+    "knowledge-base",
+    "traceability",
+    "swi-prolog"
+  ],
+  "extensions": {
+    "ai.mistral.vibe": {
+      "schemaVersion": 1,
+      "displayName": "Kibi for Vibe",
+      "toolNamespace": "kibi"
+    }
+  }
+}

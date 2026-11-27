@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-E598B71811986145
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-c84145fbbe957dab2aff283e
+    receipt_id: PR-2904084d66242a5fa89b6448
     test_id: TEST-proof-cursor-agent-plugin-published
     scope: unit
     outcome: passed
-    code_snapshot: e54c836d045ddc66e5300f74cfaff528e05df36605bd9587408dc179d35908ca
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:58:11.454Z'
-    finished_at: '2026-10-27T07:58:11.613Z'
-    artifact_digest: 633623c15955bc1de6b69206d62acfc7ca570562c18aed7b3e894e45134f041b
+    code_snapshot: c8eb1d23283f58b865363262f3431160f7e6f378d63fca3f89c3dca61a4cf659
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-20T07:56:37.912Z'
+    finished_at: '2026-11-20T08:21:18.271Z'
+    artifact_digest: a21c8e10c136bbb6ea0a33dab6b5b26a2fed4728ae082d25627e9361ceb2003c
     contract_hash: 2ebb4160c0d882beef962ea8657282d898936f2be0e65c483d05fedf60838e3b
-    binding_hash: 8eb429a87f07d4597765d916c7408461072750d30d557ba76c94969097cdccbd
+    binding_hash: 0724fc9218c370995ae40506909cccb5c24220cc0e754f5de4a80cb7c33ca33c
     fingerprint: b058fbdc092aeb52683bac781954be5166e7e3803e1d5a9bd8ae6b3c750bc8a9
     fingerprint_components:
       contract: 2ebb4160c0d882beef962ea8657282d898936f2be0e65c483d05fedf60838e3b
@@ -84,13 +84,24 @@ proof_receipts:
           - mcp.json
           - rules
           - skills
-    certificate_digest: cd137406e8dc62780ddc81fc149d33e27648a8295cfc18d316dc4f60b66864d4
+        sequence:
+          - .cursor-plugin
+          - mcp.json
+          - bin
+          - hooks
+          - skills
+          - rules
+          - commands
+          - agent-plugin
+          - dist
+          - CHANGELOG.md
+    certificate_digest: bc0d639c3d9b55a45b7fa3e552cac3383216bd561167328964b84d8acc0a3ae0
     claim_bindings:
       - claim_key: CLAIM-E598B71811986145
         requirement_id: REQ-cursor-agent-plugin-package
         fact_id: FACT-cursor-publishes-agent-plugin
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

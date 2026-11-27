@@ -332,13 +332,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65a45e924a32
-  - type: covered_by
-    from: SYM-search-hints-trigger
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:55.335Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0df60da054c1
   - type: assumes
     from: SCEN-CASE-kibi-non-numeric-proof-kinds-RULE-ASSIGNMENT-VIOLATED
     to: FACT-CASE-kibi-non-numeric-proof-kinds-RULE-ASSIGNMENT-VIOLATED
@@ -521,3 +514,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0950ba4d8b80
+  - type: assumes
+    from: SCEN-result-budget-declared
+    to: FACT-result-budget-declared
+    created_at: 2026-11-19T15:29:02.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec47975941b4
+  - type: assumes
+    from: SCEN-impact-review-author-write
+    to: FACT-impact-review-author-evidence-source
+    created_at: 2026-11-19T19:11:38.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83965a5a59cb
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T17:47:33.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-954872af74d7
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    to: FACT-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    created_at: 2026-11-23T17:47:33.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-755fc09fe8a4
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-kb-call-workspace-stamp-EXPLICIT-WORKSPACE
+    to: TEST-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:56:54.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03ce73f63e72
+  - type: assumes
+    from: SCEN-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    to: FACT-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    created_at: 2026-11-24T11:16:47.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e10e62baf8f2
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-hints-summed-order-HIT-ORDER
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-24T11:16:47.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-040d89865c53

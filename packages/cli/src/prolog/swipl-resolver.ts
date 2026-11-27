@@ -29,10 +29,10 @@ import {
 } from "node:fs";
 import path from "node:path";
 import {
-  BUNDLED_BINARY_PATH,
   MANIFEST_FILE,
   PLATFORM_PACKAGES,
   type PlatformKey,
+  bundledBinaryPath,
   locatePlatformPackage,
   platformKey,
   sha256File,
@@ -229,8 +229,9 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
   const packageDir = deps.locatePackage(packageName);
   if (packageDir === undefined) return { kind: "missing", key, packageName };
 
+  const binaryRel = bundledBinaryPath(key);
   const manifestPath = path.join(packageDir, MANIFEST_FILE);
-  const binary = path.join(packageDir, BUNDLED_BINARY_PATH);
+  const binary = path.join(packageDir, binaryRel);
   if (!existsSync(manifestPath)) {
     // A workspace checkout links the package without the pipeline payload.
     // A binary without a manifest is a damaged install, not a placeholder.
@@ -239,7 +240,7 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
       kind: "corrupt",
       key,
       packageName,
-      reason: `${MANIFEST_FILE} is missing next to ${BUNDLED_BINARY_PATH}`,
+      reason: `${MANIFEST_FILE} is missing next to ${binaryRel}`,
     };
   }
 
@@ -276,11 +277,11 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
   if (!checked.ok) return corrupt(checked.reason);
   const actual = executableDigest(binary);
   if (actual === null) {
-    return corrupt(`${BUNDLED_BINARY_PATH} is missing or not executable`);
+    return corrupt(`${binaryRel} is missing or not executable`);
   }
   if (actual !== checked.binarySha256) {
     return corrupt(
-      `${BUNDLED_BINARY_PATH} SHA-256 ${actual} does not match the manifest (${checked.binarySha256})`,
+      `${binaryRel} SHA-256 ${actual} does not match the manifest (${checked.binarySha256})`,
     );
   }
   const home = path.join(packageDir, checked.home);

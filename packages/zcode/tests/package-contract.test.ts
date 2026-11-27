@@ -40,6 +40,7 @@ describe("kibi-zcode package contract", () => {
       "commands",
       "dist",
       "CHANGELOG.md",
+      "LICENSE",
     ]);
     expect(packageJson.publishConfig?.access).toBe("public");
     expect(packageJson.peerDependencies).toMatchObject({

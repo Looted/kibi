@@ -566,3 +566,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c80cfbded76
+  - type: constrains
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-SUBJ-VIBE-WSL-SAFE-SPAWN
+    created_at: 2026-11-19T20:09:44.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2789f081689
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-SAFE-SPAWN-N02
+    created_at: 2026-11-19T20:09:44.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-419a28fed43f
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-SAFE-SPAWN-N03
+    created_at: 2026-11-19T20:09:44.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cabf075e8c4c
+  - type: specified_by
+    from: REQ-vibe-wsl-safe-spawn
+    to: SCEN-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:16:09.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cfdf8a61f71
+  - type: specified_by
+    from: REQ-vibe-wsl-safe-spawn
+    to: SCEN-NEG-vibe-wsl-spawn-shell-string
+    created_at: 2026-11-19T22:37:26.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d9f956a410f
+  - type: assumes
+    from: SCEN-impact-review-named-evidence
+    to: FACT-impact-review-named-evidence
+    created_at: 2026-11-19T19:09:39.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-326236a41ac5
+  - type: specified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: SCEN-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:11:59.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f18978eb7b24
+  - type: specified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: SCEN-NEG-impact-review-author-scope-fingerprint-STALE-SCOPE
+    created_at: 2026-11-19T19:11:59.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edd75784d785
+  - type: verified_by
+    from: REQ-impact-review-author-scope-fingerprint
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:11:59.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f65b97b652
+  - type: constrains
+    from: REQ-impact-review-author-scope-fingerprint
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:11:59.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d747bd382b
+  - type: requires_property
+    from: REQ-impact-review-author-scope-fingerprint
+    to: FACT-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:11:59.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42002f8de845
+  - type: assumes
+    from: SCEN-NEG-kibi-branch-store-freshness-memo-REHASHED
+    to: FACT-NEG-kibi-branch-store-freshness-memo-REHASHED
+    created_at: 2026-11-23T10:45:57.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1929380794a8
+  - type: verified_by
+    from: SCEN-NEG-kibi-branch-store-freshness-memo-REHASHED
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:45:57.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b653e96408f9
+  - type: requires_property
+    from: REQ-vibe-wsl-safe-spawn
+    to: FACT-PROP-VIBE-WSL-EXEC-CALLS-ZERO
+    created_at: 2026-11-24T15:38:32.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82fbeb838251

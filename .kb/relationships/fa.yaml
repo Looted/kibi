@@ -300,3 +300,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43fc53ffa5d8
+  - type: assumes
+    from: SCEN-NEG-cli-json-format-alias-SILENT
+    to: FACT-NEG-cli-json-format-alias-SILENT
+    created_at: 2026-11-22T17:45:50.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ec9be4c7811
+  - type: verified_by
+    from: SCEN-NEG-cli-json-format-alias-SILENT
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:45:50.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd977fa0324e
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:30.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e0911f7cb08
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: SCEN-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:30.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9c780c5ec0c
+  - type: validates
+    from: TEST-kibi-no-git-adoption
+    to: SCEN-NEG-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:30.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6bb247cefe

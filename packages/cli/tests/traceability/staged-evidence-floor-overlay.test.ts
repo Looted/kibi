@@ -3,7 +3,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { extractFromMarkdownString } from "../../src/extractors/markdown.js";
-import { collectStagedEvidenceFloorViolations } from "../../src/traceability/staged-evidence-floor.js";
+import {
+  collectStagedEvidenceFloorViolations,
+  stagedRequirementProofRules,
+} from "../../src/traceability/staged-evidence-floor.js";
 import {
   execFileSync,
   isolatedCliSandboxEnv,
@@ -59,6 +62,7 @@ async function judge(synced: boolean, staged: boolean) {
     branch: "main",
     requirementIds: ["REQ-login-session"],
     schemaVersion: 18,
+    rules: stagedRequirementProofRules("test"),
     stagedEntities: [
       {
         ...extractFromMarkdownString(content, REQUIREMENT_PATH),
@@ -127,6 +131,7 @@ describe("collectStagedEvidenceFloorViolations", () => {
         branch: "main",
         requirementIds: ["REQ-login-new"],
         schemaVersion: 18,
+        rules: stagedRequirementProofRules("test"),
         stagedEntities: [
           {
             ...extractFromMarkdownString(

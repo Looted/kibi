@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-workspace-resolution",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "kibi-runtime.mjs launcher runtime module (workspace resolution, runtime planning, WSL-safe spawn, silent empty MCP server)",
+  "verdict": "keeps",
+  "note": "Resolution order is unchanged (env keys, .git-bounded walk, scoped pointer, cwd); only the pointer's documentation changed to mark it a single-project fallback, and the whole-file symbol no longer carries the link (runtime.test.mjs).",
+  "statementHash": "sha256:b515f7bf2bd79f72baadc41626536e57d96cfd399e3d04750ac04af16c4afe92",
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-24T10:07:38.627Z"
+}

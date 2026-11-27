@@ -1,6 +1,6 @@
 ---
 title: A plain kibi check runs canonical and advisory rules, never lets repository config disable a canonical rule, and fails only on canonical findings
-status: open
+status: closed
 semantic_text: A plain kibi check must run the canonical and advisory rules and skip migration rules. Repository configuration must not disable a canonical check rule. kibi check must report advisory and migration rule findings as non-blocking quality diagnostics and fail only on canonical rule findings.
 semantic_clauses:
   - A plain kibi check must run the canonical and advisory rules and skip migration rules

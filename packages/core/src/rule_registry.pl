@@ -9,6 +9,7 @@
     known_rule/1,
     rule_enforcement_class/2,
     rule_implementation/2,
+    rule_layer/2,
     rule_predicate/2,
     rule_predicate_arity/2,
     rule_description/2
@@ -59,6 +60,7 @@ known_rule('ontology-quality').
 known_rule('exception-unapproved').
 known_rule('exception-approval-self-attested').
 known_rule('agent-requirement-unapproved').
+known_rule('required-evidence-above-level').
 known_rule('requirement-rationale-missing').
 known_rule('symbol-owner-superseded').
 known_rule('adr-unlinked').
@@ -129,6 +131,7 @@ rule_enforcement_class('ontology-quality', advisory).
 rule_enforcement_class('exception-unapproved', advisory).
 rule_enforcement_class('exception-approval-self-attested', advisory).
 rule_enforcement_class('agent-requirement-unapproved', advisory).
+rule_enforcement_class('required-evidence-above-level', advisory).
 rule_enforcement_class('requirement-rationale-missing', advisory).
 rule_enforcement_class('symbol-owner-superseded', advisory).
 rule_enforcement_class('adr-unlinked', advisory).
@@ -199,6 +202,7 @@ rule_implementation('ontology-quality', prolog).
 rule_implementation('exception-unapproved', typescript).
 rule_implementation('exception-approval-self-attested', typescript).
 rule_implementation('agent-requirement-unapproved', typescript).
+rule_implementation('required-evidence-above-level', typescript).
 rule_implementation('requirement-rationale-missing', typescript).
 rule_implementation('symbol-owner-superseded', prolog).
 rule_implementation('adr-unlinked', prolog).
@@ -223,6 +227,77 @@ rule_implementation('evidence-floor', typescript).
 rule_implementation('agent-requirement-unapproved-implemented', typescript).
 rule_implementation('must-positive-scenario', typescript).
 rule_implementation('proof-contract-claims', typescript).
+
+rule_layer('must-priority-coverage', verification).
+rule_layer('symbol-coverage', verification).
+rule_layer('symbol-traceability', knowledge).
+rule_layer('symbol-granularity', knowledge).
+rule_layer('symbol-coordinates-missing', knowledge).
+rule_layer('no-dangling-refs', knowledge).
+rule_layer('source-relationship-parity', knowledge).
+rule_layer('branch-store-not-compiled', knowledge).
+rule_layer('source-path-dangling', knowledge).
+rule_layer('no-cycles', knowledge).
+rule_layer('required-fields', knowledge).
+rule_layer('deprecated-adr-no-successor', knowledge).
+rule_layer('superseded-requirement-open', knowledge).
+rule_layer('scenario-feasibility', knowledge).
+rule_layer('scenario-feasibility-unknown', knowledge).
+rule_layer('scenario-outcome-mismatch', knowledge).
+rule_layer('exception-claim-keys', knowledge).
+rule_layer('numeric-string-value', knowledge).
+rule_layer('rule-key-arguments-missing', knowledge).
+rule_layer('domain-contradictions', knowledge).
+rule_layer('logic-coverage', knowledge).
+rule_layer('rule-safety', knowledge).
+rule_layer('rule-verifiability', knowledge).
+rule_layer('query-plan-safety', knowledge).
+rule_layer('req-status-vocabulary', knowledge).
+rule_layer('retired-reason-missing', knowledge).
+rule_layer('retired-owner-only', knowledge).
+rule_layer('strict-fact-shape', knowledge).
+rule_layer('strict-req-fact-pairing', knowledge).
+rule_layer('predicate-verifiability', knowledge).
+rule_layer('strict-readiness', knowledge).
+rule_layer('semantic-completeness', knowledge).
+rule_layer('related-requirement-unmodeled', knowledge).
+rule_layer('claim-subject-missing', knowledge).
+rule_layer('claim-subject-undefined', knowledge).
+rule_layer('proof-contract-symbols', verification).
+rule_layer('entity-id-style', knowledge).
+rule_layer('domain-redundancy', knowledge).
+rule_layer('domain-implication', knowledge).
+rule_layer('subject-key-identity', knowledge).
+rule_layer('subject-key-shape', knowledge).
+rule_layer('ontology-quality', knowledge).
+rule_layer('exception-unapproved', knowledge).
+rule_layer('exception-approval-self-attested', knowledge).
+rule_layer('agent-requirement-unapproved', knowledge).
+rule_layer('required-evidence-above-level', knowledge).
+rule_layer('requirement-rationale-missing', knowledge).
+rule_layer('symbol-owner-superseded', knowledge).
+rule_layer('adr-unlinked', knowledge).
+rule_layer('adr-proposed', knowledge).
+rule_layer('predicate-schema-conformance', knowledge).
+rule_layer('entity-context-missing', knowledge).
+rule_layer('subject-definition-missing', knowledge).
+rule_layer('subject-duplicate', knowledge).
+rule_layer('quantity-duplicate', knowledge).
+rule_layer('subject-hierarchy-invalid', knowledge).
+rule_layer('entity-context-acknowledged', knowledge).
+rule_layer('decision-firm-unreferenced', knowledge).
+rule_layer('decision-firm-superseded', knowledge).
+rule_layer('decision-firm-edited', knowledge).
+rule_layer('supersedes-reason-missing', knowledge).
+rule_layer('supersedes-reason-acknowledged', knowledge).
+rule_layer('policy-ownership', knowledge).
+rule_layer('policy-markers', knowledge).
+rule_layer('kb-consistency', knowledge).
+rule_layer('kb-consistency-unresolved', knowledge).
+rule_layer('evidence-floor', verification).
+rule_layer('agent-requirement-unapproved-implemented', knowledge).
+rule_layer('must-positive-scenario', verification).
+rule_layer('proof-contract-claims', verification).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -353,6 +428,7 @@ rule_description('ontology-quality', 'Informational: predicate schemas whose arg
 rule_description('exception-unapproved', 'Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it').
 rule_description('exception-approval-self-attested', 'Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval').
 rule_description('agent-requirement-unapproved', 'Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check').
+rule_description('required-evidence-above-level', 'Advisory: at Kibi level remember, a current requirement whose required_evidence is tested or proved asks for evidence the level does not check; the finding names the level, and a person chooses level test to have the floor enforced').
 rule_description('requirement-rationale-missing', 'Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding').
 rule_description('symbol-owner-superseded', 'Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding').
 rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)').

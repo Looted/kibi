@@ -328,3 +328,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-612820d6b4a6
+  - type: implements
+    from: SYM-cli-result-too-large-code
+    to: REQ-result-ceiling
+    created_at: 2026-11-19T15:47:51.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b81f614479c
+  - type: covered_by
+    from: SYM-cli-result-too-large-code
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:51.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23a757f92a82
+  - type: assumes
+    from: SCEN-NEG-kibi-init-level-choice-c01-eq-false
+    to: FACT-NEG-kibi-init-level-choice-c01-eq-false
+    created_at: 2026-11-25T10:20:51.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b3dab828a83
+  - type: constrains
+    from: REQ-vscode-mcp-server-provider
+    to: FACT-SUBJ-vscode-mcp-provider
+    created_at: 2026-11-25T18:05:53.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c0cd96465de
+  - type: requires_property
+    from: REQ-vscode-mcp-server-provider
+    to: FACT-vscode-mcp-provider-registration
+    created_at: 2026-11-25T18:05:53.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be817d40e4b8
+  - type: requires_property
+    from: REQ-vscode-mcp-server-provider
+    to: FACT-vscode-mcp-provider-opt-in
+    created_at: 2026-11-25T18:05:54.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-952229d1f24f
+  - type: requires_property
+    from: REQ-vscode-mcp-server-provider
+    to: FACT-vscode-mcp-provider-attach-env
+    created_at: 2026-11-25T18:05:54.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0359dd7638e
+  - type: requires_property
+    from: REQ-vscode-mcp-server-provider
+    to: FACT-vscode-mcp-provider-host-fallback
+    created_at: 2026-11-25T18:05:54.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56d63b0ba0c7
+  - type: specified_by
+    from: REQ-vscode-mcp-server-provider
+    to: SCEN-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T18:05:54.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbb2ddfef46a
+  - type: specified_by
+    from: REQ-vscode-mcp-server-provider
+    to: SCEN-vs-code-extension-register-kibi-mcp-reject
+    created_at: 2026-11-25T18:05:54.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-398f8c0bae7f
+  - type: supersedes
+    from: REQ-vscode-mcp-server-provider
+    to: REQ-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T18:07:06.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ccd963eb4fe

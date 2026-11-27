@@ -8,6 +8,8 @@ exit with an error naming the Node they found. Both start through the first
 `node` on `PATH`, so Node.js 22+ must come first there for your shell, your Git
 hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
 
+Git is recommended, not required. In a Git repository Kibi keeps knowledge per branch and installs the commit gate; in a directory without one it works on a single knowledge store, with no commit gate or Git hooks, and says so. Running `git init` and then `kibi init` later turns those on and keeps what was recorded ([Working without Git](error-reference.md#working-without-git-no_git_repository-git_required)).
+
 ### Bundled SWI-Prolog
 
 `kibi-cli` (and `kibi-runtime`, which `kibi-mcp` uses) depend on `kibi-swipl`, which lists one platform package per target as an optional dependency. Your package manager installs only the one that matches your machine:
@@ -18,10 +20,11 @@ hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9
 | Linux arm64 | `kibi-swipl-linux-arm64-gnu` | glibc 2.28 or newer |
 | macOS arm64 (Apple silicon) | `kibi-swipl-darwin-arm64` | macOS 12 or newer |
 | macOS x64 (Intel) | `kibi-swipl-darwin-x64` | macOS 12 or newer |
+| Windows x64 (native) | `kibi-swipl-win32-x64` | Windows 10 or newer |
 
 On these platforms `npm install --save-dev kibi-cli kibi-mcp kibi-core` followed by `kibi init` works on a machine with no SWI-Prolog at all. The build is relocatable, ships its own libraries and licenses, and is tested with the same Prolog suites Kibi's own CI runs.
 
-Not covered by a bundled build: Alpine and other musl-based Linux, and native Windows. On Windows, run Kibi inside WSL (a glibc distribution uses the bundled build); otherwise install SWI-Prolog yourself as described below.
+Not covered: Alpine and other musl-based Linux, and native Windows arm64. On those, run Kibi inside WSL (a glibc distribution uses the bundled build), or install SWI-Prolog yourself as described below.
 
 ### Which SWI-Prolog Kibi uses
 
@@ -54,7 +57,7 @@ The usual causes:
 - Installing with `--omit=optional` or `--no-optional` (or `npm_config_omit=optional`, `optional=false`). Install without it.
 - pnpm `supportedArchitectures` (in `pnpm-workspace.yaml` or `package.json`) that does not include your platform, for example a Docker build that fixes `os`/`cpu` to another machine. Add your platform to it, or build the image for the platform it runs on.
 - Installing on one platform and running on another (copying `node_modules` from macOS into a Linux container, or the reverse). Install on the machine, or in the image, that runs Kibi.
-- An Alpine/musl or Windows host, which has no bundled build; see below.
+- An Alpine/musl host or Windows arm64, which has no bundled build; see below.
 
 ### Installing SWI-Prolog yourself
 
@@ -87,7 +90,7 @@ brew install swi-prolog
 
 #### Windows
 
-Use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or set `KIBI_SWIPL` to the full path of `swipl.exe`. Alternatively run Kibi inside WSL, which uses the bundled build and needs no SWI-Prolog install.
+Windows x64 needs nothing extra: the `kibi-swipl-win32-x64` optional dependency ships the runtime. Windows arm64 has no bundled build: use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or set `KIBI_SWIPL` to the full path of `swipl.exe`. Alternatively run Kibi inside WSL, which uses the bundled build and needs no SWI-Prolog install.
 
 #### Verify a system install
 
@@ -396,7 +399,22 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
 provides the `/kibi-bootstrap` convenience command when the host supports it, and runs
 background sync/check maintenance. When the file being edited implements a
 requirement, the guidance names it, what it must keep true, and the decision
-behind it. Canonical bootstrap behavior lives in the
+behind it.
+
+On OpenCode v1 the plugin also runs the decision hooks the other host plugins
+run. A message that states a rule is noted, and the note and a fill-in
+`kb_record` capture template are added to the result of the session's first
+source edit. An edit of code that implements a firm requirement is stopped once
+with the notice to ask the person first and, after the edit, to record a verdict
+with `kb_review_firm_edit` (the same edit tried again goes through;
+`KIBI_CONFIRM_FIRM_EDITS=0` turns the stop off, never the commit gate). When a
+session that changed source and recorded nothing goes idle, the plugin asks once
+for the capture, or for `kibi signoff` after requirement writes. Shell in-place
+edits (`sed -i`, `>`, `tee`) count as source edits. These need the v1 plugin
+hooks `chat.message`, `tool.execute.before` and `session.idle`, which the v2
+plugin API does not expose yet, so they are off under OpenCode v2.
+
+Canonical bootstrap behavior lives in the
 bundled `kibi-bootstrap` skill (`kb_plan_bootstrap`, preview, apply via the approved plan).
 Generic MCP agents should start from
 [generic-agent onboarding](generic-agent-onboarding.md). The plugin does **not**
@@ -459,7 +477,9 @@ Without `tui.js`, that install reports the server plugin only.
 On OpenCode v2:
 
 - Kibi guidance, background sync/check maintenance, and `/kibi-bootstrap`
-  work as on v1. Syncs triggered by file changes come from completed `edit`,
+  work as on v1. The decision hooks (stated-rule capture, the firm-edit stop
+  and the idle capture request) are off, because v2 exposes none of the hooks
+  they need. Syncs triggered by file changes come from completed `edit`,
   `write`, and `patch` tool calls. On OpenCode v2.0.32 a plugin can async-iterate
   `event.subscribe()` and will see public bus events, including
   `filesystem.changed`, but the host publishes that event only for the VCS HEAD
@@ -480,7 +500,7 @@ On OpenCode v2:
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
 - **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
   OpenCode v2.0.32 the catalog lists
-  `kibi (18 tools, 1 shown)` (eight with the `core` profile), `search({ query:
+  `kibi (19 tools, 1 shown)` at level `test` (fewer at level `remember`, or eight with the `core` profile), `search({ query:
   "kibi" })` finds all of them, and the tools are reachable
   through `execute` under `tools.kibi`. To call the native `kibi_*` tools
   directly, set `codemode: false` on a v2-native server entry under
@@ -597,6 +617,7 @@ developing/testing.
 The installed plugin package contributes:
 
 - `.codex-plugin/plugin.json` manifest
+- `assets/` Kibi logo and composer icon assets
 - `.mcp.json` MCP config with the inline workspace-opt-in launcher
 - `hooks/hooks.json` lifecycle hooks
 - `skills/*/SKILL.md` Kibi workflow guidance
@@ -683,26 +704,23 @@ builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them.
 Local ZCode development, package builds, and tests currently use Linux/WSL.
 The launcher retains shell-free runtime handling for Windows npm shims.
 
-Install through the repo marketplace from a **locally built checkout**:
+Install through the **Kibi** repo marketplace:
 
-1. Clone this repository and run `bun run build:zcode` in it. A marketplace
-   install from a local directory copies the plugin directory as-is, and an
-   install from a tree without a build is missing `dist/hook-runner.js`, so
-   every lifecycle hook fails to start.
-2. In ZCode, open **Settings → Plugin Management → Discover**, use the **`+`**
-   button, choose **local directory**, and select the repository root — the
-   directory that contains `.claude-plugin/marketplace.json` (the manifest
-   points ZCode at `./packages/zcode`).
-3. Install `kibi-zcode` from the **Kibi** marketplace. New installs are
+1. In ZCode, open **Settings → Plugin Management → Discover**, use the **`+`**
+   button, and add the `Looted/kibi` GitHub repository — or a local checkout
+   through **local directory**, selecting the repository root — the directory
+   that contains `.claude-plugin/marketplace.json` (the manifest points ZCode
+   at `./packages/zcode`).
+2. Install `kibi-zcode` from the **Kibi** marketplace. New installs are
    enabled by default.
 
-> **GitHub-source installs are not supported.** Adding `Looted/kibi` as a
-> GitHub marketplace cannot work today: the plugin's `dist/hook-runner.js` is
-> generated by the build and is not committed, so a GitHub-sourced copy has no
-> hook runner. This route stays unsupported until a built remote distribution
-> exists. Note that `prepack` (the automatic build for packed npm installs)
-> runs only for `npm pack`/`npm install kibi-zcode` packaging flows — ZCode's
-> marketplace copy never builds anything.
+The hook runner ships as the tracked `bin/hook-runner.mjs` bundle, so a
+marketplace copy of the repository — GitHub-sourced or a local checkout,
+built or not — contains a working hook runner for every lifecycle hook.
+`prepack` (the automatic build for packed npm installs) runs only for
+`npm pack`/`npm install kibi-zcode` packaging flows; ZCode's marketplace copy
+never builds anything, which is why the bundle is committed and drift-checked
+in CI.
 
 The installed plugin package contributes:
 
@@ -748,6 +766,66 @@ Manual MCP fallback (no plugin install required):
 See `packages/zcode/README.md` for the ZCode declaration contract the plugin
 targets (hook events, output schema, skill frontmatter rules).
 
+### Optional: Vibe plugin
+
+`kibi-vibe` is an optional Mistral Vibe plugin in Agent Plugins 1.0 format. It
+bundles the `kibi` MCP server, the canonical Kibi skills (mirrored under
+`skills/`), and fail-open Vibe hooks. It builds on `kibi-core`, `kibi-cli`,
+and `kibi-mcp` installed project-locally and does not replace them.
+
+Install from a **local checkout** into the user plugins root, then restart Vibe
+or run `/reload`:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+The plugin contributes `plugin.json`, `mcp.json` (the `kibi` stdio server via
+`bin/launch-kibi-mcp.mjs`), `ai.mistral.vibe/hooks.toml` (session-start KB
+status, per-prompt KB hits, per-file linked entities), and `skills/*`.
+
+**Windows:** Kibi needs Node.js 22+ and SWI-Prolog 9+. The bundled
+SWI-Prolog covers Linux, macOS and Windows x64, so the launcher runs Kibi
+natively on Windows by default. A workspace opened as a
+`\\wsl.localhost\<distro>\...` UNC path (or any workspace with
+`KIBI_FORCE_WSL=1`) runs inside that WSL distribution instead:
+`wsl.exe [-d <distro>] --cd <wsl-path> --exec <node> <kibi-bin> [args...]`,
+with paths and arguments passed as literal argv entries, never a shell string.
+`KIBI_FORCE_DIRECT=1` forces a native spawn. If a WSL workspace needs the
+wrap but the distribution has no usable Node.js 22+, the launch fails with a
+message saying so instead of falling back to Windows Node.js.
+
+Because Vibe spawns stdio servers with the plugin directory as cwd, not the
+session folder, the launcher resolves the workspace from
+`KIBI_WORKSPACE`/`KIBI_PROJECT_ROOT`/`KIBI_ROOT`, a `.git`-bounded upward walk
+for `.kb/manifest.json`, or a `kibi-workspace.txt` pointer next to the
+launcher (ignored when the cwd is inside another Git repository). The pointer
+names one workspace, so treat it as a single-project fallback: use
+`KIBI_WORKSPACE` to serve several projects. In a direct (non-WSL) launch,
+`kibi-mcp` still answers each call from the Kibi workspace under the MCP
+roots the client declares. When registering the server manually instead of via
+the plugin:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-checkout>/packages/vibe/bin/launch-kibi-mcp.mjs"]
+# a cold WSL boot can exceed the 10s default:
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
+
+In workspaces without `.kb/manifest.json` the launcher serves a silent
+zero-tool MCP server (exit 0) instead of failing the handshake, and the hooks
+exit quietly — Kibi stays out of non-Kibi projects. Set
+`KIBI_VIBE_LAUNCHER_DEBUG=1` for a per-user launcher log
+(`kibi-vibe-launcher.log-<user>`) in the OS temp dir; it also lets the hooks'
+child processes print to stderr, which they otherwise keep silent.
+See `packages/vibe/README.md` for the full contract and the executable tests
+(`packages/vibe/tests/`).
+
 ### Optional: Claude Code plugin
 
 `kibi-claude` is an optional Claude Code adapter. It builds on `kibi-core`,
@@ -788,6 +866,46 @@ plugin only when the repository enables it: commit `extraKnownMarketplaces`
 for `Looted/kibi` and `"enabledPlugins": {"kibi-claude@kibi": true}` to the
 repository's `.claude/settings.json` (the exact snippet is in
 `packages/claude/README.md`).
+
+### Optional: Antigravity plugin
+
+`kibi-antigravity` is an optional Google Antigravity plugin (`packages/antigravity`). It builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
+
+- the workspace-gated Kibi MCP server (which resolves project-local `kibi-mcp` immediately in workspace-scoped installs and via MCP `roots/list` in globally installed Marketplace setups, staying silent with zero tools in non-Kibi repositories);
+- the seven bundled Kibi skills (`kibi-usage`, `kibi-bootstrap`, `kibi-decisions`, `kibi-traceability`, `kibi-commit-review`, `kibi-freshness`, `kibi-provable-code`);
+- always-on workflow rules (`rules/AGENTS.md`);
+- lifecycle hooks (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) that inject progressive-disclosure requirement snippets, stamp `workspaceRoot` onto Kibi MCP calls, ask before edits that change code implementing a `firm` requirement (`KIBI_CONFIRM_FIRM_EDITS=0` disables), and remind once at stop about unchecked edits, unrecorded decisions, or pending signoff.
+
+Install globally from GitHub with the Antigravity CLI (`agy`) (use `tree/develop/packages/antigravity` instead of `tree/master/packages/antigravity` if installing before the plugin is released on `master`):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+When validating or installing from a local Kibi monorepo checkout, exclude `node_modules` first (`agy plugin install` rejects workspace symlinks pointing outside the plugin directory):
+
+macOS / Linux:
+
+```bash
+agy plugin validate --strict ./packages/antigravity
+rsync -a --delete --exclude node_modules ./packages/antigravity/ /tmp/kibi-antigravity/
+agy plugin install /tmp/kibi-antigravity
+rm -rf /tmp/kibi-antigravity
+```
+
+Windows (PowerShell):
+
+```powershell
+agy plugin validate --strict .\packages\antigravity
+$tmp = Join-Path $env:TEMP kibi-antigravity
+Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $tmp | Out-Null
+Get-ChildItem .\packages\antigravity -Exclude node_modules | Copy-Item -Destination $tmp -Recurse
+agy plugin install $tmp
+Remove-Item -Recurse -Force $tmp
+```
+
+To share the plugin across a repository via VCS, register it in `.agents/plugins.json`. See `packages/antigravity/README.md` for details.
 
 ### Optional: languages beyond TypeScript and JavaScript
 

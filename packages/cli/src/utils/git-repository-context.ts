@@ -17,8 +17,8 @@
 */
 
 import { execFileSync } from "node:child_process";
-import { lstatSync } from "node:fs";
 import * as path from "node:path";
+import { findRepositoryMarker } from "kibi-agent-core/version-control";
 
 export interface GitRepositoryContext {
   /** Root of the current working tree (the worktree, when linked). */
@@ -123,36 +123,6 @@ function runGit(cwd: string, args: string[]): string | null {
 function isAbsenceAnswer(failure: string | null): boolean {
   // String(null) is "null", which never reads as an absence answer.
   return NOT_A_REPOSITORY_RE.test(String(failure));
-}
-
-/**
- * On Git's absence answer, find the nearest `.git` entry (file, directory, or
- * symlink) at or above `start`. Git reports the same generic "not a git
- * repository" fatal for entries it cannot fully read (restricted permissions
- * on objects/refs/HEAD, ownership checks) as for true absence, so a present
- * marker means the context is unresolved: callers must conservatively refuse
- * with the marker instead of treating the directory as standalone. Null means
- * no marker exists up to the filesystem root: the directory genuinely has no
- * repository and standalone handling is legitimate.
- */
-function findRepositoryMarker(start: string): string | null {
-  let current = path.resolve(start);
-  for (;;) {
-    const entry = path.join(current, ".git");
-    try {
-      lstatSync(entry);
-      return entry;
-    } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code;
-      // Only a missing entry (or a file where a directory should be) means
-      // "no marker here". Anything else, such as EACCES, EPERM or ELOOP,
-      // means the entry cannot even be inspected: treat it as present.
-      if (code !== "ENOENT" && code !== "ENOTDIR") return entry;
-    }
-    const parent = path.dirname(current);
-    if (parent === current) return null;
-    current = parent;
-  }
 }
 
 function parseGitVersion(versionOutput: string): {

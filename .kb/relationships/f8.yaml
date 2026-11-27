@@ -337,13 +337,6 @@ relationships:
     id: rel-7cb2cd5ead26
   - type: specified_by
     from: REQ-capability-search-hints-v1
-    to: SCEN-CASE-capability-search-hints-v1-21-hints
-    created_at: 2026-10-30T14:54:07.002Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5607126413d5
-  - type: specified_by
-    from: REQ-capability-search-hints-v1
     to: SCEN-CASE-capability-search-hints-v1-unsupplied-id
     created_at: 2026-10-30T14:54:17.084Z
     created_by: kibi/upsert
@@ -440,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f625cf9c42d9
+  - type: assumes
+    from: SCEN-NEG-kibi-operation-catalog-names-UNKNOWN-OPERATION
+    to: FACT-NEG-kibi-operation-catalog-names-unknown-operation-accepted
+    created_at: 2026-11-20T08:42:07.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94c9fbdae4df
+  - type: verified_by
+    from: SCEN-NEG-kibi-operation-catalog-names-UNKNOWN-OPERATION
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-20T08:42:07.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d22b215353d5

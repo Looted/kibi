@@ -2,8 +2,8 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "kibi-plugin-search-hints-1.0.1",
-  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-search-hints/1.0.1",
+  "name": "kibi-plugin-search-hints-2.0.0",
+  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-search-hints/2.0.0",
   "creationInfo": {
     "creators": ["Tool: Kibi qualification record"],
     "created": "2026-10-29T00:00:00Z"
@@ -12,7 +12,7 @@
     {
       "name": "kibi-plugin-search-hints",
       "SPDXID": "SPDXRef-KibiPluginSearchHints",
-      "versionInfo": "1.0.1",
+      "versionInfo": "2.0.0",
       "downloadLocation": "https://github.com/Looted/kibi/tree/develop/packages/plugin-search-hints",
       "filesAnalyzed": false,
       "licenseConcluded": "AGPL-3.0-or-later",
@@ -22,38 +22,38 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/kibi-plugin-search-hints@1.0.1"
+          "referenceLocator": "pkg:npm/kibi-plugin-search-hints@2.0.0"
         }
       ]
     },
     {
-      "name": "potion-base-8M",
-      "SPDXID": "SPDXRef-PotionBase8M",
-      "versionInfo": "bf8b056651a2c21b8d2565580b8569da283cab23",
-      "downloadLocation": "https://huggingface.co/minishlab/potion-base-8M/resolve/bf8b056651a2c21b8d2565580b8569da283cab23/model.safetensors",
+      "name": "potion-retrieval-32M",
+      "SPDXID": "SPDXRef-PotionRetrieval32M",
+      "versionInfo": "6fc8051fab2a1e0ee76689cf08c853792ac285e7",
+      "downloadLocation": "https://huggingface.co/minishlab/potion-retrieval-32M/resolve/6fc8051fab2a1e0ee76689cf08c853792ac285e7/model.safetensors",
       "filesAnalyzed": false,
       "licenseConcluded": "MIT",
       "licenseDeclared": "MIT",
       "copyrightText": "Copyright (c) 2024 Thomas van Dongen",
-      "comment": "Embedding table quantized to int8 as assets/potion-base-8M.int8.bin; digests in catalog.json."
+      "comment": "Embedding table quantized to int8 as assets/potion-retrieval-32M.int8.bin; digests in catalog.json."
     },
     {
       "name": "bge-base-en-v1.5 vocabulary",
       "SPDXID": "SPDXRef-BgeBaseVocabulary",
-      "versionInfo": "as shipped in potion-base-8M tokenizer.json",
+      "versionInfo": "as shipped in potion-retrieval-32M tokenizer.json",
       "downloadLocation": "https://huggingface.co/BAAI/bge-base-en-v1.5",
       "filesAnalyzed": false,
       "licenseConcluded": "MIT",
       "licenseDeclared": "MIT",
       "copyrightText": "Copyright (c) 2022 staoxiao",
-      "comment": "WordPiece vocabulary as assets/vocab.txt."
+      "comment": "WordPiece vocabulary as assets/vocab.txt; the potion-retrieval-32M tokenizer appends 33,563 whole-word tokens to it."
     }
   ],
   "relationships": [
     {
       "spdxElementId": "SPDXRef-KibiPluginSearchHints",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-PotionBase8M"
+      "relatedSpdxElement": "SPDXRef-PotionRetrieval32M"
     },
     {
       "spdxElementId": "SPDXRef-KibiPluginSearchHints",

@@ -24,7 +24,7 @@ export const checkSpec = {
           enum: [...SELECTABLE_RULE_NAMES],
           [ADVERTISED_OPEN]: true,
         },
-        description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
+        description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs the canonical and advisory rules of the project's Kibi level (level remember skips the verification rules) plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
         [ADVERTISED_DESCRIPTION]:
           "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
       },
@@ -42,6 +42,15 @@ export const checkSpec = {
           "Return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary, which a check with sourceFiles always gives and any other check gives when the result is over its size budget.",
         [ADVERTISED_DESCRIPTION]:
           "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary.",
+      },
+      offset: {
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "With rules: the first finding to list. A rule selection lists its findings in pages that keep to the size budget, and a cut page names the next offset.",
+        [ADVERTISED_DESCRIPTION]:
+          "With rules: the first finding to list; findings come in pages within the size budget.",
       },
       includeSymbolDebt: {
         type: "boolean",

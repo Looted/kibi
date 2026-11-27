@@ -272,6 +272,35 @@ describe("includeBody", () => {
     } as unknown as PrologPort;
   }
 
+  test("an id lookup names includeBody only when it found the entity and omitted it", async () => {
+    const root = createTempDir("kibi-query-body-hint-");
+    roots.push(root);
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(
+      path.join(root, "docs/ok.md"),
+      "---\nid: REQ-1\ntitle: T\n---\nBody.\n",
+    );
+    const hint = "Pass includeBody: true to read its authored body.";
+    const found = entityProlog({ id: "REQ-1", source: "docs/ok.md" });
+    const byId = await executeQuery({ id: "REQ-1" }, context(root, found));
+    expect(byId.content[0]?.text).toEndWith(hint);
+    const withBody = await executeQuery(
+      { id: "REQ-1", includeBody: true },
+      context(root, found),
+    );
+    expect(withBody.content[0]?.text).not.toContain(hint);
+    const listing = await executeQuery({}, context(root, found));
+    expect(listing.content[0]?.text).not.toContain(hint);
+    const none = await executeQuery(
+      { id: "REQ-9" },
+      context(root, {
+        query: async () => ({ success: false, bindings: {} }),
+        queryEntities: async () => ({ entities: [], count: 0 }),
+      } as unknown as PrologPort),
+    );
+    expect(none.content[0]?.text).not.toContain(hint);
+  });
+
   test("an unreadable, bodiless or long authored document", async () => {
     const root = createTempDir("kibi-query-body-");
     roots.push(root);

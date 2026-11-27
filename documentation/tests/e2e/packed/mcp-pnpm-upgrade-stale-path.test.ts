@@ -99,6 +99,7 @@ function pinLocalKibiTransitives(
       `  kibi-agent-core: ${JSON.stringify(tarballs["agent-core"])}`,
       `  kibi-plugin-sdk: ${JSON.stringify(tarballs["plugin-sdk"])}`,
       `  kibi-plugin-builtin: ${JSON.stringify(tarballs["plugin-builtin"])}`,
+      `  kibi-plugin-search-hints: ${JSON.stringify(tarballs["plugin-search-hints"])}`,
       `  kibi-swipl: ${JSON.stringify(tarballs.swipl)}`,
       "",
     ].join("\n"),
@@ -211,16 +212,26 @@ if (RUN_NODE_TEST_SUITE) {
           `old install should resolve through the kibi-mcp ${OLD_MCP_VERSION} tarball, got ${oldResolved}`,
         );
 
-        const upgrade = await installTarballsWithPnpm(sandbox, [
-          tarballs.core,
-          tarballs["agent-core"],
-          tarballs["plugin-sdk"],
-          tarballs["plugin-builtin"],
-          tarballs.swipl,
-          tarballs.cli,
-          tarballs.runtime,
-          tarballs.mcp,
-        ]);
+        const upgrade = await installTarballsWithPnpm(
+          sandbox,
+          [
+            tarballs.core,
+            tarballs["agent-core"],
+            tarballs["plugin-sdk"],
+            tarballs["plugin-builtin"],
+            tarballs["plugin-search-hints"],
+            tarballs.swipl,
+            tarballs.cli,
+            tarballs.runtime,
+            tarballs.mcp,
+          ],
+          // Online like the old-version install: the current packed kibi-mcp
+          // resolves registry dependencies (for example a freshly bumped
+          // @modelcontextprotocol/sdk) whose tarballs an offline add can
+          // never fetch, so the upgrade stalls on the versions the first
+          // install happened to cache.
+          { offline: false },
+        );
         assertInstallSucceeded("current packed kibi pnpm upgrade", upgrade);
         const newResolved = await resolveInstalledKibiMcp(sandbox);
         assert.ok(

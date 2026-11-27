@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-zcode-hooks-invoke-hook-runner",
+  "sourceFile": "packages/zcode/src/hook-runner.ts",
+  "symbol": "main",
+  "verdict": "keeps",
+  "note": "Preserves ZCode hook-runner invocation contract while routing shell commands through guardedChangeOfShellCommand.",
+  "statementHash": "sha256:31f1666c85438febbff1b19c790d778d29c56bac8b5c71b81ae80714a9b93913",
+  "codeHash": "sha256:01151392acefcead2411bd49ab06d8e3ad4ac15932074fa3ace86511d89c7da4",
+  "startLine": 1,
+  "endLine": 914,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

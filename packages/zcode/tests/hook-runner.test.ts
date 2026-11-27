@@ -566,6 +566,88 @@ describe("ZCode hook runner workspace opt-in", () => {
     }
   });
 
+  test("a shell in-place edit records its file like an edit call", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-shelledit");
+    writeFile(cwd, "src/shelled.ts", "export const a = 1;\n");
+    writeFile(cwd, "nested/.keep", "");
+    // Run from a nested cwd so the shell command's relative target resolves
+    // through the event cwd, not the workspace root.
+    await runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s1",
+        cwd: path.join(cwd, "nested"),
+        tool_name: "Bash",
+        tool_input: { command: "sed -i 's/a/b/' ../src/shelled.ts" },
+      },
+      { pluginData },
+    );
+
+    const reminder = expectReminder(
+      await runHook(
+        { hook_event_name: "Stop", session_id: "s1", cwd },
+        { pluginData },
+      ),
+    );
+    expect(reminder).toContain("src/shelled.ts");
+    expect(reminder).not.toContain(path.join(cwd, "src/shelled.ts"));
+  });
+
+  test("shell edit targets outside the workspace or not meaningful are not recorded", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-shellskip");
+    writeFile(cwd, "src/shelled.ts", "export const a = 1;\n");
+    writeFile(cwd, "dist/generated.js", "// generated\n");
+    const outside = createTempRoot("kibi-zcode-outside-");
+    tempRoots.push(outside);
+    fs.writeFileSync(path.join(outside, "note.txt"), "x\n");
+
+    await runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s1",
+        cwd,
+        tool_name: "Bash",
+        tool_input: {
+          command: `sed -i 's/a/b/' src/shelled.ts dist/generated.js ${path.join(outside, "note.txt")}`,
+        },
+      },
+      { pluginData },
+    );
+
+    const reminder = expectReminder(
+      await runHook(
+        { hook_event_name: "Stop", session_id: "s1", cwd },
+        { pluginData },
+      ),
+    );
+    expect(reminder).toContain("src/shelled.ts");
+    expect(reminder).not.toContain("dist/generated.js");
+    expect(reminder).not.toContain("note.txt");
+    expect(reminder).not.toContain("undefined");
+  });
+
+  test("a read-only tool call records nothing even with a file path", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-readonly");
+    writeFile(cwd, "src/read-only.ts", "export const b = 2;\n");
+
+    await runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s1",
+        cwd,
+        tool_name: "Read",
+        tool_input: { file_path: "src/read-only.ts" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook(
+      { hook_event_name: "Stop", session_id: "s1", cwd },
+      { pluginData },
+    );
+    expect(JSON.stringify(result)).not.toContain("src/read-only.ts");
+  });
+
   test("PostToolUse tracks explicit meaningful paths in opted-in workspaces", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-track");
 
@@ -1405,10 +1487,10 @@ describe("ZCode hook runner session isolation", () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-sess5");
     const hookRunnerPath = path.resolve(
       import.meta.dir,
-      "../dist/hook-runner.js",
+      "../bin/hook-runner.mjs",
     );
     if (!fs.existsSync(hookRunnerPath)) {
-      throw new Error("dist/hook-runner.js missing — run bun run build:zcode");
+      throw new Error("bin/hook-runner.mjs missing — run bun run build:zcode");
     }
 
     function invoke(event: HookEventInput): Promise<string> {
@@ -1466,7 +1548,7 @@ function loadHookStateFromPluginData(pluginData: string) {
 }
 
 describe("ZCode hook runner workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp");
     fs.mkdirSync(path.join(cwd, "src"));
     const result = expectStrictZcodeOutput(
@@ -1489,6 +1571,26 @@ describe("ZCode hook runner workspace stamp", () => {
         updatedInput: { id: "REQ-1", workspaceRoot: cwd },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp-kept");
+    const worktree = createTempRoot("kibi-zcode-worktree-");
+    tempRoots.push(worktree);
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd,
+          tool_name: "mcp__kibi__kb_query",
+          tool_input: { id: "REQ-1", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
   });
 
   test("other tools are left alone", async () => {
@@ -1601,6 +1703,54 @@ describe("ZCode pre-edit knowledge", () => {
     expect(context).toContain(
       "The edit is inside computeTotal, which implements REQ-checkout-rounding.",
     );
+  });
+
+  test("a shell in-place edit of linked code gets the same firm notice", async () => {
+    const fixture = linkedWorkspace();
+    writeFile(fixture.cwd, "nested/.keep", "");
+    const shellEdit = () =>
+      runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd: path.join(fixture.cwd, "nested"),
+          tool_name: "Bash",
+          tool_input: {
+            command: "sed -i 's/1/2/' ../src/checkout.ts",
+          },
+        },
+        { pluginData: fixture.pluginData },
+      );
+    const context = expectAdditionalContext(await shellEdit(), "PreToolUse");
+    expect(context).toContain("src/checkout.ts");
+    expect(context).toContain("REQ-checkout-rounding");
+    expect(context).not.toContain(path.join(fixture.cwd, "src/checkout.ts"));
+    // The firm notice is shown once per requirement per session.
+    expectQuiet(await shellEdit());
+  });
+
+  test("a shell command that also writes outside the workspace still notices the firm file", async () => {
+    const fixture = linkedWorkspace();
+    const outside = createTempRoot("kibi-zcode-firm-outside-");
+    tempRoots.push(outside);
+    fs.writeFileSync(path.join(outside, "note.txt"), "x\n");
+    const context = expectAdditionalContext(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd: fixture.cwd,
+          tool_name: "Bash",
+          tool_input: {
+            command: `sed -i 's/1/2/' src/checkout.ts ${path.join(outside, "note.txt")}`,
+          },
+        },
+        { pluginData: fixture.pluginData },
+      ),
+      "PreToolUse",
+    );
+    expect(context).toContain("src/checkout.ts");
+    expect(context).toContain("REQ-checkout-rounding");
   });
 
   test("the snippet is shown once per file per session", async () => {
@@ -1732,6 +1882,13 @@ describe("ZCode decision guard", () => {
       tool_name: "Bash",
       tool_input: { command },
     });
+    // A shell read names the requirement of the code in view, once.
+    expect(
+      expectAdditionalContext(
+        await event(shell("cat src/checkout.ts")),
+        "PreToolUse",
+      ),
+    ).toContain("- REQ-checkout-rounding [firm: ask before changing]");
     expect(await event(shell("cat src/checkout.ts"))).toEqual({
       continue: true,
     });
@@ -2261,6 +2418,7 @@ describe("ZCode hook runner exact decisions", () => {
     expect(await edit({ file_path: "src/other.ts" })).toStrictEqual({
       continue: true,
     });
+    // The edit snippet already named the file's requirement.
     expect(await edit({ file_path: "src/checkout.ts" }, "Read")).toStrictEqual({
       continue: true,
     });
@@ -2644,5 +2802,142 @@ describe("ZCode hook runner exact decisions", () => {
     expect(starts).toBe(1);
     expect(isInvokedAsCli(undefined, "")).toBe(false);
     expect(isInvokedAsCli("", "")).toBe(false);
+  });
+});
+
+describe("ZCode Kibi level and required evidence notices", () => {
+  function guardedWorkspace() {
+    const fixture = workspaceFixture("kibi-zcode-guard");
+    fs.writeFileSync(
+      path.join(fixture.cwd, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.mkdirSync(path.join(fixture.cwd, ".kb", "requirements"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(fixture.cwd, ".kb", "requirements", "REQ-floor.md"),
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    return fixture;
+  }
+
+  test("a write that changes the level tells the agent to ask first", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "Write",
+        tool_input: {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+        },
+      },
+      { pluginData },
+    );
+    expect(expectAdditionalContext(result, "PreToolUse")).toContain(
+      "changes the Kibi level from test to remember (package.json). That is the person's decision, not yours",
+    );
+  });
+
+  test("an apply_patch that lowers a floor gets the notice too", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          patch:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-floor.md\n-required_evidence: tested\n+required_evidence: asserted\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(expectAdditionalContext(result, "PreToolUse")).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
+  test("a kb_upsert that lowers a floor gets the notice beside the workspace stamp", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const call = (input: Record<string, unknown>) =>
+      runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "guard",
+          cwd,
+          tool_name: "mcp__kibi__kb_upsert",
+          tool_input: input,
+        },
+        { pluginData },
+      );
+    const lower = {
+      type: "req",
+      id: "REQ-floor",
+      properties: { required_evidence: "asserted" },
+    };
+    const stamped = expectStrictZcodeOutput(await call(lower));
+    expect(stamped.hookSpecificOutput?.additionalContext).toContain(
+      "from tested to asserted",
+    );
+    expect(stamped.hookSpecificOutput?.updatedInput?.workspaceRoot).toBe(cwd);
+    const named = expectStrictZcodeOutput(
+      await call({ ...lower, workspaceRoot: cwd }),
+    );
+    expect(named.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(named.hookSpecificOutput?.additionalContext).toBeDefined();
+  });
+});
+
+describe("ZCode read, search and shell rows", () => {
+  const ROW = "- REQ-checkout-rounding [firm: ask before changing]";
+  const call = (
+    fixture: ReturnType<typeof linkedWorkspace>,
+    tool_name: string,
+    tool_input: Record<string, unknown>,
+  ) =>
+    runHook(
+      {
+        session_id: "rows",
+        cwd: fixture.cwd,
+        hook_event_name: "PreToolUse",
+        tool_name,
+        tool_input,
+      },
+      { pluginData: fixture.pluginData, env: {} },
+    );
+
+  test("a ranged Read names the requirement of the symbol in view", async () => {
+    const fixture = linkedWorkspace();
+    const read = (input: Record<string, unknown>) =>
+      call(fixture, "Read", { file_path: "src/checkout.ts", ...input });
+    expect(await read({ offset: 40 })).toStrictEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await read({ offset: 1, limit: 30 }),
+        "PreToolUse",
+      ),
+    ).toContain(ROW);
+    expect(await call(fixture, "Read", {})).toStrictEqual({ continue: true });
+  });
+
+  test("a Grep whose matches fall in a linked symbol names its requirement", async () => {
+    const fixture = linkedWorkspace();
+    expect(
+      await call(fixture, "Grep", { pattern: "return", glob: "*.js" }),
+    ).toStrictEqual({ continue: true });
+    expect(
+      await call(fixture, "Grep", { pattern: "return", path: "nowhere" }),
+    ).toStrictEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await call(fixture, "Grep", { pattern: "RETURN", "-i": true }),
+        "PreToolUse",
+      ),
+    ).toContain(ROW);
   });
 });

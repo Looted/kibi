@@ -531,3 +531,220 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-528a1a8d2c9b
+  - type: assumes
+    from: SCEN-ci-merge-train-checks-token
+    to: FACT-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:05.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d18901837ab5
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-budget-chars
+    created_at: 2026-11-19T15:29:29.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81b3728bb71f
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-budget-chars-OVER-BUDGET
+    created_at: 2026-11-19T15:29:29.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c800e7655fe4
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-budget-min-row
+    created_at: 2026-11-19T15:29:29.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55fcaad2d767
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-budget-min-row-NO-ROWS
+    created_at: 2026-11-19T15:29:29.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b6ca03ce533
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-budget-paging-notice
+    created_at: 2026-11-19T15:29:29.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a577d2109776
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-budget-paging-notice-SILENT-CUT
+    created_at: 2026-11-19T15:29:29.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d58b805f333
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-budget-row-cut
+    created_at: 2026-11-19T15:29:29.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad36d10d77e6
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-budget-row-cut-UNCUT-ROW
+    created_at: 2026-11-19T15:29:29.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cded3f1d8a11
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-ceiling
+    created_at: 2026-11-19T15:29:29.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-236ef28b8b11
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-ceiling-OVER-CEILING
+    created_at: 2026-11-19T15:29:29.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ff0b175bbe
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-summary-rows-default
+    created_at: 2026-11-19T15:29:29.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80c8b991604c
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-summary-rows-default-FULL-BY-DEFAULT
+    created_at: 2026-11-19T15:29:29.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b53e92190fab
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-coverage-plan-summaries
+    created_at: 2026-11-19T15:29:29.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-800f6f4245dd
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-coverage-plan-summaries-FULL-PLANS
+    created_at: 2026-11-19T15:29:29.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a145d25a096
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-coverage-matched-count
+    created_at: 2026-11-19T15:29:29.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acf0b47110b1
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-coverage-matched-count-NO-MATCHED
+    created_at: 2026-11-19T15:29:29.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-942559cd5f68
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-coverage-report-reuse
+    created_at: 2026-11-19T15:29:29.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d82180ef1f7
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-coverage-report-reuse-RECOMPUTED
+    created_at: 2026-11-19T15:29:29.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f644d08172
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-route-parity
+    created_at: 2026-11-19T15:29:29.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ba2776e5bc9
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-route-parity-ROUTES-DIFFER
+    created_at: 2026-11-19T15:29:29.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8856cb8d0336
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-result-budget-declared
+    created_at: 2026-11-19T15:29:29.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a57ffb07649
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-result-budget-declared-UNDECLARED
+    created_at: 2026-11-19T15:29:29.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b1858f8fd09
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-check-rule-selection-pages
+    created_at: 2026-11-19T15:29:29.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb864ec1b49
+  - type: validates
+    from: TEST-kibi-result-budget
+    to: SCEN-NEG-check-rule-selection-pages-FULL-LISTING
+    created_at: 2026-11-19T15:29:29.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30be35b1bc0
+  - type: assumes
+    from: SCEN-vibe-hooks-firm-edit-notice
+    to: FACT-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:24:25.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0810f778f70d
+  - type: verified_by
+    from: SCEN-vibe-hooks-firm-edit-notice
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:25.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ac03cdeebe9
+  - type: assumes
+    from: SCEN-vibe-hooks-rule-note
+    to: FACT-vibe-hooks-rule-note
+    created_at: 2026-11-22T18:36:03.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffa092aa3e0c
+  - type: verified_by
+    from: SCEN-vibe-hooks-rule-note
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:36:04.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfa610e23bf4
+  - type: implements
+    from: SYM-prove-narrowed-playwright-command
+    to: REQ-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-26T18:50:43.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-357d7e38d1b1
+  - type: covered_by
+    from: SYM-prove-narrowed-playwright-command
+    to: TEST-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-26T18:50:43.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a6478e37a83

@@ -262,3 +262,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-600167f80a8c
+  - type: assumes
+    from: SCEN-agent-hosts-restated-rule-quiet
+    to: FACT-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:02:19.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-695a0d9dfdf4
+  - type: verified_by
+    from: SCEN-agent-hosts-restated-rule-quiet
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-24T20:02:19.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a83c0f0c35fd
+  - type: implements
+    from: SYM-compose-search-hints
+    to: REQ-search-meaning-fusion
+    created_at: 2026-11-25T19:32:07.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660f293a679a

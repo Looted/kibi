@@ -233,7 +233,9 @@ describe("doctorCommand", () => {
     restores.push(installFakeSwipl(new Error("not found")));
     await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(io.logText()).toContain("Kibi could not find a usable SWI-Prolog");
-    expect(io.logText()).toContain("Not a git repository");
+    expect(io.logText()).toContain(
+      "Git cannot read this repository: Git is unavailable",
+    );
   });
 
   test("reports missing optional hook companions", async () => {

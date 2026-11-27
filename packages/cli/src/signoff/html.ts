@@ -15,7 +15,9 @@ import {
   approvalNumbers,
   approvalSentence,
   awaitsApproval,
+  decisionLabel,
   firmEditReviewLabel,
+  levelLabel,
   proofLabel,
   questionKind,
   questionOpen,
@@ -191,6 +193,15 @@ function summaryBody(summary: SignoffSummary): string {
     "retired",
   ];
   const sections: string[] = [];
+  if (summary.decisions.length > 0) {
+    sections.push(
+      `<h2>Decisions only you make (${summary.decisions.length})</h2>`,
+      ...summary.decisions.map(
+        (decision) =>
+          `<p class="callout">${escapeHtml(decisionLabel(decision))}</p>`,
+      ),
+    );
+  }
   const approvals = approvalNumbers(
     order.flatMap((change) =>
       summary.requirements.filter((item) => item.change === change),
@@ -213,7 +224,7 @@ function summaryBody(summary: SignoffSummary): string {
       sections.push(requirementCard(item, number));
     }
   }
-  if (sections.length === 0) {
+  if (summary.requirements.length === 0) {
     sections.push(
       '<p class="empty">This change adds, rewrites or affects no requirement.</p>',
     );
@@ -276,9 +287,10 @@ export function renderSignoffHtml(view: SignoffView): string {
       ? [
           view.branch ? `Branch ${view.branch}` : undefined,
           view.scope === "staged" ? "staged changes" : "working tree",
+          levelLabel(view.level),
           `generated ${view.generatedAt}`,
         ]
-      : [`generated ${view.generatedAt}`];
+      : [levelLabel(view.level), `generated ${view.generatedAt}`];
   const body =
     view.kind === "summary" ? summaryBody(view) : questionsBody(view);
   const notes = view.notes.length

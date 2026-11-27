@@ -80,8 +80,13 @@ narrowed to the selected tests' `proof_bindings[].source_file` spec files, so
 proving one test runs its specs instead of the whole suite. Narrowing needs a
 `source_file` on every selected test's bindings; otherwise, or when the
 command is a wrapper such as `npm run e2e`, the whole integration runs and
-`kibi prove` says why. Every producer gets the selected tests' bound files in
-`KIBI_PROOF_SOURCE_FILES` (a JSON array), so a wrapper can narrow itself.
+`kibi prove` says why, on stderr and in the JSON summary's `notNarrowed`
+list (`{"integration", "reason"}` per integration). Every producer gets the
+selected tests' bound files in `KIBI_PROOF_SOURCE_FILES` (a JSON array), so a
+wrapper can narrow itself. A narrowed run's artifact records the narrowed
+command; Kibi accepts it for a test only when the appended arguments are the
+spec files of the tests ingested from that run and include every spec file of
+that test.
 
 For each configured integration, `kibi prove`:
 
@@ -1151,6 +1156,14 @@ into `node_modules`). Change any of them and the receipt is stale. A claim a
 source proof derives is bound with scope `source`, so coverage and signoff
 show that the proof rests on project files Kibi read.
 
+A rule about what a set of files never does ("files under `src/ui/` never
+import `x`") needs no `implements` link. When a passing source proof proves
+every applicable claim, the production-symbol stage of the proof ladder passes
+with `scope: source_proof` and lists the proving tests in `sourceProofTests`,
+because the files the proof reads are what the rule constrains. Do not link one
+of those files to the requirement: that would claim the one file implements
+the rule. See [Production symbols](./proof-ladder.md#8-production-symbols).
+
 The certificate builders (`sourceCertificate`, `readProjectSource`) are in
 `kibi-cli/proof-certificates` from kibi-cli 2.33.0; a project that pins an
 older kibi-cli has to upgrade before its tests can import them.
@@ -1395,7 +1408,7 @@ Field contract:
 | `code_snapshot` | 64-hex; must equal the live snapshot captured before the run |
 | `environment` | Typed JSON object; Kibi canonicalizes and hashes it |
 | `run` | Run-level outcome, process exit code, ISO timestamps, optional `failure_phase` (`setup`, `collection`, `execution`, `teardown`, `infrastructure`) |
-| `proof_results` | 1–1000 results, each shaped as below |
+| `proof_results` | 1–100000 results, each shaped as below |
 
 Each proof result:
 
@@ -1649,6 +1662,7 @@ against the schema in CI.
 
 ## For agent workflows
 
-Bundled skill guidance is in `kibi-usage` → `resources/proof.md`
+Bundled skill guidance is in `kibi-usage` → `resources/proof-first.md` (the
+short path from a recorded rule to `tested`) and `resources/proof.md`
 (`kb_skills` with `action: "load"` and `id: "kibi-usage"`, then `action: "read"`).
 Deterministic discovery: `kibi proof inspect --json`.

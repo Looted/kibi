@@ -9,6 +9,8 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { SEARCH_HINTS_MAX_LIMIT } from "kibi-plugin-sdk";
+
 import {
   MODEL_LABEL,
   VectorCache,
@@ -53,7 +55,7 @@ function asset(
       table.writeInt8(weight, 16 + rows.length * 4 + index * dims + col),
     );
   });
-  writeFileSync(path.join(directory, "potion-base-8M.int8.bin"), table);
+  writeFileSync(path.join(directory, "potion-retrieval-32M.int8.bin"), table);
   writeFileSync(
     path.join(directory, "vocab.txt"),
     `${vocabulary.join("\n")}\n`,
@@ -80,11 +82,13 @@ function header(file: string): { entries: [string, string][] } {
 // executable_for TEST-kibi-plugin-search-hints
 describe("search hints model edges", () => {
   test("the model id names the label and the asset digest", () => {
-    expect(MODEL_LABEL).toBe("minishlab/potion-base-8M@bf8b056651a2/int8");
-    expect(model.id).toMatch(
-      /^minishlab\/potion-base-8M@bf8b056651a2\/int8-[0-9a-f]{12}$/,
+    expect(MODEL_LABEL).toBe(
+      "minishlab/potion-retrieval-32M@6fc8051fab2a/int8",
     );
-    expect(model.dims).toBe(256);
+    expect(model.id).toMatch(
+      /^minishlab\/potion-retrieval-32M@6fc8051fab2a\/int8-[0-9a-f]{12}$/,
+    );
+    expect(model.dims).toBe(512);
   });
 
   test("vectors are unit length, and text with no known token is all zero", () => {
@@ -286,11 +290,15 @@ describe("search hints ranking edges", () => {
     ]);
   });
 
-  test("the limit is clamped to 0..20", () => {
+  test("the limit is clamped to 0..the most a host may ask for", () => {
     const many = Array.from({ length: 25 }, (_, index) =>
       entity(`REQ-${String(index).padStart(2, "0")}`, "east"),
     );
-    expect(rank(many, "east", 30)).toHaveLength(20);
+    expect(rank(many, "east", 30)).toHaveLength(25);
+    expect(rank(many, "east", 20)).toHaveLength(20);
+    expect(
+      rank(many.slice(0, 3), "east", SEARCH_HINTS_MAX_LIMIT + 1),
+    ).toHaveLength(3);
     expect(rank(many, "east", 1)).toEqual([{ id: "REQ-00", score: 1 }]);
     expect(rank(many, "east", -1)).toEqual([]);
   });

@@ -367,3 +367,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6a645427ce0
+  - type: implements
+    from: SYM-prolog-build-main
+    to: REQ-prolog-build-workflow-targets-v2
+    created_at: 2026-11-20T11:44:53.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-378e207ec593
+  - type: implements
+    from: SYM-snippets-stop-reminder
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:55.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca84ce75fc81
+  - type: covered_by
+    from: SYM-snippets-stop-reminder
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:55.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dde4332f886
+  - type: executable_for
+    from: SYM-antigravity-mcp-launcher-edges-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:21.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0c204c31f8b
+  - type: implements
+    from: SYM-decision-guard-claim-guarded-change-notice
+    to: REQ-vibe-guarded-change-after-notice
+    created_at: 2026-11-25T14:07:28.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6033f83d81
+  - type: covered_by
+    from: SYM-decision-guard-claim-guarded-change-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:28.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c44eae06d13
+  - type: assumes
+    from: SCEN-NEG-search-decisions-are-the-unit-UNCREDITED
+    to: FACT-NEG-search-decisions-are-the-unit-UNCREDITED
+    created_at: 2026-11-25T20:04:36.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dd297b2e5ec
+  - type: verified_by
+    from: SCEN-NEG-search-decisions-are-the-unit-UNCREDITED
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T20:04:36.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-102dc7bdfeca

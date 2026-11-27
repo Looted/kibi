@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-bootstrap-seed-and-handoff",
+  "sourceFile": "packages/cli/src/operations/bootstrap/markdown-candidates.ts",
+  "symbol": "markdownCandidates",
+  "verdict": "keeps",
+  "note": "Preserves cited bootstrap candidate extraction while skipping Kibi-managed instruction blocks so bootstrap does not mine generated AGENTS.md text.",
+  "statementHash": "sha256:96e59f7f5ac39d4a337217b7ced9b0208901a63d91288e0eabcd3b4b1414d24b",
+  "codeHash": "sha256:ac6e08ea1404f745ff733ccc14d7760a5bc3f0643c965db5f1825124321f2387",
+  "startLine": 248,
+  "endLine": 352,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

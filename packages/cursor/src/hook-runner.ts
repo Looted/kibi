@@ -3,8 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import {
+  type ShellRead,
+  shellToolCommand,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -39,8 +44,22 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
-import { classifyPath } from "kibi-agent-core/path-policy";
+import {
+  isKibiMcpToolName,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
+import {
+  type GuardedChange,
+  guardedChangeNotice,
+  guardedChangeOf,
+  guardedChangeOfShellCommand,
+} from "kibi-agent-core/level-guard";
+import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type LineRange,
@@ -79,6 +98,7 @@ import {
 import {
   type SourceLinkedSymbols,
   getSourceLinkedSymbols,
+  linkedFiles,
 } from "./source-linked-requirements.js";
 
 export type CursorHookResult = {
@@ -111,17 +131,96 @@ export type HookEnvironment = {
 function knowledgeFor(
   workspaceRoot: string,
   linked: SourceLinkedSymbols,
-  surface: "read" | "edit",
   focus?: LineRange[],
 ): string | undefined {
   if (implementedRequirementIds(linked.symbols).length === 0) return undefined;
   return fileKnowledgeSnippet({
     relativePath: linked.relativePath,
     symbols: linked.symbols,
-    surface,
+    surface: "edit",
     focus,
     summarize: createEntitySummarizer(workspaceRoot),
   });
+}
+
+/**
+ * An edit that changes the Kibi level or lowers a requirement's
+ * required_evidence, or a Kibi call that lowers one: the agent is told to
+ * ask the person first, every time, since the choice is the person's.
+ */
+export function guardedNotice(change: GuardedChange, trace: HookTrace): string {
+  trace.action =
+    change.kind === "level"
+      ? "level_change_notice"
+      : "evidence_lowering_notice";
+  return guardedChangeNotice(change);
+}
+
+/**
+ * Requirement rows for the code a read, search or shell call puts in view
+ * (see kibi-agent-core/read-context), each requirement once per
+ * conversation.
+ */
+export function readRows(
+  workspaceRoot: string,
+  reads: readonly ShellRead[],
+  stateDir: string | undefined,
+  conversationId: string | undefined,
+  admits?: (relativePath: string) => boolean,
+): { text: string; ids: string[] } | undefined {
+  return hookReadRows(reads, {
+    workspaceRoot,
+    files: linkedFiles(workspaceRoot, stateDir),
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    admits,
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: conversationId,
+  });
+}
+
+/** Read window of a Read call; undefined when the whole file is read. */
+function readWindow(toolInput: unknown): LineRange[] | undefined {
+  const fields = (toolInput ?? {}) as Record<string, unknown>;
+  const offset = typeof fields.offset === "number" ? fields.offset : undefined;
+  const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+  if (offset === undefined && limit === undefined) return undefined;
+  const start = Math.max(1, offset ?? 1);
+  return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
+}
+
+/**
+ * What a non-edit tool call reads: a shell command's files and searches, a
+ * Grep call's pattern over its path (limited by its glob), or a ranged Read.
+ */
+function toolReads(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+  primaryPath: string | undefined,
+): { reads: ShellRead[]; admits?: (relativePath: string) => boolean } {
+  const fields = (toolInput ?? {}) as Record<string, unknown>;
+  if (toolName === "Grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd,
+      ignoreCase: fields["-i"] === true,
+    });
+    const glob = typeof fields.glob === "string" ? fields.glob : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...(glob ? { admits: globFilter(glob) } : {}),
+    };
+  }
+  const focus = isReadLikeTool(toolName) ? readWindow(toolInput) : undefined;
+  if (focus && primaryPath)
+    return {
+      reads: [
+        { absolute: path.resolve(cwd, primaryPath), directory: false, focus },
+      ],
+    };
+  return { reads: shellToolReadViews(toolName, toolInput, cwd) };
 }
 
 /**
@@ -349,24 +448,55 @@ export async function runHook(
           return {
             additional_context: sessionBriefWith([
               advisory ?? "",
-              missingHooksNote(cwd) ?? "",
+              checkoutSessionNote(cwd) ?? "",
             ]),
           };
         }
 
       case "preToolUse": {
-        // Name the agent's workspace on every Kibi MCP call so the launcher
-        // answers from it, also for agents working in a git worktree. The
+        // Name the agent's workspace on a Kibi MCP call that carries none, so
+        // the launcher answers from it, also for agents working in a git
+        // worktree. A call that names its own workspace passes through. The
         // per-call cwd wins over workspace_roots, which can be the window's
         // folders rather than the agent's checkout.
-        const stamped = stampKibiWorkspace(
-          input.toolName,
-          input.toolInput,
-          kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
-        );
-        if (stamped) {
-          return { updated_input: stamped };
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(
+            input.toolName,
+            input.toolInput,
+            kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
+          );
+          const lowering = kibiReady
+            ? guardedChangeOf({
+                workspaceRoot: cwd,
+                toolName: input.toolName,
+                toolInput: input.toolInput,
+              })
+            : undefined;
+          // Cursor does not enforce "ask": the agent is told to ask first,
+          // and no permission is sent, so Cursor's own approval still applies.
+          if (lowering)
+            return {
+              agent_message: guardedNotice(lowering, trace),
+              ...(stamped ? { updated_input: stamped } : {}),
+            };
+          return stamped === undefined
+            ? emptyResult()
+            : { updated_input: stamped };
         }
+        const guarded =
+          kibiReady && isEditLikeTool(input.toolName)
+            ? extractEditedPaths(input.toolInput)
+                .map((target) =>
+                  guardedChangeOf({
+                    workspaceRoot: cwd,
+                    toolName: input.toolName,
+                    toolInput: input.toolInput,
+                    relativePath: toRepoRelativePath(target, cwd),
+                  }),
+                )
+                .find((change) => change !== undefined)
+            : undefined;
+        if (guarded) return { agent_message: guardedNotice(guarded, trace) };
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
           kibiReady &&
@@ -381,6 +511,16 @@ export async function runHook(
             agent_message: DIRECT_KB_EDIT_WARNING,
           };
         }
+
+        const shellCmd = kibiReady
+          ? shellToolCommand(input.toolName, input.toolInput)
+          : undefined;
+        const shellGuarded =
+          shellCmd !== undefined
+            ? guardedChangeOfShellCommand(cwd, shellCmd, input.cwd ?? cwd)
+            : undefined;
+        if (shellGuarded)
+          return { agent_message: guardedNotice(shellGuarded, trace) };
 
         // A shell call that writes files in place gets the firm notice an
         // edit of those files would, read as a whole-file write.
@@ -400,12 +540,40 @@ export async function runHook(
               false,
             );
             if (notice === undefined) continue;
+            const held = takeRuleNote(session);
             trace.action = "edit_snippet";
-            return { permission: "allow", agent_message: notice };
+            return {
+              permission: "allow",
+              agent_message: held ? `${held}\n\n${notice}` : notice,
+            };
           }
         }
 
         const primaryPath = resolvePrimaryPath(input);
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const { reads, admits } = toolReads(
+            input.toolName,
+            input.toolInput,
+            input.cwd ?? cwd,
+            primaryPath,
+          );
+          const rows = readRows(
+            cwd,
+            reads,
+            stateDir,
+            input.conversationId,
+            admits,
+          );
+          const held = takeRuleNote(session);
+          if (rows || held) {
+            trace.action = rows ? "read_snippet" : "prompt_rule_note";
+            if (rows) trace.requirementIds = rows.ids;
+            const parts = [held, rows?.text].filter(
+              (part): part is string => part !== undefined,
+            );
+            return { permission: "allow", agent_message: parts.join("\n\n") };
+          }
+        }
         if (
           !primaryPath ||
           !kibiReady ||
@@ -451,7 +619,7 @@ export async function runHook(
               workspaceTrusted,
               // A file that implements requirements always gets the shared
               // snippet, so the bare linked-requirement wording is never needed.
-              knowledge: knowledgeFor(cwd, linked, "edit", focus),
+              knowledge: knowledgeFor(cwd, linked, focus),
             });
         if (guidance) {
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
@@ -469,9 +637,11 @@ export async function runHook(
         // Cursor's prompt hook cannot add context: the request's rule note
         // waits for the next pre-edit message.
         if (kibiReady && input.prompt) {
-          const rule = recordRequest(session, input.prompt);
+          const rule = recordRequest(session, input.prompt, {
+            workspaceRoot: cwd,
+          });
           if (rule !== undefined)
-            holdRuleNote(session, rule, statedReason(input.prompt));
+            holdRuleNote(session, rule, statedReason(input.prompt, cwd));
           trace.action =
             rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
@@ -492,19 +662,26 @@ export async function runHook(
           return { permission: "allow" };
         }
 
+        // A file that implements requirements gets their rows, or nothing
+        // once they were all shown; only other files get the generic note.
+        const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        const owned = implementedRequirementIds(linked.symbols).length > 0;
+        const rows = owned
+          ? readRows(
+              cwd,
+              [{ absolute: path.resolve(cwd, primaryPath), directory: false }],
+              stateDir,
+              input.conversationId,
+            )
+          : undefined;
+        if (owned && !rows) return { permission: "allow" };
+        if (rows) trace.requirementIds = rows.ids;
         const guidance = readGuidance(primaryPath, {
           cwd,
           hasKibi: kibiReady,
           mcpState: state.mcpState,
           workspaceTrusted,
-          knowledge: knowledgeFor(
-            cwd,
-            getSourceLinkedSymbols(cwd, primaryPath, stateDir),
-            // rationale: the snippet only special-cases "edit", so any other
-            // surface literal renders the same read snippet.
-            // Stryker disable next-line StringLiteral
-            "read",
-          ),
+          knowledge: rows?.text,
         });
         if (!guidance) {
           return { permission: "allow" };
@@ -601,18 +778,30 @@ export async function runHook(
             return emptyResult();
           }
 
+          // As before a read: a file that implements requirements gets
+          // their rows (none once shown), only other files the generic note.
+          const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+          const owned = implementedRequirementIds(linked.symbols).length > 0;
+          const rows = owned
+            ? readRows(
+                cwd,
+                [
+                  {
+                    absolute: path.resolve(cwd, primaryPath),
+                    directory: false,
+                  },
+                ],
+                stateDir,
+                input.conversationId,
+              )
+            : undefined;
+          if (owned && !rows) return emptyResult();
           const guidance = readGuidance(primaryPath, {
             cwd,
             hasKibi: kibiReady,
             mcpState: state.mcpState,
             workspaceTrusted,
-            knowledge: knowledgeFor(
-              cwd,
-              getSourceLinkedSymbols(cwd, primaryPath, stateDir),
-              // rationale: as above, only "edit" changes the snippet.
-              // Stryker disable next-line StringLiteral
-              "read",
-            ),
+            knowledge: rows?.text,
           });
           if (!guidance) {
             return emptyResult();

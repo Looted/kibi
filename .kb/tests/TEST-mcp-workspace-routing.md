@@ -25,17 +25,17 @@ id: TEST-mcp-workspace-routing
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a0155be94f3f60ccac36c02e
+    receipt_id: PR-6cc4b6ae77dcea2fe617c30e
     test_id: TEST-mcp-workspace-routing
     scope: end_to_end
     outcome: passed
-    code_snapshot: f400e3d61f0886471f84213c2464e534ef5adc47229d9e4ba61be7c7a5a7c690
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T16:56:15.570Z'
-    finished_at: '2026-11-17T16:57:51.939Z'
-    artifact_digest: 5eca75e2bcd5d6453bacb6841e5842786c0b93d1356a32af6ff0b77b290b9349
+    code_snapshot: c469764ad7d851a4a824eb1c7ddea2723a5cdfcfa3a999d51640bc4d746102ef
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T19:03:08.848Z'
+    finished_at: '2026-11-23T19:03:09.845Z'
+    artifact_digest: 8c16773278843005b1cf0d0f5b2250e0b26f4a0257f29b14b4c816c131774879
     contract_hash: 8ee149a9b2ec2d43f16f3c00349459ee7d8f3d3b943b030e1d44e42c329ddb0c
-    binding_hash: 497483c4d9da9d71e4b2b2ff4b1a7bb0d2b6b4d303600eb583991f8ec362ba93
+    binding_hash: 1f2a4117848d75fa660ae82b5d4306e8ace2e027363f794ce2b4bd0fc569783d
     fingerprint: fb5aa62f918cec29fc44939bba7cfb9fab18409d79281079225a94a67bd90c98
     fingerprint_components:
       contract: 8ee149a9b2ec2d43f16f3c00349459ee7d8f3d3b943b030e1d44e42c329ddb0c

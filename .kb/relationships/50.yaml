@@ -356,3 +356,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfee68d9e368
+  - type: implements
+    from: SYM-reporting-coverage-check-time
+    to: REQ-coverage-report-reuse
+    created_at: 2026-11-19T15:28:34.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fe7bb5e956f
+  - type: covered_by
+    from: SYM-reporting-coverage-check-time
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:34.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b0d2354584
+  - type: assumes
+    from: SCEN-NEG-antigravity-default-writes-usage-log
+    to: FACT-NEG-antigravity-default-writes-usage-log
+    created_at: 2026-11-24T05:07:10.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-478f87cda799
+  - type: verified_by
+    from: SCEN-NEG-antigravity-default-writes-usage-log
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:10.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b1ed00c8435
+  - type: assumes
+    from: SCEN-NEG-antigravity-kb-calls-unrecognized
+    to: FACT-NEG-antigravity-kb-calls-unrecognized
+    created_at: 2026-11-24T05:07:19.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cddbf87dcae
+  - type: verified_by
+    from: SCEN-NEG-antigravity-kb-calls-unrecognized
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:19.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91f01059f15c
+  - type: executable_for
+    from: SYM-test-kibi-staged-floor-reports-new-requirement
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:01.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19b061226c7e

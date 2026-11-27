@@ -216,3 +216,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-185b3e878118
+  - type: assumes
+    from: SCEN-NEG-result-budget-chars-OVER-BUDGET
+    to: FACT-NEG-result-budget-chars-OVER-BUDGET
+    created_at: 2026-11-19T15:25:05.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdea2227e2fa
+  - type: requires_property
+    from: REQ-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c01
+    created_at: 2026-11-25T09:47:59.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be8f7ed62943
+  - type: requires_property
+    from: REQ-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c02
+    created_at: 2026-11-25T09:47:59.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce4fcd38e854
+  - type: requires_property
+    from: REQ-kibi-level-setting
+    to: FACT-PROP-kibi-level-setting-c03
+    created_at: 2026-11-25T09:47:59.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7edc0e3bd646
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-kibi-level-setting
+    created_at: 2026-11-25T09:48:09.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-319e6ecc7682
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-rejected
+    created_at: 2026-11-25T09:48:09.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a5fb499c92d
+  - type: verified_by
+    from: REQ-kibi-level-setting
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:09.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d3904d40431
+  - type: constrains
+    from: REQ-kibi-level-setting
+    to: FACT-SUBJ-kibi-level
+    created_at: 2026-11-25T10:18:09.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe1762e49c07
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c02-eq-false
+    created_at: 2026-11-25T10:19:20.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-791a4f70143a
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c01-eq-false
+    created_at: 2026-11-25T10:19:26.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf3333e68b08
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-neq-0
+    created_at: 2026-11-25T10:19:32.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3716716232bd
+  - type: specified_by
+    from: REQ-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-gt-0
+    created_at: 2026-11-25T10:19:38.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136d2d512b2f

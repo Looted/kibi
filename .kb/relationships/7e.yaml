@@ -454,3 +454,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-525db373498c
+  - type: assumes
+    from: SCEN-vibe-guarded-change-after-notice
+    to: FACT-PROP-vibe-guarded-change-after-notice-c01
+    created_at: 2026-11-25T14:07:15.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c7e4afba8b8
+  - type: assumes
+    from: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    to: FACT-NEG-hook-read-row-budgets-OVER-BUDGET
+    created_at: 2026-11-25T14:39:33.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b71a2cd69aa4
+  - type: verified_by
+    from: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:39:33.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3129c909c4de

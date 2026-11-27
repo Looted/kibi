@@ -733,4 +733,82 @@ describe("envelopeDiagnostic", () => {
         severity,
       });
   });
+
+  test("emits branch_store_stale warning diagnostic for stale discovery reads only", () => {
+    const querySpec = { name: "kb_query", effects: ["kb-read"] as const };
+    const searchSpec = { name: "kb_search", effects: ["kb-read"] as const };
+    const statusSpec = { name: "kb_status", effects: ["kb-read"] as const };
+    const stalePayload = {
+      entities: [{ id: "REQ-1" }],
+      count: 1,
+      meta: {
+        syncState: "stale",
+        dirty: true,
+        staleReasonCount: 1,
+        staleReasons: [
+          { code: "knowledge_source_newer", path: ".kb/requirements/REQ-1.md" },
+        ],
+      },
+    };
+    const queryEnvelope = toKibiResult(querySpec, stalePayload);
+    expect(queryEnvelope.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "branch_store_stale",
+        severity: "warning",
+      }),
+    );
+    expect(queryEnvelope.diagnostics[0]?.message).toContain(
+      ".kb/requirements/REQ-1.md",
+    );
+
+    const searchEnvelope = toKibiResult(searchSpec, {
+      results: [],
+      count: 0,
+      meta: stalePayload.meta,
+    });
+    expect(searchEnvelope.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "branch_store_stale",
+        severity: "warning",
+      }),
+    );
+
+    expect(toKibiResult(querySpec, { entities: [], count: 0 }).diagnostics).toEqual(
+      [],
+    );
+    expect(
+      toKibiResult(statusSpec, { meta: stalePayload.meta }).diagnostics,
+    ).toEqual([]);
+  });
+});
+
+describe("kb_search next actions", () => {
+  const next = [
+    { operation: "kb_query", input: {}, reason: "r", required: false },
+  ];
+  const searchSpec = { name: "kb_search", effects: [] as const };
+
+  test("are lifted to the envelope and left out of the data", () => {
+    const result = toKibiResult(searchSpec, {
+      count: 0,
+      notes: ["n"],
+      nextActions: next,
+    });
+    expect(result.nextActions).toStrictEqual(next);
+    expect(result.data as unknown).toStrictEqual({ count: 0, notes: ["n"] });
+  });
+
+  test("a payload without them is left as it is", () => {
+    const data = { count: 1 };
+    expect(toKibiResult(searchSpec, data).data).toBe(data);
+  });
+
+  test("another operation keeps them in its data", () => {
+    const data = { nextActions: next };
+    expect(toKibiResult(readSpec, data).data).toBe(data);
+  });
+
+  test("a payload that is not a record passes through", () => {
+    expect(toKibiResult(searchSpec, "x" as unknown).data).toBe("x");
+  });
 });

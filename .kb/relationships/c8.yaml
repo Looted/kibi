@@ -377,3 +377,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e278c709a7cd
+  - type: implements
+    from: SYM-impact-review-preparation-file-row
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-11-19T19:15:12.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90de45de77e0
+  - type: covered_by
+    from: SYM-impact-review-preparation-file-row
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:22:27.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f85edc099bc
+  - type: verified_by
+    from: REQ-kibi-remember-level-tool-list
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-26T10:29:09.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26c5c4e5810f
+  - type: requires_property
+    from: REQ-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-full-profile-tools
+    created_at: 2026-11-26T10:29:46.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbaf0404dbaa
+  - type: requires_property
+    from: REQ-kibi-remember-level-tool-list
+    to: FACT-mcp-remember-instructions-unnamed-tools
+    created_at: 2026-11-26T10:29:46.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7f0a2d0dc86
+  - type: constrains
+    from: REQ-kibi-remember-level-tool-list
+    to: FACT-SUBJECT-kibi-mcp-tool-catalog
+    created_at: 2026-11-26T10:29:46.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-216d4f84543d
+  - type: specified_by
+    from: REQ-kibi-remember-level-tool-list
+    to: SCEN-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:02.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9459ebfc2c19
+  - type: specified_by
+    from: REQ-kibi-remember-level-tool-list
+    to: SCEN-NEG-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:02.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98d55583dc27

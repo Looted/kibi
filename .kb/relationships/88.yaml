@@ -237,27 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14d7e2e006b5
-  - type: implements
-    from: SYM-search-hint-limit
-    to: REQ-kibi-search-hints-limits
-    created_at: 2026-10-29T21:28:01.576Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37eb4b6bc5e8
-  - type: covered_by
-    from: SYM-search-hint-limit
-    to: TEST-proof-search-hint-shown-limit
-    created_at: 2026-10-29T21:29:22.819Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f87be889fb05
-  - type: covered_by
-    from: SYM-search-hint-limit
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T21:29:22.854Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-08e91bde6f89
   - type: requires_property
     from: REQ-advisor-case-preview-limit
     to: FACT-advisor-case-preview-limit
@@ -293,3 +272,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa37d33c8aa9
+  - type: implements
+    from: SYM-session-state-append-session-events
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:20.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfcd311a7f1c
+  - type: covered_by
+    from: SYM-session-state-append-session-events
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:20.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7a0cd6d2c9c
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:53.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-181d7b944164
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:08:53.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-914439316bf5
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:08:53.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef26063f72a
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-session-journal
+    created_at: 2026-11-22T05:08:53.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4af90cfbc26
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:08:53.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a17dcbb46dc1
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: SCEN-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:08:53.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8446f9af802
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:53.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4603aee08ea2
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:08:53.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee455e0c02b8
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:08:53.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c948919ddd4
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:08:53.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b193f9424841
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:08:53.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdd9d1e30f42
+  - type: validates
+    from: TEST-antigravity-plugin
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:08:53.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11dbeedc5b48
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c01
+    created_at: 2026-11-25T09:44:47.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f1664328104
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c02
+    created_at: 2026-11-25T09:44:47.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d55b57f71767
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection-by-level
+    to: FACT-PROP-kibi-check-rule-selection-by-level-c03
+    created_at: 2026-11-25T09:44:47.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-133db1ea619a
+  - type: implements
+    from: SYM-src-hook-runner-guarded-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:04.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40bf1b95c20d
+  - type: covered_by
+    from: SYM-src-hook-runner-guarded-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:04.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ed904988dd5

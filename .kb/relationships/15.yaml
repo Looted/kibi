@@ -300,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-868d7b15325b
-  - type: executable_for
-    from: SYM-proof-search-hint-weak-score
-    to: TEST-proof-search-hint-weak-score
-    created_at: 2026-10-29T21:29:02.172Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1bcbec4c5e9e
   - type: specified_by
     from: REQ-prolog-bundled-ci
     to: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
@@ -440,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2e5304475d3
+  - type: verified_by
+    from: SCEN-antigravity-plugin-package
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:03:05.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf8a966b5ad5
+  - type: assumes
+    from: SCEN-antigravity-plugin-package
+    to: FACT-antigravity-package-parts
+    created_at: 2026-11-22T05:15:26.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55f7b8275bad
+  - type: assumes
+    from: SCEN-antigravity-plugin-package
+    to: FACT-antigravity-bundled-skills
+    created_at: 2026-11-22T05:15:26.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a2c84531fa6
+  - type: validates
+    from: TEST-proof-search-governing-coverage
+    to: SCEN-search-meaning-limits
+    created_at: 2026-11-25T19:27:25.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-073e6e7c3dab

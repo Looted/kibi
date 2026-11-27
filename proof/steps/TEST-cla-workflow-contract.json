@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cla-workflow-contract",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./scripts/tests/cla-workflow-contract.test.ts"
+    ]
+  ]
+}

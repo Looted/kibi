@@ -374,3 +374,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37d60070e956
+  - type: validates
+    from: TEST-agent-core-edit-snippet-why
+    to: REQ-edit-snippet-names-hidden-requirements
+    created_at: 2026-11-24T20:02:13.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc443a0d8681
+  - type: validates
+    from: TEST-agent-core-edit-snippet-why
+    to: SCEN-edit-snippet-names-hidden-requirements
+    created_at: 2026-11-24T20:02:13.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-472e13ceca82
+  - type: validates
+    from: TEST-agent-core-edit-snippet-why
+    to: SCEN-NEG-edit-snippet-names-hidden-requirements-COUNT-ONLY
+    created_at: 2026-11-24T20:02:13.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8738bdbf017

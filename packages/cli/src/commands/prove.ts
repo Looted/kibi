@@ -334,7 +334,19 @@ export function narrowedPlaywrightCommand(
       };
     for (const file of own) files.add(file);
   }
-  return { argv: [...argv, ...[...files].sort()], narrowed: true };
+  return {
+    argv: [...argv, ...[...files].sort().map(escapePlaywrightFilter)],
+    narrowed: true,
+  };
+}
+
+/**
+ * Playwright interprets positional CLI arguments as regular expressions
+ * matched against file paths, so metacharacters like `[id]` or `(group)`
+ * must be escaped to match the bound spec file literally.
+ */
+function escapePlaywrightFilter(file: string): string {
+  return file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function proofSourceFiles(test: SelectedTest): string[] {
@@ -701,6 +713,9 @@ export async function proveCommand(
     const ingestResults: IngestProofResult[] = [];
     const runAttribution = new Map<IngestProofResult, EvaluatedRun>();
     const failures: string[] = [];
+    // Integrations a narrowing selector ran whole, with the reason, so a
+    // caller reading only stdout learns why the run took the full suite.
+    const notNarrowed: { integration: string; reason: string }[] = [];
     for (const [index, [integrationId, tests]] of pending.entries()) {
       process.stderr.write(
         `prove: running integration '${integrationId}' (${index + 1}/${pending.length}, ${tests.length} test${tests.length === 1 ? "" : "s"})\n`,
@@ -719,10 +734,15 @@ export async function proveCommand(
       if (narrowSelection && integration.producer === "playwright") {
         const narrowed = narrowedPlaywrightCommand(commandArgv, tests);
         commandArgv = narrowed.argv;
-        if (!narrowed.narrowed)
+        if (!narrowed.narrowed) {
           process.stderr.write(
             `prove: running the whole '${integrationId}' integration: ${narrowed.reason}\n`,
           );
+          notNarrowed.push({
+            integration: integrationId,
+            reason: narrowed.reason as string,
+          });
+        }
       }
       const artifactPath = path.resolve(
         context.workspaceRoot,
@@ -857,21 +877,33 @@ export async function proveCommand(
       // One ingest per partition: each test is evaluated only against the
       // slice of the run its own steps produced.
       const partitionResults: IngestProofResult[] = [];
+      let ingestRefused = false;
       for (const entry of evaluated.artifacts) {
-        const ingested = await ingestProof(
-          {
-            snapshot,
-            artifact: entry.artifact as unknown as Record<string, unknown>,
-            testIds: entry.testIds,
-          },
-          context,
-        );
-        partitionResults.push(ingested.structuredContent);
+        try {
+          const ingested = await ingestProof(
+            {
+              snapshot,
+              artifact: entry.artifact as unknown as Record<string, unknown>,
+              testIds: entry.testIds,
+            },
+            context,
+          );
+          partitionResults.push(ingested.structuredContent);
+        } catch (error) {
+          // An ingest that refused the artifact fails this integration; the
+          // receipts other partitions already applied, and every other
+          // integration's summary, are still reported. Engine, lock and
+          // rollback errors still end the command.
+          if (!isIngestRefusal(error)) throw error;
+          ingestRefused = true;
+          failures.push(`integration '${integrationId}': ${error.message}`);
+        }
       }
+      if (partitionResults.length === 0) continue;
       const merged = mergeIngestResults(partitionResults);
       ingestResults.push(merged);
       runAttribution.set(merged, evaluated);
-      await recordProgress(integrationId, selectedTestIds);
+      if (!ingestRefused) await recordProgress(integrationId, selectedTestIds);
       process.stderr.write(
         `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
       );
@@ -938,6 +970,7 @@ export async function proveCommand(
           results: result.results,
         };
       }),
+      ...(notNarrowed.length > 0 ? { notNarrowed } : {}),
       ...(failures.length > 0 ? { failures } : {}),
     };
     if (failures.length > 0 && Object.keys(progress.ingested).length > 0)
@@ -960,6 +993,13 @@ export async function proveCommand(
         : { status: "error", error: 1 },
     );
   }
+}
+
+/** Whether an ingest error refused the artifact itself (see ingest-proof). */
+export function isIngestRefusal(error: unknown): error is Error {
+  return (
+    error instanceof Error && error.message.startsWith("Proof ingest failed:")
+  );
 }
 
 /** Read every certificate a run left in its certificate directory. */

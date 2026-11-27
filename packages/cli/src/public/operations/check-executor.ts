@@ -1,3 +1,9 @@
+import {
+  type KibiLevel,
+  type ResolvedKibiLevel,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import {
@@ -40,6 +46,8 @@ import {
   buildSummary,
   describeEvaluatedRules,
   fitScopedCheckToBudget,
+  fitSymbolDebtToBudget,
+  pageCheckFindings,
 } from "./check-format-shared.js";
 import {
   SCOPED_CHECK_OMITTED_ID,
@@ -60,6 +68,7 @@ import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import { tagBlocks } from "./finding-blocks.js";
+import { collectRequiredEvidenceAboveLevelViolations } from "./level-evidence.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -108,6 +117,8 @@ export type CheckInput = {
   readonly includeMigrationPlan?: boolean;
   /** An unscoped check lists its symbol debt per file, not only as counts. */
   readonly includeSymbolDebt?: boolean;
+  /** With rules: the first finding of the page to list. */
+  readonly offset?: number;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -145,15 +156,32 @@ export type CheckExecutionOptions = {
  * after the rules ran on the same store. A count the engine cannot give (an
  * older engine) is left out rather than reported as zero.
  */
+/** A recorded level Kibi does not know: the check ran at test. */
+export function invalidLevelDiagnostic(
+  workspaceRoot: string,
+  resolved: ResolvedKibiLevel,
+): CheckDiagnostic {
+  const where = kibiLevelSettingName(workspaceRoot);
+  return {
+    category: "CONFIG_WARNING",
+    severity: "warning",
+    message: `${where} is ${JSON.stringify(resolved.invalid)}, which is not a Kibi level (remember or test), so Kibi runs at test.`,
+    file:
+      resolved.source === "package.json" ? "package.json" : ".kb/setup.json",
+    suggestion: `Ask the person which level the project uses and set ${where} to "remember" or "test".`,
+  };
+}
+
 async function describeEvaluation(
   prolog: PrologPort,
   rules: ReadonlySet<string>,
+  level: KibiLevel,
 ): Promise<CheckEvaluated> {
   const evaluated: {
     ruleCount: number;
     rules?: readonly string[];
     domainContradictions?: { factPairsExamined: number };
-  } = describeEvaluatedRules(rules);
+  } = describeEvaluatedRules(rules, level);
   if (!rules.has("domain-contradictions")) return evaluated;
   try {
     const result = await prolog.query(
@@ -327,7 +355,10 @@ export async function executeCheck(
     };
     // Enforcement policy is Kibi-owned and deterministic from the installed
     // version. `args.rules` is an invocation-time diagnostic selector only.
-    const rulesAllowlist = resolveCheckRules(args);
+    // The project's Kibi level selects whether the verification rules run.
+    const resolvedLevel = readKibiLevel(workspaceRoot);
+    const level = resolvedLevel.level;
+    const rulesAllowlist = resolveCheckRules(args, level);
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = await analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = [
@@ -504,6 +535,11 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const levelEvidenceFindings = collectRequiredEvidenceAboveLevelViolations(
+      rulesAllowlist,
+      workspaceRoot,
+      level,
+    );
     const checkPolicyFindings = await collectCheckPolicyViolations(
       prolog,
       rulesAllowlist,
@@ -537,13 +573,14 @@ export async function executeCheck(
       ...subjectLayerFindings,
       ...quantityFindings,
       ...decisionFirmnessFindings,
+      ...levelEvidenceFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
       ...proofContractClaimFindings,
       ...positiveScenarioFindings,
     ]);
     const allViolations: Violation[] = partitioned.violations;
-    const evaluated = await describeEvaluation(prolog, rulesAllowlist);
+    const evaluated = await describeEvaluation(prolog, rulesAllowlist, level);
     // A check scoped to sourceFiles answers about those files: blocking
     // findings elsewhere are counted, not listed (kb_check without
     // sourceFiles lists them all).
@@ -567,6 +604,8 @@ export async function executeCheck(
       ...(v.source !== undefined ? { file: v.source } : {}),
       ...(v.suggestion !== undefined ? { suggestion: v.suggestion } : {}),
     }));
+    if (resolvedLevel.invalid !== undefined)
+      diagnostics.push(invalidLevelDiagnostic(workspaceRoot, resolvedLevel));
 
     const collectFullQualityDiagnostics =
       !hasExplicitRules ||
@@ -595,10 +634,18 @@ export async function executeCheck(
           impactResult,
         )
       : partitioned.qualityDiagnostics;
+    const REMEMBER_SKIPPED_QUALITY_DIAGNOSTICS = new Set([
+      "coverage_depth_review",
+      "logical_coverage_review",
+    ]);
     const qualityDiagnostics = [
       ...advisoryQualityDiagnostics,
       ...extraQualityDiagnostics,
-    ];
+    ].filter(
+      (diagnostic) =>
+        resolvedLevel.level !== "remember" ||
+        !REMEMBER_SKIPPED_QUALITY_DIAGNOSTICS.has(diagnostic.id),
+    );
 
     const statusPlan = await readStatusMigrationPlan(context);
     // The plan repairs every finding, so a scoped check plans from all of
@@ -640,21 +687,36 @@ export async function executeCheck(
             .catch(() => undefined)
         : undefined;
     analysisCache?.save();
-    // A rule selection lists its findings in full; any other check keeps to
-    // the size budget, and the debt list, when asked for, comes on top.
+    // The kibi check command lists every finding. A rule selection lists
+    // its findings in pages within the size budget; any other check keeps
+    // to the budget by cutting advisory findings, the plan and then the
+    // blocking findings, and the debt list, when asked for, fits in what is
+    // left.
     const fitted =
-      hasExplicitRules || options.fullListing === true
+      options.fullListing === true
         ? structured
-        : fitScopedCheckToBudget(
-            // Tagged before the cut, so the budget counts the tags.
-            withMergeBlocks(structured),
-            undefined,
-            scoped,
-            args.includeMigrationPlan === true,
-          );
-    const structuredContent = withMergeBlocks(
-      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted,
-    );
+        : hasExplicitRules
+          ? pageCheckFindings(
+              // Tagged before the cut, so the budget counts the tags.
+              withMergeBlocks(structured),
+              args.offset ?? 0,
+              scoped,
+              args.includeMigrationPlan === true,
+            )
+          : fitScopedCheckToBudget(
+              withMergeBlocks(structured),
+              undefined,
+              scoped,
+              args.includeMigrationPlan === true,
+            );
+    // Tagged again because the cut may group findings into new entries.
+    const tagged = withMergeBlocks(fitted);
+    const listedDebt =
+      symbolDebt !== undefined && options.fullListing !== true
+        ? fitSymbolDebtToBudget(tagged, symbolDebt)
+        : symbolDebt;
+    const structuredContent =
+      listedDebt !== undefined ? { ...tagged, symbolDebt: listedDebt } : tagged;
     return {
       content: [
         {

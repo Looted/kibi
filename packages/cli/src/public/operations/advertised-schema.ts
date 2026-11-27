@@ -22,6 +22,9 @@
  *   and advertised with only the fields it names. The others stay valid
  *   input and are listed in full in `operation-fields`.
  *
+ * - A field's other accepted names ({@link INPUT_ALIASES}) are not
+ *   advertised, so agents are told only the field's own name.
+ *
  * The full schema still validates the input.
  */
 
@@ -46,6 +49,8 @@ export const ADVERTISED_OPEN = "x-kibi-advertised-open";
 
 /** The longest description the MCP server advertises for an input field. */
 export const ADVERTISED_DESCRIPTION_LIMIT = 120;
+
+import { INPUT_ALIASES } from "./input-aliases.js";
 
 type SchemaNode = Readonly<Record<string, unknown>>;
 
@@ -95,7 +100,7 @@ export function advertisedInputSchema<T>(schema: T): T {
     const entries: [string, unknown][] = [];
     for (const [key, child] of Object.entries(value)) {
       if (key === ADVERTISED_DESCRIPTION || key === ADVERTISED_FIELDS) continue;
-      if (key === ADVERTISED_OPEN) continue;
+      if (key === ADVERTISED_OPEN || key === INPUT_ALIASES) continue;
       if (key === "enum" && value[ADVERTISED_OPEN] === true) continue;
       if (key === "properties" && Array.isArray(kept) && isNode(child)) {
         entries.push([

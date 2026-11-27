@@ -440,3 +440,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ba8dd63bad8
+  - type: executable_for
+    from: SYM-test-kibi-search-next-steps
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:39:29.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c4fa7b1ae72
+  - type: constrains
+    from: REQ-kb-upsert-approvals-needed
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-24T20:04:15.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2079ee4f32d2
+  - type: requires_property
+    from: REQ-kb-upsert-approvals-needed
+    to: FACT-kb-upsert-approvals-needed
+    created_at: 2026-11-24T20:04:15.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ee7b04c4b1b
+  - type: specified_by
+    from: REQ-kb-upsert-approvals-needed
+    to: SCEN-kb-upsert-approvals-needed
+    created_at: 2026-11-24T20:04:15.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14ba7d106b64
+  - type: specified_by
+    from: REQ-kb-upsert-approvals-needed
+    to: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    created_at: 2026-11-24T20:04:15.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5615d1d35dc
+  - type: implements
+    from: SYM-decision-corpus-load-decision-corpus
+    to: REQ-search-decisions-are-the-unit
+    created_at: 2026-11-25T19:43:25.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-937630af63d5
+  - type: covered_by
+    from: SYM-decision-corpus-load-decision-corpus
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:25.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe617eb875da
+  - type: requires_property
+    from: REQ-kb-upsert-approvals-needed
+    to: FACT-kb-upsert-no-stated-rule-signoff
+    created_at: 2026-11-26T11:38:48.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d9604732b5b

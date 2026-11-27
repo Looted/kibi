@@ -22,17 +22,17 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-004cf0b9bed2bf1bf5761497
+    receipt_id: PR-eba2021e7a214f95e5f61e4c
     test_id: TEST-dead-implements-comment-deletion
     scope: end_to_end
     outcome: passed
-    code_snapshot: 294e115eab197dc60260fd04d6a4ef5772d12152929d4b4722f5688eebee9d4a
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-12T16:18:40.879Z'
-    finished_at: '2026-11-12T16:18:43.452Z'
-    artifact_digest: 313f2edf4fa54ffe5439acefe534ef80ebf874ae66eaceb13f7251754e808124
+    code_snapshot: c469764ad7d851a4a824eb1c7ddea2723a5cdfcfa3a999d51640bc4d746102ef
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T19:02:42.868Z'
+    finished_at: '2026-11-23T19:02:53.626Z'
+    artifact_digest: d6d7b34b4edcf7541631eb6b4d756f01a08a0509a0df37f9c0b9a900ac2a5b76
     contract_hash: f1313476f4d4a8ca37bff36d6036530aee98dae43bdbbcae41a6e4ff65ccb7f9
-    binding_hash: 070c9e905a85e28b6e027eb23ba55449fc0781c3f66c39d06dbe182b940127c9
+    binding_hash: c3bff3a1a29ab1b92fb74fe835d0499eddb709085d915cb5367ff41f2f81c7dc
     fingerprint: efb8f10599d515dd8dd265eb653cbe42a5cde3b113f198f8b43988818d646483
     fingerprint_components:
       contract: f1313476f4d4a8ca37bff36d6036530aee98dae43bdbbcae41a6e4ff65ccb7f9

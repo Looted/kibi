@@ -307,3 +307,199 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b0e2cbdad5c
+  - type: specified_by
+    from: REQ-result-budget-row-cut
+    to: SCEN-result-budget-row-cut
+    created_at: 2026-11-19T15:26:36.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4bf11006d7d
+  - type: specified_by
+    from: REQ-result-budget-row-cut
+    to: SCEN-NEG-result-budget-row-cut-UNCUT-ROW
+    created_at: 2026-11-19T15:26:36.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ecb49ea24db
+  - type: verified_by
+    from: REQ-result-budget-row-cut
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:36.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceccb8497626
+  - type: constrains
+    from: REQ-result-budget-row-cut
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:26:36.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85f309404b61
+  - type: requires_property
+    from: REQ-result-budget-row-cut
+    to: FACT-result-budget-row-cut
+    created_at: 2026-11-19T15:26:36.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0405b7fda75
+  - type: assumes
+    from: SCEN-NEG-result-ceiling-OVER-CEILING
+    to: FACT-NEG-result-ceiling-chars-OVER-CEILING
+    created_at: 2026-11-19T15:26:48.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e354ab1bad1
+  - type: verified_by
+    from: SCEN-kibi-search-question-next-steps
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:38:59.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d147bf42c14e
+  - type: assumes
+    from: SCEN-kibi-search-question-next-steps
+    to: FACT-search-next-step-path
+    created_at: 2026-11-24T08:38:59.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67c65a732ea9
+  - type: assumes
+    from: SCEN-kibi-search-question-next-steps
+    to: FACT-search-next-step-contradiction
+    created_at: 2026-11-24T08:38:59.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6193fdf0d0ce
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: REQ-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:02:23.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9ee032a57be
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: SCEN-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:02:23.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed8a4f6e2c9
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: SCEN-NEG-agent-hosts-restated-rule-quiet-NAGGED
+    created_at: 2026-11-24T20:02:23.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c47a583d441
+  - type: constrains
+    from: REQ-kb-search-answered-results-identity-only
+    to: FACT-SUBJECT-kibi-discovery-search
+    created_at: 2026-11-24T19:21:48.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80d9a71ca3fb
+  - type: requires_property
+    from: REQ-kb-search-answered-results-identity-only
+    to: FACT-search-results-trimmed-only-beside-answer
+    created_at: 2026-11-24T19:21:48.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f13cf2d6d5f
+  - type: requires_property
+    from: REQ-kb-search-answered-results-identity-only
+    to: FACT-search-answered-results-identity-only
+    created_at: 2026-11-24T19:21:48.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e84467efab6
+  - type: requires_property
+    from: REQ-kb-search-answered-results-identity-only
+    to: FACT-search-unanswered-results-keep-summary
+    created_at: 2026-11-24T19:21:48.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10bba65d8049
+  - type: specified_by
+    from: REQ-kb-search-answered-results-identity-only
+    to: SCEN-kb-search-answered-results-identity-only
+    created_at: 2026-11-24T19:21:48.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69359027733d
+  - type: relates_to
+    from: REQ-kb-search-answered-results-identity-only
+    to: REQ-mcp-structured-text-per-host
+    created_at: 2026-11-24T19:21:48.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e920c6659da5
+  - type: specified_by
+    from: REQ-kb-search-answered-results-identity-only
+    to: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-QUOTED-RESULT-WITH-SNIPPET
+    created_at: 2026-11-24T19:26:44.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b15b173efe2
+  - type: specified_by
+    from: REQ-kb-search-answered-results-identity-only
+    to: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    created_at: 2026-11-24T19:29:43.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56d553a7379c
+  - type: specified_by
+    from: REQ-kb-search-answered-results-identity-only
+    to: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-UNQUOTED-RESULT-TRIMMED
+    created_at: 2026-11-24T19:29:46.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6b85de914fe
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-lists-related-decisions
+    created_at: 2026-11-25T19:24:20.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-933590b898e3
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-no-superseded-or-other-scope
+    created_at: 2026-11-25T19:24:20.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f63b1c41035
+  - type: verified_by
+    from: SCEN-search-meaning-list
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:28:23.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a23adc6f83f
+  - type: assumes
+    from: SCEN-search-meaning-list
+    to: FACT-search-meaning-list-credited-through-links
+    created_at: 2026-11-25T20:05:22.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1666a8cad9a
+  - type: specified_by
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:53:27.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-809d78dd7946
+  - type: constrains
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: FACT-SUBJ-vscode-mcp-provider
+    created_at: 2026-11-25T14:56:01.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5670b321bbdd
+  - type: specified_by
+    from: REQ-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp-reject
+    created_at: 2026-11-25T15:00:47.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69319b689d94

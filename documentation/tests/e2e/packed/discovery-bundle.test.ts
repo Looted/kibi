@@ -247,7 +247,9 @@ This requirement is intentionally not must-priority.
           count: number;
           results: Array<{ entity: { id: string } }>;
         }>(searchCli.stdout);
-        assert.strictEqual(searchCliJson.count, 1);
+        // The bundled meaning ranking may add the other decision below the
+        // one that holds the words.
+        assert.ok(searchCliJson.count >= 1 && searchCliJson.count <= 5);
         assert.strictEqual(searchCliJson.results[0]?.entity.id, "REQ-DISC-001");
 
         const statusCli = await kibi(sandbox, ["status", "--format", "json"]);
@@ -505,13 +507,27 @@ This requirement is intentionally not must-priority.
         const searchCliJson = parseKibiResult<{
           count: number;
           results: Array<{ entity: { id: string } }>;
-          queryAnalysis?: { abstained?: boolean; acceptedCount?: number };
+          answer?: unknown;
+          queryAnalysis?: {
+            abstained?: boolean;
+            weak?: boolean;
+            uncoveredTerms?: string[];
+          };
         }>(searchCli.stdout);
-        // An unmatched intent is an explicit abstention, never a weak match.
-        assert.strictEqual(searchCliJson.count, 0);
-        assert.deepStrictEqual(searchCliJson.results, []);
-        assert.strictEqual(searchCliJson.queryAnalysis?.abstained, true);
-        assert.strictEqual(searchCliJson.queryAnalysis?.acceptedCount, 0);
+        // An unmatched intent abstains and names the words no decision
+        // holds. The bundled meaning ranking may still show the nearest
+        // decisions, but none is named as governing.
+        assert.strictEqual(
+          searchCliJson.queryAnalysis?.abstained,
+          true,
+          searchCli.stdout,
+        );
+        assert.ok(searchCliJson.count <= 5);
+        assert.strictEqual(searchCliJson.answer, undefined);
+        assert.strictEqual(searchCliJson.queryAnalysis?.weak, true);
+        assert.ok(
+          searchCliJson.queryAnalysis?.uncoveredTerms?.includes("plorbnik"),
+        );
       },
     );
 

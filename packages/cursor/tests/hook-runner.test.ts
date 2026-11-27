@@ -759,7 +759,7 @@ describe("Cursor hook runner", () => {
 });
 
 describe("Cursor hook runner workspace stamp", () => {
-  test("preToolUse names the agent's workspace on every Kibi MCP call without a permission", async () => {
+  test("preToolUse names the agent's workspace on a Kibi MCP call that carries none, without a permission", async () => {
     const window = createTempRoot("kibi-cursor-window-");
     const worktree = createTempRoot("kibi-cursor-worktree-");
     const pluginData = createTempRoot("kibi-cursor-data-");
@@ -793,6 +793,43 @@ describe("Cursor hook runner workspace stamp", () => {
       { pluginData },
     );
     expect(fromRoots).toEqual({ updated_input: { workspaceRoot: window } });
+  });
+
+  test("preToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const window = createTempRoot("kibi-cursor-window-");
+    const worktree = createTempRoot("kibi-cursor-worktree-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(window, worktree, pluginData);
+    for (const root of [window, worktree]) {
+      fs.mkdirSync(path.join(root, ".kb"));
+      fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    }
+    // The agent's workspace is not replaced by the window's folder, so the
+    // call still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          cwd: window,
+          workspace_roots: [window],
+          tool_name: "MCP:kb_query",
+          tool_input: { id: "REQ-1", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toStrictEqual({});
+    // With neither a call cwd nor window folders there is no workspace to
+    // name, and the call still passes through instead of failing.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          tool_name: "MCP:kb_query",
+          tool_input: { id: "REQ-1" },
+        },
+        { pluginData },
+      ),
+    ).toStrictEqual({});
   });
 
   test("a non-Kibi tool and a directory outside any Kibi workspace are left alone", async () => {
@@ -949,6 +986,10 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
         },
         pluginData,
       );
+    // A shell read names the requirement, once.
+    expect(
+      JSON.parse((await shell("cat src/checkout.ts")).stdout).agent_message,
+    ).toContain("- REQ-checkout-rounding [firm: ask before changing]");
     expect(JSON.parse((await shell("cat src/checkout.ts")).stdout)).toEqual({});
     const output = JSON.parse(
       (await shell("sed -i s/100/1000/ src/checkout.ts")).stdout,
@@ -1588,7 +1629,7 @@ describe("Cursor hook runner result contracts", () => {
       ]),
     ).toEqual([
       ["beforeSubmitPrompt", "prompt_silent", null, null],
-      ["beforeReadFile", "read_snippet", "source", null],
+      ["beforeReadFile", "read_snippet", "source", 1],
       ["beforeReadFile", "read_silent", "source", null],
       ["preToolUse", "kb_direct_note", "kb", null],
       ["preToolUse", "edit_snippet", "source", 1],
@@ -1790,5 +1831,192 @@ describe("Cursor hook runner result contracts", () => {
     expect(stop.followup_message ?? "").not.toContain(
       "recorded nothing in the knowledge base",
     );
+  });
+});
+
+describe("Cursor Kibi level and required evidence notices", () => {
+  function guardedWorkspace() {
+    const cwd = kibiWorkspaceRoot();
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    fs.writeFileSync(
+      path.join(cwd, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    fs.writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-floor.md"),
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    return { cwd, pluginData };
+  }
+
+  test("an apply_patch that lowers a floor gets the notice too", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          patch:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-floor.md\n-required_evidence: tested\n+required_evidence: asserted\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(result.permission).toBeUndefined();
+    expect(result.agent_message).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
+  test("a write that changes the level tells the agent to ask, with no permission", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+        },
+      },
+      { pluginData },
+    );
+    expect(result.permission).toBeUndefined();
+    expect(result.agent_message).toContain(
+      "changes the Kibi level from test to remember (package.json). That is the person's decision, not yours",
+    );
+    const kbEdit = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Edit",
+        tool_input: {
+          file_path: ".kb/requirements/REQ-floor.md",
+          old_string: "required_evidence: tested",
+          new_string: "required_evidence: asserted",
+        },
+      },
+      { pluginData },
+    );
+    expect(kbEdit.agent_message).toContain("from tested to asserted");
+  });
+
+  test("a kb_upsert that lowers a floor keeps the workspace stamp and gets the notice", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "MCP:kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+        },
+      },
+      { pluginData },
+    );
+    expect(result.agent_message).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+    expect(result.updated_input?.workspaceRoot).toBe(cwd);
+    const named = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "MCP:kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+          workspaceRoot: cwd,
+        },
+      },
+      { pluginData },
+    );
+    expect(named.updated_input).toBeUndefined();
+    expect(named.agent_message).toBeDefined();
+  });
+});
+
+describe("Cursor read, search and shell rows", () => {
+  function conversation() {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-rows-");
+    tempRoots.push(pluginData);
+    let id = 0;
+    const event = (payload: Record<string, unknown>, fresh = true) =>
+      runHook(
+        {
+          conversation_id: fresh ? `rows-${++id}` : `rows-${id}`,
+          workspace_roots: [workspace],
+          cwd: workspace,
+          hook_event_name: "preToolUse",
+          ...payload,
+        },
+        { pluginData, env: {} },
+      );
+    return { event, workspace };
+  }
+  const ROW = "- REQ-checkout-rounding [firm: ask before changing]";
+
+  test("a Grep whose matches fall in a linked symbol names its requirement", async () => {
+    const { event } = conversation();
+    const grep = (tool_input: Record<string, unknown>) =>
+      event({ tool_name: "Grep", tool_input });
+    expect(
+      (await grep({ pattern: "MATH.ROUND", "-i": true })).agent_message,
+    ).toContain(ROW);
+    expect(await grep({ pattern: "round", glob: "*.js" })).toEqual({});
+    expect(await grep({ pattern: "round", path: "nowhere" })).toEqual({});
+  });
+
+  test("a ranged Read names only the symbol in view; the same rows are not repeated", async () => {
+    const { event, workspace } = conversation();
+    const file = path.join(workspace, "src/checkout.ts");
+    const read = (input: Record<string, unknown>, fresh = true) =>
+      event(
+        { tool_name: "Read", tool_input: { file_path: file, ...input } },
+        fresh,
+      );
+    expect((await read({ offset: 4, limit: 2 })).agent_message).toContain(ROW);
+    expect(await read({ offset: 4, limit: 2 }, false)).toEqual({});
+    expect(await read({ offset: 20 })).toEqual({});
+    // A whole Read is left to beforeReadFile.
+    expect(await read({})).toEqual({});
+  });
+
+  test("after a Read, a linked file gets its rows once, and none once beforeReadFile showed them", async () => {
+    // A new conversation id per call unless fresh is false.
+    const { event, workspace } = conversation();
+    const file = path.join(workspace, "src/checkout.ts");
+    const after = { hook_event_name: "postToolUse", tool_name: "Read" };
+    const first = await event({ ...after, tool_input: { file_path: file } });
+    expect(first.additional_context).toContain(ROW);
+    expect(first.additional_context).not.toContain("Tests:");
+    expect(
+      await event({ ...after, tool_input: { file_path: file } }, false),
+    ).toEqual({});
+    const other = conversation();
+    const otherFile = path.join(other.workspace, "src/checkout.ts");
+    expect(
+      (
+        await other.event({
+          hook_event_name: "beforeReadFile",
+          file_path: otherFile,
+        })
+      ).agent_message,
+    ).toContain(ROW);
+    expect(
+      await other.event(
+        { ...after, tool_input: { file_path: otherFile } },
+        false,
+      ),
+    ).toEqual({});
   });
 });

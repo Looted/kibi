@@ -304,13 +304,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b9c23dbbf0e
-  - type: executable_for
-    from: SYM-proof-search-hints-offer-requirements
-    to: TEST-proof-search-hints-offer-requirements
-    created_at: 2026-10-29T21:29:40.319Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6b2f407b34e2
   - type: assumes
     from: SCEN-NEG-prolog-coverage-test-selection-SWALLOWED-FAILURE
     to: FACT-CASE-prolog-coverage-test-selection-test-file-not-loaded
@@ -395,3 +388,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fa1a0b57683
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-block-session
+    to: FACT-NEG-VIBE-HOOKS-BLOCK-SESSION
+    created_at: 2026-11-19T22:37:24.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-836161b8c82d
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-block-session
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:24.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6bd8249954
+  - type: covered_by
+    from: SYM-codex-runHook
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:15.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53294222f7a8
+  - type: executable_for
+    from: SYM-test-kibi-schema-20-level
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:27.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ee4356abd93
+  - type: assumes
+    from: SCEN-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    to: FACT-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    created_at: 2026-11-25T10:20:11.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da4569aabf46
+  - type: assumes
+    from: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    to: FACT-NEG-kibi-staged-floor-reports-new-requirement-c01-neq-0
+    created_at: 2026-11-25T10:20:24.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a6cdb40cf23

@@ -286,3 +286,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07186f90b453
+  - type: implements
+    from: SYM-result-budget-refuse-over-ceiling
+    to: REQ-result-ceiling
+    created_at: 2026-11-19T15:26:53.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cbe895d7f97
+  - type: covered_by
+    from: SYM-result-budget-refuse-over-ceiling
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:53.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fe83d3370cc
+  - type: implements
+    from: SYM-session-state-load-session-state
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:19.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a7d2e50b33
+  - type: covered_by
+    from: SYM-session-state-load-session-state
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:19.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b91285dc994f
+  - type: implements
+    from: SYM-guard-after-edit-input
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:29:55.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-733cad3b5822
+  - type: covered_by
+    from: SYM-guard-after-edit-input
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:29:55.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47ad8e5bf127
+  - type: assumes
+    from: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    to: FACT-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    created_at: 2026-11-25T14:29:17.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b711dedafd3b
+  - type: verified_by
+    from: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:29:17.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e47ddf897555
+  - type: implements
+    from: SYM-bash-command-kibi-init-level-target
+    to: REQ-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T17:45:01.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a27411957c5
+  - type: covered_by
+    from: SYM-bash-command-kibi-init-level-target
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-26T17:45:01.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9defa2ac1377
+  - type: covered_by
+    from: SYM-bash-command-kibi-init-level-target
+    to: TEST-agent-hosts-shell-edits-count
+    created_at: 2026-11-26T17:45:01.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-094e9cb0a8d8

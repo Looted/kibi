@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-symbol-coordinates-derived-locally",
+  "sourceFile": "packages/cli/src/commands/migrate.ts",
+  "symbol": "migrateCommand",
+  "verdict": "keeps",
+  "note": "Preserves locally derived symbol coordinates while safely skipping symlinks and catching read errors when refreshing Kibi-managed instruction blocks during migrate.",
+  "statementHash": "sha256:201c86e5ee4e66d300d6ecf7402f47dd6a2cf6eda6a2e9b0c36ce755586f792c",
+  "codeHash": "sha256:7a13a2ccc983dd36b22bf8e77cc08ad5af428ebdaf67e3c2ff378ea93fcdc2bd",
+  "startLine": 976,
+  "endLine": 1721,
+  "recordedAt": "2026-11-26T19:03:15.131Z"
+}

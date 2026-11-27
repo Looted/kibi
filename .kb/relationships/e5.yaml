@@ -475,3 +475,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99ef0a2c41ee
+  - type: assumes
+    from: SCEN-NEG-antigravity-no-workspace-root-stamp
+    to: FACT-NEG-antigravity-no-workspace-root-stamp
+    created_at: 2026-11-24T05:07:16.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fb103e65ada
+  - type: verified_by
+    from: SCEN-NEG-antigravity-no-workspace-root-stamp
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:16.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c244e7b86cee
+  - type: implements
+    from: SYM-skills-offered-skills
+    to: REQ-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:27.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d23109703f95
+  - type: covered_by
+    from: SYM-skills-offered-skills
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:27.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26cf9074084b

@@ -384,3 +384,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68d17c2caabd
+  - type: implements
+    from: SYM-src-hook-runner-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T15:04:44.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17dcea3b067f
+  - type: covered_by
+    from: SYM-src-hook-runner-read-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:44.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5530f7ee81ae
+  - type: assumes
+    from: SCEN-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    to: FACT-NEG-kibi-staged-floor-reports-new-requirement-c01-gt-0
+    created_at: 2026-11-25T10:20:30.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9a40fc20570
+  - type: covered_by
+    from: SYM-const-decision-card-limit
+    to: TEST-proof-search-decision-card-limit
+    created_at: 2026-11-25T19:27:23.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99c4dd3a51dc
+  - type: implements
+    from: SYM-const-decision-card-limit
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:44:05.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aca10e9377b
+  - type: covered_by
+    from: SYM-const-decision-card-limit
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:44:05.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58b9c0eeb6e5

@@ -48,7 +48,7 @@ if (args[0] === "api") {
   const name = endpoint.includes("/branches/develop") ? "branch" :
     endpoint.includes("status=success") ? "runs-success" :
     endpoint.includes("/workflows/proof.yml/runs?") ? "runs-wait" :
-    endpoint.includes("/artifacts?") ? "artifacts" : null;
+    endpoint.includes("/artifacts") ? "artifacts" : null;
   if (!name) process.exit(2);
   process.stdout.write(fs.readFileSync(next(name), "utf8"));
 } else if (args[0] === "run" && args[1] === "download") {
@@ -148,9 +148,10 @@ function makeFixture(sha: string): Fixture {
     workflow_runs: [proofRun(sha)],
   });
   writeJson(dir, "artifacts", {
-    total_count: 1,
+    total_count: 2,
     artifacts: [
       { name: "kibi-proof-attestation", expired: false, size_in_bytes: 1024 },
+      { name: "kibi-requirement-proof", expired: false, size_in_bytes: 2048 },
     ],
   });
   writeJson(dir, "attestation", attestationFor(sha));
@@ -231,7 +232,7 @@ afterEach(() => {
 describe("ci-proof-reuse command line", () => {
   test("rejects an unknown command or a missing output path", async () => {
     const usage =
-      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train <output-path>";
+      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train|decide-member <output-path>";
     await expect(main([])).rejects.toThrow(usage);
     await expect(main(["decide"])).rejects.toThrow(usage);
     await expect(main(["publish", "out"])).rejects.toThrow(usage);
@@ -257,12 +258,17 @@ describe("ci-proof-reuse attest", () => {
     attestEnv(repo);
     const output = path.join(temp("kibi-proof-main-out-"), "nested");
     await main(["attest", output]);
+    const tree = execFileSync("git", ["rev-parse", "HEAD^{tree}"], {
+      cwd: repo.root,
+      encoding: "utf8",
+    }).trim();
     expect(
       JSON.parse(readFileSync(path.join(output, "attestation.json"), "utf8")),
     ).toStrictEqual({
       version: "kibi.ci-proof-attestation.v1",
       outcome: "passed",
       snapshot: { version: SNAPSHOT_VERSION, hash: snapshotHash },
+      tree,
       source: {
         repository,
         branch: "develop",
@@ -286,7 +292,7 @@ describe("ci-proof-reuse attest", () => {
     const repo = makeRepo();
     process.chdir(repo.root);
     const message =
-      "only a successful develop push or merge train pull request may emit a proof attestation";
+      "only a develop push or a same-repository pull request into develop may emit a proof attestation";
     attestEnv(repo, { GITHUB_EVENT_NAME: "pull_request" });
     await expect(main(["attest", "out"])).rejects.toThrow(message);
     attestEnv(repo, {
@@ -775,13 +781,18 @@ describe("merge train proof attestation and develop reuse", () => {
       PR_HEAD_REPOSITORY: repository.toLowerCase(),
       PR_HEAD_SHA: repo.head,
       PR_BASE_SHA: repo.base,
+      PR_BASE_REF: "develop",
     });
     const output = temp("kibi-proof-train-out-");
     await main(["attest", output]);
     const written = JSON.parse(
       readFileSync(path.join(output, "attestation.json"), "utf8"),
     );
-    expect(written).toStrictEqual(trainAttestation(repo));
+    const tree = execFileSync("git", ["rev-parse", "HEAD^{tree}"], {
+      cwd: repo.root,
+      encoding: "utf8",
+    }).trim();
+    expect(written).toStrictEqual({ ...trainAttestation(repo), tree });
     process.env.PR_BASE_SHA = "nope";
     await expect(main(["attest", output])).rejects.toThrow(
       "merge train head or base SHA is invalid",
@@ -865,7 +876,7 @@ describe("merge train proof attestation and develop reuse", () => {
       sourceRun: trainUrl,
     });
     expect(outputs).toBe(
-      `reuse=true\nsource_run_id=456\nsource_run_url=${trainUrl}\n`,
+      `reuse=true\nsource_run_id=456\nreport_run_id=456\nsource_run_url=${trainUrl}\n`,
     );
     expect(logSpy.mock.calls.flat().join("\n")).toContain(
       `full proof skipped; reusing successful train proof ${trainUrl}`,
@@ -885,7 +896,7 @@ describe("merge train proof attestation and develop reuse", () => {
       reason: "no unique successful train proof run for the merged head",
     });
     expect((await decideTrain(repo, fixture)).outputs).toBe(
-      "reuse=false\nsource_run_id=\nsource_run_url=\n",
+      "reuse=false\nsource_run_id=\nreport_run_id=\nsource_run_url=\n",
     );
     writeJson(fixture.dir, "runs-success", {
       total_count: 3,

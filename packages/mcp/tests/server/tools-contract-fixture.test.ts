@@ -324,7 +324,7 @@ describe("mcp contract fixtures", () => {
 
     // 18 agent-facing tools; kb_sparql_remote and kb_job_status register
     // only when KIBI_MCP_OPTIONAL_TOOLS names them.
-    expect(registered.map((tool) => tool.name)).toHaveLength(18);
+    expect(registered.map((tool) => tool.name)).toHaveLength(19);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );

@@ -354,6 +354,15 @@ async function executeIngestProofUnlocked(
   // Loaded outside the per-test binding try/catch: an engine failure must fail
   // the ingest, not silently write receipts without a binding hash.
   const coveredBy = await loadCoveredBySymbolsByTest(prolog);
+  // Hashed once: a large suite's run is the same artifact for every test.
+  const artifactDigest = jsonDigest(artifact);
+  let narrowable: ReadonlySet<string> | undefined;
+  // The spec files kibi prove may have narrowed this run to: those of the
+  // tests ingested from it. Read only when the command differs.
+  const narrowableFiles = (): ReadonlySet<string> => {
+    narrowable ??= new Set(tests.flatMap(proofSourceFiles));
+    return narrowable;
+  };
   const prepared: Prepared[] = [];
   for (const test of tests) {
     const testId = String(test.id);
@@ -372,7 +381,13 @@ async function executeIngestProofUnlocked(
         `Proof ingest failed: integration '${effectiveIntegrationId}' is not configured in .kb/proof/integrations.json`,
       );
     if (
-      jsonDigest(artifact.command_argv) !== jsonDigest([...integration.command])
+      !commandArgvAccepted(
+        artifact.command_argv,
+        integration.command,
+        integration.producer,
+        () => proofSourceFiles(test),
+        narrowableFiles,
+      )
     )
       throw new Error(
         `Proof ingest failed: artifact command_argv does not match the configured command for integration '${effectiveIntegrationId}'`,
@@ -386,7 +401,6 @@ async function executeIngestProofUnlocked(
     });
     const evaluation = evaluateContractAgainstRun(artifact, contract);
     const environmentHash = canonicalEnvironmentHash(artifact.environment);
-    const artifactDigest = jsonDigest(artifact);
     // Per-contract receipt binding (W2): hash the receipt-stripped authored
     // document, the contract, and the bound symbols' source hashes so the
     // receipt survives unrelated workspace changes and stales only when its
@@ -676,7 +690,7 @@ async function executeIngestProofUnlocked(
   return {
     content: [{ type: "text", text: `Ingested proof evidence. ${summary}` }],
     structuredContent: {
-      artifactDigest: jsonDigest(artifact),
+      artifactDigest,
       environmentHash: canonicalEnvironmentHash(artifact.environment),
       integration: integrationId,
       passed,
@@ -685,6 +699,43 @@ async function executeIngestProofUnlocked(
       results,
     },
   };
+}
+
+/** The spec files a test's proof_bindings name. */
+function proofSourceFiles(test: Record<string, unknown>): string[] {
+  return parseBindings(test).flatMap((binding) =>
+    binding.source_file === undefined ? [] : [binding.source_file],
+  );
+}
+
+/**
+ * Whether a run's command_argv may stand for the integration's configured
+ * command. It may when it is that command, or when kibi prove narrowed a
+ * playwright integration to the selected tests' specs: the configured
+ * command followed by spec files, each named by a test ingested from this
+ * run, and including every spec file of the test being judged, so a test is
+ * never judged by a run that skipped its spec.
+ */
+export function commandArgvAccepted(
+  argv: readonly string[],
+  configured: readonly string[],
+  producer: string,
+  testFiles: () => readonly string[],
+  narrowable: () => ReadonlySet<string>,
+): boolean {
+  if (jsonDigest(argv) === jsonDigest([...configured])) return true;
+  if (producer !== "playwright" || argv.length <= configured.length)
+    return false;
+  if (jsonDigest(argv.slice(0, configured.length)) !== jsonDigest([...configured]))
+    return false;
+  const appended = argv.slice(configured.length);
+  const own = testFiles();
+  const allowed = narrowable();
+  return (
+    own.length > 0 &&
+    appended.every((file) => allowed.has(file)) &&
+    own.every((file) => appended.includes(file))
+  );
 }
 
 export async function executeIngestProof(

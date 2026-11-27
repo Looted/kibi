@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { RuntimeOperationSpec } from "../public/operations/runtime-types.js";
-import { coverageSpec } from "../public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../public/operations/specs/reporting.js";
 import {
   certificateRejectionLines,
   earliestUnmetGate,
@@ -30,6 +33,7 @@ import {
   type SignoffProof,
   type SignoffView,
 } from "../signoff/model.js";
+import { assertGitWorkspace } from "../vcs/git-boundary.js";
 import { openReport } from "./report.js";
 
 export type SignoffOptions = Readonly<{
@@ -116,14 +120,14 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
   let result: Awaited<ReturnType<typeof coverageSpec.execute>>;
   try {
     result = await coverageSpec.execute(
-      {
+      withFullListing({
         by: "req",
         tags: [],
         includePassing: true,
         includeTransitive: true,
         limit: 100_000,
         offset: 0,
-      },
+      }),
       context,
     );
   } catch (error) {
@@ -198,6 +202,8 @@ export async function signoffCommand(
   const cwd = (deps.cwd ?? (() => process.cwd()))();
   const write = deps.write ?? ((text: string) => process.stdout.write(text));
   const scope: SignoffScope = options.staged ? "staged" : "working";
+  if (options.questions === undefined)
+    assertGitWorkspace(cwd, "change_signoff", "kibi signoff");
 
   const view: SignoffView =
     options.questions !== undefined

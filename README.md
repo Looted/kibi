@@ -26,19 +26,20 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 - **Humans maintain intent, not artifacts** — The prompt is the primary authoring interface. Agents own the routine work of creating and evolving requirements, scenarios, tests, facts, and symbol links; humans resolve genuine ambiguity and product decisions.
 - **Memory is enforceable** — Symbols need requirement ownership, requirements need complete semantics and scenarios, scenarios need tests, and proof-bearing tests need fresh execution evidence.
+- **Two levels: `remember` and `test`** — Choose how hard Kibi holds the agent during `kibi init` (`kibi.level` in `package.json`, or `level` in `.kb/setup.json`). **`test`** (the default) enforces requirements, scenarios, linked tests, and fresh proofs. **`remember`** keeps requirements, reasons, code links, hooks, the firm-edit guard, the commit gate, and contradiction checks while skipping scenarios, tests, and proofs and trimming the MCP tool list to knowledge tools. Changing the level or lowering a requirement's `required_evidence` is guarded as a person-only decision across every host ([Kibi level](https://looted.github.io/kibi/reference/cli.html#kibi-level)).
 - **Prolog guards against drift** — Typed properties, predicates, and safe rules let deterministic checks expose contradictions, unsupported invention, and incomplete semantics before they become accepted project knowledge.
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
-- **Intent survives branch changes** — Each Git branch has its own KB snapshot, so feature context stays isolated and is there when you return.
+- **Intent survives branch changes — and works without Git** — In a Git repository each branch has its own KB snapshot, so feature context stays isolated and is there when you return. Outside Git, Kibi still works on a single local store (without Git hooks or the commit gate) and carries that knowledge onto your new branch automatically after `git init` and `kibi init` ([working without Git](https://looted.github.io/kibi/reference/errors.html#working-without-git-no_git_repository-git_required)).
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, and Terraform/HCL using pinned WASM grammars. Each language installs as a small `kibi-lang-*` grammar pack (`kibi-lang-python`, `kibi-lang-go`, `kibi-lang-prolog`, ...), and `kibi doctor` names the ones a repository needs: generated files count only when the KB uses them, and any pack can be declined in `kibi.declinedLanguagePacks`. Generated code (`linguist-generated`, a generator header, or `kibi.generatedPaths` globs) also needs no requirement links in the commit gate unless the KB tracks it. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog, so a Prolog project can prove its claims against its own predicates, imports, calls and `pack.pl`. With the plugin active for proofs, source proofs also read what Go, Java, C#, Rust, PHP, C and Bash files import, call and read from the environment, and the property values of PHP, C and Terraform/HCL files, without compiling or running them.
 - **Optional UI design guard (experimental)** — [`kibi-plugin-ui`](https://looted.github.io/kibi/reference/plugins.html#optional-ui-design-plugin) keeps React and Angular components on their agreed design patterns. Pixels, colours and spacing stay with your linter.
-- **Questions in your own words (optional)** — [`kibi-plugin-search-hints`](https://looted.github.io/kibi/reference/plugins.html#optional-search-hints-plugin) suggests which requirements a weakly answered `kb_search` question probably means, by meaning rather than shared words, with a small offline model.
+- **Questions in your own words** — `kb_search` answers with five one-line decision cards ranked by the question's words, the words of each decision's facts and implementing symbols, and its meaning: [`kibi-plugin-search-hints`](https://looted.github.io/kibi/reference/plugins.html#search-hints-plugin) ships with Kibi and, on by default, scores each decision and the scenarios, tests and facts it links with a small offline model, and lists up to seven more decisions related by meaning. A question the KB cannot answer gets the nearest cards and the words no decision holds, never a claim that nothing governs it. List the plugin in `kibi.declinedPlugins` to rank by words alone.
 - **Keep knowledge local** — KB state lives in your repository's `.kb/` directory and is never sent anywhere. The Kibi packages send anonymous usage statistics, which you can turn off (see [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html)); the documentation website counts visits with cookieless [Umami](https://umami.is) analytics.
 
 ## Quick start
 
-Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
+Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+), macOS (Apple silicon or Intel) and native Windows (x64) there is nothing else to install. On other platforms, such as Alpine/musl or Windows arm64 (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
 
-**Recommended: let your agent set it up.** Paste this into Claude Code, Cursor, Codex, OpenCode, or any coding agent that can run commands in your repository:
+**Recommended: let your agent set it up.** Paste this into Antigravity, Claude Code, Cursor, Codex, OpenCode, Mistral Vibe, ZCode, or any coding agent that can run commands in your repository:
 
 ```prompt
 Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
@@ -70,7 +71,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md` for Claude Code and from `GEMINI.md` for Gemini CLI) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout, asks you to choose a [Kibi level](https://looted.github.io/kibi/reference/cli.html#kibi-level) (`test` recommended, or `remember`; pass `--level remember|test` non-interactively), and installs the Git hooks that keep it in sync (or sets up a single local store if you are outside Git). It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md` for Claude Code and from `GEMINI.md` for Gemini CLI) that tells any agent the knowledge base exists and gives it the same change steps every Kibi session opens with (search before changing behaviour, record a stated rule, run the linked tests and the changed-files check before finishing), and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 
@@ -85,6 +86,19 @@ pnpm, Yarn, and Bun work the same way through their local runners. The [installa
 ## Connect your coding agent
 
 The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
+
+<details>
+<summary>Antigravity</summary>
+
+Install the optional `kibi-antigravity` plugin (bundled skills, always-on workflow rules, workspace-gated MCP server with automatic `roots/list` workspace discovery for global installs, and lifecycle hooks that inject requirement context, prompt before edits to firm requirements, and remind once at stop):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+For workspace-scoped dogfooding or team sharing inside a repository, point `.agents/plugins.json` at the plugin directory (see the [Antigravity plugin guide](https://looted.github.io/kibi/guide/install.html#optional-antigravity-plugin)). Without the plugin, add `npx --no-install kibi-mcp` to `~/.gemini/config/mcp_config.json`.
+
+</details>
 
 <details>
 <summary>Claude Code</summary>
@@ -147,7 +161,7 @@ The repository marketplace is not the official OpenAI Plugin Directory; self-ser
 <details>
 <summary>OpenCode</summary>
 
-Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true) and background maintenance:
+Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true), background maintenance and, on OpenCode v1, the decision hooks the other plugins run: a message that states a rule gets a `kb_record` capture template, an edit of code that implements a firm requirement is stopped once so the agent asks the person first, and a session that changed source and recorded nothing is asked once to record the decision:
 
 ```json
 {
@@ -184,9 +198,34 @@ Add Kibi to `.vscode/mcp.json`:
 </details>
 
 <details>
+<summary>Mistral Vibe</summary>
+
+Install the optional `kibi-vibe` plugin (Agent Plugins 1.0 format) from a local checkout into `~/.vibe/plugins/kibi`, then restart Vibe or run `/reload`. It brings the MCP server, the bundled skills, and fail-open hooks that show KB status at session start, governing entities for each prompt, and the entities linked to a file after it is read or edited:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+On Windows the launcher runs the project-local `kibi-mcp` natively with the bundled SWI-Prolog, and wraps the call in `wsl.exe --exec` (never a shell string) only for a `\\wsl.localhost\<distro>` workspace or with `KIBI_FORCE_WSL=1`; on Linux/macOS it spawns the project-local `kibi-mcp` directly. See the [Vibe plugin guide](https://looted.github.io/kibi/guide/install.html#optional-vibe-plugin).
+
+Without the plugin, register the server in `~/.vibe/config.toml`:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-packages/vibe>/bin/launch-kibi-mcp.mjs"]
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
+
+</details>
+
+<details>
 <summary>ZCode and other MCP clients</summary>
 
-Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from the Kibi marketplace or a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
 
 </details>
 
@@ -194,7 +233,7 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 Every surface opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and treat a request that would make a recorded rule false as a question. The host plugins add it at session start, and the MCP server returns it in its `initialize` instructions and in `kb_status`, so an MCP client without hooks reads it too.
 
-Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and the MCP tools (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and the rest) do the work; a project can list only the eight core tools with `KIBI_MCP_TOOLS=core`. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
+Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove; omitted from the default list at level `remember`), so you do not paste a long system prompt, and the MCP tools (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and the rest — 19 tools at level `test`, trimmed to knowledge tools at level `remember`, or the eight core tools with `KIBI_MCP_TOOLS=core`) do the work, keeping every MCP and CLI JSON result within a 24,000-character budget. Reading or searching linked code also injects compact requirement rows for the symbols in view on every supported host. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
 
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements with what each says and why it exists (its recorded reason, who gave it and when), the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
@@ -215,7 +254,7 @@ Every requirement also carries an evidence level, so no guarantee reads stronger
 
 The knowledge base itself is checked the same way. `kibi check` (and `kb_check` for agents) proves that the facts your requirements state are consistent (one value satisfies every fact on a property, every decision has one outcome) and that stored rules are stratified, and leaves a certificate for each answer that a small separate checker re-checks. It also catches facts that contradict only together, which pairwise checks miss. A contradiction comes back as the smallest set of facts that cannot hold at once; anything it cannot compare is reported as unresolved, never as consistent.
 
-Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness, proof state and evidence level, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
+Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness, proof state and evidence level, with a change of the Kibi level or a lowered evidence floor listed as a decision only you make, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
 
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI action](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict, which GitHub's own merge check cannot resolve. Symbol line positions are never committed: every `kibi sync` derives them into a gitignored cache, so two branches that edit the same source file do not conflict over them.
 
@@ -344,11 +383,13 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-core` | Prolog-backed knowledge graph, inference, and validation |
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
 | `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
-| `kibi-claude` | Claude Code skills, MCP, requirement context before reads/edits, and advisory hooks (plugin marketplace) |
-| `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
-| `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |
-| `kibi-opencode` | OpenCode guidance (including requirement context for edits) and background maintenance |
-| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (local checkout) |
+| `kibi-antigravity` | Antigravity rules, skills, MCP (`roots/list` + worktree routing), read/search/edit requirement context, firm-edit and level/floor guards, and stop reminders |
+| `kibi-claude` | Claude Code skills, MCP, read/search/edit requirement context, firm-edit and level/floor prompts, and advisory hooks (plugin marketplace) |
+| `kibi-cursor` | Cursor rules, skills, MCP, read/search/edit requirement context, level/floor guards, and advisory hooks |
+| `kibi-codex` | Codex skills, MCP, read/search/edit requirement context, level/floor guards, and lifecycle hooks |
+| `kibi-opencode` | OpenCode guidance (read/search/edit requirement context, decision and level/floor hooks) and background maintenance |
+| `kibi-zcode` | ZCode skills, command, MCP, read/search/edit requirement context, level/floor guards, and advisory hooks (marketplace or local checkout) |
+| `kibi-vibe` | Mistral Vibe skills, MCP with automatic native/WSL runtime detection, read/search/edit requirement context, and decision/level-guard hooks (local checkout) |
 | `kibi-vscode` | VS Code knowledge explorer and traceability view |
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
@@ -356,7 +397,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-plugin-treesitter` | Optional offline multi-language symbol extraction (tree-sitter queries; each grammar is a `kibi-lang-*` pack) |
 | `kibi-lang-*` | Data-only grammar packs for `kibi-plugin-treesitter`: `python`, `go`, `rust`, `java`, `csharp`, `php`, `c`, `cpp`, `bash`, `ruby`, `hcl`, `prolog` |
 | `kibi-plugin-ui` | Experimental check policy keeping UI components on their agreed design patterns |
-| `kibi-plugin-search-hints` | Optional offline meaning-based hints for weak `kb_search` answers |
+| `kibi-plugin-search-hints` | Default offline meaning ranking for every `kb_search` (opt out with `kibi.declinedPlugins`) |
 | `kibi-swipl` | Bundled SWI-Prolog runtime; the matching platform build installs automatically |
 
 ## Documentation
@@ -378,4 +419,4 @@ Kibi is in beta and ready for use in real projects. Public interfaces may still 
 
 Kibi sends anonymous usage statistics (operation names, durations, error categories and versions, never code, paths, queries or KB content) to help prioritize fixes. Turn them off with `kibi telemetry disable`, `KIBI_TELEMETRY=0` or `DO_NOT_TRACK=1`; see [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html).
 
-Kibi is licensed under [AGPL-3.0-or-later](LICENSE.md).
+Kibi is licensed under [AGPL-3.0-or-later](LICENSE.md). Contributions are welcome under the [Contributor License Agreement](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md).

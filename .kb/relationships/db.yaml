@@ -398,3 +398,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-499dd6a2008e
+  - type: assumes
+    from: SCEN-kibi-discovery-stale-read-freshness
+    to: FACT-kibi-discovery-stale-read-freshness
+    created_at: 2026-11-23T10:46:51.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a39baab6613
+  - type: verified_by
+    from: SCEN-kibi-discovery-stale-read-freshness
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:46:51.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1398eee88e9d
+  - type: implements
+    from: SYM-kb-tools-kb-usage
+    to: REQ-antigravity-kb-tool-recognition
+    created_at: 2026-11-22T05:05:37.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abdd5b241530
+  - type: covered_by
+    from: SYM-kb-tools-kb-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:37.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b282ef62b13c
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-advisory
+    to: FACT-NEG-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:20.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b35ffab43f1e
+  - type: executable_for
+    from: SYM-test-kibi-check-rule-layers
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:31:58.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0c86fd1548a
+  - type: implements
+    from: SYM-retrieval-eval-scale-store
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:15:03.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c647ba9053d
+  - type: covered_by
+    from: SYM-retrieval-eval-scale-store
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:15:03.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f690b14cea6
+  - type: verified_by
+    from: REQ-014
+    to: TEST-kibi-levels-cli
+    created_at: 2026-11-25T09:51:14.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1ce3a424b01
+  - type: assumes
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:17.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b75ab059349
+  - type: assumes
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-stated-rule-self-approved
+    created_at: 2026-11-26T11:44:17.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990b0394e1ca
+  - type: verified_by
+    from: SCEN-kibi-skills-ask-only-for-decisions
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-26T11:44:17.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c80a107119c

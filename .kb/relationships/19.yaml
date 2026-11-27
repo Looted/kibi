@@ -272,3 +272,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-442e560967eb
+  - type: requires_property
+    from: REQ-kibi-signoff-level
+    to: FACT-PROP-kibi-signoff-level-c01
+    created_at: 2026-11-25T13:40:35.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e409b454a62
+  - type: specified_by
+    from: REQ-kibi-signoff-level
+    to: SCEN-kibi-signoff-level
+    created_at: 2026-11-25T13:42:53.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25dce04d4c4a
+  - type: specified_by
+    from: REQ-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-rejected
+    created_at: 2026-11-25T13:42:53.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8e22b58c5f6
+  - type: verified_by
+    from: REQ-kibi-signoff-level
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:42:53.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fbd2bc02def
+  - type: specified_by
+    from: REQ-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-c01-eq-false
+    created_at: 2026-11-25T13:45:11.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09c15a721526
+  - type: constrains
+    from: REQ-kibi-signoff-level
+    to: FACT-SUBJ-kibi-signoff-views-level
+    created_at: 2026-11-25T13:56:01.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-492b2ef2d880
+  - type: constrains
+    from: REQ-kibi-signoff-level
+    to: FACT-SUBJ-kibi-signoff-views-decisions
+    created_at: 2026-11-25T13:56:01.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fd8fb3e32e8
+  - type: requires_property
+    from: REQ-kibi-signoff-level
+    to: FACT-PROP-kibi-signoff-level-c02-count
+    created_at: 2026-11-25T13:57:05.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee283a08c328
+  - type: specified_by
+    from: REQ-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-c02-count-gt-0
+    created_at: 2026-11-25T13:57:30.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73a47d656be1
+  - type: executable_for
+    from: SYM-test-vscode-mcp-provider
+    to: TEST-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:53:23.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2f9da508098
+  - type: assumes
+    from: SCEN-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    to: FACT-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    created_at: 2026-11-25T14:28:00.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cac0d283ec02
+  - type: verified_by
+    from: SCEN-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:00.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad376ed379c1

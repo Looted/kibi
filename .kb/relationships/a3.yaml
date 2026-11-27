@@ -440,3 +440,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0f3e46a4e59
+  - type: supersedes
+    from: REQ-zcode-plugin-package-v2
+    to: REQ-zcode-plugin-package
+    created_at: 2026-11-23T18:30:24.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2dc2769c01e
+  - type: constrains
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-SUBJECT-6F1948BE213B3014
+    created_at: 2026-11-23T18:30:24.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10139f79e3c0
+  - type: requires_property
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-zcode-bundled-skills
+    created_at: 2026-11-23T18:30:24.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-543779481f2f
+  - type: requires_property
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-zcode-commands-include-bootstrap
+    created_at: 2026-11-23T18:30:24.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d2749a25c8f
+  - type: requires_property
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-zcode-lifecycle-hooks
+    created_at: 2026-11-23T18:30:24.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f924ee89774
+  - type: requires_property
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-zcode-mcp-server-launcher
+    created_at: 2026-11-23T18:30:24.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4230c858a8d
+  - type: requires_property
+    from: REQ-zcode-plugin-package-v2
+    to: FACT-zcode-manifest-declares-plugin-parts-v2
+    created_at: 2026-11-23T18:30:24.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-123fe50fa745
+  - type: specified_by
+    from: REQ-zcode-plugin-package-v2
+    to: SCEN-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T18:30:24.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-854c412b2922
+  - type: specified_by
+    from: REQ-zcode-plugin-package-v2
+    to: SCEN-zcode-plugin-package-ships-declared-parts
+    created_at: 2026-11-23T18:33:24.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc9e7225f37
+  - type: implements
+    from: SYM-managed-hooks-refresh-outdated-managed-hooks
+    to: REQ-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:43:47.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e93437ad4e90
+  - type: covered_by
+    from: SYM-managed-hooks-refresh-outdated-managed-hooks
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:17.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f43381dcb817
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:50:59.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5adea2ff9063
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:51:00.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8ec2c94e613
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-NEG-kibi-required-evidence-at-remember-rejected
+    created_at: 2026-11-25T09:51:00.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f5a1f9f4a49
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:51:00.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c66fdfd8292
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-NEG-kibi-init-level-choice-rejected
+    created_at: 2026-11-25T09:51:00.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdf21481ddbd
+  - type: validates
+    from: TEST-kibi-levels-cli
+    to: SCEN-kibi-init-level-choice
+    created_at: 2026-11-25T09:51:00.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd40d33a44e

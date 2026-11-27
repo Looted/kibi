@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-kb-search-question-alias",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/input-aliases.test.ts",
+      "./packages/mcp/tests/server/input-aliases.test.ts"
+    ]
+  ]
+}

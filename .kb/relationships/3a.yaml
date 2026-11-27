@@ -426,3 +426,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63544ec95466
+  - type: implements
+    from: SYM-result-budget-rows-within-budget
+    to: REQ-result-budget-min-row
+    created_at: 2026-11-19T15:26:05.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14ee4b06749f
+  - type: covered_by
+    from: SYM-result-budget-rows-within-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:05.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9fd8bdf43b2
+  - type: assumes
+    from: SCEN-NEG-kibi-init-level-choice-c03-eq-false
+    to: FACT-NEG-kibi-init-level-choice-c03-eq-false
+    created_at: 2026-11-25T10:21:02.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a377de2341a
+  - type: implements
+    from: SYM-vcs-adopt-no-git-store
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:35.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4481c840eb9a
+  - type: covered_by
+    from: SYM-vcs-adopt-no-git-store
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:35.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d311b425f69b
+  - type: assumes
+    from: SCEN-CASE-capability-search-hints-v1-scores-1-hint
+    to: FACT-CASE-capability-search-hints-v1-scores-1-hint
+    created_at: 2026-11-25T20:12:47.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41639ee746ed
+  - type: verified_by
+    from: SCEN-CASE-capability-search-hints-v1-scores-1-hint
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T20:12:47.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-934a9ed05e59

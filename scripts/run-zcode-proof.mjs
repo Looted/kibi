@@ -104,6 +104,30 @@ export const ZCODE_NATIVE_CASES = Object.freeze([
     classname: "kibi-zcode distribution artifacts",
     name: "an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command",
   },
+  {
+    symbol_id: "SYM-zcode-case-tracked-hook-targets",
+    file: "packages/zcode/tests/hooks.test.ts",
+    classname: "kibi-zcode hooks.json",
+    name: "hook commands point at files a source checkout already contains",
+  },
+  {
+    symbol_id: "SYM-zcode-case-copied-install-runtime-files",
+    file: "packages/zcode/tests/install-artifact.test.ts",
+    classname: "kibi-zcode distribution artifacts",
+    name: "a copied marketplace install contains every declared runtime file and runs under node",
+  },
+  {
+    symbol_id: "SYM-zcode-case-kb-call-without-workspace",
+    file: "packages/zcode/tests/hook-runner.test.ts",
+    classname: "ZCode hook runner workspace stamp",
+    name: "PreToolUse names the session workspace on a Kibi MCP call that carries none",
+  },
+  {
+    symbol_id: "SYM-zcode-case-kb-call-names-workspace",
+    file: "packages/zcode/tests/hook-runner.test.ts",
+    classname: "ZCode hook runner workspace stamp",
+    name: "PreToolUse leaves a Kibi MCP call that names a workspace alone",
+  },
 ]);
 
 function xmlDecode(value) {

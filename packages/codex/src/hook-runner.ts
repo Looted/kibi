@@ -2,8 +2,12 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import {
+  shellToolCommand,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -44,6 +48,7 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import {
   extractKbMcpToolCall,
+  isKibiMcpToolName,
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
 import {
@@ -51,10 +56,16 @@ import {
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
 import {
+  guardedChangeNotice,
+  guardedChangeOf,
+  guardedChangeOfShellCommand,
+} from "kibi-agent-core/level-guard";
+import {
   canonicalizeWorkspacePath,
   classifyPath,
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
+import { hookReadRows } from "kibi-agent-core/read-context";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
@@ -160,6 +171,36 @@ function isKnownEditTool(toolName: string | undefined): boolean {
 }
 
 /**
+ * Requirement rows for what a shell call reads or searches (see
+ * kibi-agent-core/read-context), each requirement once per session.
+ */
+export function shellReadRows(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const reads = shellToolReadViews(
+    input.toolName,
+    input.toolInput,
+    input.cwd ?? workspaceRoot,
+  );
+  if (reads.length === 0) return undefined;
+  const rows = hookReadRows(reads, {
+    workspaceRoot,
+    files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: input.sessionId,
+  });
+  if (!rows) return undefined;
+  trace.action = "read_snippet";
+  trace.requirementIds = rows.ids;
+  return rows.text;
+}
+
+/**
  * Workspace-relative files a shell call writes in place (`sed -i`, `perl -i`,
  * `>` and `>>` targets, `tee`), so a shell edit counts as a source edit just
  * as an Edit or apply_patch call does.
@@ -204,6 +245,53 @@ function editTargets(
       absolute: target.absolute,
       base: input.cwd ?? workspaceRoot,
     }));
+}
+
+/**
+ * Codex's pre-tool hook cannot put a call to the person, so an edit that
+ * changes the Kibi level or lowers a requirement's required_evidence, or a
+ * Kibi call that lowers one, gets a notice telling the agent to ask first.
+ * The choice is the person's, so it is given every time.
+ */
+export function guardedNotice(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const shellCommand = shellToolCommand(input.toolName, input.toolInput);
+  const changes = isKibiMcpToolName(input.toolName)
+    ? [
+        guardedChangeOf({
+          workspaceRoot,
+          toolName: input.toolName,
+          toolInput: input.toolInput,
+        }),
+      ]
+    : shellCommand !== undefined
+      ? [
+          guardedChangeOfShellCommand(
+            workspaceRoot,
+            shellCommand,
+            input.cwd ?? workspaceRoot,
+          ),
+        ]
+      : isEditLikeTool(input.toolName)
+        ? editTargets(workspaceRoot, input).map((target) =>
+            guardedChangeOf({
+              workspaceRoot,
+              toolName: input.toolName,
+              toolInput: input.toolInput,
+              relativePath: target.relative,
+            }),
+          )
+        : [];
+  const change = changes.find((candidate) => candidate !== undefined);
+  if (change === undefined) return undefined;
+  trace.action =
+    change.kind === "level"
+      ? "level_change_notice"
+      : "evidence_lowering_notice";
+  return guardedChangeNotice(change);
 }
 
 /**
@@ -516,7 +604,7 @@ export async function runHook(
             hookEventName: "SessionStart",
             additionalContext: sessionBriefWith([
               CODEX_SESSION_NOTE,
-              missingHooksNote(workspace.root) ?? "",
+              checkoutSessionNote(workspace.root) ?? "",
             ]),
           },
         };
@@ -528,6 +616,7 @@ export async function runHook(
           // rationale: a missing prompt states no rule whatever text stands in.
           // Stryker disable next-line StringLiteral
           input.prompt ?? "",
+          { workspaceRoot: workspace.root },
         );
         trace.action =
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
@@ -536,38 +625,79 @@ export async function runHook(
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule, statedReason(input.prompt)),
+            additionalContext: rulePromptNote(
+              rule,
+              statedReason(input.prompt, workspace.root),
+            ),
           },
         };
       }
 
       case "PreToolUse": {
-        // Name the session's workspace on every Kibi MCP call so the launcher
-        // answers from it, even after the thread moves into a git worktree.
-        const stamped = stampKibiWorkspace(
-          input.toolName,
-          input.toolInput,
-          workspace.root,
-        );
-        if (stamped) {
+        // Name the session's workspace on a Kibi MCP call that carries none,
+        // so the launcher answers from it, even after the thread moves into a
+        // git worktree. A call that names its own workspace passes through.
+        // The notice is advisory like the requirement context: input that
+        // cannot be read leaves the call without it.
+        const guardedNow = (): string | undefined => {
+          try {
+            return guardedNotice(workspace.root, input, trace);
+          } catch {
+            return undefined;
+          }
+        };
+        const mcpGuarded = isKibiMcpToolName(input.toolName)
+          ? guardedNow()
+          : undefined;
+        if (mcpGuarded) {
+          // No permission decision: Codex's own approval still applies.
+          // Codex takes updatedInput only with an "allow" decision, so this
+          // call is deliberately not stamped with the worktree's
+          // workspaceRoot: allowing it would skip the person's approval.
           return {
             continue: true,
             hookSpecificOutput: {
               hookEventName: "PreToolUse",
-              permissionDecision: "allow",
-              updatedInput: stamped,
+              additionalContext: mcpGuarded,
             },
           };
+        }
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(
+            input.toolName,
+            input.toolInput,
+            workspace.root,
+          );
+          return stamped === undefined
+            ? defaultResult()
+            : {
+                continue: true,
+                hookSpecificOutput: {
+                  hookEventName: "PreToolUse",
+                  permissionDecision: "allow",
+                  updatedInput: stamped,
+                },
+              };
         }
         // Paths come from explicit fields and from `apply_patch` headers, so a
         // patch to .kb/ is warned about like an explicit-path edit.
         const explicitPaths = extractEditedPaths(input.toolInput);
+        const guarded = guardedNow();
         const hasDirectKbEdit =
           isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
-          trace.action = "kb_direct_note";
           trace.pathKind = "kb";
+          if (guarded)
+            return {
+              continue: true,
+              systemMessage: DIRECT_KB_EDIT_WARNING,
+              hookSpecificOutput: {
+                hookEventName: "PreToolUse",
+                additionalContext: guarded,
+              },
+            };
+          trace.action = "kb_direct_note";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
 
@@ -575,14 +705,22 @@ export async function runHook(
         try {
           context = isKnownEditTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : shellFirmNotice(workspace.root, stateDir, input, env);
+            : (shellFirmNotice(workspace.root, stateDir, input, env) ??
+              // Codex reads and searches through its shell tool: the files
+              // a command names get the rows of the code in view.
+              shellReadRows(workspace.root, stateDir, input, trace));
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
         }
-        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+        if (
+          !guarded &&
+          isKnownEditTool(input.toolName) &&
+          trace.pathKind !== undefined
+        ) {
           trace.action = context ? "edit_snippet" : "edit_silent";
         }
+        if (guarded) context = context ? `${guarded}\n\n${context}` : guarded;
         if (context) {
           return {
             continue: true,

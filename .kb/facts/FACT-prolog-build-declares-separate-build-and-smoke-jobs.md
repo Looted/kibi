@@ -1,6 +1,6 @@
 ---
 title: The build workflow declares separate build and smoke jobs for four launch targets
-status: active
+status: closed
 text_ref: scripts/swipl-spike.py
 tags:
   - strict-modeling
@@ -27,3 +27,4 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+Historical: four launch targets. Superseded by FACT-prolog-build-declares-five-build-and-smoke-jobs once win32-x64 was added; kept as the grounding of the closed REQ-prolog-build-workflow-targets.

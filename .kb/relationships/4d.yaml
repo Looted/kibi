@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d012813e705
+  - type: implements
+    from: SYM-vibe-resolveWorkspace
+    to: REQ-vibe-workspace-resolution
+    created_at: 2026-11-19T21:36:49.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c97f537da92
+  - type: covered_by
+    from: SYM-vibe-resolveWorkspace
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:36:49.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4157c5b9ab59
+  - type: assumes
+    from: SCEN-NEG-kibi-schema-20-level-c01-gt-0
+    to: FACT-NEG-kibi-schema-20-level-c01-gt-0
+    created_at: 2026-11-25T10:19:57.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-275bdd11717d
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    to: FACT-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    created_at: 2026-11-25T10:21:15.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed547e6299bc

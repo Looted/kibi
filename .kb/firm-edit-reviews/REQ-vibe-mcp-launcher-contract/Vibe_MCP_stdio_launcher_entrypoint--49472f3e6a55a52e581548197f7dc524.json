@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/launch-kibi-mcp.mjs",
+  "symbol": "Vibe MCP stdio launcher entrypoint",
+  "verdict": "keeps",
+  "note": "Preserves full tool serving in Kibi workspaces and silent zero-tool exit 0 outside them, adding deferred roots/list discovery when launched outside a workspace cwd.",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:911a419531049cba2dab73fe0546c5ee5b0ef525df7336def2c0a8ab18076164",
+  "startLine": 1,
+  "endLine": 87,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

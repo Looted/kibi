@@ -426,3 +426,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0de18b74b20
+  - type: executable_for
+    from: SYM-test-cli-prove-narrowed-run-evidence
+    to: TEST-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-20T16:10:46.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81a5ad57817b
+  - type: assumes
+    from: SCEN-kibi-branch-store-freshness-memo
+    to: FACT-kibi-branch-store-freshness-memo
+    created_at: 2026-11-23T10:45:56.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-badf0adc329f
+  - type: verified_by
+    from: SCEN-kibi-branch-store-freshness-memo
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:45:56.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7bdc2394894
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    to: FACT-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    created_at: 2026-11-24T20:01:51.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0457cf47ecb
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:01:51.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8590ccf8440
+  - type: assumes
+    from: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    to: FACT-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    created_at: 2026-11-25T14:27:42.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08820baba39e
+  - type: verified_by
+    from: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:42.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc389a963e75
+  - type: assumes
+    from: SCEN-kibi-no-git-attached-store
+    to: FACT-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:05.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2debb6c4a913
+  - type: implements
+    from: SYM-vcs-no-git-store-adopted-diagnostic
+    to: REQ-kibi-no-git-store-adopted-on-git-init
+    created_at: 2026-11-25T09:21:41.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fc2713c0721
+  - type: covered_by
+    from: SYM-vcs-no-git-store-adopted-diagnostic
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:41.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d8b579a9e80
+  - type: implements
+    from: SYM-decision-search-credited-score
+    to: REQ-search-meaning-list
+    created_at: 2026-11-25T19:43:32.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95f42feceaf0
+  - type: covered_by
+    from: SYM-decision-search-credited-score
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-11-25T19:43:32.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2c652dfdb17
+  - type: covered_by
+    from: SYM-decision-search-credited-score
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:32.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f108c453cb

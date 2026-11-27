@@ -2,8 +2,13 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
-import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import {
+  type ShellRead,
+  shellToolCommand,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
+import { checkoutSessionNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -38,13 +43,24 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import {
   extractKbMcpToolCall,
+  isKibiMcpToolName,
   stampKibiWorkspace,
 } from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
+import {
+  guardedChangeNotice,
+  guardedChangeOf,
+  guardedChangeOfShellCommand,
+} from "kibi-agent-core/level-guard";
 import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import {
   claimSnippetSlot,
   createEntitySummarizer,
@@ -224,6 +240,93 @@ function preEditContext(
 }
 
 /**
+ * The empty edit-path list for tool payloads the hook does not treat as
+ * edits; named so the dirty-path assembly reads what it spreads.
+ */
+function noEditPaths(): string[] {
+  // rationale: a bogus entry never surfaces, because the dirty-path
+  // pipeline drops paths the meaningful-path policy rejects.
+  // Stryker disable next-line ArrayDeclaration
+  return [];
+}
+
+/** Read window of a Read call; undefined when the whole file is read. */
+function readWindow(fields: Record<string, unknown>) {
+  const offset = typeof fields.offset === "number" ? fields.offset : undefined;
+  const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+  if (offset === undefined && limit === undefined) return undefined;
+  const start = Math.max(1, offset ?? 1);
+  return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
+}
+
+/**
+ * What a Read, Grep or shell call puts in view: a Read's file and window, a
+ * Grep's pattern over its path (limited by its glob), a command's files and
+ * searches.
+ */
+function toolReads(
+  input: ReturnType<typeof parseHookInput>,
+  cwd: string,
+): { reads: ShellRead[]; admits?: (relativePath: string) => boolean } {
+  const fields = (input.toolInput ?? {}) as Record<string, unknown>;
+  if (input.toolName === "Read") {
+    const file = fields.file_path;
+    if (typeof file !== "string") return { reads: [] };
+    const focus = readWindow(fields);
+    return {
+      reads: [
+        {
+          absolute: path.resolve(cwd, file),
+          directory: false,
+          ...(focus ? { focus } : {}),
+        },
+      ],
+    };
+  }
+  if (input.toolName === "Grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd,
+      ignoreCase: fields["-i"] === true,
+    });
+    const glob = typeof fields.glob === "string" ? fields.glob : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...(glob ? { admits: globFilter(glob) } : {}),
+    };
+  }
+  return { reads: shellToolReadViews(input.toolName, input.toolInput, cwd) };
+}
+
+/**
+ * Requirement rows for the code a read, search or shell call puts in view
+ * (see kibi-agent-core/read-context), each requirement once per session.
+ */
+export function readRows(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const { reads, admits } = toolReads(input, input.cwd ?? workspaceRoot);
+  if (reads.length === 0) return undefined;
+  const rows = hookReadRows(reads, {
+    workspaceRoot,
+    files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    isSource: (relativePath) => classifyPath(relativePath) === "source",
+    admits,
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionKey: input.sessionId,
+  });
+  if (!rows) return undefined;
+  trace.action = "read_snippet";
+  trace.requirementIds = rows.ids;
+  return rows.text;
+}
+
+/**
  * A shell call that writes files in place (`sed -i`, `perl -i`, `>`, `tee`)
  * gets the same firm notice as an edit of those files, read as a whole-file
  * write since the hook cannot tell which lines it changes.
@@ -248,6 +351,9 @@ function shellFirmNotice(
       absolute: target.absolute,
       base,
     }));
+  // rationale: firmNotice returns undefined for empty targets with no side effects, so
+  // skipping the early return changes nothing observable.
+  // Stryker disable next-line ConditionalExpression
   if (targets.length === 0) return undefined;
   return firmNotice(
     workspaceRoot,
@@ -302,7 +408,7 @@ function firmNotice(
   return undefined;
 }
 
-// dist/hook-runner.js sits one level below the plugin root.
+// bin/hook-runner.mjs sits one level below the plugin root.
 const packageVersion = readPackageVersion(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
 );
@@ -373,6 +479,62 @@ function contextResult(event: ZcodeHookEvent, message: string): HookResult {
   };
 }
 
+/**
+ * ZCode's pre-tool hook cannot put a call to the person, so an edit that
+ * changes the Kibi level or lowers a requirement's required_evidence, or a
+ * Kibi call that lowers one, gets a notice telling the agent to ask first,
+ * every time, since the choice is the person's.
+ */
+export function guardedNotice(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+  trace: HookTrace,
+): string | undefined {
+  const shellCommand = shellToolCommand(input.toolName, input.toolInput);
+  if (shellCommand !== undefined) {
+    const change = guardedChangeOfShellCommand(
+      workspaceRoot,
+      shellCommand,
+      input.cwd ?? workspaceRoot,
+    );
+    if (change !== undefined) {
+      trace.action =
+        change.kind === "level"
+          ? "level_change_notice"
+          : "evidence_lowering_notice";
+      return guardedChangeNotice(change);
+    }
+  }
+  const targets: { relativePath?: string }[] = isKibiMcpToolName(input.toolName)
+    ? [{}]
+    : isEditLikeTool(input.toolName)
+      ? extractEditedPaths(input.toolInput)
+          .map((rawPath) =>
+            canonicalizeWorkspacePath(workspaceRoot, {
+              eventCwd: input.cwd,
+              rawPath,
+            }),
+          )
+          .filter((target) => target !== undefined)
+          .map((target) => ({ relativePath: target.workspaceRelative }))
+      : [];
+  for (const target of targets) {
+    const change = guardedChangeOf({
+      workspaceRoot,
+      toolName: input.toolName,
+      toolInput: input.toolInput,
+      ...target,
+    });
+    if (change === undefined) continue;
+    trace.action =
+      change.kind === "level"
+        ? "level_change_notice"
+        : "evidence_lowering_notice";
+    return guardedChangeNotice(change);
+  }
+  return undefined;
+}
+
 function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
 }
@@ -435,14 +597,16 @@ export async function runHook(
         startDecisionSession(session, "startup");
         return contextResult(
           input.event,
-          [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]
+          [SESSION_START_CONTEXT, checkoutSessionNote(workspace.root)]
             .filter((line): line is string => line !== null)
             .join("\n"),
         );
 
       case "UserPromptSubmit": {
         const rule = input.prompt
-          ? recordRequest(session, input.prompt)
+          ? recordRequest(session, input.prompt, {
+              workspaceRoot: workspace.root,
+            })
           : undefined;
         trace.action =
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
@@ -450,27 +614,33 @@ export async function runHook(
           ? defaultResult()
           : contextResult(
               input.event,
-              rulePromptNote(rule, statedReason(input.prompt)),
+              rulePromptNote(rule, statedReason(input.prompt, workspace.root)),
             );
       }
 
       case "PreToolUse": {
-        // Name the session's workspace on every Kibi MCP call so the launcher
-        // answers from it, also after the session moves into a git worktree.
-        const stamped = stampKibiWorkspace(
-          input.toolName,
-          input.toolInput,
-          workspace.root,
-        );
-        if (stamped) {
-          return {
-            continue: true,
-            hookSpecificOutput: {
-              hookEventName: "PreToolUse",
-              updatedInput: stamped,
-            },
-          };
+        // Name the session's workspace on a Kibi MCP call that carries none,
+        // so the launcher answers from it, also after the session moves into
+        // a git worktree. A call that names its own workspace passes through.
+        const guarded = guardedNotice(workspace.root, input, trace);
+        if (isKibiMcpToolName(input.toolName)) {
+          const stamped = stampKibiWorkspace(
+            input.toolName,
+            input.toolInput,
+            workspace.root,
+          );
+          return stamped === undefined && guarded === undefined
+            ? defaultResult()
+            : {
+                continue: true,
+                hookSpecificOutput: {
+                  hookEventName: "PreToolUse",
+                  ...(stamped ? { updatedInput: stamped } : {}),
+                  ...(guarded ? { additionalContext: guarded } : {}),
+                },
+              };
         }
+        if (guarded) return contextResult(input.event, guarded);
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
           isEditLikeTool(input.toolName) &&
@@ -495,7 +665,8 @@ export async function runHook(
         try {
           knowledge = isMutatingTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : shellFirmNotice(workspace.root, stateDir, input, env);
+            : (shellFirmNotice(workspace.root, stateDir, input, env) ??
+              readRows(workspace.root, stateDir, input, trace));
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
@@ -550,6 +721,10 @@ export async function runHook(
           input.toolInput,
           input.cwd ?? workspace.root,
         );
+        // rationale: taking the branch for a non-mutating, non-shell event recomputes
+        // the same ternary below and produces no dirty paths, so neither
+        // forcing the condition true nor comparing length >= 0 is observable.
+        // Stryker disable next-line ConditionalExpression,EqualityOperator
         if (isMutatingTool(input.toolName) || shellEdits.length > 0) {
           const dirtyPaths = [
             ...(isMutatingTool(input.toolName)
@@ -558,7 +733,11 @@ export async function runHook(
                   input.cwd,
                   input.toolInput,
                 )
-              : []),
+              : noEditPaths()),
+            // rationale: addDirtyPaths and the reminders re-apply the same undefined
+            // and meaningful-path filters, so dropping the trailing filters
+            // here changes nothing observable.
+            // Stryker disable next-line MethodExpression
             ...shellEdits
               .map(
                 (absolute) =>

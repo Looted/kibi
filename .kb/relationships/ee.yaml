@@ -594,3 +594,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f3003485440
+  - type: specified_by
+    from: REQ-result-ceiling
+    to: SCEN-result-ceiling
+    created_at: 2026-11-19T15:26:51.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab86ac613d75
+  - type: specified_by
+    from: REQ-result-ceiling
+    to: SCEN-NEG-result-ceiling-OVER-CEILING
+    created_at: 2026-11-19T15:26:51.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7cc478404fe
+  - type: verified_by
+    from: REQ-result-ceiling
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:26:51.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bdedd7487ab
+  - type: constrains
+    from: REQ-result-ceiling
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:26:51.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-884e79def7fa
+  - type: requires_property
+    from: REQ-result-ceiling
+    to: FACT-result-ceiling-chars
+    created_at: 2026-11-19T15:26:51.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80ed67b6c440
+  - type: assumes
+    from: SCEN-impact-review-schema-resource
+    to: FACT-impact-review-schema-resource
+    created_at: 2026-11-19T19:11:24.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ca4e9b2dbde
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-layers-knowledge-rule-in-verification
+    to: FACT-CASE-kibi-check-rule-layers-KNOWLEDGE-RULE-IN-VERIFICATION
+    created_at: 2026-11-25T08:36:26.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43b1bf7a8c6e
+  - type: verified_by
+    from: SCEN-NEG-kibi-check-rule-layers-knowledge-rule-in-verification
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:36:26.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a9d135572fa
+  - type: implements
+    from: SYM-init-level-write-kibi-level
+    to: REQ-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:48.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a60763c1c1b
+  - type: covered_by
+    from: SYM-init-level-write-kibi-level
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:48.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2336449d1424

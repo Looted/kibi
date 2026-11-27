@@ -13,7 +13,7 @@ import type { SourceSpec } from "../../../src/public/proof-sources.js";
  */
 const WORKSPACE = `${import.meta.dir}/../../../../..`;
 
-/** The kibi-zcode plugin manifest must declare the skills, commands, hooks and mcpServers fields. */
+/** The kibi-zcode plugin manifest must declare the skills, commands and mcpServers fields. */
 export function zcodeManifestFieldsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-zcode-manifest-fields" });
 }
@@ -55,7 +55,7 @@ async function expectSource(
 }
 
 describe("The kibi-zcode package parts, proved against the files the package ships", () => {
-  test("The kibi-zcode plugin manifest must declare the skills, commands, hooks and mcpServers fields", async () => {
+  test("The kibi-zcode plugin manifest must declare the skills, commands and mcpServers fields", async () => {
     writeCodeCertificate(zcodeManifestFieldsCertificate());
     await expectSource(
       {
@@ -65,7 +65,7 @@ describe("The kibi-zcode package parts, proved against the files the package shi
         select: "keys",
       },
       "includes",
-      ["commands", "hooks", "mcpServers", "skills"],
+      ["commands", "mcpServers", "skills"],
     );
   });
   test("The kibi-zcode plugin must ship a kibi-bootstrap command", async () => {

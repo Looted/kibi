@@ -24,7 +24,20 @@ import type {
   PrologPort,
   PrologQueryResult,
 } from "./public/operations/runtime-types.js";
+import {
+  CURRENT_REQ_STATUSES,
+  FACT_LINKS,
+  SUPERSEDED_ADR_STATUSES as LIFT_SUPERSEDED_ADR_STATUSES,
+  assumedScenarioIds,
+  liftAssumedFact,
+  liftTestTargets,
+  owningRequirements,
+} from "./requirement-lifting.js";
 import { compareCodeUnits, loadMarkdownBody } from "./search-ranking.js";
+
+export { CURRENT_REQ_STATUSES, FACT_LINKS, owningRequirements };
+
+export const SUPERSEDED_ADR_STATUSES = LIFT_SUPERSEDED_ADR_STATUSES;
 
 /**
  * The answer layer turns ranked matches into what an agent asking "what
@@ -175,6 +188,8 @@ export type SearchAnswerScope = Readonly<{
   branch: string | null;
   snapshotId: string;
   syncedAt: string | null;
+  syncState?: "fresh" | "stale" | "unknown";
+  staleReasonCount?: number;
 }>;
 
 /**
@@ -217,6 +232,26 @@ export type SearchAnswer = Readonly<{
   note: string;
 }>;
 
+/**
+ * The ids of the entities the answer quotes in full: governing requirements
+ * whose statement was not clipped, and facts (governing or not) with their
+ * claim. kb_search returns these entities' results without their text.
+ */
+export function answerQuotedIds(answer: SearchAnswer): Set<string> {
+  const ids = new Set<string>();
+  const addFact = (fact: SearchAnswerFact) => {
+    if (fact.claim !== undefined) ids.add(fact.id);
+  };
+  for (const requirement of answer.governing) {
+    const statement = requirement.statement;
+    if (statement !== undefined && !statement.endsWith("…"))
+      ids.add(requirement.id);
+    requirement.facts.forEach(addFact);
+  }
+  answer.ungoverned.forEach(addFact);
+  return ids;
+}
+
 export type SearchAnswerOptions = Readonly<{
   /** Root that ADR sources resolve against; without it no excerpts. */
   workspaceRoot?: string;
@@ -227,25 +262,30 @@ export type SearchAnswerOptions = Readonly<{
    * `fields: "full"`); `full` (the default here) keeps it.
    */
   detail?: "summary" | "full";
+  /** Confirmed freshness state of the compiled branch store at answer time. */
+  syncState?: "fresh" | "stale" | "unknown";
+  /** Number of confirmed uncompiled changes when `syncState` is `"stale"`. */
+  staleReasonCount?: number;
+  /** Concise staleness warning prepended to `answer.note` when stale. */
+  staleWarningNote?: string;
+  /**
+   * The ranking's top matches are close (the query analysis is ambiguous):
+   * the note says the governing list holds candidates to confirm.
+   */
+  ambiguous?: boolean;
+  /**
+   * Additional supersession edges (superseded id -> superseding id) known from
+   * the decision corpus so a superseded requirement is never named governing
+   * even before its replacement is synced into the branch store.
+   */
+  supersededBy?: Readonly<Record<string, string>>;
 }>;
 
-const CURRENT_REQ_STATUSES = new Set([
-  "open",
-  "in_progress",
-  "closed",
-  "active",
-  "approved",
-]);
 /**
  * Share of the best candidate's score a superseded requirement needs for its
  * replacement to be proposed.
  */
 export const SUCCESSOR_PULL_RATIO = 0.8;
-export const SUPERSEDED_ADR_STATUSES = new Set([
-  "superseded",
-  "deprecated",
-  "rejected",
-]);
 const ANSWER_RELATIONSHIPS = [
   "specified_by",
   "verified_by",
@@ -260,12 +300,6 @@ const ANSWER_RELATIONSHIPS = [
   "relates_to",
   "exempts",
 ] as const;
-const FACT_LINKS = new Set([
-  "constrains",
-  "requires_property",
-  "requires_predicate",
-  "requires_rule",
-]);
 /** Properties the answer reads from a linked entity. */
 const ROW_KEYS = [
   "id",
@@ -619,28 +653,6 @@ export function scenarioTests(
       tests.push(edge.from);
   }
   return tests;
-}
-
-/** Requirement ids a non-requirement entity points back to. */
-export function owningRequirements(
-  id: string,
-  type: string,
-  edges: readonly Edge[],
-) {
-  const owners: string[] = [];
-  for (const edge of edges) {
-    if (type === "scenario" && edge.rel === "specified_by" && edge.to === id)
-      owners.push(edge.from);
-    if (type === "test" && edge.rel === "verified_by" && edge.to === id)
-      owners.push(edge.from);
-    if (type === "test" && edge.rel === "validates" && edge.from === id)
-      owners.push(edge.to);
-    if (type === "symbol" && edge.rel === "implements" && edge.from === id)
-      owners.push(edge.to);
-    if (type === "fact" && FACT_LINKS.has(edge.rel) && edge.to === id)
-      owners.push(edge.from);
-  }
-  return owners;
 }
 
 /** Shorten to at most `maxChars` code points, ending with an ellipsis. */
@@ -1179,14 +1191,12 @@ export async function buildSearchAnswer(
       continue;
     }
     if (type === "fact" && owners.length === 0) {
-      const scenarios = seedEdges
-        .filter((edge) => edge.rel === "assumes" && edge.to === id)
-        .map((edge) => edge.from);
+      const scenarios = assumedScenarioIds(id, seedEdges);
       if (scenarios.length > 0) {
         assumedFacts.push({
           id,
           score: match.score,
-          scenarios: unique(scenarios),
+          scenarios,
         });
         continue;
       }
@@ -1224,28 +1234,17 @@ export async function buildSearchAnswer(
       else if (row !== null) truncated = true;
       continue;
     }
-    for (const target of test.targets) {
-      // A target that some requirement specifies is a scenario: lift the
-      // test to that requirement. Anything else is a directly verified
-      // requirement (non-requirements are filtered when loaded).
-      const scenarioOwners = targetEdges
-        .filter((edge) => edge.rel === "specified_by" && edge.to === target)
-        .map((edge) => edge.from);
-      if (scenarioOwners.length === 0) {
-        propose(target, test.score * 0.9, `test ${test.id}`);
-        continue;
-      }
-      for (const owner of scenarioOwners)
-        propose(owner, test.score * 0.85, `test ${test.id} via ${target}`);
+    for (const lifted of liftTestTargets(test.id, test.targets, targetEdges)) {
+      propose(
+        lifted.owner,
+        test.score * (lifted.twoHop ? 0.85 : 0.9),
+        lifted.via,
+      );
     }
   }
 
   for (const fact of assumedFacts) {
-    const owners = fact.scenarios.flatMap((scenario) =>
-      targetEdges
-        .filter((edge) => edge.rel === "specified_by" && edge.to === scenario)
-        .map((edge) => ({ owner: edge.from, scenario })),
-    );
+    const owners = liftAssumedFact(fact.id, fact.scenarios, targetEdges);
     if (owners.length === 0) {
       const row = graph.row(fact.id);
       const rank = seedIds.indexOf(fact.id) + 1;
@@ -1254,8 +1253,7 @@ export async function buildSearchAnswer(
       else if (row !== null) truncated = true;
       continue;
     }
-    for (const { owner, scenario } of owners)
-      propose(owner, fact.score * 0.85, `fact ${fact.id} via ${scenario}`);
+    for (const { owner, via } of owners) propose(owner, fact.score * 0.85, via);
   }
 
   // A matched requirement that was superseded points at what governs now:
@@ -1265,7 +1263,9 @@ export async function buildSearchAnswer(
   // A replacement is only proposed for a predecessor that matched about as
   // well as the best candidate: a weak match on an old requirement says
   // little about its replacement, which would otherwise fill a free slot.
-  const supersededBy = new Map<string, string>();
+  const supersededBy = new Map<string, string>(
+    Object.entries(options.supersededBy ?? {}),
+  );
   let frontier = byScore();
   const pullFloor =
     Math.max(...[...candidates.values()].map((entry) => entry.score)) *
@@ -1504,6 +1504,12 @@ export async function buildSearchAnswer(
       typeof verdicts?.scope?.syncedAt === "string"
         ? verdicts.scope.syncedAt
         : null,
+    ...(options.syncState !== undefined
+      ? { syncState: options.syncState }
+      : {}),
+    ...(options.staleReasonCount !== undefined
+      ? { staleReasonCount: options.staleReasonCount }
+      : {}),
   };
   // An unlinked predicate fact that disagrees with a governing requirement's
   // fact on the same key arguments names that fact, so the answer says which
@@ -1563,9 +1569,27 @@ export async function buildSearchAnswer(
     ungoverned: ungovernedAnswer,
     scope,
     truncated: truncated || graph.truncated,
-    note: answerNote(governing.length, ungovernedAnswer),
+    note: answerNote(
+      governing.length,
+      ungovernedAnswer,
+      options.staleWarningNote,
+      options.ambiguous === true,
+    ),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
+}
+
+/**
+ * The digest's name for the governing list: when the top matches are close,
+ * the requirements in it are candidates, not confirmed to govern.
+ */
+export function governingLabel(
+  ambiguous: boolean,
+  governingCount: number,
+): string {
+  return ambiguous && governingCount > 0
+    ? "Candidate requirements, not confirmed to govern"
+    : "Governing";
 }
 
 /**
@@ -1576,7 +1600,16 @@ export async function buildSearchAnswer(
 export function answerNote(
   governingCount: number,
   ungoverned: readonly SearchAnswerUngoverned[],
+  staleWarningNote?: string,
+  ambiguous = false,
 ): string {
+  const staleLead = staleWarningNote ? `${staleWarningNote} ` : "";
+  // A close ranking reaches look-alikes and neighbours as easily as the rule
+  // that applies, so the list is not presented as settled.
+  const candidates =
+    ambiguous && governingCount > 0
+      ? "The top matches are close, so the governing list holds candidates, not requirements confirmed to govern this change: read each statement and keep only those about the code being changed. "
+      : "";
   const top = ungoverned.find((entry) => entry.rank === 1);
   const lead =
     top === undefined
@@ -1598,6 +1631,8 @@ export function answerNote(
     )
     .join("");
   return (
+    staleLead +
+    candidates +
     lead +
     ungovernedFact +
     overridden +

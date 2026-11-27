@@ -980,6 +980,19 @@ describe("answer note", () => {
     expect(answerNote(0, [entry({})])).toBe(NONE);
   });
 
+  test("a close ranking calls the governing list candidates to confirm", () => {
+    const CANDIDATES =
+      "The top matches are close, so the governing list holds candidates, not requirements confirmed to govern this change: read each statement and keep only those about the code being changed. ";
+    expect(answerNote(1, [], undefined, true)).toBe(
+      `${CANDIDATES}${GOVERNING}`,
+    );
+    expect(answerNote(1, [], "Stale.", true)).toBe(
+      `Stale. ${CANDIDATES}${GOVERNING}`,
+    );
+    // With nothing listed there is nothing to confirm.
+    expect(answerNote(0, [entry({})], undefined, true)).toBe(NONE);
+  });
+
   test("an unowned top match leads the note", () => {
     expect(answerNote(0, [entry({ id: "S", rank: 1 })])).toBe(
       `The top-ranked match S (scenario) is linked to no requirement. ${NONE}`,
@@ -1478,6 +1491,14 @@ describe("building an answer", () => {
       `${edgesQuery(["R1"])}, ${rowsQuery(["R1"])}`,
       `discovery:search_answer_verdicts_json(['R1'], JsonString)`,
     ]);
+  });
+
+  test("an ambiguous ranking's note names the governing list as candidates", async () => {
+    const port = fakeKb(kb(req("R1")), []);
+    const answer = await buildSearchAnswer(port, [hit(req("R1"), 0.7)], {
+      ambiguous: true,
+    });
+    expect(answer.note).toBe(answerNote(1, [], undefined, true));
   });
 
   test("an empty search is an empty answer", async () => {

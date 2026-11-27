@@ -19,13 +19,12 @@ import {
 } from "../../traceability/impact-evaluator.js";
 import {
   IMPACT_EVALUATOR_VERSION,
+  IMPACT_REVIEW_PATH,
   IMPACT_REVIEW_VERSION,
   canonicalJson,
 } from "../../traceability/impact-review.js";
-import impactReviewRecordSchema from "../../traceability/impact-review.schema.json" with {
-  type: "json",
-};
 import { readSnapshotKnowledge } from "../../traceability/snapshot-knowledge.js";
+import { assertGitWorkspace } from "../../vcs/git-boundary.js";
 import type { OperationContext } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 
@@ -62,7 +61,16 @@ export type ImpactReviewPreparationScope =
 
 export type PrepareImpactReviewInput = Readonly<{
   scope: ImpactReviewPreparationScope;
+  /** Paths whose complete evidence and requirement context to return. */
+  paths?: readonly string[];
+  /** The first file row to return. */
+  offset?: number;
 }>;
+
+/** Where the authored review record lives, and the schema it follows. */
+export const IMPACT_REVIEW_SCHEMA_ID = "urn:kibi:impact-review:v1";
+export const IMPACT_REVIEW_SCHEMA_RESOURCE =
+  "resources/impact-review.schema.json";
 
 type SnapshotIdentity = Readonly<{
   kind: "staged" | "diff";
@@ -245,29 +253,6 @@ function requirementContext(
   };
 }
 
-function requirementScopes(
-  prepared: PreparedImpactReview,
-  snapshot: GitChangeSnapshot,
-): readonly Record<string, unknown>[] {
-  const before = entityMap(snapshot, snapshot.baseTree);
-  const after = entityMap(snapshot, snapshot.headTree);
-  return sortedBy(
-    [...prepared.scopedRequirementIdsByPath.entries()],
-    ([path]) => path,
-  ).map(([path, requirementIds]) => ({
-    path,
-    requirementIds: [...requirementIds].sort(),
-    before: [...requirementIds]
-      .sort()
-      .map((id) =>
-        requirementContext(id, before, prepared.baseEntities, before),
-      ),
-    after: [...requirementIds]
-      .sort()
-      .map((id) => requirementContext(id, after, prepared.headEntities, after)),
-  }));
-}
-
 function residualReviewObligations(
   prepared: PreparedImpactReview,
 ): readonly Record<string, unknown>[] {
@@ -320,39 +305,18 @@ function residualReviewObligations(
   return sortedBy(obligations, (row) => `${row.path}\0${row.side}`);
 }
 
-function cloneRecordSchema(): Record<string, unknown> {
-  return JSON.parse(JSON.stringify(impactReviewRecordSchema)) as Record<
-    string,
-    unknown
-  >;
+export function withoutAnalysisReviews<T extends { analysisReviews: unknown }>(
+  file: T,
+): Omit<T, "analysisReviews"> {
+  const { analysisReviews: _analysisReviews, ...evidence } = file;
+  return evidence;
 }
 
-function cloneRecordTemplateSchema(): Record<string, unknown> {
-  const schema = cloneRecordSchema();
-  schema.$id = "urn:kibi:impact-review-authoring-record-template:v1";
-  const properties = schema.properties as Record<string, unknown>;
-  properties.reviewedAt = { type: "null" };
-  const definitions = schema.$defs as Record<string, unknown>;
-  const reviewer = definitions.reviewer as {
-    properties: Record<string, unknown>;
-  };
-  reviewer.properties.id = { type: "null" };
-  const file = definitions.file as {
-    properties: Record<string, unknown>;
-  };
-  file.properties.analysisReviews = {
-    anyOf: [file.properties.analysisReviews, { type: "null" }],
-  };
-  file.properties.decision = {
-    anyOf: [file.properties.decision, { type: "null" }],
-  };
-  return schema;
-}
-
-function authoringContract(
+/** The record headers that bind a review to its policy, evaluator and scope. */
+export function recordHeaders(
   prepared: PreparedImpactReview,
 ): Record<string, unknown> {
-  const recordHeaders = {
+  return {
     contractVersion: IMPACT_REVIEW_VERSION,
     policy: {
       id: prepared.policy.id,
@@ -369,101 +333,153 @@ function authoringContract(
       providerSetFingerprint: prepared.providerSetFingerprint,
     },
   };
+}
+
+type FileEvidence = PreparedImpactReview["files"][number];
+
+function analysisStatus(file: FileEvidence, side: "before" | "after") {
+  return file[side]?.analysis?.status ?? null;
+}
+
+/** A file as a list needs it: what changed and what its review still needs. */
+export function fileRow(
+  file: FileEvidence,
+  requirementIds: readonly string[],
+  obligations: readonly Record<string, unknown>[],
+): Record<string, unknown> {
   return {
-    templateVersion: "kibi.impact-review-authoring-template.v1",
-    isValidImpactReviewRecord: false,
-    instructions:
-      "This template is reviewer input only. Author every decision, required analysis review, rationale, reviewer id, and reviewedAt before strict record validation. It is not an approval, signature, or proof receipt.",
-    authoredFields: [
-      "files[].decision",
-      "files[].analysisReviews",
-      "reviewer.id",
-      "reviewedAt",
-    ],
-    recordSchema: cloneRecordSchema(),
-    decisionSchema: { $ref: "urn:kibi:impact-review:v1#/$defs/decision" },
-    analysisReviewSchema: {
-      oneOf: [
-        { $ref: "urn:kibi:impact-review:v1#/$defs/unsupportedReview" },
-        { $ref: "urn:kibi:impact-review:v1#/$defs/partialReview" },
-      ],
+    path: file.path,
+    status: file.status,
+    disposition: file.disposition,
+    analysisDepth: file.analysisDepth,
+    analysis: {
+      before: analysisStatus(file, "before"),
+      after: analysisStatus(file, "after"),
     },
-    templateSchema: {
-      $schema: "https://json-schema.org/draft/2020-12/schema",
-      $id: "urn:kibi:impact-review-authoring-template:v1",
-      type: "object",
-      additionalProperties: false,
-      required: ["templateVersion", "isValidImpactReviewRecord", "record"],
-      properties: {
-        templateVersion: {
-          const: "kibi.impact-review-authoring-template.v1",
-        },
-        isValidImpactReviewRecord: { const: false },
-        record: cloneRecordTemplateSchema(),
-      },
-    },
-    recordTemplate: {
-      templateVersion: "kibi.impact-review-authoring-template.v1",
-      isValidImpactReviewRecord: false,
-      record: {
-        ...recordHeaders,
-        reviewer: { id: null, source: "self-claimed-local" },
-        reviewedAt: null,
-        files: sortedBy(prepared.files, (file) => file.path).map((file) => ({
-          ...withoutAnalysisReviews(file),
-          analysisReviews: null,
-          decision: null,
-        })),
-      },
-    },
+    requirementIds: [...requirementIds].sort(),
+    pendingObligations: obligations.filter((row) => row.path === file.path)
+      .length,
   };
 }
 
-function withoutAnalysisReviews<T extends { analysisReviews: unknown }>(
-  file: T,
-): Omit<T, "analysisReviews"> {
-  const { analysisReviews: _analysisReviews, ...evidence } = file;
-  return evidence;
+/** One side of a requirement, by the fingerprint a decision binds to. */
+function requirementSide(
+  id: string,
+  entities: PreparedImpactReview["baseEntities"],
+): Record<string, unknown> {
+  const binding = entities.get(id);
+  return binding
+    ? {
+        state: "present",
+        entityFingerprint: binding.fingerprint,
+        artifactPath: binding.artifactPath,
+      }
+    : { state: "absent", entityFingerprint: null, artifactPath: null };
 }
 
-function completeFileEvidence(
+/**
+ * Each scoped requirement once, with the fingerprints an `updated` decision
+ * names. Its statement and links are one kb_query away, or in a named path's
+ * evidence.
+ */
+export function requirementBindings(
   prepared: PreparedImpactReview,
+  paths: readonly string[],
 ): readonly Record<string, unknown>[] {
-  return sortedBy(prepared.files, (file) => file.path).map((file) =>
-    withoutAnalysisReviews(file),
+  const ids = new Set(
+    paths.flatMap(
+      (path) => prepared.scopedRequirementIdsByPath.get(path) ?? [],
+    ),
   );
+  return [...ids].sort().map((id) => ({
+    id,
+    before: requirementSide(id, prepared.baseEntities),
+    after: requirementSide(id, prepared.headEntities),
+  }));
 }
 
-function buildPreparation(
-  scope: ImpactReviewPreparationScope,
+/** Full evidence and requirement context for the paths a call names. */
+export function namedEvidence(
+  prepared: PreparedImpactReview,
+  snapshot: GitChangeSnapshot,
+  paths: readonly string[],
+): readonly Record<string, unknown>[] {
+  const files = new Map(prepared.files.map((file) => [file.path, file]));
+  const unknown = paths.filter((path) => !files.has(path));
+  if (unknown.length > 0)
+    throw new Error(
+      `Not in the captured review inventory: ${unknown.join(", ")}`,
+    );
+  const before = entityMap(snapshot, snapshot.baseTree);
+  const after = entityMap(snapshot, snapshot.headTree);
+  return [...new Set(paths)].sort().map((path) => {
+    const requirementIds = [
+      ...(prepared.scopedRequirementIdsByPath.get(path) ?? []),
+    ].sort();
+    return {
+      ...withoutAnalysisReviews(files.get(path) as FileEvidence),
+      requirements: {
+        before: requirementIds.map((id) =>
+          requirementContext(id, before, prepared.baseEntities, before),
+        ),
+        after: requirementIds.map((id) =>
+          requirementContext(id, after, prepared.headEntities, after),
+        ),
+      },
+    };
+  });
+}
+
+/** What the reviewer authors, and how the record is written. */
+const AUTHORING = {
+  operation: "kb_author_impact_review",
+  recordPath: IMPACT_REVIEW_PATH,
+  authoredFields: [
+    "files[].decision",
+    "files[].analysisReviews",
+    "reviewer.id",
+    "reviewedAt",
+  ],
+  schema: {
+    id: IMPACT_REVIEW_SCHEMA_ID,
+    skill: "kibi-commit-review",
+    resource: IMPACT_REVIEW_SCHEMA_RESOURCE,
+  },
+  instructions:
+    "Decide each file, then send the decisions with recordHeaders.scope.fingerprint to kb_author_impact_review; Kibi adds the evidence, validates the record and writes it. Stage the record with git add -f. Kibi generates no decision, approval, signature or proof.",
+} as const;
+
+export function buildPreparation(
+  input: PrepareImpactReviewInput,
   snapshot: GitChangeSnapshot,
   prepared: PreparedImpactReview,
 ): Record<string, unknown> {
+  const files = sortedBy(prepared.files, (file) => file.path);
+  const offset = input.offset ?? 0;
+  const page = files.slice(offset);
+  const pagePaths = page.map((file) => file.path);
+  const obligations = residualReviewObligations(prepared).filter((row) =>
+    pagePaths.includes(String(row.path)),
+  );
   return {
-    preparationVersion: "kibi.impact-review-preparation.v1",
+    preparationVersion: "kibi.impact-review-preparation.v2",
     status: "ready_for_authoring",
-    snapshot: snapshotIdentity(scope, snapshot),
-    recordHeaders: {
-      contractVersion: IMPACT_REVIEW_VERSION,
-      policy: {
-        id: prepared.policy.id,
-        version: prepared.policy.version,
-        fingerprint: prepared.policyFingerprint,
-      },
-      evaluator: {
-        contractVersion: IMPACT_EVALUATOR_VERSION,
-        fingerprint: prepared.evaluatorFingerprint,
-      },
-      scope: {
-        fingerprint: prepared.scopeFingerprint,
-        knowledgeFingerprint: prepared.knowledgeFingerprint,
-        providerSetFingerprint: prepared.providerSetFingerprint,
-      },
-    },
-    files: completeFileEvidence(prepared),
-    requirementScopes: requirementScopes(prepared, snapshot),
-    residualReviewObligations: residualReviewObligations(prepared),
-    authorship: authoringContract(prepared),
+    snapshot: snapshotIdentity(input.scope, snapshot),
+    recordHeaders: recordHeaders(prepared),
+    fileCount: files.length,
+    files: page.map((file) =>
+      fileRow(
+        file,
+        prepared.scopedRequirementIdsByPath.get(file.path) ?? [],
+        obligations,
+      ),
+    ),
+    requirements: requirementBindings(prepared, pagePaths),
+    residualReviewObligations: obligations,
+    ...(input.paths && input.paths.length > 0
+      ? { evidence: namedEvidence(prepared, snapshot, input.paths) }
+      : {}),
+    authoring: AUTHORING,
   };
 }
 
@@ -478,22 +494,31 @@ function validateDiffInput(scope: ImpactReviewPreparationScope): void {
     );
 }
 
-export async function executePrepareImpactReview(
-  input: PrepareImpactReviewInput,
-  context: OperationContext,
-): Promise<OperationResult<Record<string, unknown>>> {
-  validateDiffInput(input.scope);
-  const workspaceRoot = context.workspaceRoot;
+/** A captured review scope, and the check that it held while it was used. */
+export type CapturedImpactReview = Readonly<{
+  snapshot: GitChangeSnapshot;
+  prepared: PreparedImpactReview;
+  /** Throws when the snapshot or the trusted closures changed since capture. */
+  assertUnchanged: () => void;
+}>;
+
+/**
+ * Captures the scope, analyzes both sides of every changed file and binds
+ * the trusted policy, provider and evaluator closures. Callers build their
+ * result first and then call assertUnchanged, so nothing is returned for a
+ * workspace or closure that changed mid-way.
+ */
+export async function captureImpactReview(
+  scope: ImpactReviewPreparationScope,
+  workspaceRoot: string,
+): Promise<CapturedImpactReview> {
+  validateDiffInput(scope);
   const snapshot =
-    input.scope.kind === "staged"
+    scope.kind === "staged"
       ? captureStagedSnapshot(workspaceRoot)
-      : captureDiffSnapshot(
-          workspaceRoot,
-          input.scope.baseCommit,
-          input.scope.headCommit,
-        );
-  if (input.scope.kind === "diff")
-    assertExplicitDiffUnchanged(workspaceRoot, input.scope, snapshot);
+      : captureDiffSnapshot(workspaceRoot, scope.baseCommit, scope.headCommit);
+  if (scope.kind === "diff")
+    assertExplicitDiffUnchanged(workspaceRoot, scope, snapshot);
 
   const trustedConfig = readSnapshotSourceConfig(snapshot, snapshot.baseTree);
   const providerSetFingerprint = fingerprintMaintenanceSourceSet(
@@ -512,36 +537,53 @@ export async function executePrepareImpactReview(
     evaluatorFingerprint,
     analyses,
   });
+  const assertUnchanged = () => {
+    snapshot.assertUnchanged();
+    if (scope.kind === "diff")
+      assertExplicitDiffUnchanged(workspaceRoot, scope, snapshot);
+    const finalProviderFingerprint = fingerprintMaintenanceSourceSet(
+      workspaceRoot,
+      trustedConfig,
+    );
+    const finalEvaluatorFingerprint = fingerprintImpactEvaluator();
+    if (
+      finalProviderFingerprint !== providerSetFingerprint ||
+      finalEvaluatorFingerprint !== evaluatorFingerprint
+    )
+      throw new Error(
+        "Trusted source-provider or impact-evaluator closure changed during impact review preparation",
+      );
+    snapshot.assertUnchanged();
+    if (scope.kind === "diff")
+      assertExplicitDiffUnchanged(workspaceRoot, scope, snapshot);
+  };
+  return { snapshot, prepared, assertUnchanged };
+}
 
+export async function executePrepareImpactReview(
+  input: PrepareImpactReviewInput,
+  context: OperationContext,
+): Promise<OperationResult<Record<string, unknown>>> {
+  assertGitWorkspace(
+    context.workspaceRoot,
+    "impact_review",
+    "kb_prepare_impact_review",
+  );
+  const { snapshot, prepared, assertUnchanged } = await captureImpactReview(
+    input.scope,
+    context.workspaceRoot,
+  );
   // Build all KB-derived context before the final snapshot/closure checks.
   // Projection can be substantial, so checking only before it could return
   // evidence for a workspace or evaluator closure that changed mid-projection.
-  const data = buildPreparation(input.scope, snapshot, prepared);
-
-  snapshot.assertUnchanged();
-  if (input.scope.kind === "diff")
-    assertExplicitDiffUnchanged(workspaceRoot, input.scope, snapshot);
-  const finalProviderFingerprint = fingerprintMaintenanceSourceSet(
-    workspaceRoot,
-    trustedConfig,
-  );
-  const finalEvaluatorFingerprint = fingerprintImpactEvaluator();
-  if (
-    finalProviderFingerprint !== providerSetFingerprint ||
-    finalEvaluatorFingerprint !== evaluatorFingerprint
-  )
-    throw new Error(
-      "Trusted source-provider or impact-evaluator closure changed during impact review preparation",
-    );
-  snapshot.assertUnchanged();
-  if (input.scope.kind === "diff")
-    assertExplicitDiffUnchanged(workspaceRoot, input.scope, snapshot);
-
+  const data = buildPreparation(input, snapshot, prepared);
+  assertUnchanged();
+  const files = data.files as readonly unknown[];
   return {
     content: [
       {
         type: "text",
-        text: `Prepared complete ${input.scope.kind} impact-review authoring inputs; every review decision remains unauthored.`,
+        text: `Prepared the complete ${input.scope.kind} impact-review scope: ${String(data.fileCount)} file(s), ${files.length} listed from offset ${input.offset ?? 0}; every review decision remains unauthored.`,
       },
     ],
     structuredContent: data,

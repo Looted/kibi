@@ -43,7 +43,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_search",
     cliName: "search",
     description:
-      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+      "Ask the KB a question or search it. Default intent-v1 ranking returns five one-line decision cards (requirements and ADRs, ranked by words and, with a search-hints plugin, by meaning), up to seven more decisions related by meaning, and an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer names no governing requirement and lists the words no card holds. Pass type to search scenarios, tests, facts or symbols. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   },
   {
     name: "kb_status",
@@ -61,7 +61,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_coverage",
     cliName: "coverage",
     description:
-      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Rows give each requirement's proof-stage statuses with repair and migration plan summaries; fields full adds the stage evidence and the plans' batches and actions. A result stays within its size budget and says the offset to call again with. No mutation side effects.",
   },
   {
     name: "kb_graph",
@@ -133,13 +133,19 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_prepare_impact_review",
     cliName: "prepare-impact-review",
     description:
-      "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+      "Prepare an impact review of the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns the record headers, a row per changed file with its requirement ids and pending obligations, each scoped requirement once with its fingerprints, and full evidence only for the paths you name; rows page with offset. It does not decide, approve, sign, stage, or prove the review; write the record with kb_author_impact_review.",
+  },
+  {
+    name: "kb_author_impact_review",
+    cliName: "author-impact-review",
+    description:
+      "Write .kibi/impact-review.json for the staged snapshot from your per-file decisions. Kibi captures the evidence itself, keeps an earlier decision only while its file and requirements are unchanged, validates the whole record and writes it atomically. Pass scopeFingerprint from kb_prepare_impact_review. It does not stage the record, decide for you or prove anything; the record schema is the kibi-commit-review skill's impact-review.schema.json resource.",
   },
   {
     name: "kb_review_firm_edit",
     cliName: "review-firm-edit",
     description:
-      "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
+      "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your own judgment and needs no approval from the person. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
   },
   {
     name: "kb_sparql_remote",

@@ -1,0 +1,274 @@
+{
+  "name": "kb_author_impact_review",
+  "cliName": "author-impact-review",
+  "description": "Write .kibi/impact-review.json for the staged snapshot from your per-file decisions. Kibi captures the evidence itself, keeps an earlier decision only while its file and requirements are unchanged, validates the whole record and writes it atomically. Pass scopeFingerprint from kb_prepare_impact_review. It does not stage the record, decide for you or prove anything; the record schema is the kibi-commit-review skill's impact-review.schema.json resource.",
+  "businessInputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["scope", "scopeFingerprint", "reviewer", "files"],
+    "properties": {
+      "scope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "const": "staged"
+          }
+        }
+      },
+      "scopeFingerprint": {
+        "type": "string",
+        "description": "recordHeaders.scope.fingerprint from kb_prepare_impact_review.",
+        "minLength": 1
+      },
+      "reviewer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "reviewedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "files": {
+        "type": "array",
+        "description": "Decisions for files you decide now; files the earlier record already decided may be left out while they are unchanged.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "decision"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decision": {
+              "type": "object",
+              "required": ["kind"],
+              "properties": {
+                "kind": {
+                  "enum": ["impact", "no_impact", "not_applicable"]
+                }
+              }
+            },
+            "analysisReviews": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["kind", "side"],
+                "properties": {
+                  "kind": {
+                    "enum": ["unsupported_review", "partial_review"]
+                  },
+                  "side": {
+                    "enum": ["before", "after"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "requiresProlog": false,
+  "effects": ["workspace-read", "kb-read", "workspace-write"],
+  "execute": "[function executeAuthorImpactReview]",
+  "resultVersion": "kibi.kb_author_impact_review.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_author_impact_review"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_author_impact_review.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recordPath",
+          "written",
+          "scopeFingerprint",
+          "fileCount",
+          "decided",
+          "carried",
+          "dropped",
+          "staged"
+        ],
+        "properties": {
+          "recordPath": {
+            "const": ".kibi/impact-review.json"
+          },
+          "written": {
+            "const": true
+          },
+          "scopeFingerprint": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "fileCount": {
+            "type": "integer"
+          },
+          "decided": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "carried": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dropped": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "staged": {
+            "const": false
+          }
+        }
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 3,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ]
+}

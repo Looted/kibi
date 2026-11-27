@@ -456,7 +456,11 @@ export async function executeUpsertRequest(
     payload,
     context,
     reads,
-  ).catch(() => ({ warnings: payload.warnings, nextActions: [] }));
+  ).catch(() => ({
+    warnings: payload.warnings,
+    nextActions: [],
+    approvalsNeeded: [],
+  }));
   const related = await relatedCurrentRequirements(captured, context, reads);
   return {
     ...result,
@@ -478,6 +482,20 @@ export async function executeUpsertRequest(
             },
           ]
         : []),
+      ...(followUp.approvalsNeeded.length > 0
+        ? [
+            {
+              type: "text" as const,
+              text: [
+                "Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):",
+                ...followUp.approvalsNeeded.map(
+                  (approval, index) =>
+                    `${index + 1}. ${approval.ask}${approval.alternative ? " (only instead of the step it replaces)" : ""}`,
+                ),
+              ].join("\n"),
+            },
+          ]
+        : []),
       ...(related.length > 0
         ? [
             {
@@ -492,6 +510,9 @@ export async function executeUpsertRequest(
       warnings: followUp.warnings,
       ...(followUp.nextActions.length > 0
         ? { nextActions: followUp.nextActions }
+        : {}),
+      ...(followUp.approvalsNeeded.length > 0
+        ? { approvalsNeeded: followUp.approvalsNeeded }
         : {}),
       ...(related.length > 0 ? { relatedRequirements: related } : {}),
     },

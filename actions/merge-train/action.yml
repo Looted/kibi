@@ -16,15 +16,16 @@ inputs:
     default: ""
   checks:
     description: >-
-      Required check names, comma or newline separated. A pull request boards
-      only when these passed on its current head, and a train merges only when
-      they passed on its assembled head.
+      Required check names, one per line (a name may then hold a comma) or
+      comma separated on a single line. A pull request boards only when these
+      passed on its current head, and a train merges only when they passed on
+      its assembled head.
     required: true
   train-checks:
     description: >-
       Check names a train must also pass, on its assembled head, before it
-      merges, but that a pull request does not need to board, comma or newline
-      separated. Use it for a check too slow to run on every pull request, such
+      merges, but that a pull request does not need to board, listed like
+      checks. Use it for a check too slow to run on every pull request, such
       as a full proof that your workflows run only on train branches.
     required: false
     default: ""
@@ -64,6 +65,13 @@ inputs:
       the default GITHUB_TOKEN start no workflows, so use a token that does.
     required: false
     default: ${{ github.token }}
+  checks-token:
+    description: >-
+      Token gh reads check runs with. Fine-grained personal access tokens cannot
+      read check runs, so this stays the workflow's own token (give the job
+      `checks: read`) when github-token is one.
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: composite
@@ -72,6 +80,7 @@ runs:
       working-directory: ${{ github.workspace }}
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        MERGE_TRAIN_CHECKS_TOKEN: ${{ inputs.checks-token }}
         GH_REPO: ${{ github.repository }}
         MERGE_TRAIN_BASE: ${{ inputs.base || github.event.repository.default_branch }}
         MERGE_TRAIN_CHECKS: ${{ inputs.checks }}

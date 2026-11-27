@@ -279,27 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a972488a98dd
-  - type: implements
-    from: SYM-search-hint-weak-score
-    to: REQ-kibi-search-hints-limits
-    created_at: 2026-10-29T21:27:46.307Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5a562aac629
-  - type: covered_by
-    from: SYM-search-hint-weak-score
-    to: TEST-proof-search-hint-weak-score
-    created_at: 2026-10-29T21:29:09.987Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b39887c52de0
-  - type: covered_by
-    from: SYM-search-hint-weak-score
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T21:29:10.037Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-47aecf8c4857
   - type: assumes
     from: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
     to: FACT-CASE-capability-plugin-configuration-v1-zero-timeout
@@ -414,20 +393,6 @@ relationships:
     id: rel-24d5263c4a8f
   - type: assumes
     from: SCEN-kibi-check-rule-selection
-    to: FACT-PROP-kibi-check-rule-selection-c01
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-694d9e259e3f
-  - type: assumes
-    from: SCEN-kibi-check-rule-selection
-    to: FACT-PROP-kibi-check-rule-selection-c02
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d634430a4841
-  - type: assumes
-    from: SCEN-kibi-check-rule-selection
     to: FACT-PROP-kibi-check-rule-selection-c03
     created_at: 2026-11-10T13:00:00.000Z
     created_by: kibi/upsert
@@ -482,3 +447,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6f3c3d90b98
+  - type: implements
+    from: SYM-vibe-transformVibeSkillFrontmatter
+    to: REQ-vibe-skills-mirror
+    created_at: 2026-11-19T20:10:34.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a138779a0e64
+  - type: covered_by
+    from: SYM-vibe-transformVibeSkillFrontmatter
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:36.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f69145d4ca8
+  - type: specified_by
+    from: REQ-impact-review-requirements-once
+    to: SCEN-impact-review-requirements-once
+    created_at: 2026-11-19T19:10:23.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68b3cb70dbe4
+  - type: specified_by
+    from: REQ-impact-review-requirements-once
+    to: SCEN-NEG-impact-review-requirements-once-REPEATED
+    created_at: 2026-11-19T19:10:23.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fad8fee3072
+  - type: constrains
+    from: REQ-impact-review-requirements-once
+    to: FACT-SUBJECT-kibi-impact-review-preparation
+    created_at: 2026-11-19T19:10:23.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ea9a65bab7f
+  - type: requires_property
+    from: REQ-impact-review-requirements-once
+    to: FACT-impact-review-requirements-once
+    created_at: 2026-11-19T19:10:23.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-544a0f9a003c
+  - type: verified_by
+    from: REQ-impact-review-requirements-once
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:30.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fab19f6d362f
+  - type: specified_by
+    from: REQ-impact-review-requirements-once
+    to: SCEN-NEG-impact-review-requirements-once-MISSING
+    created_at: 2026-11-19T20:18:31.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84fb4be7d848
+  - type: implements
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: REQ-kb-check-impact-advice-once
+    created_at: 2026-11-24T19:21:22.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0226e7a5e682
+  - type: covered_by
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:22.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6673c1963a5
+  - type: implements
+    from: SYM-check-format-shared-compact-impact-diagnostics
+    to: REQ-kb-check-impact-statement-quoted-once
+    created_at: 2026-11-24T19:21:33.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e3b67858ae

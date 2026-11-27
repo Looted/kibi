@@ -398,3 +398,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b61f196912fe
+  - type: constrains
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-SUBJECT-antigravity-plugin
+    created_at: 2026-11-22T05:05:10.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de064a7f4077
+  - type: specified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: SCEN-antigravity-mcp-workspace-discovery
+    created_at: 2026-11-22T05:05:10.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50944b961589
+  - type: verified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:05:10.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f931e0a1fe0
+  - type: requires_property
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-antigravity-mcp-proxies-local
+    created_at: 2026-11-22T05:14:16.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-775b10c3621d
+  - type: requires_property
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: FACT-antigravity-mcp-roots-discovery
+    created_at: 2026-11-22T05:14:16.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85e7a283d23
+  - type: assumes
+    from: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    to: FACT-NEG-VIBE-WIN32-ROUTING-SILENT-FALLBACK
+    created_at: 2026-11-21T18:28:18.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aafa3d3db64
+  - type: verified_by
+    from: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-21T18:28:18.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5382b127d20b
+  - type: constrains
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-subject
+    created_at: 2026-11-24T08:39:04.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db9d9f6bf4a4
+  - type: requires_property
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-titles
+    created_at: 2026-11-24T08:39:04.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e3f33a0c926
+  - type: requires_property
+    from: REQ-kibi-search-abstention-next-step
+    to: FACT-search-next-step-abstention
+    created_at: 2026-11-24T08:39:04.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3d53a5ca039
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-kibi-search-abstention-next-step
+    created_at: 2026-11-24T08:39:04.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31c992327bd4
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-NEG-kibi-search-next-step-ABSTAINED-NO-NEXT-ACTION
+    created_at: 2026-11-24T08:39:04.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a64d136480ad
+  - type: specified_by
+    from: REQ-kibi-search-abstention-next-step
+    to: SCEN-NEG-kibi-search-next-step-ABSTENTION-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:04.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c34332c86f3
+  - type: specified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: SCEN-NEG-antigravity-no-local-proxy
+    created_at: 2026-11-24T05:07:47.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cddea1dce3b9
+  - type: specified_by
+    from: REQ-antigravity-mcp-workspace-discovery
+    to: SCEN-NEG-antigravity-no-roots-discovery
+    created_at: 2026-11-24T05:07:47.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce2d9e510afd
+  - type: implements
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:58.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ff20d59540e
+  - type: covered_by
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:58.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b575d6b3ce4f
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    to: FACT-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:40.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b8832acfe0d

@@ -258,3 +258,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2502fab17f9
+  - type: assumes
+    from: SCEN-NEG-ci-merge-train-checks-token-VIOLATED
+    to: FACT-NEG-ci-merge-train-checks-token-VIOLATED
+    created_at: 2026-11-18T14:19:05.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-980052c3c325
+  - type: assumes
+    from: SCEN-cli-json-format-alias
+    to: FACT-cli-json-format-alias
+    created_at: 2026-11-22T17:45:49.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-751742b9d901
+  - type: verified_by
+    from: SCEN-cli-json-format-alias
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:45:49.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d2f1950709
+  - type: executable_for
+    from: SYM-test-agent-hosts-kb-call-workspace-stamp
+    to: TEST-agent-hosts-kb-call-workspace-stamp
+    created_at: 2026-11-23T17:56:33.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e49d8db57d3
+  - type: implements
+    from: SYM-antigravity-run-node-sh
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-25T08:33:45.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e82ff662610
+  - type: covered_by
+    from: SYM-antigravity-run-node-sh
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-25T08:33:45.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca64e51e3c62
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-selection-by-level-c02-eq-false
+    to: FACT-NEG-kibi-check-rule-selection-by-level-c02-eq-false
+    created_at: 2026-11-25T10:21:21.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d466dfd41fc
+  - type: covered_by
+    from: SYM-const-meaning-weight
+    to: TEST-proof-search-meaning-weight
+    created_at: 2026-11-25T19:27:15.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a6115e69fe8
+  - type: implements
+    from: SYM-const-meaning-weight
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:43:59.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68050f10cc37
+  - type: covered_by
+    from: SYM-const-meaning-weight
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:59.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-904e57190b62

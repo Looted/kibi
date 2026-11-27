@@ -1,5 +1,5 @@
 ---
-title: The kibi-zcode manifest declares its skills, commands, hooks and MCP servers, by a source proof
+title: The kibi-zcode manifest declares its skills, commands and MCP servers, by a source proof
 status: passing
 tags:
   - proof
@@ -26,23 +26,23 @@ proof_contract:
     path: ''
     select: keys
   proves:
-    - CLAIM-2C1636E502EB6164
+    - CLAIM-60DC86D3C7A20F0D
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-9c7567ad79283d6aaad97b32
+    receipt_id: PR-e1463953f387db0c3f4d5871
     test_id: TEST-proof-zcode-manifest-fields
     scope: unit
     outcome: passed
-    code_snapshot: fb035ebe8ad317f96c2ab68de5a7680a017812416249fe122eef3f4de5e136c9
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:28:15.376Z'
-    finished_at: '2026-10-27T07:28:15.565Z'
-    artifact_digest: 1ce9b5f7ec2b78c43cc9c7f4ea4a60c98671ee639e970a5333f5c1c02be0e022
-    contract_hash: 50309ab1b9b2fb9f756da05de272826dbc481d73b9a14c56469c2b082ea979c0
-    binding_hash: 76367e139c1ccb17841477d1a6d22ac85cd415e8a362537814f68dbc44feaa88
-    fingerprint: 93632abb133fad03878960ecb1cb3d2db9b8b7cbf7bf023709937cde2d856b4f
+    code_snapshot: 1ea225fe1793c41f69514dffbd58f69dedded4fb9d335ab36f64898ca34b26b9
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-24T04:16:33.749Z'
+    finished_at: '2026-11-24T04:16:34.011Z'
+    artifact_digest: 3de296dd4ce7ae85356c6b131ae68f003731d2a29b553c4258ed725fe4baafba
+    contract_hash: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
+    binding_hash: a1361471a6e563059788d341f929c481df0f02f6abf6843c350f14ff4426e7eb
+    fingerprint: 6883c50b356e80dc070e14919f67e3ac5a9a89956b691574f809d6942985f98d
     fingerprint_components:
-      contract: 50309ab1b9b2fb9f756da05de272826dbc481d73b9a14c56469c2b082ea979c0
+      contract: e329938d6a9cf532c33ae6b6cd5aea95025199866df4a68fa1897a3a1cf41b6e
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -77,26 +77,24 @@ proof_receipts:
           - author
           - commands
           - description
-          - hooks
           - license
           - mcpServers
           - name
           - skills
           - version
-    certificate_digest: d00d60f6983362039d68c7d7dd331b76b620c9d39844d00e6401e1dd20ba5d4a
+    certificate_digest: 111acc7dd9de331b52544b2d592cf0c5ab1a4d3d6057b7b8f853d899a82ded0f
     claim_bindings:
-      - claim_key: CLAIM-2C1636E502EB6164
-        requirement_id: REQ-zcode-plugin-package
-        fact_id: FACT-zcode-manifest-declares-plugin-parts
+      - claim_key: CLAIM-60DC86D3C7A20F0D
+        requirement_id: REQ-zcode-plugin-package-v2
+        fact_id: FACT-zcode-manifest-declares-plugin-parts-v2
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:
             - commands
-            - hooks
             - mcpServers
             - skills
           operator: includes
 ---
-Proves that the kibi-zcode plugin manifest declares skills, commands, hooks and mcpServers: Kibi reads the manifest fields itself.
+Proves that the kibi-zcode plugin manifest declares skills, commands and mcpServers: Kibi reads the manifest fields itself.

@@ -405,3 +405,234 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a40b6d249bf
+  - type: implements
+    from: SYM-vibe-kibi-cli-wrapper
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:16:25.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-071bb39e2fcf
+  - type: implements
+    from: SYM-vibe-kibi-cli-wrapper
+    to: REQ-vibe-workspace-resolution
+    created_at: 2026-11-19T20:16:25.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30e5abd19beb
+  - type: covered_by
+    from: SYM-vibe-kibi-cli-wrapper
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:16:25.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acfbe9d8ef55
+  - type: constrains
+    from: REQ-kibi-search-hints-default
+    to: FACT-search-hints-host-subject
+    created_at: 2026-11-24T08:21:35.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42a23c83d3e7
+  - type: requires_property
+    from: REQ-kibi-search-hints-default
+    to: FACT-search-hints-default-without-configuration
+    created_at: 2026-11-24T08:21:35.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab739e811811
+  - type: requires_property
+    from: REQ-kibi-search-hints-default
+    to: FACT-search-hints-default-when-declined
+    created_at: 2026-11-24T08:21:35.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0bdd565f896
+  - type: requires_property
+    from: REQ-kibi-search-hints-default
+    to: FACT-search-hints-default-beside-configured
+    created_at: 2026-11-24T08:21:35.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4de4f5223cb1
+  - type: specified_by
+    from: REQ-kibi-search-hints-default
+    to: SCEN-kibi-search-hints-default
+    created_at: 2026-11-24T08:21:35.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1463cc7c6820
+  - type: specified_by
+    from: REQ-kibi-search-hints-default
+    to: SCEN-NEG-kibi-search-hints-default-NOT-WITHOUT-CONFIG
+    created_at: 2026-11-24T08:21:35.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-072de0532263
+  - type: specified_by
+    from: REQ-kibi-search-hints-default
+    to: SCEN-NEG-kibi-search-hints-default-WHEN-DECLINED
+    created_at: 2026-11-24T08:21:35.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81105781db91
+  - type: specified_by
+    from: REQ-kibi-search-hints-default
+    to: SCEN-NEG-kibi-search-hints-default-BESIDE-CONFIGURED
+    created_at: 2026-11-24T08:21:35.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cdc8a94000a
+  - type: implements
+    from: SYM-plugin-search-hints-vector-cache
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:21:09.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c7989f78d17
+  - type: covered_by
+    from: SYM-plugin-search-hints-vector-cache
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:21:09.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee4ce56db7f7
+  - type: constrains
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-subject
+    created_at: 2026-11-25T14:29:13.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d577f37a8f57
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-superseded-folds-into-chain-head
+    created_at: 2026-11-25T14:29:13.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-620c51271ac3
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-near-identical-folds-unless-firm-or-polarity
+    created_at: 2026-11-25T14:29:13.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c31b6c7fcf28
+  - type: requires_property
+    from: REQ-search-decision-collapse
+    to: FACT-search-decision-collapse-folded-listed-on-card
+    created_at: 2026-11-25T14:29:13.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2bc1f48ae98
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-search-collapse-chains-and-twins
+    created_at: 2026-11-25T14:29:13.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1270e18083d0
+  - type: verified_by
+    from: REQ-search-decision-collapse
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:29:13.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6e321aa987
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-superseded-folds-into-chain-head-OFF
+    created_at: 2026-11-25T14:37:12.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-516893ba95c3
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-near-identical-folds-unless-firm-or-polarity-BELOW
+    created_at: 2026-11-25T14:37:12.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-456929fa75ba
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-search-decision-collapse-near-identical-folds-unless-firm-or-polarity-AT
+    created_at: 2026-11-25T14:37:12.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec02792b5490
+  - type: specified_by
+    from: REQ-search-decision-collapse
+    to: SCEN-NEG-search-decision-collapse-folded-listed-on-card-OFF
+    created_at: 2026-11-25T14:37:12.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8983041b0da9
+  - type: covered_by
+    from: SYM-retrieval-tokens-words
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:58:05.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ee552da1fce
+  - type: implements
+    from: SYM-retrieval-tokens-words
+    to: REQ-search-decision-collapse
+    created_at: 2026-11-25T14:58:05.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-973d670d8d40
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:42.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7be0ee6b186c
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-rejected
+    created_at: 2026-11-25T09:48:43.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74e332a11d52
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c02-neq-0
+    created_at: 2026-11-25T10:20:08.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5418a68089b
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c01-eq-false
+    created_at: 2026-11-25T10:20:14.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebcd5e1cfecb
+  - type: validates
+    from: TEST-kibi-required-evidence-at-remember
+    to: SCEN-NEG-kibi-required-evidence-at-remember-c02-gt-0
+    created_at: 2026-11-25T10:20:19.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e818221e3f6
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    to: FACT-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    created_at: 2026-11-25T10:21:34.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddbec0409b81
+  - type: implements
+    from: SYM-doctor-is-hook-executable
+    to: REQ-git-hook-effective-install
+    created_at: 2026-11-27T00:03:42.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4115d913f4d
+  - type: covered_by
+    from: SYM-doctor-is-hook-executable
+    to: TEST-git-hook-effective-install
+    created_at: 2026-11-27T00:03:42.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1df1978830e2

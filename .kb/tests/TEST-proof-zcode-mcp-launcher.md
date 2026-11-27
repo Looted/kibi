@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-DA997A6FCF6F4FF1
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d08281cf5b977f74ca737d7f
+    receipt_id: PR-c0466d9647ad1ccac98f874d
     test_id: TEST-proof-zcode-mcp-launcher
     scope: unit
     outcome: passed
-    code_snapshot: deaa38704483739241c070e9b69174f84cdb3a042e29025eeecfcee689f8b8db
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T09:24:52.514Z'
-    finished_at: '2026-10-27T09:24:52.844Z'
-    artifact_digest: e90e0fa72d395f8cd92f5c0fe64eae59d4693f1411188e9790db2976b3ef7168
+    code_snapshot: 9386eaa53daa10f81157166c388a39229b4b1a7e1a8c41b588be3f34652fcf8e
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-23T18:35:21.069Z'
+    finished_at: '2026-11-23T18:35:21.327Z'
+    artifact_digest: 4fea272e11d9b76cb41c10d171c1a8ef6981218ffa0cd842602f19c23b0d710d
     contract_hash: 39e651fbbb17ca008ef8085981187ad7d62053a331b0d16110f0313d96603853
-    binding_hash: 581c1a99ee62af2c3803717ef601a5abb286b073a0541ad95bee8b60bb3a3b94
+    binding_hash: 344612a595f4a556b7ddbe7ba62cf7b307c55722ebd621ab0e8e371e37c7858e
     fingerprint: 9a25954881d18f0d4fe50f259387bedf7b2f0f6869e0f42235564b6ca363414a
     fingerprint_components:
       contract: 39e651fbbb17ca008ef8085981187ad7d62053a331b0d16110f0313d96603853
@@ -75,13 +75,15 @@ proof_receipts:
       model:
         members:
           - ${ZCODE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
-    certificate_digest: b5d172ae6949d3b55f54dcc6b861fed62b1edad1f421c4121864cfca8a020838
+        sequence:
+          - ${ZCODE_PLUGIN_ROOT}/bin/mcp-launcher.cjs
+    certificate_digest: f16fe7540fcfebd89cee5c04a67abcb4ce94dfbeb34b9d42e897bb96e5444ef6
     claim_bindings:
       - claim_key: CLAIM-DA997A6FCF6F4FF1
-        requirement_id: REQ-zcode-plugin-package
+        requirement_id: REQ-zcode-plugin-package-v2
         fact_id: FACT-zcode-mcp-server-launcher
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

@@ -201,12 +201,29 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/zcode"],
   },
   {
+    // The long-running MCP handshake contract lives in
+    // packages/vibe/tests/launcher-contract.test.mjs and runs via the proof
+    // steps (proof/steps/TEST-vibe-plugin-contract-v1.json); only the fast
+    // runtime unit tests join this batch so the 15s timeout stays honest.
+    label: "vibe",
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/vibe/tests/runtime.test.mjs",
+    ],
+  },
+  {
     label: "agent-core",
     args: ["test", "--timeout", "15000", "./packages/agent-core"],
   },
   {
     label: "claude",
     args: ["test", "--timeout", "15000", "./packages/claude"],
+  },
+  {
+    label: "antigravity",
+    args: ["test", "--timeout", "15000", "./packages/antigravity"],
   },
   {
     label: "vscode activation",

@@ -237,14 +237,14 @@ describe("discovery results reach each host once", () => {
     expect(embedded.text).toContain(`"count":${ROW_COUNT}`);
   }, 120_000);
 
-  test("kb_search without a limit returns ten ranked rows and says more remain", async () => {
+  test("kb_search without a limit returns five decision cards and says more remain", async () => {
     const { data } = await callAs(
       { host: "claude-code", clientName: "claude-code" },
       "kb_search",
       { query: "ranked row of the search fixture", answer: false },
     );
     expect(data.count).toBe(ROW_COUNT);
-    expect((data.results as unknown[]).length).toBe(10);
+    expect((data.results as unknown[]).length).toBe(5);
     expect(data.truncated).toBe(true);
   }, 120_000);
 });

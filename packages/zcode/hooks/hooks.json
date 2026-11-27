@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js\"",
+            "command": "node \"${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeoutMs": 15000
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js\"",
+            "command": "node \"${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeoutMs": 15000
           }
         ]
@@ -24,11 +24,11 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*",
+        "matcher": "^(Edit|MultiEdit|Write|apply_patch|Read|Grep|Bash|mcp__.*__kb_.*)$",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js\"",
+            "command": "node \"${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeoutMs": 15000
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js\"",
+            "command": "node \"${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeoutMs": 15000
           }
         ]
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js\"",
+            "command": "node \"${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeoutMs": 15000
           }
         ]

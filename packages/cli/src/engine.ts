@@ -23,6 +23,7 @@ import {
   rmSync,
   statSync,
   unlinkSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import * as net from "node:net";
@@ -78,6 +79,7 @@ import {
   unmigratedLegacyStoreRefusal,
 } from "./utils/branch-store-locator.js";
 import { canonicalFilesystemPath } from "./utils/canonical-path.js";
+import { engineSocketKey } from "./utils/engine-socket-key.js";
 
 export type {
   EngineAttachmentIdentity,
@@ -559,13 +561,7 @@ export function engineSocketPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  const canonicalRoot = canonicalFilesystemPath(workspaceRoot);
-  const key = createHash("sha256")
-    .update(`${canonicalRoot}\0${branch}`)
-    // Retain 128 bits of workspace/branch identity; runtimeDirectory budgets
-    // the complete pathname rather than shortening this identity.
-    .digest("hex")
-    .slice(0, 32);
+  const key = engineSocketKey(canonicalFilesystemPath(workspaceRoot), branch);
   if (process.platform === "win32") {
     return `\\\\.\\pipe\\kibi-${key}`;
   }
@@ -737,6 +733,20 @@ export function acquireEnginePublicationLease(
   };
 }
 
+const ENGINE_DRAIN_TOUCH_INTERVAL_MS = 250;
+const ENGINE_DRAIN_TOUCH_FRESH_MS = 1_500;
+const ENGINE_START_LOCK_TOUCH_INTERVAL_MS = 1_000;
+const ENGINE_STOP_WAIT_MS = 5_000;
+
+function touchTimestamp(filePath: string): void {
+  try {
+    const now = new Date();
+    utimesSync(filePath, now, now);
+  } catch {
+    // Best effort while the lock or pid file is present.
+  }
+}
+
 function tryAcquireStartLock(lockPath: string): number | null {
   try {
     const descriptor = openSync(lockPath, "wx", 0o600);
@@ -744,14 +754,11 @@ function tryAcquireStartLock(lockPath: string): number | null {
     return descriptor;
   } catch {
     // Remove a lock left by a crashed starter, but never steal one from a
-    // live process. A short age grace period avoids racing a slow Node start.
+    // live process. A short age grace period anchored to mtimeMs (touched
+    // every 1 s during daemon boot) avoids racing a slow Node start.
     try {
-      const [pidText, createdText] = readFileSync(lockPath, "utf8").split(":");
-      const created = Number.parseInt(String(createdText), 10);
-      // A stamp without its creation time is judged by the file's age.
-      const age =
-        Date.now() -
-        (Number.isFinite(created) ? created : statSync(lockPath).mtimeMs);
+      const [pidText] = readFileSync(lockPath, "utf8").split(":");
+      const age = Date.now() - statSync(lockPath).mtimeMs;
       if (
         age > 5_000 &&
         !isProcessAlive(Number.parseInt(pidText as string, 10))
@@ -875,6 +882,92 @@ function connectSocket(
     // out: destroying an errored socket again is harmless.
     socket.on("error", reject);
   });
+}
+
+type SocketProbeResult =
+  | { readonly kind: "missing" }
+  | { readonly kind: "not_socket" }
+  | { readonly kind: "live"; readonly socket: net.Socket }
+  | { readonly kind: "dead" }
+  | { readonly kind: "unreachable"; readonly error?: unknown };
+
+function socketProbeErrno(error: unknown): string {
+  if (error && typeof error === "object") {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (typeof code === "string") return code;
+    const errno = (error as NodeJS.ErrnoException).errno;
+    if (errno === -32) return "EPIPE";
+    if (errno === -104) return "ECONNRESET";
+    if (errno === -111) return "ECONNREFUSED";
+    if (errno === -13) return "EACCES";
+    if (errno === -2) return "ENOENT";
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (/\bECONNREFUSED\b/i.test(message)) return "ECONNREFUSED";
+  if (/\bENOENT\b/i.test(message)) return "ENOENT";
+  if (/\bEPIPE\b|\bbroken pipe\b/i.test(message)) return "EPIPE";
+  if (/\bECONNRESET\b/i.test(message)) return "ECONNRESET";
+  if (/\bEACCES\b/i.test(message)) return "EACCES";
+  return "";
+}
+
+function isWindowsNamedPipe(socketPath: string): boolean {
+  return socketPath.startsWith(WINDOWS_PIPE_PREFIX);
+}
+
+function isLivePeerSignal(error: unknown): boolean {
+  const code = socketProbeErrno(error);
+  if (code === "EPIPE" || code === "ECONNRESET") return true;
+  if (error && typeof error === "object" && "errno" in error) {
+    if (Number((error as NodeJS.ErrnoException).errno) === -32) return true;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  return /\bEPIPE\b|\bECONNRESET\b|broken pipe/i.test(message);
+}
+
+async function probeEngineSocket(
+  socketPath: string,
+  timeoutMs = 150,
+): Promise<SocketProbeResult> {
+  if (!isWindowsNamedPipe(socketPath)) {
+    let stat: ReturnType<typeof lstatSync>;
+    try {
+      stat = lstatSync(socketPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code === "ENOENT") {
+        return { kind: "missing" };
+      }
+      return { kind: "unreachable", error };
+    }
+    if (!stat.isSocket()) return { kind: "not_socket" };
+  }
+  try {
+    const socket = await connectSocket(socketPath, timeoutMs);
+    return { kind: "live", socket };
+  } catch (error) {
+    const code = socketProbeErrno(error);
+    if (code === "ECONNREFUSED") return { kind: "dead" };
+    if (code === "ENOENT") return { kind: "missing" };
+    return { kind: "unreachable", error };
+  }
+}
+
+function readPidFile(pidPath: string): number {
+  try {
+    return Number.parseInt(String(readFileSync(pidPath)), 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function hasFreshDrainTouch(pidPath: string): boolean {
+  try {
+    return (
+      Date.now() - statSync(pidPath).mtimeMs <= ENGINE_DRAIN_TOUCH_FRESH_MS
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -1136,6 +1229,7 @@ export class EngineClient {
     const nodePath = daemonNodePath();
     const entry = daemonEntry();
     const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
+    const pidPath = enginePidPath(this.workspaceRoot, this.branch);
     const startDeadline = Date.now() + this.timeout;
     while (Date.now() < startDeadline) {
       if (existsSync(socketPath)) {
@@ -1145,64 +1239,94 @@ export class EngineClient {
         );
         if (socket !== null) return socket;
       }
-      // A draining daemon removes its listener before saving, but retains
-      // its PID until the branch lock is released. Do not start a second
-      // writer while that process is still completing shutdown.
-      if (!this.daemonProcessAlive()) {
-        const lock = tryAcquireStartLock(lockPath);
-        if (lock !== null) {
-          let daemonExit: string | null = null;
-          try {
-            rmSync(engineSidecarPath(socketPath, ".error"), { force: true });
-            try {
-              const daemon = spawn(
-                nodePath,
-                [
-                  entry,
-                  "--workspace",
-                  this.workspaceRoot,
-                  "--branch",
-                  this.branch,
-                  "--socket",
-                  socketPath,
-                ],
-                {
-                  detached: true,
-                  stdio: "ignore",
-                  env: {
-                    ...process.env,
-                    KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
-                    // The daemon reports the versions of the client that
-                    // started it, so this client and its own daemon agree even
-                    // when the daemon entry is resolved from a bundled host.
-                    KIBI_PACKAGE_VERSIONS: enginePackageVersions(),
-                  },
-                },
-              );
-              // Listen before the spawn settles: a daemon that dies at once
-              // can exit right after it spawns.
-              daemon.once("exit", (code, signal) => {
-                daemonExit = signal ?? `exit code ${code}`;
-              });
-              await new Promise<void>((resolve, reject) => {
-                daemon.once("spawn", resolve);
-                daemon.once("error", reject);
-              });
-              this.daemon = daemon;
-            } catch (error) {
-              throw new Error(
-                `Kibi engine requires Node.js >=18 to host the daemon; failed to start '${nodePath}': ${error instanceof Error ? error.message : String(error)}`,
-              );
-            }
-            this.daemon.unref();
-            return await connectWithRetry(
-              socketPath,
-              this.timeout,
-              () => daemonExit,
-            );
-          } finally {
-            releaseStartLock(lockPath, lock);
+      // Hold startLockPath before reclaiming any dead socket so a concurrent
+      // daemon between bind() and listen() is never disrupted.
+      const lock = tryAcquireStartLock(lockPath);
+      if (lock !== null) {
+        const lockKeepalive = setInterval(
+          () => touchTimestamp(lockPath),
+          ENGINE_START_LOCK_TOUCH_INTERVAL_MS,
+        );
+        lockKeepalive.unref();
+        let daemonExit: string | null = null;
+        try {
+          const probe = await probeEngineSocket(socketPath);
+          if (probe.kind === "live") {
+            return probe.socket;
           }
+          if (probe.kind === "not_socket" || probe.kind === "unreachable") {
+            throw new Error(
+              `Kibi engine socket remains present but is not reachable: ${socketPath}`,
+            );
+          }
+          if (probe.kind === "dead") {
+            try {
+              rmSync(socketPath, { force: true });
+            } catch {}
+            try {
+              rmSync(pidPath, { force: true });
+            } catch {}
+          } else if (
+            probe.kind === "missing" &&
+            (await this.waitForDrainOrCleanStalePid({
+              holdsPublicationLease: false,
+              giveUpAt: startDeadline,
+            }))
+          ) {
+            // A daemon drained, or a successor took over: connect to that
+            // successor's socket rather than spawning another writer.
+            continue;
+          }
+          rmSync(engineSidecarPath(socketPath, ".error"), { force: true });
+          try {
+            const daemon = spawn(
+              nodePath,
+              [
+                entry,
+                "--workspace",
+                this.workspaceRoot,
+                "--branch",
+                this.branch,
+                "--socket",
+                socketPath,
+              ],
+              {
+                detached: true,
+                stdio: "ignore",
+                env: {
+                  ...process.env,
+                  KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
+                  // The daemon reports the versions of the client that
+                  // started it, so this client and its own daemon agree even
+                  // when the daemon entry is resolved from a bundled host.
+                  KIBI_PACKAGE_VERSIONS: enginePackageVersions(),
+                },
+              },
+            );
+            // Listen before the spawn settles: a daemon that dies at once
+            // can exit right after it spawns.
+            daemon.once("exit", (code, signal) => {
+              daemonExit = signal ?? `exit code ${code}`;
+            });
+            await new Promise<void>((resolve, reject) => {
+              daemon.once("spawn", resolve);
+              daemon.once("error", reject);
+            });
+            this.daemon = daemon;
+          } catch (error) {
+            throw new Error(
+              `Kibi engine requires Node.js >=18 to host the daemon; failed to start '${nodePath}': ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
+          this.daemon.unref();
+          return await connectWithRetry(
+            socketPath,
+            this.timeout,
+            () => daemonExit,
+          );
+        } finally {
+          clearInterval(lockKeepalive);
+          releaseStartLock(lockPath, lock);
         }
       }
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1636,21 +1760,165 @@ export class EngineClient {
     }
   }
 
-  getPid(): number {
+  private async waitForDrainOrCleanStalePid(options: {
+    readonly holdsPublicationLease: boolean;
+    /** A starter's own deadline: past it, give up instead of waiting on. */
+    readonly giveUpAt?: number;
+  }): Promise<boolean> {
     const pidPath = enginePidPath(this.workspaceRoot, this.branch);
-    try {
-      return Number.parseInt(String(readFileSync(pidPath)), 10) || 0;
-    } catch {
-      return 0;
+    if (!existsSync(pidPath)) return false;
+    const deadline = Date.now() + ENGINE_STOP_WAIT_MS;
+    let waited = false;
+    while (existsSync(pidPath)) {
+      // A starter stops waiting once a successor listens: the pid file it
+      // sees may already be that successor's.
+      if (
+        options.giveUpAt !== undefined &&
+        existsSync(engineSocketPath(this.workspaceRoot, this.branch))
+      )
+        return true;
+      const pid = readPidFile(pidPath);
+      if (pid <= 1 || !isProcessAlive(pid)) {
+        try {
+          rmSync(pidPath, { force: true });
+        } catch {}
+        return waited;
+      }
+      // A live pid that never touches its file is a recycled pid or a daemon
+      // that lost its socket. It is reclaimed only after the full stop wait:
+      // a daemon from an older release drains without touching the file, and
+      // starting a second writer while it still saves would race its store.
+      if (
+        Date.now() >= deadline &&
+        !hasFreshDrainTouch(pidPath) &&
+        !options.holdsPublicationLease
+      ) {
+        try {
+          rmSync(pidPath, { force: true });
+        } catch {}
+        // Nothing was stopped: the pid did not name a daemon that drained.
+        return false;
+      }
+      if (Date.now() >= deadline) {
+        throw new Error("Kibi engine did not stop within 5 seconds");
+      }
+      if (options.giveUpAt !== undefined && Date.now() >= options.giveUpAt) {
+        throw Object.assign(
+          new Error(
+            `Kibi engine at ${engineSocketPath(this.workspaceRoot, this.branch)} is still draining`,
+          ),
+          { code: "ENGINE_CONNECT_TIMEOUT" },
+        );
+      }
+      waited = true;
+      await new Promise((resolve) => setTimeout(resolve, 25));
     }
+    return true;
+  }
+
+  /**
+   * Stop a live daemon, reclaim a dead Unix socket (`ECONNREFUSED`) at once
+   * under the start lock, fail closed on non-socket files or ambiguous peer
+   * errors (`EPIPE`/`ECONNRESET`/`EACCES`), and wait for a draining daemon.
+   */
+  async stopOrReclaim(
+    options: {
+      holdsPublicationLease?: boolean;
+      allowAlreadyLocked?: boolean;
+    } = {},
+  ): Promise<boolean> {
+    const holdsLease = options.holdsPublicationLease === true;
+    const publicationLockPath = enginePublicationLockPath(
+      this.workspaceRoot,
+      this.branch,
+    );
+    if (
+      !holdsLease &&
+      !this.allowPublicationLock &&
+      publicationLockIsActive(publicationLockPath)
+    ) {
+      throw new Error(
+        `Kibi engine publication is in progress: ${publicationLockPath}`,
+      );
+    }
+    if (this.isRunning()) {
+      await this.shutdownConnectedDaemon();
+      return true;
+    }
+
+    const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
+    const pidPath = enginePidPath(this.workspaceRoot, this.branch);
+    const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
+    let lockDescriptor: number | null = null;
+    if (!holdsLease && !options.allowAlreadyLocked) {
+      const lockDeadline =
+        Date.now() + Math.min(this.timeout, ENGINE_STOP_WAIT_MS);
+      while (lockDescriptor === null) {
+        lockDescriptor = tryAcquireStartLock(lockPath);
+        if (lockDescriptor !== null) break;
+        if (Date.now() >= lockDeadline) {
+          throw new Error(
+            `Kibi engine start or shutdown is already in progress: ${lockPath}`,
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    }
+
+    try {
+      const probe = await probeEngineSocket(socketPath);
+      if (probe.kind === "live") {
+        this.socket = probe.socket;
+        this.attachSocket(probe.socket);
+        await this.shutdownConnectedDaemon();
+        return true;
+      }
+      if (probe.kind === "not_socket" || probe.kind === "unreachable") {
+        throw new Error(
+          `Kibi engine socket remains present but is not reachable: ${socketPath}`,
+        );
+      }
+      if (probe.kind === "dead") {
+        try {
+          rmSync(socketPath, { force: true });
+        } catch {}
+        try {
+          rmSync(pidPath, { force: true });
+        } catch {}
+        return false;
+      }
+      return await this.waitForDrainOrCleanStalePid({
+        holdsPublicationLease: holdsLease,
+      });
+    } finally {
+      if (lockDescriptor !== null) {
+        releaseStartLock(lockPath, lockDescriptor);
+      }
+    }
+  }
+
+  getPid(): number {
+    return readPidFile(enginePidPath(this.workspaceRoot, this.branch));
   }
 
   /** Resolves false when no daemon answered and none was started. */
   async stop(startIfMissing = true): Promise<boolean> {
+    if (!startIfMissing) {
+      const publicationLockPath = enginePublicationLockPath(
+        this.workspaceRoot,
+        this.branch,
+      );
+      if (
+        !this.allowPublicationLock &&
+        publicationLockIsActive(publicationLockPath)
+      ) {
+        return false;
+      }
+      return this.stopOrReclaim({ holdsPublicationLease: false });
+    }
     try {
-      await this.connect(startIfMissing);
+      await this.connect(true);
     } catch {
-      if (!startIfMissing) return false;
       throw new Error("Unable to start Kibi engine for stop request");
     }
     // A socket left without a listener is refused by the shutdown below.
@@ -2080,51 +2348,39 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPackageVersions = enginePackageVersions();
 
   ensureEngineSocketDirectory(options.socketPath);
-  // A missing socket refuses the probe like a stale one.
   {
-    const isLivePeerSignal = (error: unknown): boolean => {
-      if (error && typeof error === "object") {
-        const code = String((error as NodeJS.ErrnoException).code);
-        if (code === "EPIPE" || code === "ECONNRESET") return true;
-        const errno =
-          "errno" in error
-            ? Number((error as NodeJS.ErrnoException).errno)
-            : Number.NaN;
-        // POSIX EPIPE
-        if (errno === -32) return true;
-      }
-      const message = error instanceof Error ? error.message : String(error);
-      return /\bEPIPE\b|\bECONNRESET\b|broken pipe/i.test(message);
-    };
-    let live = false;
-    try {
-      const existing = await connectSocket(options.socketPath, 100);
+    const probe = await probeEngineSocket(options.socketPath, 100);
+    if (probe.kind === "live") {
       // Keep a permanent error sink. Bun 1.4 can surface write EPIPE from
       // teardown into the caller promise on some CI runners, replacing the
       // intended live-listener error.
-      existing.on("error", () => undefined);
-      live = true;
-      existing.destroy();
-    } catch (error) {
-      // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live
-      // unix listener instead of resolving connect.
-      if (isLivePeerSignal(error)) {
-        live = true;
-      }
-      // Otherwise a refused connection means a stale filesystem socket.
-    }
-    if (live) {
-      // Best-effort cleanup; Bun may surface a late EPIPE here too.
+      probe.socket.on("error", () => undefined);
+      probe.socket.destroy();
       await prolog.terminate().catch(() => undefined);
       throw new Error(
         `A Kibi engine is already listening at ${options.socketPath}`,
       );
     }
-    try {
-      rmSync(options.socketPath);
-    } catch {
-      // A missing socket needs no removal; the listen call below reports
-      // permission/address-in-use failures.
+    // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live unix
+    // listener instead of resolving connect.
+    if (probe.kind === "unreachable" && isLivePeerSignal(probe.error)) {
+      await prolog.terminate().catch(() => undefined);
+      throw new Error(
+        `A Kibi engine is already listening at ${options.socketPath}`,
+      );
+    }
+    if (probe.kind === "not_socket" || probe.kind === "unreachable") {
+      await prolog.terminate().catch(() => undefined);
+      throw new Error(
+        `Kibi engine socket remains present but is not reachable: ${options.socketPath}`,
+      );
+    }
+    if (probe.kind === "dead") {
+      try {
+        rmSync(options.socketPath);
+      } catch {
+        // Missing or unremovable sockets are surfaced by the listen error below.
+      }
     }
   }
   writeFileSync(
@@ -2647,48 +2903,71 @@ export async function runEngineDaemon(requestedOptions: {
     // clearInterval ignores a watch that was never scheduled.
     clearInterval(idleWatch as NodeJS.Timeout);
     clearInterval(workspaceWatchdog);
-    // Stop accepting clients before the first asynchronous durability step.
-    // Keep the PID published until Prolog releases the branch-store lock.
-    server.close();
-    await queue.catch(() => undefined);
-    const saved = session.needsRecycle()
-      ? null
-      : await prolog.query("kb_save").catch(() => undefined);
-    let detached: boolean | undefined = false;
-    if (saved?.success) {
-      try {
-        fsyncJournaledBranchStore(branchPath);
-      } catch {
-        // Shutdown remains best effort. Request-time writes fail closed if
-        // their durability barrier cannot complete.
-      }
-      // Release the store the way the one-shot path does: kb_detach removes
-      // rdf/lock and the ownership journal. A SIGTERM'd SWI process never
-      // runs its at_halt cleanup, so skipping this left a dead lock behind
-      // on every stop.
-      detached = await prolog
-        .query("kb_detach")
-        .then((result) => result.success)
-        .catch(() => undefined);
-    }
-    // Once kb_detach released the store, nothing in at_halt is needed and the
-    // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
-    // its at_halt cleanup) for a bounded moment; the wait ends on exit.
-    await prolog
-      .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
-      .catch(() => undefined);
-    for (const client of clients) client.destroy();
-    // A close callback can remain pending on older Node releases when a
-    // client disconnects during `server.close()`. The daemon has already
-    // removed its socket/pid and has no useful work left, so do not keep the
-    // hosting process alive on that bookkeeping handle.
-    server.unref();
+    const pidPath = enginePidPath(options.workspaceRoot, options.branch);
+    touchTimestamp(pidPath);
+    let drainTouchActive = true;
+    let drainTouchTimer: NodeJS.Timeout | undefined;
+    const scheduleDrainTouch = (): void => {
+      if (!drainTouchActive) return;
+      drainTouchTimer = setTimeout(() => {
+        touchTimestamp(pidPath);
+        scheduleDrainTouch();
+      }, ENGINE_DRAIN_TOUCH_INTERVAL_MS);
+      drainTouchTimer.unref();
+    };
+    scheduleDrainTouch();
     try {
-      rmSync(options.socketPath, { force: true });
-      // Last: a vanished pid file has nothing left to remove.
-      rmSync(enginePidPath(options.workspaceRoot, options.branch));
-    } catch {
-      // best effort cleanup
+      // Stop accepting clients before the first asynchronous durability step.
+      // Keep the PID published (and touched while draining) until Prolog
+      // releases the branch-store lock.
+      server.close();
+      await queue.catch(() => undefined);
+      const saved = session.needsRecycle()
+        ? null
+        : await prolog.query("kb_save").catch(() => undefined);
+      let detached: boolean | undefined = false;
+      if (saved?.success) {
+        try {
+          fsyncJournaledBranchStore(branchPath);
+        } catch {
+          // Shutdown remains best effort. Request-time writes fail closed if
+          // their durability barrier cannot complete.
+        }
+        // Release the store the way the one-shot path does: kb_detach removes
+        // rdf/lock and the ownership journal. A SIGTERM'd SWI process never
+        // runs its at_halt cleanup, so skipping this left a dead lock behind
+        // on every stop.
+        detached = await prolog
+          .query("kb_detach")
+          .then((result) => result.success)
+          .catch(() => undefined);
+      }
+      // Once kb_detach released the store, nothing in at_halt is needed and the
+      // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
+      // its at_halt cleanup) for a bounded moment; the wait ends on exit.
+      await prolog
+        .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
+        .catch(() => undefined);
+      for (const client of clients) client.destroy();
+      // A close callback can remain pending on older Node releases when a
+      // client disconnects during `server.close()`. The daemon has already
+      // removed its socket/pid and has no useful work left, so do not keep the
+      // hosting process alive on that bookkeeping handle.
+      server.unref();
+    } finally {
+      drainTouchActive = false;
+      clearTimeout(drainTouchTimer);
+    }
+    // A pid file naming another process belongs to a successor daemon that
+    // reclaimed this one; its socket and pid file are not this daemon's.
+    if (readPidFile(pidPath) === process.pid) {
+      try {
+        rmSync(options.socketPath, { force: true });
+        // Last: a vanished pid file has nothing left to remove.
+        rmSync(pidPath);
+      } catch {
+        // best effort cleanup
+      }
     }
     // The daemon is a detached host process. Once the SWI child and socket are
     // gone, force the final event-loop exit rather than retaining a stale

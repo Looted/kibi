@@ -272,3 +272,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f21719b8396
+  - type: implements
+    from: SYM-cli-result-budget-declaration
+    to: REQ-result-budget-declared
+    created_at: 2026-11-19T15:47:38.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac962919dcf2
+  - type: covered_by
+    from: SYM-cli-result-budget-declaration
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:38.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d50214da5fcf
+  - type: implements
+    from: SYM-vibe-buildWslArgs
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T21:37:03.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13b70b5e7056
+  - type: covered_by
+    from: SYM-vibe-buildWslArgs
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:03.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21866d7f0399
+  - type: constrains
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: FACT-SUBJ-kibi-prove-command
+    created_at: 2026-11-20T16:11:12.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5425a50b893
+  - type: requires_property
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: FACT-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-20T16:11:12.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-853839c2667f
+  - type: specified_by
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: SCEN-cli-prove-narrowed-run-evidence
+    created_at: 2026-11-20T16:11:12.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34def1553ac3
+  - type: specified_by
+    from: REQ-cli-prove-narrowed-run-evidence
+    to: SCEN-NEG-cli-prove-narrowed-run-evidence-SKIPPED-SPEC
+    created_at: 2026-11-20T16:11:12.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c92c457207b4
+  - type: implements
+    from: SYM-src-hook-runner-guarded-change-ask
+    to: REQ-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:45.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3876677e18b
+  - type: covered_by
+    from: SYM-src-hook-runner-guarded-change-ask
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:45.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-673e537101da
+  - type: implements
+    from: SYM-retrieval-eval-rank-of
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:14:53.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-508019e3e4bd
+  - type: covered_by
+    from: SYM-retrieval-eval-rank-of
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:14:53.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9284f4ef23a

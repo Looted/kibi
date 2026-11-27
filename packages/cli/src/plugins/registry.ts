@@ -47,10 +47,11 @@ import {
 } from "kibi-plugin-sdk";
 
 import { type LoadPluginOptions, loadPluginPackage } from "./load-plugin.js";
-import { readProjectKibiConfig } from "./project-config.js";
+import { readProjectKibiConfig, servesKbDependency } from "./project-config.js";
 import { PluginResolutionError } from "./resolve-package.js";
 
 export type BuiltinPluginFactory = () => KibiPluginV1 | Promise<KibiPluginV1>;
+export type BundledSearchHintsFactory = BuiltinPluginFactory;
 
 export type CapabilityProviderBinding<T> = Readonly<{
   pluginId: string;
@@ -77,6 +78,8 @@ export type CapabilityRegistryOptions = Readonly<{
   workspaceRoot: string;
   /** Injected builtin plugin; defaults to a local stub. */
   builtinFactory?: BuiltinPluginFactory;
+  /** Injected bundled search hints plugin; defaults to kibi-plugin-search-hints. */
+  bundledSearchHints?: BundledSearchHintsFactory;
   /** Pre-validated project config; skips package.json when provided. */
   projectConfig?: ProjectKibiConfig;
   /** Injectable project-config reader for tests. */
@@ -112,10 +115,14 @@ const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [REFERENCE_EXTRACTOR_CAPABILITY_ID]: "referenceExtractor",
 };
 
+/** The package Kibi ships as the default search hints provider. */
+export const BUNDLED_SEARCH_HINTS_PACKAGE = "kibi-plugin-search-hints";
+
 /**
- * Search hints have no builtin answer: without a configured provider there
- * are no hints. A builtin package that predates the capability resolves to
- * this host no-op instead of failing the search.
+ * Search hints have no builtin answer. Without a configured provider the
+ * bundled kibi-plugin-search-hints answers them; a project that declined it,
+ * and a builtin package that predates the capability, resolve to this host
+ * no-op instead of failing the search.
  */
 export const NO_SEARCH_HINTS: SearchHintsV1 = {
   id: "kibi-host.search-hints.none",
@@ -223,6 +230,20 @@ async function defaultBuiltinFactory(): Promise<KibiPluginV1> {
   return validated;
 }
 
+/**
+ * The search hints plugin Kibi ships as its own dependency, loaded from the
+ * host's install and never from the workspace.
+ */
+async function defaultBundledSearchHints(): Promise<KibiPluginV1> {
+  const mod = (await import("kibi-plugin-search-hints")) as {
+    kibiPlugin: KibiPluginV1;
+  };
+  // The plugin reads its version from its own package.json, so the export
+  // and the installed package cannot disagree.
+  const validated = validateKibiPlugin(mod.kibiPlugin);
+  return validated;
+}
+
 function stampFor(
   plugin: KibiPluginV1,
   capability: CapabilityId,
@@ -301,6 +322,7 @@ function capabilityFromPlugin(
 export class CapabilityRegistry {
   readonly workspaceRoot: string;
   private readonly builtinFactory: BuiltinPluginFactory;
+  private readonly bundledSearchHints: BundledSearchHintsFactory;
   private readonly readConfig: (workspaceRoot: string) => ProjectKibiConfig;
   private readonly loadPlugin: NonNullable<
     CapabilityRegistryOptions["loadPlugin"]
@@ -322,6 +344,8 @@ export class CapabilityRegistry {
   constructor(options: CapabilityRegistryOptions) {
     this.workspaceRoot = options.workspaceRoot;
     this.builtinFactory = options.builtinFactory ?? defaultBuiltinFactory;
+    this.bundledSearchHints =
+      options.bundledSearchHints ?? defaultBundledSearchHints;
     this.readConfig = options.readConfig ?? readProjectKibiConfig;
     this.loadPlugin = options.loadPlugin ?? loadPluginPackage;
     this.loadPluginOptions = options.loadPluginOptions;
@@ -500,6 +524,40 @@ export class CapabilityRegistry {
       } else {
         shadow.push(binding);
       }
+    }
+
+    // Search hints are on by default: a project that names no provider for
+    // the capability and has not declined the plugin gets the bundled one.
+    // Any configured provider, in any mode, wins; so does a decline. A
+    // process serving a KB dependency reads it with builtin providers only.
+    if (
+      capabilityId === SEARCH_HINTS_CAPABILITY_ID &&
+      !entries.some((entry) => entry.capabilities[capabilityId]) &&
+      !config.declinedPlugins?.includes(BUNDLED_SEARCH_HINTS_PACKAGE) &&
+      !servesKbDependency()
+    ) {
+      const plugin = validateKibiPlugin(await this.bundledSearchHints());
+      const capability = capabilityFromPlugin(plugin, capabilityId);
+      if (!capability) {
+        throw new PluginResolutionError(
+          "PLUGIN_MISSING_CAPABILITY",
+          `Bundled plugin '${plugin.id}' does not export ${capabilityId}`,
+        );
+      }
+      const bound = bindingFor(
+        plugin,
+        BUNDLED_SEARCH_HINTS_PACKAGE,
+        "replace",
+        capabilityId,
+        capability,
+      );
+      // Kibi's own dependency, not code the project chose: the stamp reads
+      // as not external, which tells it from a configured replace provider.
+      replace = {
+        ...bound,
+        external: false,
+        stamp: { ...bound.stamp, external: false },
+      };
     }
 
     return { builtin, replace, augment, shadow };

@@ -503,3 +503,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2626fca4342
+  - type: implements
+    from: SYM-codex-cell-runner-read-workspace-sources
+    to: REQ-skillopt-reference-answers-score-100
+    created_at: 2026-11-19T20:42:27.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb1b45e374db
+  - type: covered_by
+    from: SYM-codex-cell-runner-read-workspace-sources
+    to: TEST-skillopt-reference-answers-score-100
+    created_at: 2026-11-19T20:42:27.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-645c8a877110
+  - type: covered_by
+    from: SYM-mcp-resolve-kibi-mcp-server-command
+    to: TEST-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:54:06.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b1ba6ab6211
+  - type: implements
+    from: SYM-level-evidence-guard-assert-required-evidence-fits-level
+    to: REQ-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:51.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0e6c855e03
+  - type: covered_by
+    from: SYM-level-evidence-guard-assert-required-evidence-fits-level
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:51.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad4c69e2630
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: REQ-kibi-no-git-detection-never-inside-repository
+    created_at: 2026-11-25T09:16:49.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bfef00dbaf4
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: SCEN-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:49.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd360aaff5a1
+  - type: validates
+    from: TEST-kibi-no-git-unreadable-repository
+    to: SCEN-NEG-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:49.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f95b54cd2b2c
+  - type: implements
+    from: SYM-markdown-render-summary-markdown-body
+    to: REQ-kibi-signoff-written-and-printed
+    created_at: 2026-11-25T14:21:16.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac02ddd8a071
+  - type: covered_by
+    from: SYM-markdown-render-summary-markdown-body
+    to: TEST-kibi-signoff-views
+    created_at: 2026-11-25T14:21:16.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9590ef039950
+  - type: implements
+    from: SYM-mcp-resolve-kibi-mcp-server-command
+    to: REQ-vscode-mcp-server-provider
+    created_at: 2026-11-25T18:05:59.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb8c4d8533e5

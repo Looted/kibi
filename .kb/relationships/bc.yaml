@@ -279,3 +279,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-614cccece033
+  - type: verified_by
+    from: SCEN-vibe-skills-mirror
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:16:05.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33f74eb157fe
+  - type: constrains
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-24T20:04:31.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f0e7777dd6d
+  - type: requires_property
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:04:31.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10f633179c25
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:04:31.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-470fcbabb3ff
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    created_at: 2026-11-24T20:04:31.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79631009d34a
+  - type: implements
+    from: SYM-claude-fileKnowledgeSnippet
+    to: REQ-edit-snippet-names-hidden-requirements
+    created_at: 2026-11-24T20:05:05.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0246ea6ff74a
+  - type: covered_by
+    from: SYM-claude-fileKnowledgeSnippet
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-24T20:13:14.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21a74cad9394
+  - type: implements
+    from: SYM-read-context-grep-reg-exp
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:45:51.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d26cb3b0c7
+  - type: covered_by
+    from: SYM-read-context-grep-reg-exp
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:45:51.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eedb7b2653d
+  - type: requires_property
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-kb-upsert-capture-failure-scenario-at-test
+    created_at: 2026-11-25T09:42:11.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b92dee653fc
+  - type: requires_property
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: FACT-kb-upsert-capture-no-verification-at-remember
+    created_at: 2026-11-25T09:42:11.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6349647c5643
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-kb-upsert-capture-at-remember
+    created_at: 2026-11-25T09:42:29.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f163c0a4b2aa
+  - type: specified_by
+    from: REQ-kb-upsert-capture-every-step-up-front
+    to: SCEN-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    created_at: 2026-11-25T10:21:35.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47d84aabb8c7

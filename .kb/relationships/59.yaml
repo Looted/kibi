@@ -342,3 +342,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-642d997c0580
+  - type: verified_by
+    from: SCEN-NEG-vibe-wsl-spawn-shell-string
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T22:37:20.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48e22fbb64ff
+  - type: specified_by
+    from: REQ-impact-review-author-strict
+    to: SCEN-impact-review-author-strict
+    created_at: 2026-11-19T19:12:14.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e04f787102fc
+  - type: specified_by
+    from: REQ-impact-review-author-strict
+    to: SCEN-NEG-impact-review-author-strict-INVALID-WRITTEN
+    created_at: 2026-11-19T19:12:14.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f054c6cc1a46
+  - type: verified_by
+    from: REQ-impact-review-author-strict
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:14.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e58a2927cfdd
+  - type: constrains
+    from: REQ-impact-review-author-strict
+    to: FACT-SUBJECT-kibi-impact-review-authoring
+    created_at: 2026-11-19T19:12:14.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d134dd095b68
+  - type: requires_property
+    from: REQ-impact-review-author-strict
+    to: FACT-impact-review-author-strict
+    created_at: 2026-11-19T19:12:14.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd611052573e
+  - type: assumes
+    from: SCEN-NEG-vibe-wsl-spawn-shell-string
+    to: FACT-NEG-VIBE-WSL-EXEC-CALLS-ONE
+    created_at: 2026-11-24T15:38:24.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f78f63982a99
+  - type: implements
+    from: SYM-requirement-candidates-restated-requirement
+    to: REQ-agent-hosts-restated-rule-quiet
+    created_at: 2026-11-24T20:00:25.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1061083f909
+  - type: covered_by
+    from: SYM-requirement-candidates-restated-requirement
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-24T20:00:25.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4ead8e2448
+  - type: executable_for
+    from: SYM-cli-migrate-managed-hooks-refresh-verifier
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:30.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f6ee3f08354

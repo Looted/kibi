@@ -6,10 +6,12 @@ import path from "node:path";
 
 import {
   type DecisionSession,
+  RECORD_FOLLOW_UP_LINE,
   SIGNOFF_LATEST_JSON,
   captureReminder,
   claimCaptureReminder,
   claimDecisionFlag,
+  claimGuardedChangeNotice,
   claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
@@ -764,7 +766,7 @@ describe("firm edit texts", () => {
       "Kibi asked the person to confirm this edit because it changes code that implements firm requirements REQ-a, REQ-b.",
     );
     expect(firmEditContext(["REQ-a"])).toEndWith(
-      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person\'s approval, and kibi signoff lists it as such.',
+      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your own judgment: record it without asking the person to approve it; kibi signoff lists it as yours.',
     );
   });
 
@@ -772,7 +774,7 @@ describe("firm edit texts", () => {
     expect(firmEditNotice("src/a.ts", [firm])).toBe(
       [
         "Kibi: this edit changes src/a.ts, which implements a firm requirement, a rule the person set: REQ-a: Only admins delete.",
-        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person\'s approval.',
+        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your own judgment: record it without asking the person to approve it.',
       ].join("\n"),
     );
     const many = firmEditNotice("src/a.ts", [firm, untitled, third]);
@@ -1011,14 +1013,14 @@ describe("statedRule and notes", () => {
     expect(captureReminder("never")).toBe(
       [
         'Kibi: the person\'s request said "never", this session changed source files, and nothing was recorded in the knowledge base.',
-        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule.',
+        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule. kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.',
       ].join("\n"),
     );
     expect(captureReminder("never")).not.toContain("when there was none");
     expect(captureReminder(undefined)).toBe(
       [
         "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line. kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.",
       ].join("\n"),
     );
   });
@@ -1026,7 +1028,8 @@ describe("statedRule and notes", () => {
   test("the capture template quotes the phrase and is one kb_record input", () => {
     const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
     expect(rest).toEqual([
-      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+      "kb_record returns every step left before kb_check passes (nextActions) and every approval only the person can give (approvalsNeeded) at once: do the steps in this change, and put all the approvals to the person in one question, not one per check result.",
+      "Facts, decisions and other modeling go through kb_upsert.",
     ]);
     expect(intro).toBe(
       'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:',
@@ -1048,7 +1051,7 @@ describe("statedRule and notes", () => {
     expect(rulePromptNote("must", "because longer ones get skipped")).toBe(
       `${rulePromptNote("must")}\n${ask}`,
     );
-    const [, payload, line, last] = ruleCaptureTemplate(
+    const [, payload, line, followUp, last] = ruleCaptureTemplate(
       "must",
       "because longer ones get skipped",
     ).split("\n");
@@ -1056,8 +1059,9 @@ describe("statedRule and notes", () => {
       "<the person's reason, in their words>",
     );
     expect(line).toBe(ask);
+    expect(followUp).toBe(RECORD_FOLLOW_UP_LINE);
     expect(last).toBe(
-      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+      "Facts, decisions and other modeling go through kb_upsert.",
     );
   });
 });
@@ -1152,6 +1156,38 @@ describe("session markers", () => {
     expect(claimDecisionFlag(s, "capture-asked")).toBe(true);
     expect(claimDecisionFlag(s, "capture-asked")).toBe(false);
     expect(claimDecisionFlag(noState, "capture-asked")).toBe(false);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "level",
+        path: "package.json",
+        from: "test",
+        to: "remember",
+      }),
+    ).toBe(true);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "level",
+        path: "package.json",
+        from: "test",
+        to: "remember",
+      }),
+    ).toBe(false);
+    expect(
+      claimGuardedChangeNotice(s, {
+        kind: "evidence",
+        requirementId: "REQ-a",
+        from: "tested",
+        to: "asserted",
+      }),
+    ).toBe(true);
+    expect(
+      claimGuardedChangeNotice(noState, {
+        kind: "evidence",
+        requirementId: "REQ-a",
+        from: "tested",
+        to: "asserted",
+      }),
+    ).toBe(false);
     markDecisionFlag(noState, "source-edited");
     expect(hasDecisionFlag(noState, "source-edited")).toBe(false);
   });

@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { readKibiLevel } from "kibi-agent-core/kibi-level";
 import { requestTopicWords } from "kibi-agent-core/requirement-candidates";
 import { KbRejection } from "../../cli-errors.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
@@ -23,10 +24,13 @@ import type {
   OperationContext,
   PrologPort,
 } from "../../public/operations/runtime-types.js";
+import { readSubjectNeighbours } from "../../public/operations/subject-domain.js";
 import {
   type ClaimSubjectGap,
+  anchoredSubjects,
   claimSubjectGaps,
   claimSubjectMissingPrefix,
+  pairReviewPartners,
 } from "./subject-warnings.js";
 import type { UpsertInput, UpsertPayload } from "./types.js";
 import { symbolCoverageWarning } from "./warnings.js";
@@ -48,6 +52,21 @@ export type CaptureNextAction = Readonly<{
   input: unknown;
   reason: string;
   required: boolean;
+}>;
+
+/**
+ * A decision only a person can make before a written requirement reaches its
+ * evidence floor, listed once so the agent asks the person one question.
+ */
+export type CaptureApproval = Readonly<{
+  /** What is approved: a pair verdict, a tracked file, a waiver. */
+  kind: "pair_review" | "proof_integration" | "failure_side_waiver";
+  /** The requirement, pair or file the approval is about. */
+  about: string;
+  /** The question, in plain words, to put to the person. */
+  ask: string;
+  /** Needed only if the agent takes this route instead of the step itself. */
+  alternative?: true;
 }>;
 
 /** A current requirement on the same terms as the one written. */
@@ -73,10 +92,27 @@ export type CaptureReads = Readonly<{
   currentRequirements: () => Promise<
     readonly { id: string; title: string; semanticText: string }[]
   >;
+  /**
+   * The other current requirements kibi check pairs with the requirement on
+   * these subjects (on each, a narrower or a broader one), with their titles.
+   */
+  neighbours: (
+    requirementId: string,
+    subjectKeys: readonly string[],
+  ) => Promise<readonly { id: string; title: string }[]>;
+  /** Whether the workspace declares a proof integration kibi prove can run. */
+  proofIntegration: () => Promise<boolean>;
 }>;
 
-/** The capture reads over a Prolog store. */
-export function prologCaptureReads(prolog: PrologPort): CaptureReads {
+/**
+ * The capture reads over a Prolog store. Without the workspace root the
+ * reads that need its files report no neighbours and an integration, so a
+ * step is never added on a guess.
+ */
+export function prologCaptureReads(
+  prolog: PrologPort,
+  workspaceRoot?: string,
+): CaptureReads {
   const holds = async (goal: string) =>
     (await prolog.query(`once((${goal}))`)).success;
   const atom = (id: string) => `'${escapeAtom(id)}'`;
@@ -111,14 +147,34 @@ export function prologCaptureReads(prolog: PrologPort): CaptureReads {
     },
     subjectGaps: (entity) => claimSubjectGaps(entity, prolog),
     currentRequirements: () => loadCurrentRequirementTexts(prolog),
+    neighbours: async (requirementId, subjectKeys) => {
+      if (workspaceRoot === undefined || subjectKeys.length === 0) return [];
+      const read = await readSubjectNeighbours(prolog, workspaceRoot, {
+        requirementId,
+        subjectKeys,
+        withIds: [],
+      });
+      const seen = new Map<string, string>();
+      for (const subject of read.subjects)
+        for (const requirement of subject.requirements)
+          if (requirement.id !== requirementId && !seen.has(requirement.id))
+            seen.set(requirement.id, requirement.title);
+      return [...seen].map(([id, title]) => ({ id, title }));
+    },
+    proofIntegration: async () =>
+      workspaceRoot === undefined ||
+      existsSync(path.join(workspaceRoot, ".kb", "proof", "integrations.json")),
   };
 }
 
 function readsFor(context: OperationContext): CaptureReads | undefined {
   return context.prolog === undefined
     ? undefined
-    : prologCaptureReads(context.prolog);
+    : prologCaptureReads(context.prolog, context.workspaceRoot);
 }
+
+/** At most this many related requirements a pair-review step names. */
+export const MAX_PAIR_REVIEW_STEPS = 5;
 
 /** Context section headings `why` may fill, in the order one is chosen. */
 const REASON_HEADINGS = ["Context", "Why", "Rationale"] as const;
@@ -355,6 +411,28 @@ function inventoryWithSubjects(
     });
 }
 
+/** Inventory statuses of a claim no fact grounds yet. */
+const UNMODELED_STATUSES = new Set(["missing", "ontology_gap", "ambiguous"]);
+
+/** The claim keys of the requirement's claims that no fact grounds yet. */
+function unmodeledClaimKeys(entity: Entity): string[] {
+  const stored = Array.isArray(entity.semantic_inventory)
+    ? entity.semantic_inventory
+    : [];
+  return stored
+    .filter(
+      (entry): entry is Record<string, unknown> =>
+        typeof entry === "object" &&
+        entry !== null &&
+        UNMODELED_STATUSES.has(String(entry.status)),
+    )
+    .map((entry) => String(entry.claim_key));
+}
+
+const VERDICT_PLACEHOLDER = "<no_conflict | interacts | conflict>";
+const SEPARATED_PLACEHOLDER =
+  "<for no_conflict: the condition or term that separates the two rules>";
+
 /** The reason of the claim-subject-missing step. */
 function subjectReason(id: string, gaps: readonly ClaimSubjectGap[]): string {
   const claims =
@@ -374,18 +452,156 @@ function subjectReason(id: string, gaps: readonly ClaimSubjectGap[]): string {
  * with the warnings they replace removed. A step that needs a judgment only
  * the agent can make (a reason, a test case) carries a <placeholder>.
  */
+type FollowUp = Readonly<{
+  action: CaptureNextAction;
+  approvals: CaptureApproval[];
+}>;
+
+function required(
+  operation: string,
+  code: string,
+  input: unknown,
+  reason: string,
+): CaptureNextAction {
+  return { operation, code, input, reason, required: true };
+}
+
+/**
+ * The pair reviews kb_check asks for once the claims name their subjects,
+ * listed with the first write; a verdict on a firm pair is a person's.
+ */
+export function pairReviewFollowUp(
+  id: string,
+  head: Readonly<{ title: string; status: string }>,
+  claims: readonly string[],
+  subjectKeys: readonly string[],
+  partners: readonly Readonly<{ id: string; title: string }>[],
+  firmPartners: readonly string[],
+): FollowUp {
+  return {
+    action: required(
+      "kb_upsert",
+      "related-requirement-unmodeled",
+      {
+        type: "req",
+        id,
+        properties: {
+          ...head,
+          pair_reviews: partners.map((partner) => ({
+            with: partner.id,
+            verdict: VERDICT_PLACEHOLDER,
+            separated_by: SEPARATED_PLACEHOLDER,
+            claims,
+            origin: { kind: "agent" },
+          })),
+        },
+      },
+      `Once its claims name ${subjectKeys.join(", ")}, kb_check pairs ${id} with ${partners.map((partner) => `${partner.id} ("${partner.title}")`).join(", ")} and blocks until each pair is modeled or has a verdict. Model both claims, or send one pair review per partner: no_conflict with separated_by naming what separates them, interacts with resolved_by naming what resolves it, or conflict, which stays blocking until a person decides.${firmPartners.length > 0 ? " A verdict on a firm pair counts only with approved_by from a person, so those pairs are in approvalsNeeded." : ""}`,
+    ),
+    approvals: firmPartners.map((partner) => ({
+      kind: "pair_review",
+      about: `${id} and ${partner}`,
+      ask: `Do ${id} and ${partner} both hold as written, and is the agent's verdict on the pair right? The person's name goes in that review's approved_by.`,
+    })),
+  };
+}
+
+/**
+ * Unmodeled claims get a kb_model step at every level: a grounded claim is
+ * what lets kb_check catch a contradiction. Below a proof floor at level
+ * test, grounding is also what the floor needs first.
+ */
+export function groundingStep(
+  id: string,
+  floor: string | undefined,
+  claims: readonly string[],
+  statement: string,
+): CaptureNextAction {
+  return required(
+    "kb_model",
+    floor === undefined ? "missing_logic_grounding" : "evidence-floor",
+    { mode: "requirement", requirementId: id, text: statement },
+    floor === undefined
+      ? `Each claim of ${id} (${claims.join(", ")}) is still unmodeled, so kb_check cannot tell when another requirement contradicts it: kb_model returns the facts to upsert.`
+      : `${id} reaches ${floor} only when each claim (${claims.join(", ")}) is grounded by a fact: kb_model returns the facts to upsert. A grounded claim also needs the failure-side scenario below.`,
+  );
+}
+
+/**
+ * A new requirement with a proof floor gets its failure-side scenario in the
+ * first list, so its second wave of gaps is not a second question.
+ */
+export function failureScenarioFollowUp(
+  id: string,
+  scenarioId: string,
+  floor: string | undefined,
+): FollowUp {
+  return {
+    action: required(
+      "kb_upsert",
+      "evidence-floor",
+      {
+        type: "scenario",
+        id: scenarioId,
+        properties: {
+          title: `<a value ${id} forbids is refused>`,
+          status: "active",
+          expects: "rejection",
+        },
+        document: {
+          body: `<given a value or situation ${id} forbids, when ..., then it is refused>\n`,
+        },
+      },
+      `Once its claims are grounded, ${id} is not ${floor} while only its happy path is: this failure-side scenario expects rejection and assumes a value the requirement forbids; the same test verifies it. If ${id} has no input to refuse (it states a capability or an output shape), a person may approve a failure_side_waiver instead, listed in approvalsNeeded.`,
+    ),
+    approvals: [
+      {
+        kind: "failure_side_waiver",
+        about: id,
+        ask: `Only if ${id} has no input to refuse: may its failure side be waived (failure_side_waiver_approved_by)?`,
+        alternative: true,
+      },
+    ],
+  };
+}
+
+/** A workspace with no proof integration is named, with the file it adds. */
+export function proofIntegrationFollowUp(testId: string): FollowUp {
+  return {
+    action: required(
+      "kibi proof inspect",
+      "evidence-floor",
+      { command: "kibi proof run-steps", json: true },
+      `This workspace has no proof integration (.kb/proof/integrations.json), so kibi prove cannot run ${testId} yet. Run kibi proof inspect --command "kibi proof run-steps" --json and apply the plan it returns with kb_apply_plan. It adds .kb/proof/integrations.json, a new tracked file the person approves (listed in approvalsNeeded).`,
+    ),
+    approvals: [
+      {
+        kind: "proof_integration",
+        about: ".kb/proof/integrations.json",
+        ask: "May the change add .kb/proof/integrations.json, which tells kibi prove how to run this repository's tests?",
+      },
+    ],
+  };
+}
+
 export async function captureFollowUp(
   input: UpsertInput,
   payload: UpsertPayload,
   context: OperationContext,
   reads: CaptureReads | undefined = readsFor(context),
-): Promise<{ warnings: string[]; nextActions: CaptureNextAction[] }> {
+): Promise<{
+  warnings: string[];
+  nextActions: CaptureNextAction[];
+  approvalsNeeded: CaptureApproval[];
+}> {
   const warnings = [...payload.warnings];
   if (input.type !== "req" || reads === undefined)
-    return { warnings, nextActions: [] };
+    return { warnings, nextActions: [], approvalsNeeded: [] };
   const id = input.id;
   const entity = await reads.entity(id, "req");
-  if (entity === undefined) return { warnings, nextActions: [] };
+  if (entity === undefined)
+    return { warnings, nextActions: [], approvalsNeeded: [] };
+  const approvals: CaptureApproval[] = [];
   const head = {
     title: text(entity.title) || id,
     status: text(entity.status) || "open",
@@ -449,19 +665,80 @@ export async function captureFollowUp(
     );
   }
 
-  const uncovered: string[] = [];
+  // kb_check pairs the requirement with the others on its subjects once its
+  // claims name them, so the pair reviews are listed now, not after the
+  // subject step is done.
+  const subjectKeys =
+    gaps.length > 0
+      ? [
+          ...new Set(
+            gaps
+              .map((gap) => gap.candidates[0])
+              .filter((key): key is string => key !== undefined),
+          ),
+        ]
+      : anchoredSubjects(entity);
+  const reviewed = new Set(pairReviewPartners(entity));
+  const claims = unmodeledClaimKeys(entity);
+  const partners =
+    claims.length === 0
+      ? []
+      : (await reads.neighbours(id, subjectKeys))
+          .filter((partner) => !reviewed.has(partner.id))
+          .slice(0, MAX_PAIR_REVIEW_STEPS);
+  if (partners.length > 0) {
+    const ownFirm =
+      effectiveFirmness("req", entity.firmness, entity.origin) === "firm";
+    const firmPartners: string[] = [];
+    for (const partner of partners) {
+      const stored = await reads.entity(partner.id, "req");
+      if (
+        ownFirm ||
+        effectiveFirmness("req", stored?.firmness, stored?.origin) === "firm"
+      )
+        firmPartners.push(partner.id);
+    }
+    const review = pairReviewFollowUp(
+      id,
+      head,
+      claims,
+      subjectKeys,
+      partners,
+      firmPartners,
+    );
+    actions.push(review.action);
+    approvals.push(...review.approvals);
+  }
+
+  // Level remember asks for no scenario, test or proof: only the knowledge
+  // steps above and the grounding below are listed, and a symbol's missing
+  // test is neither a step nor a warning.
+  const verifies = readKibiLevel(context.workspaceRoot).level === "test";
+  const notCovered: string[] = [];
   for (const symbol of await reads.implementingSymbols(id))
-    if (!(await reads.covered(symbol))) uncovered.push(symbol);
-  const coverage = new Set(uncovered.flatMap(symbolCoverageWarning));
+    if (!(await reads.covered(symbol))) notCovered.push(symbol);
+  const coverage = new Set(notCovered.flatMap(symbolCoverageWarning));
   drop((warning) => coverage.has(warning));
+  const uncovered = verifies ? notCovered : [];
   const floor = evidenceFloorOf(entity);
-  const needsProof = floor === "tested" || floor === "proved";
+  const needsProof = verifies && (floor === "tested" || floor === "proved");
   const tested = await reads.tested(id);
   const free = async (prefix: string) => {
     const first = `${prefix}-${id.replace(/^REQ-/, "")}`;
     return (await reads.exists(first)) ? `${first}-check` : first;
   };
   let testId = "<a TEST that verifies this requirement>";
+  // Unmodeled claims are grounded at every level; below a tested floor the
+  // failure-side scenario below is asked for once they are.
+  if (claims.length > 0)
+    actions.push(
+      groundingStep(
+        id,
+        !tested && needsProof ? floor : undefined,
+        claims,
+        text(entity.semantic_text) || head.title,
+      ),
+    );
   if (!tested && (needsProof || uncovered.length > 0)) {
     const code = needsProof ? "evidence-floor" : "symbol-coverage";
     const need = needsProof
@@ -469,14 +746,24 @@ export async function captureFollowUp(
       : " that covers its code";
     // A requirement that has its scenarios needs only the test of them.
     const specified = await reads.scenarios(id);
-    const scenarioIds = specified.length > 0 ? specified : [await free("SCEN")];
+    const mainScenario = await free("SCEN");
+    // A new requirement with a proof floor gets its failure-side scenario in
+    // the same list, so its second wave of gaps is not a second question.
+    const failureScenario =
+      specified.length === 0 && needsProof
+        ? `${mainScenario}-rejected`
+        : undefined;
+    const scenarioIds =
+      specified.length > 0
+        ? specified
+        : [mainScenario, ...(failureScenario ? [failureScenario] : [])];
     testId = await free("TEST");
     if (specified.length === 0)
       step(
         code,
         {
           type: "scenario",
-          id: scenarioIds[0],
+          id: mainScenario,
           properties: { title: head.title, status: "active" },
           document: {
             body: `<one case ${id} decides: given ..., when ..., then ...>\n`,
@@ -484,6 +771,11 @@ export async function captureFollowUp(
         },
         `${id} needs a scenario and a test${need}; this records the scenario.`,
       );
+    if (failureScenario !== undefined) {
+      const failure = failureScenarioFollowUp(id, failureScenario, floor);
+      actions.push(failure.action);
+      approvals.push(...failure.approvals);
+    }
     step(
       code,
       {
@@ -512,11 +804,13 @@ export async function captureFollowUp(
           type: "req",
           id,
           properties: head,
-          relationships: [
-            { type: "specified_by", from: id, to: scenarioIds[0] },
-          ],
+          relationships: scenarioIds.map((scenario) => ({
+            type: "specified_by",
+            from: id,
+            to: scenario,
+          })),
         },
-        `Links ${id} to ${scenarioIds[0]}.`,
+        `Links ${id} to ${scenarioIds.join(" and ")}.`,
       );
   }
   for (const symbol of uncovered) {
@@ -537,6 +831,11 @@ export async function captureFollowUp(
       `kb_check blocks ${symbol} until a test of ${id} covers it.`,
     );
   }
+  if (!tested && needsProof && !(await reads.proofIntegration())) {
+    const setup = proofIntegrationFollowUp(testId);
+    actions.push(setup.action);
+    approvals.push(...setup.approvals);
+  }
   if (!tested && needsProof)
     step(
       "evidence-floor",
@@ -544,7 +843,14 @@ export async function captureFollowUp(
       `kb_check blocks ${id} below its evidence floor (${floor}) until ${testId} has a passing proof: give it a proof_contract naming the test code's symbol (executable_for ${testId}) and proof/steps/${testId}.json with the commands that run it, then run kibi prove --test ${testId}. kibi proof explain ${id} lists what is left.`,
       "kibi prove",
     );
-  return { warnings, nextActions: actions };
+  return {
+    warnings,
+    nextActions: actions,
+    // A rule the person stated is approved by their own words (its quote is
+    // origin.ref), so its statement is not put back to them; only the
+    // decisions no write can make on their behalf are listed.
+    approvalsNeeded: approvals,
+  };
 }
 
 /** At most this many related requirements a write lists. */

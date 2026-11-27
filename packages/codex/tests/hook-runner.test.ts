@@ -36,6 +36,9 @@ function createTempRoot(prefix: string): string {
 }
 
 function optInWorkspace(root: string): void {
+  // Inside Git, so the session brief carries no no-Git advisory.
+  if (!fs.existsSync(path.join(root, ".git")))
+    fs.mkdirSync(path.join(root, ".git"));
   fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
 }
@@ -302,6 +305,8 @@ describe("Codex hook runner workspace opt-in", () => {
     optInWorkspace(mainCheckout);
     const worktree = createTempRoot("kibi-codex-wt-");
     optInWorkspace(worktree);
+    // A linked worktree has a .git file, not a directory.
+    fs.rmSync(path.join(worktree, ".git"), { recursive: true });
     fs.writeFileSync(
       path.join(worktree, ".git"),
       "gitdir: elsewhere/kibi/.git/worktrees/wt\n",
@@ -429,7 +434,7 @@ function loadHookStateFromPluginData(pluginData: string) {
 }
 
 describe("Codex hook runner workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(cwd, pluginData);
@@ -454,6 +459,27 @@ describe("Codex hook runner workspace stamp", () => {
         updatedInput: { query: "checkout", limit: 5, workspaceRoot: cwd },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    const worktree = createTempRoot("kibi-codex-worktree-");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, worktree, pluginData);
+    optInWorkspace(cwd);
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          cwd,
+          tool_name: "mcp__kibi__kb_search",
+          tool_input: { query: "checkout", workspaceRoot: worktree },
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
   });
 
   test("other tools and unconfigured workspaces are left alone", async () => {
@@ -822,7 +848,14 @@ describe("Codex decision guard", () => {
       tool_name: "Bash",
       tool_input: { command },
     });
+    // A shell read names the requirement of the code in view, once.
+    expect(contextOf(await event(shell("cat src/checkout.ts")))).toContain(
+      "- REQ-checkout-rounding [firm: ask before changing]",
+    );
     expect(contextOf(await event(shell("cat src/checkout.ts")))).toBe("");
+    expect(contextOf(await event(shell("sed -n '1,2p' src/checkout.ts")))).toBe(
+      "",
+    );
     expect(
       contextOf(await event(shell("sed -i s/100/1000/ src/checkout.ts"))),
     ).toStartWith(
@@ -1642,7 +1675,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toContain(
       "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
-    expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
+    expect(context).toMatch(/\n- Also linked \([345] more\): REQ-/);
     expect(context).toContain("\nWhy: ");
     expect(context).toContain("\nNext layer: ");
     expect(context).toEndWith("gives the commit gate's verdict on the edit.");
@@ -2328,5 +2361,98 @@ describe("Codex reminders from real payload shapes", () => {
       ["Stop", "stop_reminder", null, null],
       ["Stop", "stop_freshness_reminder", null, null],
     ]);
+  });
+});
+
+describe("Codex Kibi level and required evidence notices", () => {
+  function guardedWorkspace(): { cwd: string; pluginData: string } {
+    const cwd = createTempRoot("kibi-codex-guard-");
+    tempRoots.push(cwd);
+    optInWorkspace(cwd);
+    writeFile(
+      cwd,
+      "package.json",
+      `${JSON.stringify({ name: "app", kibi: { level: "test" } }, null, 2)}\n`,
+    );
+    writeFile(
+      cwd,
+      ".kb/requirements/REQ-floor.md",
+      "---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: tested\norigin:\n  kind: agent\n---\nBody.\n",
+    );
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    return { cwd, pluginData };
+  }
+  const contextOf = (result: HookResult) =>
+    result.hookSpecificOutput &&
+    "additionalContext" in result.hookSpecificOutput
+      ? result.hookSpecificOutput.additionalContext
+      : undefined;
+
+  test("a patch that changes the level tells the agent to ask the person first", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: package.json",
+      "@@",
+      '-    "level": "test"',
+      '+    "level": "remember"',
+      "*** End Patch",
+    ].join("\n");
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: { command: patch },
+      },
+      { pluginData },
+    );
+    expect(contextOf(result)).toContain(
+      "Kibi: this change changes the Kibi level from test to remember (package.json). That is the person's decision, not yours: ask the person before making it",
+    );
+  });
+
+  test("a kb_upsert or .kb edit that lowers a floor gets the notice, and no permission decision", async () => {
+    const { cwd, pluginData } = guardedWorkspace();
+    const call = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "mcp__kibi__kb_upsert",
+        tool_input: {
+          type: "req",
+          id: "REQ-floor",
+          properties: { required_evidence: "asserted" },
+        },
+      },
+      { pluginData },
+    );
+    expect(contextOf(call)).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+    expect(JSON.stringify(call)).not.toContain("permissionDecision");
+    const edit = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: "guard",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          command: [
+            "*** Begin Patch",
+            "*** Update File: .kb/requirements/REQ-floor.md",
+            "@@",
+            "-required_evidence: tested",
+            "*** End Patch",
+          ].join("\n"),
+        },
+      },
+      { pluginData },
+    );
+    expect(edit.systemMessage).toBeDefined();
+    expect(contextOf(edit)).toContain("from tested to unverified");
   });
 });

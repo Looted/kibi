@@ -384,20 +384,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b88cf43cbca
-  - type: assumes
-    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
-    to: FACT-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
-    created_at: 2026-10-30T14:56:49.535Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-38fc42cdda53
-  - type: verified_by
-    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
-    to: TEST-kibi-plugin-search-hints
-    created_at: 2026-10-30T14:56:49.713Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-524787cfe6ea
   - type: specified_by
     from: REQ-kibi-search-answer-layer-v2
     to: SCEN-CASE-kibi-search-answer-layer-v2-ADR-WITHOUT-EXCERPT
@@ -545,3 +531,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f284afb16ca2
+  - type: implements
+    from: SYM-hook-input-parse-hook-input
+    to: REQ-antigravity-hook-lifecycle-and-scoping
+    created_at: 2026-11-22T05:06:50.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76f2e4f40d0c
+  - type: covered_by
+    from: SYM-hook-input-parse-hook-input
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:50.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-553c56baac13
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:49.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee7ce6d2b3f
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-c03-eq-false
+    created_at: 2026-11-25T10:21:13.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12f00c0cc18b
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c03-eq-false
+    created_at: 2026-11-25T10:21:19.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b980d6b42ab
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c02-eq-false
+    created_at: 2026-11-25T10:21:24.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd39c28066a6
+  - type: validates
+    from: TEST-kibi-check-rule-selection-by-level
+    to: SCEN-NEG-kibi-check-rule-selection-by-level-c01-eq-false
+    created_at: 2026-11-25T10:21:30.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb03c0bdb97c
+  - type: constrains
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
+    created_at: 2026-11-26T11:44:21.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1563790ffcdb
+  - type: requires_property
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:21.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a43d78542a8
+  - type: requires_property
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: FACT-kibi-skills-stated-rule-self-approved
+    created_at: 2026-11-26T11:44:21.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f78f61b4381
+  - type: specified_by
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: SCEN-kibi-skills-ask-only-for-decisions
+    created_at: 2026-11-26T11:44:21.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa1d0f03c162
+  - type: specified_by
+    from: REQ-kibi-skills-ask-only-for-decisions
+    to: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    created_at: 2026-11-26T11:44:21.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c73d75acfe00

@@ -12,11 +12,17 @@ import path from "node:path";
 import { promisify } from "node:util";
 
 import { nodeGit } from "../packages/cli/src/public/operations/node-ports.js";
+import {
+  type CheckReuseDecision,
+  assessMemberCheckReuse,
+  collectMemberReuseInput,
+} from "./ci-check-reuse.js";
 
 const execFileAsync = promisify(execFile);
 const ATTESTATION_VERSION = "kibi.ci-proof-attestation.v1";
 const DECISION_VERSION = "kibi.ci-proof-decision.v1";
 const ARTIFACT_NAME = "kibi-proof-attestation";
+const REPORT_ARTIFACT_NAME = "kibi-requirement-proof";
 const WORKFLOW_PATH = ".github/workflows/proof.yml";
 const SHA = /^[a-f0-9]{40}$/;
 /** Branches the merge train assembles; their pull request proof runs attest. */
@@ -50,6 +56,8 @@ type Attestation = {
   };
   run: { id: number; attempt: number; workflow: string; url: string };
   artifact: string;
+  /** Git tree oid of the checkout that was proved. Required for member reuse. */
+  tree?: string;
   /** A develop attestation that reused a train's proof: that run's URL. */
   derived_from?: string;
 };
@@ -230,7 +238,50 @@ type TrainReuseInput = {
 };
 
 /**
- * The trust decision for a develop push that merged a merge train. The train
+ * The workflow run ID that holds `kibi-requirement-proof` for a reused train
+ * attestation. When a single-PR merge train reused its member PR's proof, its
+ * attestation carries `derived_from` pointing at that member run (the train
+ * run skipped the `proof` job and uploaded no report); otherwise the train run
+ * itself uploaded the report.
+ */
+export function reportRunIdFromAttestation(
+  repository: string,
+  trainRunId: number,
+  attestation: unknown,
+): number {
+  if (!isRecord(attestation) || typeof attestation.derived_from !== "string")
+    return trainRunId;
+  const prefix = `https://github.com/${repository.toLowerCase()}/actions/runs/`;
+  const normalized = attestation.derived_from.trim();
+  if (!normalized.toLowerCase().startsWith(prefix)) return trainRunId;
+  const suffix = normalized.slice(prefix.length);
+  if (!/^\d+$/.test(suffix)) return trainRunId;
+  const derivedId = Number(suffix);
+  return Number.isSafeInteger(derivedId) && derivedId > 0
+    ? derivedId
+    : trainRunId;
+}
+
+async function hasProofReportArtifact(
+  repository: string,
+  runId: number,
+): Promise<boolean> {
+  const payload = await ghApi(
+    `/repos/${repository}/actions/runs/${runId}/artifacts`,
+  );
+  const artifacts =
+    isRecord(payload) && Array.isArray(payload.artifacts)
+      ? payload.artifacts
+      : [];
+  return artifacts.some(
+    (entry) =>
+      isRecord(entry) &&
+      entry.name === REPORT_ARTIFACT_NAME &&
+      entry.expired !== true,
+  );
+}
+
+/** The trust decision for a develop push that merged a merge train. The train
  * pull request's proof run proved the train head merged into the commit the
  * train was assembled on; a develop merge commit with exactly those parents
  * and the attested snapshot holds that proven tree, so it reuses the proof.
@@ -547,18 +598,29 @@ async function attest(outputDirectory: string): Promise<void> {
   const develop =
     event === "push" && requiredEnv("GITHUB_REF") === "refs/heads/develop";
   const trainBranch = process.env.PR_HEAD_BRANCH ?? "";
+  const sameRepository =
+    (process.env.PR_HEAD_REPOSITORY ?? "").toLowerCase() ===
+    requiredEnv("GITHUB_REPOSITORY").toLowerCase();
   const train =
     event === "pull_request" &&
     trainBranch.startsWith(TRAIN_PREFIX) &&
-    (process.env.PR_HEAD_REPOSITORY ?? "").toLowerCase() ===
-      requiredEnv("GITHUB_REPOSITORY").toLowerCase();
-  if (!develop && !train)
+    sameRepository;
+  const memberPull =
+    event === "pull_request" &&
+    process.env.PR_BASE_REF === "develop" &&
+    sameRepository;
+  if (!develop && !memberPull)
     throw new Error(
-      "only a successful develop push or merge train pull request may emit a proof attestation",
+      "only a develop push or a same-repository pull request into develop may emit a proof attestation",
     );
   const repository = requiredEnv("GITHUB_REPOSITORY");
   const sha = requiredEnv("GITHUB_SHA");
-  if (!SHA.test(sha) || (await git("rev-parse", "HEAD")) !== sha)
+  const tree = await git("rev-parse", "HEAD^{tree}");
+  if (
+    !SHA.test(sha) ||
+    !SHA.test(tree) ||
+    (await git("rev-parse", "HEAD")) !== sha
+  )
     throw new Error("checkout does not match the attested commit");
   const snapshot = await currentSnapshot();
   if (
@@ -576,13 +638,23 @@ async function attest(outputDirectory: string): Promise<void> {
     attempt <= 0
   )
     throw new Error("GitHub proof run identity is invalid");
+  if (!develop && !train && !SHA.test(requiredEnv("PR_HEAD_SHA")))
+    throw new Error("pull request head SHA is invalid");
   const attestation: Attestation = {
     version: ATTESTATION_VERSION,
     outcome: "passed",
     snapshot: { version: snapshot.version, hash: snapshot.hash },
+    tree,
     source: develop
       ? { repository, branch: "develop", sha, event: "push" }
-      : trainSource(repository, trainBranch),
+      : train
+        ? trainSource(repository, trainBranch)
+        : {
+            repository,
+            branch: trainBranch,
+            sha: requiredEnv("PR_HEAD_SHA"),
+            event: "pull_request",
+          },
     run: {
       id: runId,
       attempt,
@@ -592,7 +664,7 @@ async function attest(outputDirectory: string): Promise<void> {
     artifact: ARTIFACT_NAME,
   };
   const derived = process.env.KIBI_PROOF_DERIVED_FROM ?? "";
-  if (develop && derived !== "") {
+  if ((develop || train) && derived !== "") {
     if (!derived.startsWith(`https://github.com/${repository}/actions/runs/`))
       throw new Error(
         "KIBI_PROOF_DERIVED_FROM is not a run of this repository",
@@ -773,6 +845,7 @@ async function findTrainProofRuns(
 async function decideTrain(outputPath: string): Promise<void> {
   let decision: ReuseDecision;
   let sourceRunId = "";
+  let reportRunId = "";
   try {
     const repository = requiredEnv("GITHUB_REPOSITORY");
     if (
@@ -818,7 +891,35 @@ async function decideTrain(outputPath: string): Promise<void> {
       runs: trainRuns,
       attestation,
     });
-    if (decision.mode === "reused" && onlyRun) sourceRunId = String(onlyRun.id);
+    if (decision.mode === "reused" && onlyRun) {
+      const candidateReportRunId = reportRunIdFromAttestation(
+        repository,
+        onlyRun.id,
+        attestation,
+      );
+      let resolvedReportRunId: number | null = null;
+      for (const candidate of [
+        ...new Set([candidateReportRunId, onlyRun.id]),
+      ]) {
+        if (await hasProofReportArtifact(repository, candidate)) {
+          resolvedReportRunId = candidate;
+          break;
+        }
+      }
+      if (resolvedReportRunId === null) {
+        decision = execute(
+          "reused train proof run has no kibi-requirement-proof artifact",
+          {
+            mergeSnapshot: decision.mergeSnapshot,
+            developSnapshot: decision.developSnapshot,
+            sourceRun: decision.sourceRun,
+          },
+        );
+      } else {
+        sourceRunId = String(onlyRun.id);
+        reportRunId = String(resolvedReportRunId);
+      }
+    }
   } catch (error) {
     decision = execute(
       `train reuse lookup failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -833,7 +934,143 @@ async function decideTrain(outputPath: string): Promise<void> {
   if (process.env.GITHUB_OUTPUT)
     await appendFile(
       process.env.GITHUB_OUTPUT,
-      `source_run_id=${sourceRunId}\nsource_run_url=${decision.mode === "reused" ? decision.sourceRun : ""}\n`,
+      `source_run_id=${sourceRunId}\nreport_run_id=${reportRunId}\nsource_run_url=${decision.mode === "reused" ? decision.sourceRun : ""}\n`,
+    );
+}
+
+type SnapshotShape = { version: string; hash: string; dirty: boolean };
+
+/**
+ * A member run may stand in for this train's proof only when the canonical
+ * snapshot agrees as well as the git tree. A snapshot mismatch runs the proof.
+ */
+export function proofAgreesWithMember(
+  decision: CheckReuseDecision,
+  snapshot: SnapshotShape,
+  attestation: unknown,
+): CheckReuseDecision {
+  if (decision.mode !== "reused") return decision;
+  const refuse = (reason: string): CheckReuseDecision => ({
+    version: decision.version,
+    mode: "execute",
+    reason,
+    tree: decision.tree,
+  });
+  if (
+    snapshot.version !== "kibi.workspace-snapshot.v2" ||
+    snapshot.dirty ||
+    !HASH.test(snapshot.hash)
+  )
+    return refuse(
+      "merge workspace snapshot is unavailable, incompatible, or dirty",
+    );
+  if (
+    !isRecord(attestation) ||
+    !isRecord(attestation.snapshot) ||
+    attestation.snapshot.version !== snapshot.version ||
+    attestation.snapshot.hash !== snapshot.hash
+  )
+    return refuse("canonical Kibi snapshots differ");
+  return decision;
+}
+
+/** The attestation a landed train's develop push reuses, pointing at the member run. */
+async function writeReusedTrainAttestation(
+  snapshot: SnapshotShape,
+  input: {
+    trainHeadSha: string;
+    trainParents: readonly string[];
+    headBranch: string;
+    checkoutTree: string;
+  },
+  sourceRun: string,
+): Promise<void> {
+  const repository = requiredEnv("GITHUB_REPOSITORY");
+  const runId = Number(requiredEnv("GITHUB_RUN_ID"));
+  const attempt = Number(requiredEnv("GITHUB_RUN_ATTEMPT"));
+  const base = input.trainParents[0];
+  if (!SHA.test(input.trainHeadSha) || !SHA.test(base ?? "") || !sourceRun)
+    throw new Error("reused train attestation is missing its commits");
+  if (!sourceRun.startsWith(`https://github.com/${repository}/actions/runs/`))
+    throw new Error("member proof run is not a run of this repository");
+  const attestation: Attestation = {
+    version: ATTESTATION_VERSION,
+    outcome: "passed",
+    snapshot: { version: snapshot.version, hash: snapshot.hash },
+    tree: input.checkoutTree,
+    source: {
+      repository,
+      branch: input.headBranch,
+      sha: input.trainHeadSha,
+      event: "pull_request",
+      base,
+    },
+    run: {
+      id: runId,
+      attempt,
+      workflow: WORKFLOW_PATH,
+      url: `https://github.com/${repository}/actions/runs/${runId}`,
+    },
+    artifact: ARTIFACT_NAME,
+    derived_from: sourceRun,
+  };
+  const directory = path.join(
+    requiredEnv("RUNNER_TEMP"),
+    "kibi-proof-attestation",
+  );
+  await mkdir(directory, { recursive: true });
+  await writeFile(
+    path.join(directory, "attestation.json"),
+    `${JSON.stringify(attestation, null, 2)}\n`,
+  );
+}
+
+async function decideMember(outputPath: string): Promise<void> {
+  process.env.KIBI_REUSE_WORKFLOW = WORKFLOW_PATH;
+  process.env.KIBI_REUSE_ARTIFACT = ARTIFACT_NAME;
+  process.env.KIBI_REUSE_ATTESTATION_VERSION = ATTESTATION_VERSION;
+  process.env.KIBI_REUSE_CHECK = "proof-required";
+  let decision: ReuseDecision;
+  let sourceRunId = "";
+  try {
+    const input = await collectMemberReuseInput();
+    const snapshot = await currentSnapshot();
+    const agreed = proofAgreesWithMember(
+      assessMemberCheckReuse(input),
+      snapshot,
+      input.attestation,
+    );
+    const attested =
+      isRecord(input.attestation) && isRecord(input.attestation.snapshot)
+        ? input.attestation.snapshot.hash
+        : undefined;
+    decision = {
+      version: DECISION_VERSION,
+      mode: agreed.mode,
+      reason: agreed.reason,
+      mergeSnapshot: HASH.test(snapshot.hash) ? snapshot.hash : undefined,
+      developSnapshot: typeof attested === "string" ? attested : undefined,
+      sourceRun: agreed.mode === "reused" ? agreed.sourceRun : undefined,
+    };
+    if (agreed.mode === "reused" && agreed.sourceRun) {
+      await writeReusedTrainAttestation(snapshot, input, agreed.sourceRun);
+      sourceRunId = String(agreed.sourceRunId ?? "");
+    }
+  } catch (error) {
+    decision = execute(
+      `member reuse lookup failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  await report(
+    outputPath,
+    decision,
+    "member proof snapshot",
+    "train checkout snapshot",
+  );
+  if (process.env.GITHUB_OUTPUT)
+    await appendFile(
+      process.env.GITHUB_OUTPUT,
+      `source_run_id=${sourceRunId}\nsource_run_url=${decision.mode === "reused" ? (decision.sourceRun ?? "") : ""}\n`,
     );
 }
 
@@ -841,13 +1078,17 @@ export async function main(argv: readonly string[]): Promise<void> {
   const [command, output] = argv;
   if (
     !output ||
-    (command !== "attest" && command !== "decide" && command !== "decide-train")
+    (command !== "attest" &&
+      command !== "decide" &&
+      command !== "decide-train" &&
+      command !== "decide-member")
   )
     throw new Error(
-      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train <output-path>",
+      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train|decide-member <output-path>",
     );
   if (command === "attest") await attest(output);
   else if (command === "decide") await decide(output);
+  else if (command === "decide-member") await decideMember(output);
   else await decideTrain(output);
 }
 

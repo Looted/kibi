@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-hooks-fail-open",
+  "sourceFile": "packages/vibe/bin/hooks/kibi-common.mjs",
+  "symbol": "toRepoRelative",
+  "verdict": "keeps",
+  "note": "Hooks still anchor at the workspace root resolved from the payload cwd, and relative tool paths now resolve against that cwd; every failure path still exits 0, and the failing kibi call's stderr is dropped, so a hook prints nothing on error or outside a Kibi workspace (hooks.test.mjs, launcher-contract.test.mjs).",
+  "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
+  "codeHash": "sha256:289d486bf8002e39bc6b522ee32f4052450fededee3940ad6d714121e60c11eb",
+  "startLine": 54,
+  "endLine": 74,
+  "recordedAt": "2026-11-24T10:06:23.889Z"
+}

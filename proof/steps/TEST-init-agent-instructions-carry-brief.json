@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-init-agent-instructions-carry-brief",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/agent-instructions-mutation.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/agent-core/tests/session-brief.test.ts"
+    ]
+  ]
+}

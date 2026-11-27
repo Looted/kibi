@@ -412,3 +412,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-734010c81665
+  - type: executable_for
+    from: SYM-zcode-case-kb-call-without-workspace
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T17:48:55.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4508a2e4911
+  - type: implements
+    from: SYM-capture-grounding-step
+    to: REQ-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:12:36.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0994bc46d77
+  - type: covered_by
+    from: SYM-capture-grounding-step
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:12:36.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6025f8d7262
+  - type: assumes
+    from: SCEN-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c01
+    created_at: 2026-11-25T09:48:23.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a94b5b4495a9
+  - type: assumes
+    from: SCEN-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c02
+    created_at: 2026-11-25T09:48:23.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba9a074e9153
+  - type: implements
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: REQ-kibi-change-snapshots
+    created_at: 2026-11-25T10:41:55.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87baf38554cb
+  - type: covered_by
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-11-25T10:41:55.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e9d81cbe1bc
+  - type: covered_by
+    from: SYM-snapshot-knowledge-read-snapshot-knowledge
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-25T10:48:57.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fda9a2296bf2
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: REQ-kibi-no-git-workspace-attaches-reserved-store
+    created_at: 2026-11-25T09:16:14.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3696b9aa67b
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: SCEN-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:14.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27fb318e6f3d
+  - type: validates
+    from: TEST-kibi-no-git-attached-store
+    to: SCEN-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:14.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a46b47f0e3ef

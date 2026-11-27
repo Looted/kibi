@@ -349,3 +349,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e215ece043c1
+  - type: assumes
+    from: SCEN-NEG-cli-json-format-alias-OTHER-CODE
+    to: FACT-NEG-cli-json-format-alias-OTHER-CODE
+    created_at: 2026-11-22T17:47:37.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ba7a0e4ead6
+  - type: verified_by
+    from: SCEN-NEG-cli-json-format-alias-OTHER-CODE
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:47:37.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3da3bb23b0fc
+  - type: assumes
+    from: SCEN-NEG-antigravity-parts-missing-rules
+    to: FACT-NEG-antigravity-parts-missing-rules
+    created_at: 2026-11-24T05:07:37.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-436a919e9b85
+  - type: verified_by
+    from: SCEN-NEG-antigravity-parts-missing-rules
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:37.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a44935c2530e
+  - type: assumes
+    from: SCEN-NEG-antigravity-parts-outside-set
+    to: FACT-NEG-antigravity-parts-outside-set
+    created_at: 2026-11-24T07:46:12.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807e5e731c12
+  - type: verified_by
+    from: SCEN-NEG-antigravity-parts-outside-set
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T07:46:12.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2d4b4a022d6
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    to: FACT-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    created_at: 2026-11-24T20:01:31.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50ee80e29252
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:01:31.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c05081d72668
+  - type: implements
+    from: SYM-agent-instructions-for
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:52.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-698836367e8a
+  - type: covered_by
+    from: SYM-agent-instructions-for
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:52.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-812576e6e3dc
+  - type: implements
+    from: SYM-agent-instructions-for
+    to: REQ-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:43:02.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c75cb1ff3e63
+  - type: covered_by
+    from: SYM-agent-instructions-for
+    to: TEST-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:43:02.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbe32fd33fc7

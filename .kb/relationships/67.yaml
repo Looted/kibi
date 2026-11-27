@@ -496,3 +496,318 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a6efee9006f
+  - type: verified_by
+    from: SCEN-kb-check-impact-statement-quoted-once
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:19:33.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128d8dda9571
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:29.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3959d75927e5
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-in-view
+    created_at: 2026-11-25T14:27:29.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92a40c414cdf
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    created_at: 2026-11-25T14:27:29.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e62a37ae70c
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:54.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b6805e6b07
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:54.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0229fb362273
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    created_at: 2026-11-25T14:27:54.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3864afb1aafa
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-search-rows
+    created_at: 2026-11-25T14:28:12.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6c6af30598b
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-search-rows
+    created_at: 2026-11-25T14:28:12.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b4316db39e
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-search-rows-BROAD-SEARCH-ROWS
+    created_at: 2026-11-25T14:28:12.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17c7359fbfef
+  - type: assumes
+    from: SCEN-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets
+    created_at: 2026-11-25T14:28:17.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b2f1d90f823
+  - type: verified_by
+    from: SCEN-hook-read-row-budgets
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:17.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c4f0f83f49e
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:11.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd6731391433
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:11.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a649e054b986
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:29:11.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1efb20c01eb
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:28.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30dd040b9d27
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-busy-file-ids
+    created_at: 2026-11-25T14:29:28.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49c7275685d7
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-busy-file-ids-SILENT-BUSY-FILE
+    created_at: 2026-11-25T14:29:28.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fe268d59186
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:20.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3318dc87d66b
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:21.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b3cd68ffc97
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-rows-every-harness-HOST-OWN-ROWS
+    created_at: 2026-11-25T14:30:21.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12e370ad4022
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: REQ-hook-search-tip-after-rows
+    created_at: 2026-11-25T14:30:39.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-360b944758d8
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-hook-search-tip-after-rows
+    created_at: 2026-11-25T14:30:39.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a913d67863
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-search-tip-after-rows-TIP-AFTER-ROWS
+    created_at: 2026-11-25T14:30:39.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ce0d068cbac
+  - type: assumes
+    from: SCEN-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets-repeated-requirement-rows
+    created_at: 2026-11-25T14:39:30.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8dbf8699098
+  - type: validates
+    from: TEST-agent-hooks-read-rows
+    to: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    created_at: 2026-11-25T14:39:36.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07104246dc83
+  - type: implements
+    from: SYM-cli-errors-git-required
+    to: REQ-kibi-git-required-refusal
+    created_at: 2026-11-25T09:18:07.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae0a8a2f374c
+  - type: covered_by
+    from: SYM-cli-errors-git-required
+    to: TEST-kibi-git-required
+    created_at: 2026-11-25T09:18:07.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53d298194350
+  - type: constrains
+    from: REQ-search-scope-candidates
+    to: FACT-search-decision-scope-subject
+    created_at: 2026-11-25T14:29:06.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dcb1e2da939
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-unscoped-kept-small-demotion
+    created_at: 2026-11-25T14:29:06.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2666ee3f46a
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-distant-kept-half-weight
+    created_at: 2026-11-25T14:29:06.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41c7d5a35ff3
+  - type: requires_property
+    from: REQ-search-scope-candidates
+    to: FACT-search-scope-candidates-other-scope-count-only
+    created_at: 2026-11-25T14:29:06.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e25ae0b3695
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-search-scope-tiers-stay-candidates
+    created_at: 2026-11-25T14:29:06.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae328cafa0cb
+  - type: verified_by
+    from: REQ-search-scope-candidates
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:29:06.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6024eae7881b
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-unscoped-kept-small-demotion-BELOW
+    created_at: 2026-11-25T14:37:05.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a8fed215181
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-search-scope-candidates-unscoped-kept-small-demotion-AT
+    created_at: 2026-11-25T14:37:05.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f492042746ad
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    created_at: 2026-11-25T14:37:05.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-498de97bdb7f
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-ABOVE
+    created_at: 2026-11-25T14:37:05.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-157adf3d6d90
+  - type: specified_by
+    from: REQ-search-scope-candidates
+    to: SCEN-NEG-search-scope-candidates-other-scope-count-only-OFF
+    created_at: 2026-11-25T14:37:05.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f17b6fb6337e
+  - type: assumes
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: FACT-NEG-search-meaning-limits-max-meaning-decisions-ABOVE
+    created_at: 2026-11-25T19:24:56.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b63961e5d16
+  - type: assumes
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: FACT-NEG-search-meaning-limits-max-scored-entities-ABOVE
+    created_at: 2026-11-25T19:24:56.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6af8211a7997
+  - type: assumes
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: FACT-NEG-search-meaning-limits-meaning-weight-ABOVE
+    created_at: 2026-11-25T19:24:56.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7ead2628689
+  - type: assumes
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: FACT-NEG-search-meaning-limits-default-decision-cards-ABOVE
+    created_at: 2026-11-25T19:24:56.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c362ea7e7b4
+  - type: assumes
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: FACT-NEG-search-meaning-limits-governing-coverage-BELOW
+    created_at: 2026-11-25T19:24:57.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fcc15628144
+  - type: verified_by
+    from: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:17.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d1815ff687f

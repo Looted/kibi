@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-E17040C703A7CF28
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a8bd1bda14042873949dd2ba
+    receipt_id: PR-a7e62d9657826a247f14943e
     test_id: TEST-proof-codex-published-parts
     scope: unit
     outcome: passed
-    code_snapshot: 328fc65d0a8f68d784d40380e03d82ed697fd6e20aa7eac41f724a6c4fd7718a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:49:36.972Z'
-    finished_at: '2026-10-27T07:49:37.165Z'
-    artifact_digest: 9de01a8eb88f40d08f7616998d71a3b47ae94fbd804bebbaa76499a83c66bcc6
+    code_snapshot: 017f08e44cfd7461b2b4632514b2750261c1be0471722dc4ee28dbea05858af6
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-25T18:11:15.093Z'
+    finished_at: '2026-11-25T18:11:15.209Z'
+    artifact_digest: 3ec8ed4953a5034ade48b27d425e647361c7744d4180afd3422341dea8cea4af
     contract_hash: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
-    binding_hash: 8e64e706a03419e35de6d9cf6963f519a3c8e4fc52e95f38d38298b069189e0b
+    binding_hash: 94930121caf808afbd0db28ee50f5f072884dc68f6e44f583c6a8dd843f62602
     fingerprint: 487d50247390ec4a03357161320d10db8822c7ba58a5b407374986a7915d2667
     fingerprint_components:
       contract: b7b99c073f81fd6369d14a7392f6e480f675b8f3715778603b8be7d46ec51dab
@@ -79,17 +79,29 @@ proof_receipts:
           - CHANGELOG.md
           - LICENSE
           - SECURITY.md
+          - assets
           - bin
           - dist
           - hooks
           - skills
-    certificate_digest: ab5d3725802f955d0aba6baa0ea47883bc20499798d45fdd4e44a4ea5e788e4f
+        sequence:
+          - .codex-plugin
+          - assets
+          - .mcp.json
+          - hooks
+          - skills
+          - bin
+          - dist
+          - CHANGELOG.md
+          - LICENSE
+          - SECURITY.md
+    certificate_digest: d1115970708ac213e2b0a9f2331af3f18f655fb104e5510e509e909c46be4448
     claim_bindings:
       - claim_key: CLAIM-E17040C703A7CF28
         requirement_id: REQ-codex-plugin-package
         fact_id: FACT-codex-package-published-parts
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:

@@ -111,3 +111,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8102d81a0a73
+  - type: implements
+    from: SYM-impact-review-authoring-write-record
+    to: REQ-impact-review-author-write
+    created_at: 2026-11-19T19:11:46.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f26086c7ea53
+  - type: covered_by
+    from: SYM-impact-review-authoring-write-record
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:11:46.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d61ba0068a6e
+  - type: assumes
+    from: SCEN-hook-read-rows-every-named-file
+    to: FACT-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:41.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12baf63e6cd5
+  - type: verified_by
+    from: SCEN-hook-read-rows-every-named-file
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:41.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8238c949c7bb
+  - type: implements
+    from: SYM-vcs-no-git-repository-diagnostic
+    to: REQ-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:37.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f70c3a563919
+  - type: covered_by
+    from: SYM-vcs-no-git-repository-diagnostic
+    to: TEST-kibi-no-git-advisory
+    created_at: 2026-11-25T09:18:37.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82fd5bae8083
+  - type: implements
+    from: SYM-vibe-kibi-runtime-debug-launch
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-26T17:46:08.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a10abf0441a
+  - type: covered_by
+    from: SYM-vibe-kibi-runtime-debug-launch
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-26T17:46:08.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b763c5529a55

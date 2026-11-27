@@ -307,6 +307,40 @@ describe.serial("session uncovered branch coverage", () => {
     }
   });
 
+  test("refuses a repository Git cannot read with a coded failure", async () => {
+    mockResolveBranchAttachment.mockImplementation(
+      (): BranchAttachmentResult => ({
+        error: "Git refused the repository.",
+        code: "GIT_REPOSITORY_UNREADABLE",
+      }),
+    );
+    mockGetBranchDiagnostic.mockImplementation(
+      (_cwd?: string, error?: string) => `diagnostic for ${error}`,
+    );
+
+    const session = await importSessionModule("branch-resolution-not-git");
+    session.resetSessionStateForTests();
+    const originalConsoleError = console.error;
+    const consoleErrorMock = mock((_message?: unknown) => {});
+    console.error = consoleErrorMock as typeof console.error;
+
+    try {
+      const failure = await session.ensureProlog().then(
+        () => null,
+        (error: unknown) => error as Error & { code?: string },
+      );
+      // The tool answers this with the CLI JSON route's error envelope.
+      expect(failure?.code).toBe("GIT_REPOSITORY_UNREADABLE");
+      expect(failure?.message).toContain("run 'git status' to see why");
+      expect(consoleErrorMock).toHaveBeenCalledWith(
+        "[KIBI-MCP] diagnostic for Git refused the repository.",
+      );
+      expect(mockPrologProcessInstance.start).not.toHaveBeenCalled();
+    } finally {
+      console.error = originalConsoleError;
+    }
+  });
+
   test("surfaces branch resolution diagnostics when git branch lookup fails", async () => {
     mockResolveBranchAttachment.mockImplementation(
       (): BranchAttachmentResult => ({

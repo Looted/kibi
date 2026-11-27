@@ -314,3 +314,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edb0d63c7db0
+  - type: executable_for
+    from: SYM-antigravity-hook-runner-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:16.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45b130e6ab6f
+  - type: implements
+    from: SYM-capture-failure-scenario-follow-up
+    to: REQ-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:12:37.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cf8d2bba340
+  - type: covered_by
+    from: SYM-capture-failure-scenario-follow-up
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:12:37.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d45fcb706f09
+  - type: implements
+    from: SYM-decision-guard-record-follow-up-line
+    to: REQ-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:12:54.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8da08653351f
+  - type: covered_by
+    from: SYM-decision-guard-record-follow-up-line
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-24T20:12:54.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097e9307166c
+  - type: implements
+    from: SYM-hook-runner-guarded-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:03.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1afdc0c66b4
+  - type: covered_by
+    from: SYM-hook-runner-guarded-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:03.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-193c73d77ba1
+  - type: executable_for
+    from: SYM-vscode-mock-default-mcp-stdio-server-definition
+    to: TEST-vscode-traceability
+    created_at: 2026-11-25T14:53:12.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eb72e5736f8
+  - type: assumes
+    from: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    to: FACT-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    created_at: 2026-11-25T14:35:28.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-171f69528b79
+  - type: verified_by
+    from: SCEN-NEG-search-scope-candidates-distant-kept-half-weight-BELOW
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:35:28.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d661634ce2f

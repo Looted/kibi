@@ -475,3 +475,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16719932191f
+  - type: executable_for
+    from: SYM-test-cli-engine-janitor-workspace-sockets
+    to: TEST-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T15:54:12.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e750ad7581a7
+  - type: covered_by
+    from: SYM-vibe-hooks-common
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:16:28.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e61aed76d7e5
+  - type: implements
+    from: SYM-guard-post-edit-note
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:24:21.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38fd388191a1
+  - type: covered_by
+    from: SYM-guard-post-edit-note
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:21.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db87ada28307
+  - type: covered_by
+    from: SYM-vibe-spawnKibiCli
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:00:56.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7317abd7ded2
+  - type: implements
+    from: SYM-vibe-spawnKibiCli
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-24T10:00:56.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e2c561d00d3
+  - type: assumes
+    from: SCEN-agent-hosts-capture-ask-once
+    to: FACT-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:01:59.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbfea78e913b
+  - type: verified_by
+    from: SCEN-agent-hosts-capture-ask-once
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-24T20:01:59.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fb051d9809a
+  - type: executable_for
+    from: SYM-test-kibi-source-inventory
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:18.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2115062fb517
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-telemetry
+    to: FACT-NEG-kibi-no-git-telemetry
+    created_at: 2026-11-25T09:21:58.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3c5b025131c
+  - type: implements
+    from: SYM-sync-agent-skills-sync-agent-skills
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-11-26T23:49:25.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41c943a05573
+  - type: covered_by
+    from: SYM-sync-agent-skills-sync-agent-skills
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-11-26T23:49:25.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d363f5d56139

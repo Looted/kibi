@@ -307,3 +307,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-20b5165c7fee
+  - type: implements
+    from: SYM-vibe-hook-session-context
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:16:35.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c71517808dc
+  - type: covered_by
+    from: SYM-vibe-hook-session-context
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T20:16:35.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-594da7f342b2
+  - type: implements
+    from: SYM-impact-review-authoring-assert-scope-fingerprint
+    to: REQ-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:12:01.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c6eb6e1ac96
+  - type: covered_by
+    from: SYM-impact-review-authoring-assert-scope-fingerprint
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:01.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a28daa45b73
+  - type: requires_property
+    from: REQ-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c01
+    created_at: 2026-11-25T09:48:21.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14cf220ca746
+  - type: requires_property
+    from: REQ-kibi-schema-20-level
+    to: FACT-PROP-kibi-schema-20-level-c02
+    created_at: 2026-11-25T09:48:21.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a9bbba8fa20
+  - type: validates
+    from: TEST-kibi-schema-20-level
+    to: SCEN-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:25.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8db0bc1b2ad9
+  - type: validates
+    from: TEST-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-rejected
+    created_at: 2026-11-25T09:48:25.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0f6ba488688
+  - type: specified_by
+    from: REQ-kibi-schema-20-level
+    to: SCEN-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:30.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-525c10eea9e5
+  - type: specified_by
+    from: REQ-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-rejected
+    created_at: 2026-11-25T09:48:30.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd6492688374
+  - type: verified_by
+    from: REQ-kibi-schema-20-level
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T09:48:30.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ffb71b13975
+  - type: constrains
+    from: REQ-kibi-schema-20-level
+    to: FACT-SUBJ-kibi-level
+    created_at: 2026-11-25T10:18:11.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c096d1ac9f19
+  - type: specified_by
+    from: REQ-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c02-eq-false
+    created_at: 2026-11-25T10:19:46.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8e986efbbe9
+  - type: validates
+    from: TEST-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c02-eq-false
+    created_at: 2026-11-25T10:19:48.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82a92d8244a2
+  - type: specified_by
+    from: REQ-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c01-neq-0
+    created_at: 2026-11-25T10:19:52.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fd62eb0ff05
+  - type: validates
+    from: TEST-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c01-neq-0
+    created_at: 2026-11-25T10:19:54.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3690950ab1d7
+  - type: specified_by
+    from: REQ-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c01-gt-0
+    created_at: 2026-11-25T10:19:58.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24f2280a721e
+  - type: validates
+    from: TEST-kibi-schema-20-level
+    to: SCEN-NEG-kibi-schema-20-level-c01-gt-0
+    created_at: 2026-11-25T10:20:00.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e1fbc28613
+  - type: assumes
+    from: SCEN-NEG-kibi-signoff-level-c02-count-gt-0
+    to: FACT-NEG-kibi-signoff-level-c02-count-gt-0
+    created_at: 2026-11-25T13:57:30.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07463d6ccf74

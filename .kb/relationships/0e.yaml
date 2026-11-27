@@ -587,3 +587,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22507f764933
+  - type: verified_by
+    from: SCEN-kb-check-symbols-without-links
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:19:36.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73a284a22860

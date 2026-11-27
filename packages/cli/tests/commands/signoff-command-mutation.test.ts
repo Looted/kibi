@@ -9,7 +9,10 @@ import {
   defaultSignoffFormat,
   signoffCommand,
 } from "../../src/commands/signoff.js";
-import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../../src/public/operations/specs/reporting.js";
 import { earliestUnmetGate } from "../../src/report/html-report.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 import * as collect from "../../src/signoff/collect.js";
@@ -43,6 +46,8 @@ function track<T extends { mockRestore(): void }>(spy: T): T {
 
 beforeEach(() => {
   root = createTempDir("kibi-signoff-mut-");
+  // A `.git` marker puts the workspace inside Git.
+  fs.mkdirSync(path.join(root, ".git"));
   summaries = [];
   questions = [];
   parsed = [];
@@ -119,6 +124,19 @@ function run(
 }
 
 const latest = (file: string) => readFileSync(path.join(root, file), "utf8");
+
+describe("signoffCommand outside Git", () => {
+  test("refuses the change view with GIT_REQUIRED and still answers questions", async () => {
+    fs.rmSync(path.join(root, ".git"), { recursive: true });
+    await expect(run({ format: "json" }).result).rejects.toMatchObject({
+      code: "GIT_REQUIRED",
+    });
+    expect(summaries).toStrictEqual([]);
+    await run({ format: "md", questions: "-" }, { readStdin: () => "piped" })
+      .result;
+    expect(questions).toHaveLength(1);
+  });
+});
 
 describe("defaultSignoffFormat", () => {
   test("reads a known format from the environment", () => {
@@ -416,14 +434,14 @@ describe("default proof loading", () => {
       structuredContent: { rows },
     }));
     expect(inputs).toStrictEqual([
-      {
+      withFullListing({
         by: "req",
         tags: [],
         includePassing: true,
         includeTransitive: true,
         limit: 100_000,
         offset: 0,
-      },
+      }),
     ]);
     expect(closed).toStrictEqual([{ status: "success", result: 8 }]);
     const plain = (row: Record<string, unknown>) => ({

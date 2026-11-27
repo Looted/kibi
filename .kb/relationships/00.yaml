@@ -279,3 +279,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe96c1cb824a
+  - type: implements
+    from: SYM-session-state-workspace-data-dir
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:16.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-391170d2d16a
+  - type: covered_by
+    from: SYM-session-state-workspace-data-dir
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:16.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83333473efa2
+  - type: implements
+    from: SYM-sync-agent-skills-Target
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:30.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e653ea0b9159
+  - type: covered_by
+    from: SYM-sync-agent-skills-Target
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:08:30.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-104bf809bec1
+  - type: implements
+    from: SYM-vibe-resolveHookWorkspace
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T21:37:26.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb919ca213b0
+  - type: covered_by
+    from: SYM-vibe-resolveHookWorkspace
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:26.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5dbf0dfd48d

@@ -423,3 +423,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a1f802b947e
+  - type: implements
+    from: SYM-cli-fit-symbol-debt-to-budget
+    to: REQ-result-budget-chars
+    created_at: 2026-11-19T15:47:26.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51e8cbf3f4b7
+  - type: covered_by
+    from: SYM-cli-fit-symbol-debt-to-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:26.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3317b122fbb
+  - type: executable_for
+    from: SYM-test-cli-prove-ingest-refusal-reported
+    to: TEST-cli-prove-ingest-refusal-reported
+    created_at: 2026-11-20T16:10:52.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2417b5518a40
+  - type: implements
+    from: SYM-content-freshness-confirm-source-newer-reasons
+    to: REQ-kb-query-kb-search-confirm-source
+    created_at: 2026-11-23T10:33:55.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76f827a801ac
+  - type: covered_by
+    from: SYM-content-freshness-confirm-source-newer-reasons
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:55.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bea29124dd0
+  - type: verified_by
+    from: SCEN-antigravity-session-journal
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:03:43.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0fee0369f37
+  - type: implements
+    from: SYM-src-session-state-session-state
+    to: REQ-antigravity-session-journal
+    created_at: 2026-11-22T05:06:15.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5897ec5b6aae
+  - type: covered_by
+    from: SYM-src-session-state-session-state
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:06:15.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5b76375126f
+  - type: assumes
+    from: SCEN-antigravity-session-journal
+    to: FACT-antigravity-append-only-journal
+    created_at: 2026-11-22T05:16:11.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca58a3542f11
+  - type: constrains
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-subject
+    created_at: 2026-11-25T06:08:06.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f67623d9ba45
+  - type: specified_by
+    from: REQ-contributions-require-cla
+    to: SCEN-contributions-require-cla
+    created_at: 2026-11-25T06:08:31.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5feb0d1e859
+  - type: verified_by
+    from: REQ-contributions-require-cla
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:31.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f4ae028e5cf
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-runs-on-pull-requests
+    created_at: 2026-11-25T06:10:16.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70546c1d2944
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-check-exempts-maintainer-and-bots
+    created_at: 2026-11-25T06:10:16.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75dcf04d6e51
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-sign-sentence-consistent
+    created_at: 2026-11-25T06:10:16.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-550ab5d1ffd1
+  - type: requires_property
+    from: REQ-contributions-require-cla
+    to: FACT-cla-signatures-branch
+    created_at: 2026-11-25T06:10:16.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8359adb4b558
+  - type: specified_by
+    from: REQ-contributions-require-cla
+    to: SCEN-NEG-cla-check-exempts-other-accounts
+    created_at: 2026-11-25T06:12:18.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c1248af1364

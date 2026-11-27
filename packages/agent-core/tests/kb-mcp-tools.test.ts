@@ -24,6 +24,9 @@ describe("canonicalKbToolName", () => {
     expect(canonicalKbToolName("kb_MCP:x")).toBe("kb_MCP:x");
     expect(canonicalKbToolName("kb_kibi_x")).toBe("kb_kibi_x");
     expect(canonicalKbToolName("mcp__kibi__")).toBeUndefined();
+    expect(canonicalKbToolName("mcp_kibi.kb_upsert")).toBe("kb_upsert");
+    expect(canonicalKbToolName("mcp_kibi.kb_record")).toBe("kb_record");
+    expect(canonicalKbToolName("mcp_kibi.kibi_kb_search")).toBe("kb_search");
   });
 });
 
@@ -35,6 +38,8 @@ describe("isKibiMcpToolName", () => {
       "mcp__kibi__kb_check",
       "mcp__plugin_x_KIBI__kb_search",
       "mcp__a__kibi__kb_find_gaps",
+      "mcp_kibi.kb_upsert",
+      "mcp_kibi.kibi_kb_search",
     ]) {
       expect([name, isKibiMcpToolName(name)]).toEqual([name, true]);
     }
@@ -79,6 +84,35 @@ describe("stampKibiWorkspace", () => {
       stampKibiWorkspace("mcp__kibi__kb_check", {}, undefined),
     ).toBeUndefined();
     expect(stampKibiWorkspace("Edit", {}, "/w")).toBeUndefined();
+  });
+
+  test("keeps a workspace the call already names", () => {
+    expect(
+      stampKibiWorkspace(
+        "mcp__kibi__kb_check",
+        { a: 1, workspaceRoot: "/worktree" },
+        "/w",
+      ),
+    ).toBeUndefined();
+    expect(
+      stampKibiWorkspace(
+        "MCP:kb_check",
+        { workspaceRoot: " /worktree " },
+        "/w",
+      ),
+    ).toBeUndefined();
+  });
+
+  test("replaces a workspace argument that names none", () => {
+    for (const named of ["", "   ", null, 7, { path: "/x" }, ["/x"]]) {
+      expect(
+        stampKibiWorkspace(
+          "mcp__kibi__kb_check",
+          { a: 1, workspaceRoot: named },
+          "/w",
+        ),
+      ).toStrictEqual({ a: 1, workspaceRoot: "/w" });
+    }
   });
 });
 

@@ -454,3 +454,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14f21eb4fa9e
+  - type: constrains
+    from: REQ-kibi-search-question-next-steps
+    to: FACT-search-next-step-subject
+    created_at: 2026-11-24T08:39:06.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54dcd713e995
+  - type: requires_property
+    from: REQ-kibi-search-question-next-steps
+    to: FACT-search-next-step-path
+    created_at: 2026-11-24T08:39:06.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44c0523c697
+  - type: requires_property
+    from: REQ-kibi-search-question-next-steps
+    to: FACT-search-next-step-contradiction
+    created_at: 2026-11-24T08:39:06.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9364b42ae88
+  - type: specified_by
+    from: REQ-kibi-search-question-next-steps
+    to: SCEN-kibi-search-question-next-steps
+    created_at: 2026-11-24T08:39:06.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b198642370b0
+  - type: specified_by
+    from: REQ-kibi-search-question-next-steps
+    to: SCEN-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:06.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62c53a5c9c81
+  - type: specified_by
+    from: REQ-kibi-search-question-next-steps
+    to: SCEN-NEG-kibi-search-next-step-CONTRADICTION-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:06.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51da1e3c8289
+  - type: implements
+    from: SYM-discovery-executors-slim-answered-matches
+    to: REQ-kb-search-answered-results-identity-only
+    created_at: 2026-11-24T19:21:51.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-222007f75b9b
+  - type: covered_by
+    from: SYM-discovery-executors-slim-answered-matches
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:51.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dec4ab9d7cb
+  - type: executable_for
+    from: SYM-test-kibi-no-git-adoption
+    to: TEST-kibi-no-git-adoption
+    created_at: 2026-11-25T09:21:32.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57abe7eea2d6
+  - type: implements
+    from: SYM-managed-hooks-find-outdated-managed-hooks
+    to: REQ-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:43:45.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-216dfa0a2721
+  - type: covered_by
+    from: SYM-managed-hooks-find-outdated-managed-hooks
+    to: TEST-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:14.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fafa2074dce2

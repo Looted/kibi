@@ -18,12 +18,17 @@
 
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
+import {
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import { countByType } from "../operations/migration/entity-body-context.js";
 import {
   applyEntityTypeBackfill,
@@ -319,7 +324,30 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 18,
     to: 19,
   },
+  // Kibi levels: a project at level remember runs no verification rule. The
+  // upgrade leaves the level as it is, so a project that sets none stays at
+  // test, which is what it ran before; nothing is written and the notes say
+  // how a person chooses remember.
+  {
+    id: "kibi-level-v20",
+    from: 19,
+    to: 20,
+  },
 ];
+
+/**
+ * What the schema 20 upgrade tells the person: the project's level, and
+ * how to choose remember. Nothing is written.
+ */
+export function kibiLevelNote(workspaceRoot: string, dryRun: boolean): string {
+  const resolved = readKibiLevel(workspaceRoot);
+  const where = kibiLevelSettingName(workspaceRoot);
+  const now =
+    resolved.source === "default"
+      ? "this project sets no level, so it stays at test, as before"
+      : `this project is at ${resolved.level} (${where})`;
+  return `${dryRun ? "dry run: " : ""}Schema 20: Kibi levels. At test, Kibi asks for the scenarios and linked tests that show each requirement holds, and blocks commits that leave them out; at remember, it records requirements, links them to code and catches contradictions, but asks for no scenarios, tests or proofs. ${now[0]?.toUpperCase()}${now.slice(1)}. To choose remember, a person sets ${where} to "remember", or runs kibi init --level remember. Nothing is written.`;
+}
 
 function migrationStepsFor(
   fromVersion: number | null,
@@ -358,16 +386,6 @@ function resolveMigrationBranch(
   const result = resolveBranchAttachment(cwd);
 
   if ("error" in result) {
-    const isNonGitContext =
-      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
-
-    if (isNonGitContext) {
-      return {
-        error:
-          "Not in a git repository; set KIBI_BRANCH explicitly for migration audit metadata.",
-      };
-    }
-
     return {
       error: `Failed to resolve active branch: ${result.error}`,
     };
@@ -844,6 +862,110 @@ async function syncMigratedSources(
   return result.ok;
 }
 
+/**
+ * After a CLI upgrade, the kibi-managed sections of this checkout's Git hooks
+ * may differ from the template this CLI installs, and `kibi doctor` then
+ * fails until they are rewritten. Migrate rewrites them (a dry run only names
+ * them), keeping user-authored lines and leaving hook managers' hooks alone.
+ */
+async function refreshManagedHookSections(
+  cwd: string,
+  dryRun: boolean,
+): Promise<void> {
+  const { findOutdatedManagedHooks, refreshOutdatedManagedHooks } =
+    await import("../operations/migration/managed-hooks.js");
+  const outdated = findOutdatedManagedHooks(cwd);
+  if (outdated !== null) {
+    if (dryRun) {
+      console.log(
+        `Would refresh the kibi-managed sections of ${outdated.hooks.join(", ")}: they differ from the template this Kibi CLI installs.`,
+      );
+    } else {
+      const { refreshed, skipped } = refreshOutdatedManagedHooks(outdated);
+      if (refreshed.length > 0)
+        console.log(
+          `Refreshed the kibi-managed sections of ${refreshed.join(", ")} to this Kibi CLI's template.`,
+        );
+      if (skipped.length > 0)
+        printWarning(
+          `Could not refresh the kibi-managed section of ${skipped.join(", ")} (a symlinked or unreadable hook); run kibi init and kibi doctor.`,
+        );
+    }
+  }
+  await refreshManagedAgentInstructions(cwd, dryRun);
+}
+
+async function refreshManagedAgentInstructions(
+  cwd: string,
+  dryRun: boolean,
+): Promise<void> {
+  const [
+    { resolveGitRepository },
+    {
+      AGENTS_FILE,
+      CLAUDE_FILE,
+      CLAUDE_IMPORT_SECTION,
+      GEMINI_FILE,
+      GEMINI_IMPORT_SECTION,
+      agentInstructionsFor,
+      managedSectionState,
+      upsertManagedSection,
+    },
+  ] = await Promise.all([
+    import("../utils/git-repository-context.js"),
+    import("./agent-instructions.js"),
+  ]);
+  const repoStatus = resolveGitRepository(cwd).status;
+  const noGit =
+    repoStatus === "not-a-repository" || repoStatus === "git-unavailable";
+  const targets: ReadonlyArray<readonly [string, string]> = [
+    [AGENTS_FILE, agentInstructionsFor(noGit)],
+    [CLAUDE_FILE, CLAUDE_IMPORT_SECTION],
+    [GEMINI_FILE, GEMINI_IMPORT_SECTION],
+  ];
+  const outdated: Array<readonly [string, string]> = [];
+  for (const [name, body] of targets) {
+    const filePath = path.join(cwd, name);
+    try {
+      if (existsSync(filePath) && lstatSync(filePath).isSymbolicLink()) {
+        continue;
+      }
+      if (managedSectionState(filePath, body) === "outdated") {
+        outdated.push([name, body]);
+      }
+    } catch {
+      printWarning(
+        `Could not inspect the Kibi-managed section of ${name}; run kibi init and kibi doctor.`,
+      );
+    }
+  }
+  if (outdated.length === 0) return;
+  const names = outdated.map(([name]) => name).join(", ");
+  if (dryRun) {
+    console.log(
+      `Would refresh the Kibi-managed section of ${names}: it differs from the template this Kibi CLI installs.`,
+    );
+    return;
+  }
+  const updated: string[] = [];
+  for (const [name, body] of outdated) {
+    try {
+      if (upsertManagedSection(path.join(cwd, name), body) === "updated") {
+        updated.push(name);
+      }
+    } catch {
+      printWarning(
+        `Could not refresh the Kibi-managed section of ${name}; run kibi init and kibi doctor.`,
+      );
+    }
+  }
+  if (updated.length > 0) {
+    console.log(
+      `Refreshed the Kibi-managed section of ${updated.join(", ")} to this Kibi CLI's template.`,
+    );
+  }
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -1017,6 +1139,7 @@ export async function migrateCommand(
           manualLifecycle: lifecycle.manual,
         });
       if (options.yes === true) updateGitIgnore(cwd);
+      await refreshManagedHookSections(cwd, options.dryRun === true);
       return { exitCode: 0 };
     }
     console.log(
@@ -1032,6 +1155,7 @@ export async function migrateCommand(
     if (options.yes === true) {
       updateGitIgnore(cwd);
     }
+    await refreshManagedHookSections(cwd, options.dryRun === true);
 
     return { exitCode: 0 };
   }
@@ -1068,9 +1192,12 @@ export async function migrateCommand(
     (step) => step.id === "pair-reviews-v18",
   );
   const quantityStep = migrationSteps.some(
-    // rationale: quantity-duplicates-v19 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
-    // Stryker disable next-line ConditionalExpression
     (step) => step.id === "quantity-duplicates-v19",
+  );
+  const levelStep = migrationSteps.some(
+    // rationale: kibi-level-v20 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
+    // Stryker disable next-line ConditionalExpression
+    (step) => step.id === "kibi-level-v20",
   );
   const domainSubjectsStep = migrationSteps.some(
     (step) => step.id === "domain-subjects-v16",
@@ -1214,6 +1341,7 @@ export async function migrateCommand(
       if (pairs.length > 0)
         console.log(quantityDuplicateNote(pairs.length, true));
     }
+    if (levelStep) console.log(kibiLevelNote(cwd, true));
     if (evidenceFloorStep) {
       const floors = planEvidenceFloorPins(cwd, ladderFloors, floorScope);
       if (floors.targets.length > 0)
@@ -1293,6 +1421,7 @@ export async function migrateCommand(
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
     await printRetiredStatusSuggestions(cwd);
+    await refreshManagedHookSections(cwd, true);
     console.log(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
@@ -1468,6 +1597,7 @@ export async function migrateCommand(
   const quantityPairs = quantityStep ? planQuantityDuplicateReviews(cwd) : [];
   if (quantityPairs.length > 0)
     console.log(quantityDuplicateNote(quantityPairs.length, false));
+  if (levelStep) console.log(kibiLevelNote(cwd, false));
   if (evidenceFloorsPinned > 0)
     console.log(
       `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
@@ -1542,6 +1672,7 @@ export async function migrateCommand(
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);
+  await refreshManagedHookSections(cwd, false);
   // Every pending schema migration ends with the derived-coordinates step.
   if (migrationSteps.length > 0) {
     const { untrackCoordinateArtifact } = await import(
@@ -1609,7 +1740,7 @@ async function buildWorkspaceMigrationPlan(
     { executeOperation },
     { statusSpec },
     { checkSpec },
-    { coverageSpec },
+    { coverageSpec, withFullListing },
     {
       buildMigrationPlan,
       mergeMigrationPlans,
@@ -1744,8 +1875,8 @@ async function buildWorkspaceMigrationPlan(
       );
     }
     const coverageInputs = [
-      { by: "req" as const, limit: 10_000, offset: 0 },
-      { by: "symbol" as const, limit: 10_000, offset: 0 },
+      withFullListing({ by: "req" as const, limit: 10_000, offset: 0 }),
+      withFullListing({ by: "symbol" as const, limit: 10_000, offset: 0 }),
     ];
     for (const input of coverageInputs) {
       const coverageResult = await executeOperation(
@@ -1770,6 +1901,20 @@ async function buildWorkspaceMigrationPlan(
       buildMigrationPlan({
         evaluatedDomains: ["symbol"],
         actions: [migrationAction(inlineReview)],
+      }),
+    );
+  }
+  // Hook sections an older or different CLI build wrote keep running without
+  // the gates this CLI installs; compare by content, not by version.
+  const { findOutdatedManagedHooks, managedHooksRefreshAction } = await import(
+    "../operations/migration/managed-hooks.js"
+  );
+  const outdatedHooks = findOutdatedManagedHooks(workspaceRoot);
+  if (outdatedHooks !== null) {
+    plans.push(
+      buildMigrationPlan({
+        evaluatedDomains: ["hooks"],
+        actions: [migrationAction(managedHooksRefreshAction(outdatedHooks))],
       }),
     );
   }

@@ -7,13 +7,23 @@ If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-int
 
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — all 18 tools show up in the client's tool list. With `KIBI_MCP_TOOLS=core` only eight are listed (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and `kb_review_firm_edit`), and the others run through the project CLI with the same input. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
+- **MCP server** (`kibi-mcp`) — all 19 tools show up in the client's tool list at Kibi level `test`. At Kibi level `remember`, the `full` profile lists only the knowledge tools (plus bootstrap tools while the KB is empty and impact-review tools when an impact policy is active, omitting `kb_ingest_proof`). With `KIBI_MCP_TOOLS=core` only eight are listed (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and `kb_review_firm_edit`), and the others run through the project CLI with the same input. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with decision cards and bundled meaning hints. The [MCP reference](../reference/mcp.md) lists every tool.
 - **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Antigravity, Claude Code, Cursor, Codex, OpenCode, Mistral Vibe, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent linked requirements when reading, searching, or editing code, and guards firm requirements, the project's Kibi level, and requirement evidence floors. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+
+## Antigravity
+
+Install the optional `kibi-antigravity` plugin (bundled skills, always-on workflow rules, workspace-gated MCP server with automatic `roots/list` workspace discovery, and lifecycle hooks for read/search/edit requirement context, firm-edit and level/floor prompts, and stop reminders):
+
+```bash
+agy plugin install https://github.com/Looted/kibi/tree/master/packages/antigravity
+```
+
+Without the plugin, add `npx --no-install kibi-mcp` to `~/.gemini/config/mcp_config.json`. See [Antigravity plugin](install.md#optional-antigravity-plugin).
 
 ## Claude Code
 
@@ -51,9 +61,37 @@ Add this server to the client's MCP config. The working directory must be the re
 
 Plugin pages in the installation guide:
 
+- [Antigravity plugin](install.md#optional-antigravity-plugin)
 - [Cursor plugin](install.md#optional-cursor-plugin)
 - [Codex plugin](install.md#optional-codex-plugin)
 - [ZCode plugin](install.md#optional-zcode-plugin)
+- [Mistral Vibe plugin](install.md#optional-vibe-plugin)
+
+## Mistral Vibe
+
+Install the optional `kibi-vibe` plugin from a local checkout, then restart Vibe
+or run `/reload`:
+
+```bash
+mkdir -p ~/.vibe/plugins && cp -r packages/vibe ~/.vibe/plugins/kibi
+```
+
+The plugin brings the `kibi` MCP server, the bundled skills, and fail-open
+hooks (KB status at session start, KB hits for each prompt, entities linked to
+a file after reads/edits). On Windows the launcher runs Kibi natively with the bundled SWI-Prolog, and
+inside WSL only for a `\\wsl.localhost\<distro>` workspace — see [Vibe plugin](install.md#optional-vibe-plugin).
+
+Without the plugin, register the server in `~/.vibe/config.toml`:
+
+```toml
+[[mcp_servers]]
+name = "kibi"
+transport = "stdio"
+command = "node"
+args = ["<path-to-checkout>/packages/vibe/bin/launch-kibi-mcp.mjs"]
+startup_timeout_sec = 120
+tool_timeout_sec = 300
+```
 
 ## OpenCode
 
@@ -72,7 +110,7 @@ OpenCode takes the command as a list of tokens, in `opencode.json`:
 }
 ```
 
-The optional `kibi-opencode` plugin adds prompt guidance and background maintenance. It does not replace the server above. See [OpenCode MCP](install.md#opencode-mcp).
+The optional `kibi-opencode` plugin adds prompt guidance, background maintenance and, on OpenCode v1, the decision hooks the other plugins run: a message that states a rule gets a `kb_record` capture template, an edit of code that implements a firm requirement is stopped once so the agent asks the person first, and a session that changed source and recorded nothing is asked once to record the decision. Shell in-place edits count as source edits. It does not replace the server above. See [OpenCode MCP](install.md#opencode-mcp).
 
 ## VS Code
 

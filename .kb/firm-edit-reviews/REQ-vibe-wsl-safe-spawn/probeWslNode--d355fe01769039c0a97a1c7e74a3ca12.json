@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-wsl-safe-spawn",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "probeWslNode",
+  "verdict": "keeps",
+  "note": "Maintainer-approved reword (2026-11-24) of the first claim: every wsl.exe call, including wslpath and the distribution probe, uses --exec with literal argv and never a shell string. This code already does: buildWslArgs, toWslPath (wslpath -a) and probeWslNode (bash -lc with a constant script) all pass --exec. No code change.",
+  "statementHash": "sha256:0d03d2dbf38e0376a711e82ecbae23f065c08f89dc077207b1f3a184d639b119",
+  "codeHash": "sha256:b9fb738cbd2aa66af44c4a2dcaf1bfa60bfcbdb1a69b5e55d92ca20e391c82c5",
+  "startLine": 169,
+  "endLine": 203,
+  "recordedAt": "2026-11-24T15:41:43.829Z"
+}

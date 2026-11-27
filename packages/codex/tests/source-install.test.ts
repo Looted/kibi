@@ -77,7 +77,13 @@ function resultOf(output: {
 }
 
 function copyPluginAssets(pluginRoot: string): void {
-  for (const asset of [".codex-plugin", ".mcp.json", "hooks", "bin"]) {
+  for (const asset of [
+    ".codex-plugin",
+    "assets",
+    ".mcp.json",
+    "hooks",
+    "bin",
+  ]) {
     const source = path.join(packageRoot, asset);
     const target = path.join(pluginRoot, asset);
     if (fs.statSync(source).isDirectory()) {
@@ -122,6 +128,8 @@ async function exercisePlugin(
   const pluginData = path.join(fixtureRoot, "plugin data");
   fs.mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(workspaceRoot, ".kb", "manifest.json"), "{}\n");
+  // Inside Git, so the session brief carries no no-Git advisory.
+  fs.mkdirSync(path.join(workspaceRoot, ".git"), { recursive: true });
   fs.mkdirSync(pluginData, { recursive: true });
 
   const config = JSON.parse(fs.readFileSync(hooksPath, "utf8")) as HookConfig;

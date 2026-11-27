@@ -2,150 +2,45 @@ import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 
-import type {
-  PluginProviderStamp,
-  SearchHintsEntity,
-  SearchHintsV1,
+import {
+  type PluginProviderStamp,
+  SEARCH_HINTS_MAX_LIMIT,
+  type SearchHintsEntity,
+  type SearchHintsV1,
 } from "kibi-plugin-sdk";
 
+import type { MeaningItem, MeaningScores } from "./decision-search.js";
 import { runtimeDirectory } from "./engine.js";
-import {
-  type IntentSearchAnalysis,
-  type MarkdownBodyCache,
-  NON_GOVERNING_STATUSES,
-  queryGraphEdges,
-} from "./intent-search.js";
-import {
-  type NegativePathFacts,
-  type NegativePathMarker,
-  negativePathMarker,
-  negativePathTitle,
-  queryNegativePathFacts,
-} from "./negative-path-facts.js";
 import {
   type SearchHintsDiagnostic,
   composeSearchHints,
 } from "./plugins/compose-search-hints.js";
 import type { CapabilityModeResolution } from "./plugins/registry.js";
-import { isProvenanceStub } from "./provenance-stub.js";
-import type { PrologPort } from "./public/operations/runtime-types.js";
-import { loadMarkdownBodySync } from "./search-ranking.js";
-import { tokenSourceHash } from "./search-token-cache.js";
 
 /**
- * Below this top score a lexical answer is weak enough to show hints. On
- * Kibi's own KB, 17 of 18 reworded questions the ranker got wrong scored
- * below it, against 6 of 30 gold questions it got right. Host-owned, so no
- * provider can move it.
+ * The meaning ranking of kb_search. A kibi.search-hints.v1 provider scores
+ * every decision and every scenario, test and fact a decision links by
+ * similarity to the question; decision search fuses those scores with the
+ * word ranking and lists the closest decisions that are not already a card.
+ * Without a provider, or when it fails, search ranks by words alone.
  */
-export const SEARCH_HINT_WEAK_SCORE = 0.44;
-/** Requirements shown as hints. */
-export const SEARCH_HINT_LIMIT = 10;
-/** Entities asked of the provider before they are lifted to requirements. */
-const PROVIDER_LIMIT = 20;
-/** Text a provider sees per entity: title, statement, then body. */
-const ENTITY_TEXT_CHARS = 2000;
-/** A provider's first call in a process may build its index. */
+
+/** A provider's first call in a process may build its vectors. */
 const FIRST_CALL_TIMEOUT_MS = 3000;
 const WARM_CALL_TIMEOUT_MS = 500;
 /** Providers that answered once in this process; later calls get less time. */
 const warmedProviders = new WeakSet<object>();
 
-export type SearchHintsTrigger = "abstained" | "weak";
-
-export type SearchHintItem = Readonly<{
-  id: string;
-  title: string;
-  score: number;
-  /** The entity the provider matched, when the hint is its requirement. */
-  via?: string;
-  /**
-   * Set when the hint is a negative-path fact no current requirement could
-   * be shown for; its title carries the "Forbidden: " prefix.
-   */
-  negativePath?: NegativePathMarker;
-}>;
-
 export type SearchHintsAnalysis = Readonly<{
-  trigger: SearchHintsTrigger;
   provider: PluginProviderStamp | null;
-  items: readonly SearchHintItem[];
+  /** Decisions related by meaning that are not already a card. */
+  items: readonly MeaningItem[];
   shadow?: readonly {
     readonly provider: PluginProviderStamp;
     readonly items: readonly { readonly id: string; readonly score: number }[];
   }[];
   diagnostics?: readonly SearchHintsDiagnostic[];
 }>;
-
-/** Why a lexical answer needs hints, or null when it is strong enough. */
-export function searchHintsTrigger(
-  analysis: IntentSearchAnalysis,
-): SearchHintsTrigger | null {
-  if (analysis.abstained || analysis.topScore === null) return "abstained";
-  return analysis.topScore < SEARCH_HINT_WEAK_SCORE ? "weak" : null;
-}
-
-function isCurrent(entity: Record<string, unknown>): boolean {
-  const status = String(entity.status).trim().toLowerCase();
-  return (
-    !NON_GOVERNING_STATUSES.has(status) &&
-    status !== "closed" &&
-    !isProvenanceStub(entity)
-  );
-}
-
-function entityBody(
-  entity: Record<string, unknown>,
-  bodies: MarkdownBodyCache,
-  workspaceRoot: string,
-): string {
-  // The ranking may not have read every body; read the rest so an entity's
-  // text, and so its cached vector, never depends on the query.
-  const source = entity.source;
-  if (typeof source !== "string") return "";
-  if (!bodies.has(source))
-    bodies.set(source, loadMarkdownBodySync(source, workspaceRoot));
-  return bodies.get(source) as string;
-}
-
-function entityText(
-  entity: Record<string, unknown>,
-  bodies: MarkdownBodyCache,
-  workspaceRoot: string,
-): string {
-  return [
-    entity.title,
-    entity.semantic_text,
-    entityBody(entity, bodies, workspaceRoot),
-  ]
-    .filter((part): part is string => typeof part === "string" && part !== "")
-    .join("\n")
-    .slice(0, ENTITY_TEXT_CHARS);
-}
-
-/** The current entities a provider may hint at, as the search loaded them. */
-export function searchHintsEntities(
-  entities: readonly Record<string, unknown>[],
-  bodies: MarkdownBodyCache,
-  workspaceRoot: string,
-): SearchHintsEntity[] {
-  const seen = new Set<string>();
-  const rows: SearchHintsEntity[] = [];
-  for (const entity of entities) {
-    const id = String(entity.id ?? "");
-    if (id === "" || seen.has(id) || !isCurrent(entity)) continue;
-    seen.add(id);
-    const text = entityText(entity, bodies, workspaceRoot);
-    rows.push({
-      id,
-      type: String(entity.type ?? ""),
-      title: String(entity.title ?? ""),
-      text,
-      hash: tokenSourceHash([text]),
-    });
-  }
-  return rows;
-}
 
 function cacheDirectory(workspaceRoot: string): string {
   const workspace = createHash("sha256")
@@ -157,143 +52,87 @@ function cacheDirectory(workspaceRoot: string): string {
   return directory;
 }
 
-/**
- * A hint on a scenario, test, fact or ADR is shown as the current
- * requirement it belongs to, so the agent re-asks about what governs; an
- * entity no current requirement links to is shown as itself. A negative-path
- * fact is linked to no requirement directly: it is shown as the requirements
- * whose rejecting scenarios assume it, and, when none is current, as itself
- * marked as a situation that must not happen.
- */
-async function liftToRequirements(
-  prolog: Pick<PrologPort, "query">,
-  hints: readonly { readonly id: string; readonly score: number }[],
-  byId: ReadonlyMap<string, SearchHintsEntity>,
-): Promise<SearchHintItem[]> {
-  const isRequirement = (id: string) => byId.get(id)?.type === "req";
-  const seeds = new Set(
-    hints.map((hint) => hint.id).filter((id) => !isRequirement(id)),
-  );
-  const negativePath: NegativePathFacts = await queryNegativePathFacts(
-    prolog,
-    [...seeds].filter(
-      (id) => (byId.get(id) as SearchHintsEntity).type === "fact",
-    ),
-  );
-  const requirementsOf = new Map<string, Set<string>>();
-  for (const [fact, guards] of negativePath) {
-    const shown = guards.filter(isRequirement);
-    if (shown.length > 0) requirementsOf.set(fact, new Set(shown));
-  }
-  for (const edge of await queryGraphEdges(prolog, [...seeds]))
-    for (const [seed, other] of [
-      [edge.from, edge.to],
-      [edge.to, edge.from],
-    ] as const)
-      if (seeds.has(seed) && isRequirement(other))
-        requirementsOf.set(
-          seed,
-          (requirementsOf.get(seed) ?? new Set()).add(other),
-        );
-  const items: SearchHintItem[] = [];
-  const shown = new Set<string>();
-  for (const hint of hints) {
-    const linked = requirementsOf.get(hint.id);
-    for (const target of linked ? [...linked].sort() : [hint.id]) {
-      if (shown.has(target)) continue;
-      shown.add(target);
-      const title = (byId.get(target) as SearchHintsEntity).title;
-      // Only seeds are asked about, and a lifted target is a requirement.
-      const guards = negativePath.get(target);
-      items.push({
-        id: target,
-        title: guards !== undefined ? negativePathTitle(title) : title,
-        score: hint.score,
-        ...(target !== hint.id ? { via: hint.id } : {}),
-        ...(guards !== undefined
-          ? { negativePath: negativePathMarker(guards) }
-          : {}),
-      });
-    }
-  }
-  return items;
-}
+/** What one search's meaning ranking reported, for queryAnalysis.hints. */
+export type MeaningReport = Readonly<{
+  provider: PluginProviderStamp | null;
+  shadow: NonNullable<SearchHintsAnalysis["shadow"]>;
+  diagnostics: readonly SearchHintsDiagnostic[];
+}>;
 
 /**
- * Ask the configured kibi.search-hints.v1 provider which current entities a
- * weakly answered question is probably about. Returns undefined when the
- * answer is strong or no provider is configured. Hints never change the
- * ranked results, the governing answer or abstention.
+ * A meaning ranker over the configured provider. `report()` gives what the
+ * last call returned besides the scores: the provider's stamp, shadow
+ * comparisons and diagnostics.
  */
-export async function buildSearchHints(
-  options: Readonly<{
-    query: string;
-    analysis: IntentSearchAnalysis;
-    entities: readonly Record<string, unknown>[];
-    bodies: MarkdownBodyCache;
-    governingIds: readonly string[];
-    resolution: CapabilityModeResolution<SearchHintsV1>;
-    prolog: Pick<PrologPort, "query">;
-    workspaceRoot: string;
-  }>,
-): Promise<SearchHintsAnalysis | undefined> {
-  const trigger = searchHintsTrigger(options.analysis);
-  if (trigger === null) return undefined;
-  const { resolution } = options;
-  if (resolution.replace === null && resolution.shadow.length === 0)
-    return undefined;
-  const entities = searchHintsEntities(
-    options.entities,
-    options.bodies,
-    options.workspaceRoot,
-  );
-  if (entities.length === 0) return undefined;
-  const composed = await composeSearchHints(
-    resolution,
-    {
-      query: options.query,
-      limit: PROVIDER_LIMIT,
-      entities,
-      cacheDirectory: cacheDirectory(options.workspaceRoot),
-    },
-    {
-      operationName: "kb_search",
-      timeoutMs: (binding) =>
-        warmedProviders.has(binding.capability)
-          ? WARM_CALL_TIMEOUT_MS
-          : FIRST_CALL_TIMEOUT_MS,
-    },
-  );
-  for (const binding of [resolution.replace, ...resolution.shadow])
-    if (binding) warmedProviders.add(binding.capability);
-  const byId = new Map(entities.map((entity) => [entity.id, entity]));
-  const answered = new Set(options.governingIds.slice(0, 3));
-  const items = (await liftToRequirements(options.prolog, composed.hints, byId))
-    .filter((item) => !answered.has(item.id))
-    .slice(0, SEARCH_HINT_LIMIT);
-  const shadow = composed.shadowComparisons.map((comparison) => ({
-    provider: comparison.stamp,
-    items: comparison.hints,
-  }));
+export function providerMeaningRanker(
+  resolution: CapabilityModeResolution<SearchHintsV1>,
+  workspaceRoot: string,
+): {
+  rank: (
+    query: string,
+    entities: readonly SearchHintsEntity[],
+  ) => Promise<MeaningScores | undefined>;
+  report: () => MeaningReport | undefined;
+} {
+  let report: MeaningReport | undefined;
   return {
-    trigger,
-    provider: composed.stamp,
+    report: () => report,
+    async rank(query, all) {
+      if (resolution.replace === null && resolution.shadow.length === 0)
+        return undefined;
+      const entities = all.slice(0, SEARCH_HINTS_MAX_LIMIT);
+      const composed = await composeSearchHints(
+        resolution,
+        {
+          query,
+          limit: entities.length,
+          entities,
+          cacheDirectory: cacheDirectory(workspaceRoot),
+        },
+        {
+          operationName: "kb_search",
+          timeoutMs: (binding) =>
+            warmedProviders.has(binding.capability)
+              ? WARM_CALL_TIMEOUT_MS
+              : FIRST_CALL_TIMEOUT_MS,
+        },
+      );
+      for (const binding of [resolution.replace, ...resolution.shadow])
+        if (binding) warmedProviders.add(binding.capability);
+      report = {
+        provider: composed.stamp,
+        shadow: composed.shadowComparisons.map((comparison) => ({
+          provider: comparison.stamp,
+          items: comparison.hints.slice(0, 10),
+        })),
+        diagnostics: composed.diagnostics,
+      };
+      if (composed.stamp === null || composed.fallbackUsed) return undefined;
+      return new Map(composed.hints.map((hint) => [hint.id, hint.score]));
+    },
+  };
+}
+
+/** queryAnalysis.hints for a search: the meaning list and its provider. */
+export function searchHintsAnalysis(
+  items: readonly MeaningItem[],
+  report: MeaningReport | undefined,
+): SearchHintsAnalysis | undefined {
+  if (report === undefined) return undefined;
+  return {
+    provider: report.provider,
     items,
-    ...(shadow.length > 0 ? { shadow } : {}),
-    ...(composed.diagnostics.length > 0
-      ? { diagnostics: composed.diagnostics }
+    ...(report.shadow.length > 0 ? { shadow: report.shadow } : {}),
+    ...(report.diagnostics.length > 0
+      ? { diagnostics: report.diagnostics }
       : {}),
   };
 }
 
-/** The sentence a search answer's text adds when hints are shown. */
+/** The sentence a search answer's text adds for the meaning list. */
 export function searchHintsNote(
   hints: SearchHintsAnalysis | undefined,
 ): string {
   if (hints === undefined || hints.items.length === 0) return "";
-  const named = hints.items
-    .slice(0, 5)
-    .map((item) => `${item.title} (${item.id})`)
-    .join("; ");
-  return ` The lexical answer is weak; by meaning the KB may describe this as: ${named}. Re-ask in those words or pass them as semanticFacets.aliases, then read the governing requirement with kb_query. Hints are suggestions, not governing requirements.`;
+  return ` Related by meaning: ${hints.items.map((item) => item.id).join(", ")}.`;
 }

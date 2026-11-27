@@ -2,7 +2,12 @@ import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
-import { shellToolEditPaths } from "kibi-agent-core/bash-command";
+import {
+  type ShellRead,
+  shellToolCommand,
+  shellToolEditPaths,
+  shellToolReadViews,
+} from "kibi-agent-core/bash-command";
 import {
   type DecisionSession,
   captureReminder,
@@ -31,10 +36,22 @@ import {
 } from "kibi-agent-core/kb-mcp-tools";
 import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
 import {
+  type GuardedChange,
+  guardedChangeNotice,
+  guardedChangeOf,
+  guardedChangeOfShellCommand,
+} from "kibi-agent-core/level-guard";
+import {
   canonicalizeWorkspacePath,
+  classifyPath,
   extractEditedPaths,
   isSourceImpactRelevantPath,
 } from "kibi-agent-core/path-policy";
+import {
+  globFilter,
+  hookReadRows,
+  searchToolRead,
+} from "kibi-agent-core/read-context";
 import { createEntitySummarizer, editFocus } from "kibi-agent-core/snippets";
 
 import { kibiToolName } from "./smart-enforcement-events.js";
@@ -97,6 +114,51 @@ export function decisionStateDir(
   return path.join(root, "decisions", key);
 }
 
+/**
+ * The notice that stops a tool call changing the Kibi level or lowering a
+ * requirement's required_evidence, the first time the session tries that
+ * change; undefined for any other call and for the same change tried again.
+ * `stopped` holds the changes already stopped, per session.
+ */
+export function guardedChangeStop(
+  workspaceRoot: string,
+  stopped: Set<string>,
+  tool: string,
+  sessionId: string | undefined,
+  args: unknown,
+): string | undefined {
+  const kbTool = kibiToolName(tool);
+  const shellCommand = shellToolCommand(tool, args);
+  let change: GuardedChange | undefined;
+  if (kbTool !== undefined)
+    change = guardedChangeOf({
+      workspaceRoot,
+      toolName: kbTool,
+      toolInput: args,
+    });
+  else if (shellCommand !== undefined)
+    change = guardedChangeOfShellCommand(
+      workspaceRoot,
+      shellCommand,
+      workspaceRoot,
+    );
+  else if (EDIT_TOOLS.has(tool))
+    for (const relativePath of editedRelativePaths(workspaceRoot, tool, args)) {
+      change = guardedChangeOf({
+        workspaceRoot,
+        toolName: tool,
+        toolInput: args,
+        relativePath,
+      });
+      if (change) break;
+    }
+  if (change === undefined) return undefined;
+  const key = JSON.stringify([sessionId ?? "", change]);
+  if (stopped.has(key)) return undefined;
+  stopped.add(key);
+  return guardedChangeNotice(change);
+}
+
 /** The text of a user message's text parts, joined. */
 export function messageText(parts: unknown): string {
   if (!Array.isArray(parts)) return "";
@@ -136,6 +198,61 @@ function editedRelativePaths(
   ];
 }
 
+/** OpenCode's read tool reads 2000 lines from its offset unless limited. */
+const READ_TOOL_LINES = 2000;
+
+/**
+ * What a read, grep or bash call puts in view: the read tool's file and
+ * window, a grep's pattern over its path (limited by its include glob), a
+ * command's files and searches. Glob lists names only and shows nothing.
+ */
+export function toolReads(
+  workspaceRoot: string,
+  tool: string,
+  args: unknown,
+): { reads: ShellRead[]; admits?: (relativePath: string) => boolean } {
+  const fields = (
+    args !== null && typeof args === "object" ? args : {}
+  ) as Record<string, unknown>;
+  if (tool === "read") {
+    if (typeof fields.filePath !== "string") return { reads: [] };
+    const offset =
+      typeof fields.offset === "number" ? fields.offset : undefined;
+    const limit = typeof fields.limit === "number" ? fields.limit : undefined;
+    const start = Math.max(1, offset ?? 1);
+    const focus =
+      offset === undefined && limit === undefined
+        ? undefined
+        : [{ start, end: start + (limit ?? READ_TOOL_LINES) - 1 }];
+    return {
+      reads: [
+        {
+          absolute: path.resolve(workspaceRoot, fields.filePath),
+          directory: false,
+          ...(focus ? { focus } : {}),
+        },
+      ],
+    };
+  }
+  if (tool === "grep") {
+    const read = searchToolRead({
+      pattern: fields.pattern,
+      path: fields.path,
+      cwd: workspaceRoot,
+    });
+    const include =
+      typeof fields.include === "string" ? fields.include : undefined;
+    return {
+      reads: read ? [read] : [],
+      ...(include ? { admits: globFilter(include) } : {}),
+    };
+  }
+  if (tool === "bash") {
+    return { reads: shellToolReadViews("Bash", args, workspaceRoot) };
+  }
+  return { reads: [] };
+}
+
 export function createDecisionHooks(
   options: DecisionHookOptions,
 ): DecisionHooks {
@@ -155,20 +272,63 @@ export function createDecisionHooks(
     return session;
   };
 
+  // The guarded changes this process already stopped once, per session.
+  const stopped = new Set<string>();
+  /**
+   * Requirement rows for the code a read, grep or bash call puts in view
+   * (see kibi-agent-core/read-context), each requirement once per session.
+   */
+  const readRows = (
+    tool: string,
+    sessionId: string | undefined,
+    args: unknown,
+  ): string | undefined => {
+    try {
+      const { reads, admits } = toolReads(workspaceRoot, tool, args);
+      if (reads.length === 0) return undefined;
+      return hookReadRows(reads, {
+        workspaceRoot,
+        files: loadKnowledgeIndex(workspaceRoot, stateDir).files,
+        isSource: (relativePath) => classifyPath(relativePath) === "source",
+        admits,
+        summarize: createEntitySummarizer(workspaceRoot),
+        stateDir,
+        sessionKey: sessionId ?? "",
+      })?.text;
+    } catch {
+      // Requirement context is advisory; an unreadable manifest or file
+      // leaves the tool's output as it is.
+      return undefined;
+    }
+  };
+
   return {
     chatMessage(sessionId, parts) {
       const text = messageText(parts);
       if (text.trim() === "") return;
       const session = sessionFor(sessionId);
-      const rule = recordRequest(session, text);
+      const rule = recordRequest(session, text, { workspaceRoot });
       // The message hook cannot add context: the note waits for the next
       // tool result the agent reads.
-      if (rule !== undefined) holdRuleNote(session, rule, statedReason(text));
+      if (rule !== undefined)
+        holdRuleNote(session, rule, statedReason(text, workspaceRoot));
     },
 
     beforeTool(tool, sessionId, args) {
+      if (tool === undefined) return;
+      // A change of the Kibi level or a lowered required_evidence is the
+      // person's choice: the first try is stopped with the notice so the
+      // agent asks, and the same change tried again goes through.
+      const stop = guardedChangeStop(
+        workspaceRoot,
+        stopped,
+        tool,
+        sessionId,
+        args,
+      );
+      if (stop !== undefined) throw new Error(stop);
       // An edit tool, or a shell call that writes files in place.
-      if (tool === undefined || !confirmFirmEdits(env)) return;
+      if (!confirmFirmEdits(env)) return;
       const relatives = editedRelativePaths(workspaceRoot, tool, args).filter(
         isSourceImpactRelevantPath,
       );
@@ -228,6 +388,7 @@ export function createDecisionHooks(
       const parts = [
         takeRuleNote(session),
         editedSource ? claimRuleCaptureTemplate(session) : undefined,
+        readRows(tool, sessionId, args),
       ].filter((part): part is string => part !== undefined);
       return parts.length > 0 ? parts.join("\n\n") : undefined;
     },

@@ -16,7 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
+import { spawnSync as rawSpawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -25,16 +33,19 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import {
+  MANAGED_HOOK_NAMES,
   copySchemaFiles,
   createKbDirectoryStructure,
   createManifestFile,
   ensureSymbolsManifestFile,
   getCurrentBranch,
+  hookDelegationSnippet,
   installGitHooks,
   installHook,
   outdatedManagedHooks,
@@ -76,15 +87,14 @@ describe("init-helpers", () => {
     expect(branch).toBe("test-branch");
   });
 
-  test("getCurrentBranch throws error if git fails and KIBI_BRANCH not set", async () => {
-    try {
-      await getCurrentBranch(tmpDir);
-      throw new Error("Expected getCurrentBranch to throw");
-    } catch (error) {
-      expect((error as Error).message).toContain(
-        "Failed to resolve active branch",
-      );
-    }
+  test("getCurrentBranch names the no-Git store outside Git", async () => {
+    expect(await getCurrentBranch(tmpDir)).toBe("kibi-internal/no-git");
+  });
+
+  test("getCurrentBranch throws when the branch cannot be resolved", async () => {
+    await expect(
+      getCurrentBranch(path.join(tmpDir, "missing")),
+    ).rejects.toThrow("Failed to resolve active branch");
   });
 
   test("getCurrentBranch uses KIBI_BRANCH when git fails", async () => {
@@ -513,5 +523,555 @@ describe("init-helpers", () => {
       "#!/bin/sh\n# user-authored hook without kibi markers\n",
     );
     expect(outdatedManagedHooks(hooksDir)).toEqual(["pre-commit"]);
+  });
+
+  describe("generated POSIX sh hook node version-manager resolution", () => {
+    const buildNodeFreePath = (): string => {
+      if (!existsSync("/usr/bin/node") && !existsSync("/bin/node")) {
+        return "/usr/bin:/bin";
+      }
+      const dir = path.join(tmpdir(), `kibi-node-free-path-${process.pid}`);
+      mkdirSync(dir, { recursive: true });
+      for (const tool of [
+        "sh",
+        "env",
+        "dirname",
+        "basename",
+        "uname",
+        "tr",
+        "sed",
+        "awk",
+        "grep",
+        "cat",
+        "printf",
+        "ls",
+        "head",
+        "tail",
+        "sort",
+        "mkdir",
+        "rm",
+        "cp",
+        "mv",
+        "test",
+        "[",
+        "readlink",
+        "realpath",
+      ]) {
+        const dest = path.join(dir, tool);
+        if (existsSync(dest)) continue;
+        const src = existsSync(`/usr/bin/${tool}`)
+          ? `/usr/bin/${tool}`
+          : existsSync(`/bin/${tool}`)
+            ? `/bin/${tool}`
+            : null;
+        if (src) {
+          try {
+            symlinkSync(src, dest);
+          } catch {}
+        }
+      }
+      return dir;
+    };
+    const STRIPPED_PATH = buildNodeFreePath();
+    afterAll(() => {
+      if (STRIPPED_PATH !== "/usr/bin:/bin") {
+        rmSync(STRIPPED_PATH, { recursive: true, force: true });
+      }
+    });
+
+    function createHookFixture() {
+      const repoDir = path.join(tmpDir, "repo");
+      const hooksDir = path.join(repoDir, ".git", "hooks");
+      const fakeHome = path.join(tmpDir, "home");
+      const logFile = path.join(tmpDir, "node-invocations.log");
+      mkdirSync(hooksDir, { recursive: true });
+      mkdirSync(fakeHome, { recursive: true });
+      installGitHooks(hooksDir, { log: () => undefined });
+      return { repoDir, hooksDir, fakeHome, logFile };
+    }
+
+    function writeLocalNodeKibiStub(repoDir: string) {
+      const localBin = path.join(repoDir, "node_modules", ".bin");
+      mkdirSync(localBin, { recursive: true });
+      const kibiPath = path.join(localBin, "kibi");
+      // Uses the same #!/usr/bin/env node shebang as the real kibi CLI.
+      writeFileSync(kibiPath, "#!/usr/bin/env node\n// local kibi stub\n", {
+        mode: 0o755,
+      });
+      return kibiPath;
+    }
+
+    function writeFakeNode(binDir: string, label: string, logFile: string) {
+      mkdirSync(binDir, { recursive: true });
+      const nodePath = path.join(binDir, "node");
+      writeFileSync(
+        nodePath,
+        `#!/bin/sh\nprintf '%s|%s\\n' "${label}" "$*" >> "${logFile}"\n`,
+        { mode: 0o755 },
+      );
+      return nodePath;
+    }
+
+    function runPosixHook(
+      hookPath: string,
+      repoDir: string,
+      env: Record<string, string>,
+      args: string[] = [],
+    ) {
+      return rawSpawnSync("/bin/sh", [hookPath, ...args], {
+        cwd: repoDir,
+        env,
+        encoding: "utf8",
+      });
+    }
+
+    test("all managed hooks and delegation snippets pass /bin/sh -n syntax check", () => {
+      const { hooksDir } = createHookFixture();
+      for (const hook of MANAGED_HOOK_NAMES) {
+        const installed = rawSpawnSync(
+          "/bin/sh",
+          ["-n", path.join(hooksDir, hook)],
+          {
+            encoding: "utf8",
+          },
+        );
+        expect(installed.status).toBe(0);
+        expect(installed.stderr).toBe("");
+
+        const snippetPath = path.join(tmpDir, `snippet-${hook}.sh`);
+        writeFileSync(snippetPath, `#!/bin/sh\n${hookDelegationSnippet(hook)}`);
+        const snippet = rawSpawnSync("/bin/sh", ["-n", snippetPath], {
+          encoding: "utf8",
+        });
+        expect(snippet.status).toBe(0);
+        expect(snippet.stderr).toBe("");
+      }
+    });
+
+    test("resolves node from NVM_DIR/current/bin when node is off PATH", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+      const nvmDir = path.join(tmpDir, "custom-nvm");
+      writeFakeNode(
+        path.join(nvmDir, "current", "bin"),
+        "nvm-current",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v24.21.0", "bin"),
+        "nvm-v24.21.0",
+        logFile,
+      );
+
+      const res = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: STRIPPED_PATH,
+        HOME: fakeHome,
+        NVM_DIR: nvmDir,
+      });
+
+      expect(res.status).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("nvm-current|");
+      expect(readFileSync(logFile, "utf8")).toContain("sync");
+    });
+
+    test("resolves node from nvm alias/default (exact, prefix, and chained alias)", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+      const nvmDir = path.join(tmpDir, "nvm-alias");
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v9.0.0", "bin"),
+        "v9.0.0",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v24.9.0", "bin"),
+        "v24.9.0",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v24.14.1", "bin"),
+        "v24.14.1",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v24.21.0", "bin"),
+        "v24.21.0",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v240.0.0", "bin"),
+        "v240.0.0",
+        logFile,
+      );
+
+      // 1. Exact version without leading v (real nvm default format)
+      mkdirSync(path.join(nvmDir, "alias"), { recursive: true });
+      writeFileSync(path.join(nvmDir, "alias", "default"), "24.14.1\n");
+      const exact = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: STRIPPED_PATH,
+        HOME: fakeHome,
+        NVM_DIR: nvmDir,
+      });
+      expect(exact.status).toBe(0);
+      expect(readFileSync(logFile, "utf8").trim()).toStartWith("v24.14.1|");
+
+      // 2. Prefix match ("24") prefers v24.21.0 numerically over v24.9.0 and ignores v240.0.0
+      writeFileSync(logFile, "");
+      writeFileSync(path.join(nvmDir, "alias", "default"), "24\n");
+      const prefix = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: STRIPPED_PATH,
+        HOME: fakeHome,
+        NVM_DIR: nvmDir,
+      });
+      expect(prefix.status).toBe(0);
+      expect(readFileSync(logFile, "utf8").trim()).toStartWith("v24.21.0|");
+
+      // 3. Chained alias: default -> lts/* -> lts/krypton -> v24.14.1
+      writeFileSync(logFile, "");
+      mkdirSync(path.join(nvmDir, "alias", "lts"), { recursive: true });
+      writeFileSync(path.join(nvmDir, "alias", "default"), "lts/*\n");
+      writeFileSync(path.join(nvmDir, "alias", "lts", "*"), "lts/krypton\n");
+      writeFileSync(path.join(nvmDir, "alias", "lts", "krypton"), "v24.14.1\n");
+      const chained = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: STRIPPED_PATH,
+        HOME: fakeHome,
+        NVM_DIR: nvmDir,
+      });
+      expect(chained.status).toBe(0);
+      expect(readFileSync(logFile, "utf8").trim()).toStartWith("v24.14.1|");
+    });
+
+    test("falls back to highest semver under $HOME/.nvm/versions/node and finds global kibi in that bin dir", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      const nvmVersions = path.join(fakeHome, ".nvm", "versions", "node");
+      writeFakeNode(path.join(nvmVersions, "v9.0.0", "bin"), "v9.0.0", logFile);
+      writeFakeNode(
+        path.join(nvmVersions, "v24.9.0", "bin"),
+        "v24.9.0",
+        logFile,
+      );
+      const bestBin = path.join(nvmVersions, "v24.21.0", "bin");
+      writeFakeNode(bestBin, "v24.21.0", logFile);
+      writeFakeNode(
+        path.join(nvmVersions, "not-a-version", "bin"),
+        "junk",
+        logFile,
+      );
+      // Global kibi installed alongside the nvm node binary (no node_modules/.bin/kibi).
+      writeFileSync(
+        path.join(bestBin, "kibi"),
+        "#!/usr/bin/env node\n// global kibi in nvm bin\n",
+        { mode: 0o755 },
+      );
+
+      const res = runPosixHook(
+        path.join(hooksDir, "post-checkout"),
+        repoDir,
+        { PATH: STRIPPED_PATH, HOME: fakeHome },
+        ["0000000", "1111111", "1"],
+      );
+
+      expect(res.status).toBe(0);
+      const log = readFileSync(logFile, "utf8");
+      expect(log).toContain("v24.21.0|");
+      expect(log).toContain(`${bestBin}/kibi sync`);
+    });
+
+    test("resolves node from Volta (VOLTA_HOME and default $HOME/.volta)", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+
+      const customVolta = path.join(tmpDir, "custom-volta");
+      writeFakeNode(path.join(customVolta, "bin"), "volta-env", logFile);
+      const fromEnv = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: STRIPPED_PATH,
+        HOME: fakeHome,
+        VOLTA_HOME: customVolta,
+      });
+      expect(fromEnv.status).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("volta-env|");
+
+      writeFileSync(logFile, "");
+      writeFakeNode(
+        path.join(fakeHome, ".volta", "bin"),
+        "volta-home",
+        logFile,
+      );
+      const fromHome = runPosixHook(
+        path.join(hooksDir, "post-merge"),
+        repoDir,
+        {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+        },
+      );
+      expect(fromHome.status).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("volta-home|");
+    });
+
+    test("resolves node from fnm (FNM_DIR, $HOME/.fnm, XDG_DATA_HOME, and node-versions fallback)", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+
+      // 1. FNM_DIR/aliases/default/bin
+      const customFnm = path.join(tmpDir, "custom-fnm");
+      writeFakeNode(
+        path.join(customFnm, "aliases", "default", "bin"),
+        "fnm-dir",
+        logFile,
+      );
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+          FNM_DIR: customFnm,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("fnm-dir|");
+
+      // 2. XDG_DATA_HOME/fnm/aliases/default/bin
+      writeFileSync(logFile, "");
+      const xdgData = path.join(tmpDir, "xdg-data");
+      writeFakeNode(
+        path.join(xdgData, "fnm", "aliases", "default", "bin"),
+        "fnm-xdg",
+        logFile,
+      );
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+          XDG_DATA_HOME: xdgData,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("fnm-xdg|");
+
+      // 3. $HOME/.fnm/aliases/default/bin
+      writeFileSync(logFile, "");
+      writeFakeNode(
+        path.join(fakeHome, ".fnm", "aliases", "default", "bin"),
+        "fnm-dotfnm",
+        logFile,
+      );
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("fnm-dotfnm|");
+
+      // 4. Fallback under node-versions/*/installation/bin with numeric semver comparison
+      writeFileSync(logFile, "");
+      const fnmFallback = path.join(tmpDir, "fnm-fallback");
+      writeFakeNode(
+        path.join(
+          fnmFallback,
+          "node-versions",
+          "v9.0.0",
+          "installation",
+          "bin",
+        ),
+        "fnm-v9",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(
+          fnmFallback,
+          "node-versions",
+          "v24.9.0",
+          "installation",
+          "bin",
+        ),
+        "fnm-v24.9",
+        logFile,
+      );
+      writeFakeNode(
+        path.join(
+          fnmFallback,
+          "node-versions",
+          "v24.21.0",
+          "installation",
+          "bin",
+        ),
+        "fnm-v24.21",
+        logFile,
+      );
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: path.join(tmpDir, "empty-home"),
+          FNM_DIR: fnmFallback,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("fnm-v24.21|");
+    });
+
+    test("resolves node from asdf and mise shims", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+
+      const asdfDir = path.join(tmpDir, "custom-asdf");
+      writeFakeNode(path.join(asdfDir, "shims"), "asdf-shim", logFile);
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+          ASDF_DATA_DIR: asdfDir,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("asdf-shim|");
+
+      writeFileSync(logFile, "");
+      const miseDir = path.join(tmpDir, "custom-mise");
+      writeFakeNode(path.join(miseDir, "shims"), "mise-shim", logFile);
+      expect(
+        runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+          PATH: STRIPPED_PATH,
+          HOME: fakeHome,
+          MISE_DATA_DIR: miseDir,
+        }).status,
+      ).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("mise-shim|");
+    });
+
+    test("uses node already on PATH without overriding it from nvm", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+      const pathBin = path.join(tmpDir, "path-bin");
+      writeFakeNode(pathBin, "from-path", logFile);
+      writeFakeNode(
+        path.join(fakeHome, ".nvm", "versions", "node", "v24.21.0", "bin"),
+        "from-nvm",
+        logFile,
+      );
+
+      const res = runPosixHook(path.join(hooksDir, "post-merge"), repoDir, {
+        PATH: `${pathBin}:${STRIPPED_PATH}`,
+        HOME: fakeHome,
+      });
+
+      expect(res.status).toBe(0);
+      const log = readFileSync(logFile, "utf8");
+      expect(log).toContain("from-path|");
+      expect(log).not.toContain("from-nvm|");
+    });
+
+    test("fails with actionable remediation mentioning kibi sync when node is absent everywhere", () => {
+      const { repoDir, hooksDir, fakeHome } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+
+      // If the test host happens to have system node in /opt/homebrew/bin or
+      // /usr/local/bin, redirect those two probe paths in a temp copy so this
+      // test exercises the absent-everywhere branch deterministically.
+      let hookPath = path.join(hooksDir, "post-merge");
+      if (
+        existsSync("/opt/homebrew/bin/node") ||
+        existsSync("/usr/local/bin/node")
+      ) {
+        hookPath = path.join(tmpDir, "post-merge-no-sys-node");
+        const content = readFileSync(path.join(hooksDir, "post-merge"), "utf8")
+          .replace('"/opt/homebrew/bin"', `"${path.join(fakeHome, "no-brew")}"`)
+          .replace('"/usr/local/bin"', `"${path.join(fakeHome, "no-local")}"`);
+        writeFileSync(hookPath, content, { mode: 0o755 });
+      }
+
+      // Build a minimal PATH dir with only non-node POSIX commands if /usr/bin/node exists.
+      let isolatedPath = STRIPPED_PATH;
+      if (existsSync("/usr/bin/node") || existsSync("/bin/node")) {
+        const minBin = path.join(tmpDir, "min-bin");
+        mkdirSync(minBin, { recursive: true });
+        isolatedPath = minBin;
+      }
+
+      const res = runPosixHook(hookPath, repoDir, {
+        PATH: isolatedPath,
+        HOME: fakeHome,
+      });
+
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain("cannot locate 'node'");
+      expect(res.stderr).toContain("kibi sync");
+    });
+
+    test("post-checkout file checkout (branch_flag=0) exits 0 without probing node or kibi", () => {
+      const { repoDir, hooksDir, fakeHome } = createHookFixture();
+      const res = runPosixHook(
+        path.join(hooksDir, "post-checkout"),
+        repoDir,
+        { PATH: "", HOME: fakeHome },
+        ["0000000", "1111111", "0"],
+      );
+      expect(res.status).toBe(0);
+      expect(res.stderr).toBe("");
+    });
+
+    test("pre-commit (set -e) and delegation snippet (set -eu) resolve nvm node cleanly", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      writeLocalNodeKibiStub(repoDir);
+      const nvmDir = path.join(tmpDir, "nvm-strict");
+      writeFakeNode(
+        path.join(nvmDir, "versions", "node", "v24.21.0", "bin"),
+        "nvm-strict",
+        logFile,
+      );
+
+      // pre-commit uses `set -e` at the top of the template.
+      const preCommit = runPosixHook(
+        path.join(hooksDir, "pre-commit"),
+        repoDir,
+        { PATH: STRIPPED_PATH, HOME: fakeHome, NVM_DIR: nvmDir },
+      );
+      expect(preCommit.status).toBe(0);
+      const preCommitLog = readFileSync(logFile, "utf8");
+      expect(preCommitLog).toContain("check-generated --staged --changed-only");
+      expect(preCommitLog).toContain("check --staged");
+
+      // Delegation snippet under strict `set -eu` with HOME unset.
+      writeFileSync(logFile, "");
+      const strictSnippet = path.join(tmpDir, "strict-post-checkout.sh");
+      writeFileSync(
+        strictSnippet,
+        `#!/bin/sh\nset -eu\n${hookDelegationSnippet("post-checkout")}`,
+        { mode: 0o755 },
+      );
+      const snippetRes = runPosixHook(
+        strictSnippet,
+        repoDir,
+        { PATH: STRIPPED_PATH, NVM_DIR: nvmDir },
+        ["0000000", "1111111", "1"],
+      );
+      expect(snippetRes.status).toBe(0);
+      expect(readFileSync(logFile, "utf8")).toContain("nvm-strict|");
+    });
+
+    test("exits promptly on Windows-style C:/ PWD when kibi CLI cannot be located", () => {
+      const { repoDir, hooksDir, fakeHome, logFile } = createHookFixture();
+      const fakeBin = path.join(tmpDir, "win-pwd-bin");
+      writeFakeNode(fakeBin, "win-pwd", logFile);
+
+      // Simulate Git for Windows setting PWD to a drive-letter path (C:/...)
+      // where ${kibi_dir%/*} stops changing at "C:".
+      const preCommit = readFileSync(path.join(hooksDir, "pre-commit"), "utf8");
+      const probe = path.join(tmpDir, "win-pwd-probe.sh");
+      writeFileSync(
+        probe,
+        preCommit.replace('kibi_dir="$PWD"', 'kibi_dir="C:/Users/demo/repo"'),
+        { mode: 0o755 },
+      );
+
+      const res = spawnSync("/bin/sh", [probe], {
+        cwd: repoDir,
+        env: {
+          PATH: `${fakeBin}:${STRIPPED_PATH}`,
+          HOME: fakeHome,
+        },
+        encoding: "utf8",
+        timeout: 5_000,
+      });
+      expect(res.signal).toBeNull();
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain("cannot locate the kibi CLI");
+    });
   });
 });

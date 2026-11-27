@@ -2,9 +2,7 @@
   "kb_skills_list": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "skills"
-    ],
+    "required": ["skills"],
     "properties": {
       "skills": {
         "type": "array",
@@ -38,9 +36,7 @@
   "kb_skills_read": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "content"
-    ],
+    "required": ["content"],
     "properties": {
       "content": {
         "type": "string"
@@ -50,10 +46,7 @@
   "kb_query": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "entities",
-      "count"
-    ],
+    "required": ["entities", "count"],
     "properties": {
       "entities": {
         "type": "array",
@@ -73,7 +66,18 @@
         "type": "object",
         "additionalProperties": true
       },
+      "meta": {
+        "type": "object",
+        "additionalProperties": true
+      },
       "body": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
         "type": "object",
         "additionalProperties": true
       }
@@ -82,10 +86,7 @@
   "kb_search": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "results",
-      "count"
-    ],
+    "required": ["results", "count"],
     "properties": {
       "results": {
         "type": "array",
@@ -108,13 +109,24 @@
         "type": "object",
         "additionalProperties": true
       },
+      "notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
       "branch": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "branchStore": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "meta": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "truncation": {
         "type": "object",
         "additionalProperties": true
       }
@@ -131,10 +143,7 @@
         "type": "string"
       },
       "syncedAt": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "dirty": {
         "type": "boolean"
@@ -237,6 +246,10 @@
       },
       "sessionBrief": {
         "type": "string"
+      },
+      "versionControl": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
@@ -259,6 +272,13 @@
         "additionalProperties": true
       },
       "meta": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
         "type": "object",
         "additionalProperties": true
       }
@@ -295,6 +315,34 @@
         "type": "object",
         "additionalProperties": true
       },
+      "repairPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "symbolRepairPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "migrationPlanSummary": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "matched": {
+        "type": "integer"
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "omittedFields": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
       "meta": {
         "type": "object",
         "additionalProperties": true
@@ -322,6 +370,13 @@
       "truncated": {
         "type": "boolean"
       },
+      "nodeCount": {
+        "type": "integer"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
+      },
       "meta": {
         "type": "object",
         "additionalProperties": true
@@ -331,13 +386,18 @@
   "kb_sparql_remote": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "rows"
-    ],
+    "required": ["rows"],
     "properties": {
       "rows": {
         "type": "array",
         "items": {}
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
       }
     }
   },
@@ -424,10 +484,7 @@
         }
       },
       "migrationWarning": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "logic": {
         "type": "object",
@@ -501,16 +558,10 @@
         }
       },
       "source": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "requirementId": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "subject": {
         "type": "string"
@@ -536,10 +587,7 @@
         ]
       },
       "recommendedPredicateSchema": {
-        "type": [
-          "object",
-          "null"
-        ]
+        "type": ["object", "null"]
       },
       "applyPlan": {
         "type": "array",
@@ -549,23 +597,14 @@
         }
       },
       "relationshipPlan": {
-        "type": [
-          "object",
-          "null"
-        ]
+        "type": ["object", "null"]
       },
       "plan": {
-        "type": [
-          "object",
-          "null"
-        ],
+        "type": ["object", "null"],
         "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies."
       },
       "relationshipTarget": {
-        "type": [
-          "string",
-          "null"
-        ],
+        "type": ["string", "null"],
         "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets."
       },
       "existingGrounding": {
@@ -585,10 +624,7 @@
         "description": "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one."
       },
       "replacementPlan": {
-        "type": [
-          "object",
-          "null"
-        ]
+        "type": ["object", "null"]
       },
       "bindingHints": {
         "type": "array",
@@ -609,10 +645,7 @@
   "kb_plan_bootstrap": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "plan",
-      "diagnostics"
-    ],
+    "required": ["plan", "diagnostics"],
     "properties": {
       "plan": {
         "type": "object",
@@ -657,10 +690,7 @@
         "type": "boolean"
       },
       "migrationWarning": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": ["string", "null"]
       },
       "handoffMessage": {
         "type": "string"
@@ -754,17 +784,11 @@
         "items": {}
       },
       "semanticAdvisor": {
-        "type": [
-          "object",
-          "null"
-        ],
+        "type": ["object", "null"],
         "additionalProperties": true
       },
       "normalizedPreview": {
-        "type": [
-          "object",
-          "null"
-        ],
+        "type": ["object", "null"],
         "additionalProperties": true
       },
       "errorCode": {
@@ -893,17 +917,21 @@
               "additionalProperties": true
             },
             "description": "Current requirements on the same terms."
+          },
+          "approvalsNeeded": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "For a requirement below its evidence floor: every decision only a person can make before it reaches the floor, to ask in one question."
           }
         }
       },
       {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "valid",
-          "dryRun",
-          "skippedEffects"
-        ],
+        "required": ["valid", "dryRun", "skippedEffects"],
         "properties": {
           "valid": {
             "type": "boolean"
@@ -917,17 +945,11 @@
             "items": {}
           },
           "semanticAdvisor": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true
           },
           "normalizedPreview": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true
           },
           "errorCode": {
@@ -991,10 +1013,7 @@
   "kb_record": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "id",
-      "upsert"
-    ],
+    "required": ["id", "upsert"],
     "properties": {
       "id": {
         "type": "string"
@@ -1021,6 +1040,13 @@
         "type": "string"
       },
       "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "approvalsNeeded": {
         "type": "array",
         "items": {
           "type": "object",
@@ -1188,6 +1214,13 @@
               "additionalProperties": true
             }
           },
+          "impactAdvice": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Advice that impact diagnostics share, once each. An impact diagnostic whose advice is an index into this list carries no suggestion of its own."
+          },
           "sourceFiles": {
             "type": "array",
             "items": {
@@ -1266,10 +1299,7 @@
           "symbolDebt": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "total",
-              "fileCount"
-            ],
+            "required": ["total", "fileCount"],
             "properties": {
               "total": {
                 "type": "integer"
@@ -1282,10 +1312,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "path",
-                    "unrecorded"
-                  ],
+                  "required": ["path", "unrecorded"],
                   "properties": {
                     "path": {
                       "type": "string"
@@ -1298,6 +1325,9 @@
                     }
                   }
                 }
+              },
+              "filesOmitted": {
+                "type": "integer"
               }
             },
             "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."
@@ -1346,14 +1376,15 @@
       "status",
       "snapshot",
       "recordHeaders",
+      "fileCount",
       "files",
-      "requirementScopes",
+      "requirements",
       "residualReviewObligations",
-      "authorship"
+      "authoring"
     ],
     "properties": {
       "preparationVersion": {
-        "const": "kibi.impact-review-preparation.v1"
+        "const": "kibi.impact-review-preparation.v2"
       },
       "status": {
         "const": "ready_for_authoring"
@@ -1371,10 +1402,7 @@
         ],
         "properties": {
           "kind": {
-            "enum": [
-              "staged",
-              "diff"
-            ]
+            "enum": ["staged", "diff"]
           },
           "baseCommit": {
             "oneOf": [
@@ -1407,22 +1435,14 @@
             "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
           },
           "headTreeSource": {
-            "enum": [
-              "index",
-              "commit"
-            ]
+            "enum": ["index", "commit"]
           }
         }
       },
       "recordHeaders": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "contractVersion",
-          "policy",
-          "evaluator",
-          "scope"
-        ],
+        "required": ["contractVersion", "policy", "evaluator", "scope"],
         "properties": {
           "contractVersion": {
             "const": "kibi.impact-review.v1"
@@ -1430,11 +1450,7 @@
           "policy": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "id",
-              "version",
-              "fingerprint"
-            ],
+            "required": ["id", "version", "fingerprint"],
             "properties": {
               "id": {
                 "type": "string"
@@ -1451,10 +1467,7 @@
           "evaluator": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "contractVersion",
-              "fingerprint"
-            ],
+            "required": ["contractVersion", "fingerprint"],
             "properties": {
               "contractVersion": {
                 "const": "kibi.impact-evaluator.v1"
@@ -1490,7 +1503,272 @@
           }
         }
       },
+      "fileCount": {
+        "type": "integer"
+      },
       "files": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "status",
+            "disposition",
+            "analysisDepth",
+            "analysis",
+            "requirementIds",
+            "pendingObligations"
+          ],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["A", "M", "R", "C", "T", "D"]
+            },
+            "disposition": {
+              "enum": ["checked", "advisory", "skipped"]
+            },
+            "analysisDepth": {
+              "enum": ["symbol", "metadata", "file", "none"]
+            },
+            "analysis": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["before", "after"],
+              "properties": {
+                "before": {
+                  "enum": ["ok", "partial", "unsupported", "failed", null]
+                },
+                "after": {
+                  "enum": ["ok", "partial", "unsupported", "failed", null]
+                }
+              }
+            },
+            "requirementIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "pendingObligations": {
+              "type": "integer"
+            },
+            "omittedFields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "requirements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "before", "after"],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "before": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["state", "entityFingerprint", "artifactPath"],
+                  "properties": {
+                    "state": {
+                      "const": "present"
+                    },
+                    "entityFingerprint": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "artifactPath": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["state", "entityFingerprint", "artifactPath"],
+                  "properties": {
+                    "state": {
+                      "const": "absent"
+                    },
+                    "entityFingerprint": {
+                      "type": "null"
+                    },
+                    "artifactPath": {
+                      "type": "null"
+                    }
+                  }
+                }
+              ]
+            },
+            "after": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["state", "entityFingerprint", "artifactPath"],
+                  "properties": {
+                    "state": {
+                      "const": "present"
+                    },
+                    "entityFingerprint": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "artifactPath": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["state", "entityFingerprint", "artifactPath"],
+                  "properties": {
+                    "state": {
+                      "const": "absent"
+                    },
+                    "entityFingerprint": {
+                      "type": "null"
+                    },
+                    "artifactPath": {
+                      "type": "null"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "residualReviewObligations": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "side",
+                "status",
+                "diagnosticCodes",
+                "kind",
+                "wholeFile",
+                "pending"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "side": {
+                  "enum": ["before", "after"]
+                },
+                "status": {
+                  "const": "unsupported"
+                },
+                "diagnosticCodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "kind": {
+                  "const": "unsupported_review"
+                },
+                "wholeFile": {
+                  "const": true
+                },
+                "pending": {
+                  "const": true
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "side",
+                "status",
+                "diagnosticCodes",
+                "kind",
+                "limitationClass",
+                "ranges",
+                "pending"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "side": {
+                  "enum": ["before", "after"]
+                },
+                "status": {
+                  "const": "partial"
+                },
+                "diagnosticCodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "kind": {
+                  "const": "partial_review"
+                },
+                "limitationClass": {
+                  "type": "string"
+                },
+                "ranges": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "startLine",
+                      "startColumn",
+                      "endLine",
+                      "endColumn",
+                      "reason"
+                    ],
+                    "properties": {
+                      "startLine": {
+                        "type": "integer"
+                      },
+                      "startColumn": {
+                        "type": "integer"
+                      },
+                      "endLine": {
+                        "type": "integer"
+                      },
+                      "endColumn": {
+                        "type": "integer"
+                      },
+                      "reason": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "pending": {
+                  "const": true
+                }
+              }
+            }
+          ]
+        }
+      },
+      "evidence": {
         "type": "array",
         "items": {
           "type": "object",
@@ -1503,21 +1781,15 @@
             "oldHunkRanges",
             "newHunkRanges",
             "before",
-            "after"
+            "after",
+            "requirements"
           ],
           "properties": {
             "path": {
               "type": "string"
             },
             "status": {
-              "enum": [
-                "A",
-                "M",
-                "R",
-                "C",
-                "T",
-                "D"
-              ]
+              "enum": ["A", "M", "R", "C", "T", "D"]
             },
             "oldPath": {
               "type": "string"
@@ -1526,27 +1798,13 @@
               "type": "string"
             },
             "analysisDepth": {
-              "enum": [
-                "symbol",
-                "metadata",
-                "file",
-                "none"
-              ]
+              "enum": ["symbol", "metadata", "file", "none"]
             },
             "disposition": {
-              "enum": [
-                "checked",
-                "advisory",
-                "skipped"
-              ]
+              "enum": ["checked", "advisory", "skipped"]
             },
             "skipReason": {
-              "enum": [
-                "binary",
-                "unsupported_encoding",
-                "symlink",
-                "submodule"
-              ]
+              "enum": ["binary", "unsupported_encoding", "symlink", "submodule"]
             },
             "gitMode": {
               "type": "string"
@@ -1559,10 +1817,7 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "start",
-                  "end"
-                ],
+                "required": ["start", "end"],
                 "properties": {
                   "start": {
                     "type": "integer"
@@ -1578,10 +1833,7 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "start",
-                  "end"
-                ],
+                "required": ["start", "end"],
                 "properties": {
                   "start": {
                     "type": "integer"
@@ -1606,12 +1858,7 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "100644",
-                        "100755",
-                        "120000",
-                        "160000"
-                      ]
+                      "enum": ["100644", "100755", "120000", "160000"]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1629,11 +1876,7 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": [
-                        "regular",
-                        "symlink",
-                        "gitlink"
-                      ]
+                      "enum": ["regular", "symlink", "gitlink"]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1661,12 +1904,7 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": [
-                                "ok",
-                                "partial",
-                                "unsupported",
-                                "failed"
-                              ]
+                              "enum": ["ok", "partial", "unsupported", "failed"]
                             },
                             "language": {
                               "type": "string"
@@ -1675,10 +1913,7 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -1765,12 +2000,7 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "100644",
-                        "100755",
-                        "120000",
-                        "160000"
-                      ]
+                      "enum": ["100644", "100755", "120000", "160000"]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1788,11 +2018,7 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": [
-                        "regular",
-                        "symlink",
-                        "gitlink"
-                      ]
+                      "enum": ["regular", "symlink", "gitlink"]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1820,12 +2046,7 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": [
-                                "ok",
-                                "partial",
-                                "unsupported",
-                                "failed"
-                              ]
+                              "enum": ["ok", "partial", "unsupported", "failed"]
                             },
                             "language": {
                               "type": "string"
@@ -1834,10 +2055,7 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -1909,6 +2127,509 @@
                   "type": "null"
                 }
               ]
+            },
+            "requirements": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["before", "after"],
+              "properties": {
+                "before": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "state",
+                          "entityFingerprint",
+                          "artifactPath",
+                          "sourcePath",
+                          "relationships",
+                          "relatedEntities"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "const": "absent"
+                          },
+                          "entityFingerprint": {
+                            "type": "null"
+                          },
+                          "artifactPath": {
+                            "type": "null"
+                          },
+                          "sourcePath": {
+                            "type": "null"
+                          },
+                          "relationships": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["type", "from", "to"],
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "relatedEntities": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "id",
+                                "type",
+                                "entityFingerprint",
+                                "artifactPath",
+                                "sourcePath",
+                                "entity"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entityFingerprint": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^sha256:[0-9a-f]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "artifactPath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "sourcePath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entity": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "state",
+                          "entityFingerprint",
+                          "artifactPath",
+                          "sourcePath",
+                          "entity",
+                          "relationships",
+                          "relatedEntities"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "const": "present"
+                          },
+                          "entityFingerprint": {
+                            "type": "string",
+                            "pattern": "^sha256:[0-9a-f]{64}$"
+                          },
+                          "artifactPath": {
+                            "type": "string"
+                          },
+                          "sourcePath": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "entity": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "relationships": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["type", "from", "to"],
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "relatedEntities": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "id",
+                                "type",
+                                "entityFingerprint",
+                                "artifactPath",
+                                "sourcePath",
+                                "entity"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entityFingerprint": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^sha256:[0-9a-f]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "artifactPath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "sourcePath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entity": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "after": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "state",
+                          "entityFingerprint",
+                          "artifactPath",
+                          "sourcePath",
+                          "relationships",
+                          "relatedEntities"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "const": "absent"
+                          },
+                          "entityFingerprint": {
+                            "type": "null"
+                          },
+                          "artifactPath": {
+                            "type": "null"
+                          },
+                          "sourcePath": {
+                            "type": "null"
+                          },
+                          "relationships": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["type", "from", "to"],
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "relatedEntities": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "id",
+                                "type",
+                                "entityFingerprint",
+                                "artifactPath",
+                                "sourcePath",
+                                "entity"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entityFingerprint": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^sha256:[0-9a-f]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "artifactPath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "sourcePath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entity": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "state",
+                          "entityFingerprint",
+                          "artifactPath",
+                          "sourcePath",
+                          "entity",
+                          "relationships",
+                          "relatedEntities"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "const": "present"
+                          },
+                          "entityFingerprint": {
+                            "type": "string",
+                            "pattern": "^sha256:[0-9a-f]{64}$"
+                          },
+                          "artifactPath": {
+                            "type": "string"
+                          },
+                          "sourcePath": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "entity": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "relationships": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["type", "from", "to"],
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "relatedEntities": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "id",
+                                "type",
+                                "entityFingerprint",
+                                "artifactPath",
+                                "sourcePath",
+                                "entity"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entityFingerprint": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^sha256:[0-9a-f]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "artifactPath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "sourcePath": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "entity": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
             }
           },
           "anyOf": [
@@ -1926,12 +2647,7 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "100644",
-                        "100755",
-                        "120000",
-                        "160000"
-                      ]
+                      "enum": ["100644", "100755", "120000", "160000"]
                     },
                     "objectId": {
                       "oneOf": [
@@ -1949,11 +2665,7 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": [
-                        "regular",
-                        "symlink",
-                        "gitlink"
-                      ]
+                      "enum": ["regular", "symlink", "gitlink"]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -1981,12 +2693,7 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": [
-                                "ok",
-                                "partial",
-                                "unsupported",
-                                "failed"
-                              ]
+                              "enum": ["ok", "partial", "unsupported", "failed"]
                             },
                             "language": {
                               "type": "string"
@@ -1995,10 +2702,7 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -2082,12 +2786,7 @@
                   ],
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "100644",
-                        "100755",
-                        "120000",
-                        "160000"
-                      ]
+                      "enum": ["100644", "100755", "120000", "160000"]
                     },
                     "objectId": {
                       "oneOf": [
@@ -2105,11 +2804,7 @@
                       "pattern": "^sha256:[0-9a-f]{64}$"
                     },
                     "kind": {
-                      "enum": [
-                        "regular",
-                        "symlink",
-                        "gitlink"
-                      ]
+                      "enum": ["regular", "symlink", "gitlink"]
                     },
                     "contentProjection": {
                       "const": "proof_receipts_stripped"
@@ -2137,12 +2832,7 @@
                               "const": "kibi.symbol-extractor.v2"
                             },
                             "status": {
-                              "enum": [
-                                "ok",
-                                "partial",
-                                "unsupported",
-                                "failed"
-                              ]
+                              "enum": ["ok", "partial", "unsupported", "failed"]
                             },
                             "language": {
                               "type": "string"
@@ -2151,10 +2841,7 @@
                               "type": "string"
                             },
                             "providerId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "providerStamp": {},
                             "providerFingerprint": {
@@ -2227,688 +2914,22 @@
           ]
         }
       },
-      "requirementScopes": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "path",
-            "requirementIds",
-            "before",
-            "after"
-          ],
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "requirementIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "before": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "state",
-                      "entityFingerprint",
-                      "artifactPath",
-                      "sourcePath",
-                      "relationships",
-                      "relatedEntities"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "state": {
-                        "const": "absent"
-                      },
-                      "entityFingerprint": {
-                        "type": "null"
-                      },
-                      "artifactPath": {
-                        "type": "null"
-                      },
-                      "sourcePath": {
-                        "type": "null"
-                      },
-                      "relationships": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "type",
-                            "from",
-                            "to"
-                          ],
-                          "properties": {
-                            "type": {
-                              "type": "string"
-                            },
-                            "from": {
-                              "type": "string"
-                            },
-                            "to": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      },
-                      "relatedEntities": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "id",
-                            "type",
-                            "entityFingerprint",
-                            "artifactPath",
-                            "sourcePath",
-                            "entity"
-                          ],
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entityFingerprint": {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "artifactPath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "sourcePath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entity": {
-                              "type": "object",
-                              "additionalProperties": true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "state",
-                      "entityFingerprint",
-                      "artifactPath",
-                      "sourcePath",
-                      "entity",
-                      "relationships",
-                      "relatedEntities"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "state": {
-                        "const": "present"
-                      },
-                      "entityFingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      },
-                      "artifactPath": {
-                        "type": "string"
-                      },
-                      "sourcePath": {
-                        "oneOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "entity": {
-                        "type": "object",
-                        "additionalProperties": true
-                      },
-                      "relationships": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "type",
-                            "from",
-                            "to"
-                          ],
-                          "properties": {
-                            "type": {
-                              "type": "string"
-                            },
-                            "from": {
-                              "type": "string"
-                            },
-                            "to": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      },
-                      "relatedEntities": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "id",
-                            "type",
-                            "entityFingerprint",
-                            "artifactPath",
-                            "sourcePath",
-                            "entity"
-                          ],
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entityFingerprint": {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "artifactPath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "sourcePath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entity": {
-                              "type": "object",
-                              "additionalProperties": true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            "after": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "state",
-                      "entityFingerprint",
-                      "artifactPath",
-                      "sourcePath",
-                      "relationships",
-                      "relatedEntities"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "state": {
-                        "const": "absent"
-                      },
-                      "entityFingerprint": {
-                        "type": "null"
-                      },
-                      "artifactPath": {
-                        "type": "null"
-                      },
-                      "sourcePath": {
-                        "type": "null"
-                      },
-                      "relationships": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "type",
-                            "from",
-                            "to"
-                          ],
-                          "properties": {
-                            "type": {
-                              "type": "string"
-                            },
-                            "from": {
-                              "type": "string"
-                            },
-                            "to": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      },
-                      "relatedEntities": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "id",
-                            "type",
-                            "entityFingerprint",
-                            "artifactPath",
-                            "sourcePath",
-                            "entity"
-                          ],
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entityFingerprint": {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "artifactPath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "sourcePath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entity": {
-                              "type": "object",
-                              "additionalProperties": true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "state",
-                      "entityFingerprint",
-                      "artifactPath",
-                      "sourcePath",
-                      "entity",
-                      "relationships",
-                      "relatedEntities"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "state": {
-                        "const": "present"
-                      },
-                      "entityFingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      },
-                      "artifactPath": {
-                        "type": "string"
-                      },
-                      "sourcePath": {
-                        "oneOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "entity": {
-                        "type": "object",
-                        "additionalProperties": true
-                      },
-                      "relationships": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "type",
-                            "from",
-                            "to"
-                          ],
-                          "properties": {
-                            "type": {
-                              "type": "string"
-                            },
-                            "from": {
-                              "type": "string"
-                            },
-                            "to": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      },
-                      "relatedEntities": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "id",
-                            "type",
-                            "entityFingerprint",
-                            "artifactPath",
-                            "sourcePath",
-                            "entity"
-                          ],
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entityFingerprint": {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "artifactPath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "sourcePath": {
-                              "oneOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "entity": {
-                              "type": "object",
-                              "additionalProperties": true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      },
-      "residualReviewObligations": {
-        "type": "array",
-        "items": {
-          "oneOf": [
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "path",
-                "side",
-                "status",
-                "diagnosticCodes",
-                "kind",
-                "wholeFile",
-                "pending"
-              ],
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "side": {
-                  "enum": [
-                    "before",
-                    "after"
-                  ]
-                },
-                "status": {
-                  "const": "unsupported"
-                },
-                "diagnosticCodes": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "kind": {
-                  "const": "unsupported_review"
-                },
-                "wholeFile": {
-                  "const": true
-                },
-                "pending": {
-                  "const": true
-                }
-              }
-            },
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "path",
-                "side",
-                "status",
-                "diagnosticCodes",
-                "kind",
-                "limitationClass",
-                "ranges",
-                "pending"
-              ],
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "side": {
-                  "enum": [
-                    "before",
-                    "after"
-                  ]
-                },
-                "status": {
-                  "const": "partial"
-                },
-                "diagnosticCodes": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "kind": {
-                  "const": "partial_review"
-                },
-                "limitationClass": {
-                  "type": "string"
-                },
-                "ranges": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "startLine",
-                      "startColumn",
-                      "endLine",
-                      "endColumn",
-                      "reason"
-                    ],
-                    "properties": {
-                      "startLine": {
-                        "type": "integer"
-                      },
-                      "startColumn": {
-                        "type": "integer"
-                      },
-                      "endLine": {
-                        "type": "integer"
-                      },
-                      "endColumn": {
-                        "type": "integer"
-                      },
-                      "reason": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "pending": {
-                  "const": true
-                }
-              }
-            }
-          ]
-        }
-      },
-      "authorship": {
+      "authoring": {
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "templateVersion",
-          "isValidImpactReviewRecord",
-          "instructions",
+          "operation",
+          "recordPath",
           "authoredFields",
-          "recordSchema",
-          "decisionSchema",
-          "analysisReviewSchema",
-          "templateSchema",
-          "recordTemplate"
+          "schema",
+          "instructions"
         ],
         "properties": {
-          "templateVersion": {
-            "const": "kibi.impact-review-authoring-template.v1"
+          "operation": {
+            "const": "kb_author_impact_review"
           },
-          "isValidImpactReviewRecord": {
-            "const": false
-          },
-          "instructions": {
-            "type": "string"
+          "recordPath": {
+            "const": ".kibi/impact-review.json"
           },
           "authoredFields": {
             "type": "array",
@@ -2916,883 +2937,83 @@
               "type": "string"
             }
           },
-          "recordSchema": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "decisionSchema": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "analysisReviewSchema": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "templateSchema": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "recordTemplate": {
+          "schema": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "templateVersion",
-              "isValidImpactReviewRecord",
-              "record"
-            ],
+            "required": ["id", "skill", "resource"],
             "properties": {
-              "templateVersion": {
-                "const": "kibi.impact-review-authoring-template.v1"
+              "id": {
+                "type": "string"
               },
-              "isValidImpactReviewRecord": {
-                "const": false
+              "skill": {
+                "type": "string"
               },
-              "record": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "contractVersion",
-                  "policy",
-                  "evaluator",
-                  "scope",
-                  "reviewer",
-                  "reviewedAt",
-                  "files"
-                ],
-                "properties": {
-                  "contractVersion": {
-                    "const": "kibi.impact-review.v1"
-                  },
-                  "policy": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "version",
-                      "fingerprint"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "version": {
-                        "type": "string"
-                      },
-                      "fingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      }
-                    }
-                  },
-                  "evaluator": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "contractVersion",
-                      "fingerprint"
-                    ],
-                    "properties": {
-                      "contractVersion": {
-                        "const": "kibi.impact-evaluator.v1"
-                      },
-                      "fingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      }
-                    }
-                  },
-                  "scope": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "fingerprint",
-                      "knowledgeFingerprint",
-                      "providerSetFingerprint"
-                    ],
-                    "properties": {
-                      "fingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      },
-                      "knowledgeFingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      },
-                      "providerSetFingerprint": {
-                        "type": "string",
-                        "pattern": "^sha256:[0-9a-f]{64}$"
-                      }
-                    }
-                  },
-                  "reviewer": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "id",
-                      "source"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "null"
-                      },
-                      "source": {
-                        "const": "self-claimed-local"
-                      }
-                    }
-                  },
-                  "reviewedAt": {
-                    "type": "null"
-                  },
-                  "files": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "required": [
-                        "path",
-                        "status",
-                        "analysisDepth",
-                        "disposition",
-                        "oldHunkRanges",
-                        "newHunkRanges",
-                        "before",
-                        "after",
-                        "analysisReviews",
-                        "decision"
-                      ],
-                      "properties": {
-                        "path": {
-                          "type": "string"
-                        },
-                        "status": {
-                          "enum": [
-                            "A",
-                            "M",
-                            "R",
-                            "C",
-                            "T",
-                            "D"
-                          ]
-                        },
-                        "oldPath": {
-                          "type": "string"
-                        },
-                        "copyFromPath": {
-                          "type": "string"
-                        },
-                        "analysisDepth": {
-                          "enum": [
-                            "symbol",
-                            "metadata",
-                            "file",
-                            "none"
-                          ]
-                        },
-                        "disposition": {
-                          "enum": [
-                            "checked",
-                            "advisory",
-                            "skipped"
-                          ]
-                        },
-                        "skipReason": {
-                          "enum": [
-                            "binary",
-                            "unsupported_encoding",
-                            "symlink",
-                            "submodule"
-                          ]
-                        },
-                        "gitMode": {
-                          "type": "string"
-                        },
-                        "previousMode": {
-                          "type": "string"
-                        },
-                        "oldHunkRanges": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": [
-                              "start",
-                              "end"
-                            ],
-                            "properties": {
-                              "start": {
-                                "type": "integer"
-                              },
-                              "end": {
-                                "type": "integer"
-                              }
-                            }
-                          }
-                        },
-                        "newHunkRanges": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": [
-                              "start",
-                              "end"
-                            ],
-                            "properties": {
-                              "start": {
-                                "type": "integer"
-                              },
-                              "end": {
-                                "type": "integer"
-                              }
-                            }
-                          }
-                        },
-                        "before": {
-                          "oneOf": [
-                            {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "required": [
-                                "mode",
-                                "objectId",
-                                "byteFingerprint",
-                                "kind",
-                                "analysis"
-                              ],
-                              "properties": {
-                                "mode": {
-                                  "enum": [
-                                    "100644",
-                                    "100755",
-                                    "120000",
-                                    "160000"
-                                  ]
-                                },
-                                "objectId": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string",
-                                      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "byteFingerprint": {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                "kind": {
-                                  "enum": [
-                                    "regular",
-                                    "symlink",
-                                    "gitlink"
-                                  ]
-                                },
-                                "contentProjection": {
-                                  "const": "proof_receipts_stripped"
-                                },
-                                "analysis": {
-                                  "oneOf": [
-                                    {
-                                      "type": "object",
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "contractVersion",
-                                        "status",
-                                        "language",
-                                        "sourceFile",
-                                        "providerId",
-                                        "providerStamp",
-                                        "providerFingerprint",
-                                        "inputFingerprint",
-                                        "resultFingerprint",
-                                        "diagnosticCodes",
-                                        "uncoveredRanges"
-                                      ],
-                                      "properties": {
-                                        "contractVersion": {
-                                          "const": "kibi.symbol-extractor.v2"
-                                        },
-                                        "status": {
-                                          "enum": [
-                                            "ok",
-                                            "partial",
-                                            "unsupported",
-                                            "failed"
-                                          ]
-                                        },
-                                        "language": {
-                                          "type": "string"
-                                        },
-                                        "sourceFile": {
-                                          "type": "string"
-                                        },
-                                        "providerId": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "providerStamp": {},
-                                        "providerFingerprint": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string",
-                                              "pattern": "^sha256:[0-9a-f]{64}$"
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "inputFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "resultFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "diagnosticCodes": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "uncoveredRanges": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "object",
-                                            "additionalProperties": false,
-                                            "required": [
-                                              "startLine",
-                                              "startColumn",
-                                              "endLine",
-                                              "endColumn",
-                                              "reason"
-                                            ],
-                                            "properties": {
-                                              "startLine": {
-                                                "type": "integer"
-                                              },
-                                              "startColumn": {
-                                                "type": "integer"
-                                              },
-                                              "endLine": {
-                                                "type": "integer"
-                                              },
-                                              "endColumn": {
-                                                "type": "integer"
-                                              },
-                                              "reason": {
-                                                "type": "string"
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "after": {
-                          "oneOf": [
-                            {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "required": [
-                                "mode",
-                                "objectId",
-                                "byteFingerprint",
-                                "kind",
-                                "analysis"
-                              ],
-                              "properties": {
-                                "mode": {
-                                  "enum": [
-                                    "100644",
-                                    "100755",
-                                    "120000",
-                                    "160000"
-                                  ]
-                                },
-                                "objectId": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string",
-                                      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "byteFingerprint": {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                "kind": {
-                                  "enum": [
-                                    "regular",
-                                    "symlink",
-                                    "gitlink"
-                                  ]
-                                },
-                                "contentProjection": {
-                                  "const": "proof_receipts_stripped"
-                                },
-                                "analysis": {
-                                  "oneOf": [
-                                    {
-                                      "type": "object",
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "contractVersion",
-                                        "status",
-                                        "language",
-                                        "sourceFile",
-                                        "providerId",
-                                        "providerStamp",
-                                        "providerFingerprint",
-                                        "inputFingerprint",
-                                        "resultFingerprint",
-                                        "diagnosticCodes",
-                                        "uncoveredRanges"
-                                      ],
-                                      "properties": {
-                                        "contractVersion": {
-                                          "const": "kibi.symbol-extractor.v2"
-                                        },
-                                        "status": {
-                                          "enum": [
-                                            "ok",
-                                            "partial",
-                                            "unsupported",
-                                            "failed"
-                                          ]
-                                        },
-                                        "language": {
-                                          "type": "string"
-                                        },
-                                        "sourceFile": {
-                                          "type": "string"
-                                        },
-                                        "providerId": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "providerStamp": {},
-                                        "providerFingerprint": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string",
-                                              "pattern": "^sha256:[0-9a-f]{64}$"
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "inputFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "resultFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "diagnosticCodes": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "uncoveredRanges": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "object",
-                                            "additionalProperties": false,
-                                            "required": [
-                                              "startLine",
-                                              "startColumn",
-                                              "endLine",
-                                              "endColumn",
-                                              "reason"
-                                            ],
-                                            "properties": {
-                                              "startLine": {
-                                                "type": "integer"
-                                              },
-                                              "startColumn": {
-                                                "type": "integer"
-                                              },
-                                              "endLine": {
-                                                "type": "integer"
-                                              },
-                                              "endColumn": {
-                                                "type": "integer"
-                                              },
-                                              "reason": {
-                                                "type": "string"
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "analysisReviews": {
-                          "type": "null"
-                        },
-                        "decision": {
-                          "type": "null"
-                        }
-                      },
-                      "anyOf": [
-                        {
-                          "properties": {
-                            "before": {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "required": [
-                                "mode",
-                                "objectId",
-                                "byteFingerprint",
-                                "kind",
-                                "analysis"
-                              ],
-                              "properties": {
-                                "mode": {
-                                  "enum": [
-                                    "100644",
-                                    "100755",
-                                    "120000",
-                                    "160000"
-                                  ]
-                                },
-                                "objectId": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string",
-                                      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "byteFingerprint": {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                "kind": {
-                                  "enum": [
-                                    "regular",
-                                    "symlink",
-                                    "gitlink"
-                                  ]
-                                },
-                                "contentProjection": {
-                                  "const": "proof_receipts_stripped"
-                                },
-                                "analysis": {
-                                  "oneOf": [
-                                    {
-                                      "type": "object",
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "contractVersion",
-                                        "status",
-                                        "language",
-                                        "sourceFile",
-                                        "providerId",
-                                        "providerStamp",
-                                        "providerFingerprint",
-                                        "inputFingerprint",
-                                        "resultFingerprint",
-                                        "diagnosticCodes",
-                                        "uncoveredRanges"
-                                      ],
-                                      "properties": {
-                                        "contractVersion": {
-                                          "const": "kibi.symbol-extractor.v2"
-                                        },
-                                        "status": {
-                                          "enum": [
-                                            "ok",
-                                            "partial",
-                                            "unsupported",
-                                            "failed"
-                                          ]
-                                        },
-                                        "language": {
-                                          "type": "string"
-                                        },
-                                        "sourceFile": {
-                                          "type": "string"
-                                        },
-                                        "providerId": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "providerStamp": {},
-                                        "providerFingerprint": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string",
-                                              "pattern": "^sha256:[0-9a-f]{64}$"
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "inputFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "resultFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "diagnosticCodes": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "uncoveredRanges": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "object",
-                                            "additionalProperties": false,
-                                            "required": [
-                                              "startLine",
-                                              "startColumn",
-                                              "endLine",
-                                              "endColumn",
-                                              "reason"
-                                            ],
-                                            "properties": {
-                                              "startLine": {
-                                                "type": "integer"
-                                              },
-                                              "startColumn": {
-                                                "type": "integer"
-                                              },
-                                              "endLine": {
-                                                "type": "integer"
-                                              },
-                                              "endColumn": {
-                                                "type": "integer"
-                                              },
-                                              "reason": {
-                                                "type": "string"
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            }
-                          }
-                        },
-                        {
-                          "properties": {
-                            "after": {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "required": [
-                                "mode",
-                                "objectId",
-                                "byteFingerprint",
-                                "kind",
-                                "analysis"
-                              ],
-                              "properties": {
-                                "mode": {
-                                  "enum": [
-                                    "100644",
-                                    "100755",
-                                    "120000",
-                                    "160000"
-                                  ]
-                                },
-                                "objectId": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string",
-                                      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "byteFingerprint": {
-                                  "type": "string",
-                                  "pattern": "^sha256:[0-9a-f]{64}$"
-                                },
-                                "kind": {
-                                  "enum": [
-                                    "regular",
-                                    "symlink",
-                                    "gitlink"
-                                  ]
-                                },
-                                "contentProjection": {
-                                  "const": "proof_receipts_stripped"
-                                },
-                                "analysis": {
-                                  "oneOf": [
-                                    {
-                                      "type": "object",
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "contractVersion",
-                                        "status",
-                                        "language",
-                                        "sourceFile",
-                                        "providerId",
-                                        "providerStamp",
-                                        "providerFingerprint",
-                                        "inputFingerprint",
-                                        "resultFingerprint",
-                                        "diagnosticCodes",
-                                        "uncoveredRanges"
-                                      ],
-                                      "properties": {
-                                        "contractVersion": {
-                                          "const": "kibi.symbol-extractor.v2"
-                                        },
-                                        "status": {
-                                          "enum": [
-                                            "ok",
-                                            "partial",
-                                            "unsupported",
-                                            "failed"
-                                          ]
-                                        },
-                                        "language": {
-                                          "type": "string"
-                                        },
-                                        "sourceFile": {
-                                          "type": "string"
-                                        },
-                                        "providerId": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "providerStamp": {},
-                                        "providerFingerprint": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string",
-                                              "pattern": "^sha256:[0-9a-f]{64}$"
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "inputFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "resultFingerprint": {
-                                          "type": "string",
-                                          "pattern": "^sha256:[0-9a-f]{64}$"
-                                        },
-                                        "diagnosticCodes": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "uncoveredRanges": {
-                                          "type": "array",
-                                          "items": {
-                                            "type": "object",
-                                            "additionalProperties": false,
-                                            "required": [
-                                              "startLine",
-                                              "startColumn",
-                                              "endLine",
-                                              "endColumn",
-                                              "reason"
-                                            ],
-                                            "properties": {
-                                              "startLine": {
-                                                "type": "integer"
-                                              },
-                                              "startColumn": {
-                                                "type": "integer"
-                                              },
-                                              "endLine": {
-                                                "type": "integer"
-                                              },
-                                              "endColumn": {
-                                                "type": "integer"
-                                              },
-                                              "reason": {
-                                                "type": "string"
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
+              "resource": {
+                "type": "string"
               }
             }
+          },
+          "instructions": {
+            "type": "string"
           }
         }
+      },
+      "truncated": {
+        "type": "boolean"
+      },
+      "truncation": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "kb_author_impact_review": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "recordPath",
+      "written",
+      "scopeFingerprint",
+      "fileCount",
+      "decided",
+      "carried",
+      "dropped",
+      "staged"
+    ],
+    "properties": {
+      "recordPath": {
+        "const": ".kibi/impact-review.json"
+      },
+      "written": {
+        "const": true
+      },
+      "scopeFingerprint": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      "fileCount": {
+        "type": "integer"
+      },
+      "decided": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "carried": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "dropped": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "staged": {
+        "const": false
       }
     }
   },
@@ -3893,10 +3114,7 @@
             "additionalProperties": true
           },
           "recoveryJournalId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "deleted": {
             "type": "integer"
@@ -4050,10 +3268,7 @@
       {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "action",
-          "skills"
-        ],
+        "required": ["action", "skills"],
         "properties": {
           "action": {
             "const": "list"
@@ -4089,17 +3304,12 @@
             "type": "string"
           }
         },
-        "required": [
-          "action"
-        ]
+        "required": ["action"]
       },
       {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "action",
-          "content"
-        ],
+        "required": ["action", "content"],
         "properties": {
           "action": {
             "const": "read"
@@ -4135,9 +3345,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "mode"
-        ]
+        "required": ["mode"]
       },
       {
         "type": "object",
@@ -4205,10 +3413,7 @@
             }
           },
           "migrationWarning": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "logic": {
             "type": "object",
@@ -4264,9 +3469,7 @@
             }
           }
         },
-        "required": [
-          "mode"
-        ]
+        "required": ["mode"]
       },
       {
         "type": "object",
@@ -4288,16 +3491,10 @@
             }
           },
           "source": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "requirementId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "subject": {
             "type": "string"
@@ -4323,10 +3520,7 @@
             ]
           },
           "recommendedPredicateSchema": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "applyPlan": {
             "type": "array",
@@ -4336,23 +3530,14 @@
             }
           },
           "relationshipPlan": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "plan": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies."
           },
           "relationshipTarget": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets."
           },
           "existingGrounding": {
@@ -4372,10 +3557,7 @@
             "description": "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one."
           },
           "replacementPlan": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "bindingHints": {
             "type": "array",
@@ -4392,9 +3574,7 @@
             }
           }
         },
-        "required": [
-          "mode"
-        ]
+        "required": ["mode"]
       }
     ]
   }

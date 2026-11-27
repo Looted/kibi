@@ -102,6 +102,12 @@ jobs:
       - name: Check Cursor hook bundle drift
         run: bun run --filter kibi-cursor check:hook-bundle
 
+      - name: Check ZCode hook bundle drift
+        run: bun run --filter kibi-zcode check:hook-bundle
+
+      - name: Check Antigravity hook bundle drift
+        run: bun run --filter kibi-antigravity check:hook-bundle
+
       - name: Typecheck matrix
         run: bun run typecheck
       - name: Verify generated schema parity
@@ -165,6 +171,7 @@ jobs:
             packages/swipl-linux-arm64-gnu/*.tgz
             packages/swipl-darwin-arm64/*.tgz
             packages/swipl-darwin-x64/*.tgz
+            packages/swipl-win32-x64/*.tgz
             packages/swipl/*.tgz
             packages/lang-go/*.tgz
             packages/lang-rust/*.tgz
@@ -260,16 +267,18 @@ jobs:
           npm install ${{ github.workspace }}/packages/plugin-sdk/kibi-plugin-sdk-*.tgz
           npm install ${{ github.workspace }}/packages/agent-core/kibi-agent-core-*.tgz
           npm install ${{ github.workspace }}/packages/plugin-builtin/kibi-plugin-builtin-*.tgz
+          npm install ${{ github.workspace }}/packages/plugin-search-hints/kibi-plugin-search-hints-*.tgz
           npm install ${{ github.workspace }}/packages/swipl/kibi-swipl-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
-          # Assert optional Jev/TypeSafe stay out of the default tree.
+          # Assert optional Jev/TypeSafe stay out of the default tree and the
+          # bundled search hints plugin is in it.
           test ! -d ./node_modules/kibi-plugin-jev
           test ! -d ./node_modules/kibi-plugin-ui
-          test ! -d ./node_modules/kibi-plugin-search-hints
+          test -d ./node_modules/kibi-plugin-search-hints
           test ! -d ./node_modules/@typesafe-ai
           # /tmp/kibi-smoke-test is intentionally not a git repository;
           # standalone workspaces must declare their branch identity.
@@ -327,11 +336,14 @@ jobs:
           for tarball in packages/swipl-*/*.tgz; do
             expected=$(tar -xzOf "$tarball" package/build-manifest.json | node -e '
               const m = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
-              if (m.binary?.path !== "bin/swipl" || !/^[0-9a-f]{64}$/.test(m.binary.sha256)) process.exit(1);
-              process.stdout.write(m.binary.sha256);')
-            actual=$(tar -xzOf "$tarball" package/bin/swipl | sha256sum | cut -d' ' -f1)
-            if [ "$expected" != "$actual" ]; then
-              echo "bin/swipl in $tarball does not match its manifest SHA-256"
+              const path = m.binary?.path;
+              if (typeof path !== "string" || !/^[0-9a-f]{64}$/.test(m.binary.sha256)) process.exit(1);
+              process.stdout.write(m.binary.sha256 + " " + path);')
+            expected_hash=${expected%% *}
+            binary_path=${expected##* }
+            actual=$(tar -xzOf "$tarball" "package/$binary_path" | sha256sum | cut -d' ' -f1)
+            if [ "$expected_hash" != "$actual" ]; then
+              echo "$binary_path in $tarball does not match its manifest SHA-256"
               exit 1
             fi
             echo "verified $(basename "$tarball") binary $actual"

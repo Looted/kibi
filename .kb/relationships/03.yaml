@@ -475,3 +475,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1abd04417832
+  - type: assumes
+    from: SCEN-impact-review-author-no-generation
+    to: FACT-impact-review-author-no-generation
+    created_at: 2026-11-19T19:12:49.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d17357a2bc9b
+  - type: covered_by
+    from: SYM-guard-prompt-note
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:30:08.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5efb968c0d4a
+  - type: implements
+    from: SYM-guard-prompt-note
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:36:12.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1697e374198e
+  - type: assumes
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: FACT-NEG-prolog-release-pack-publish-drops-binding
+    created_at: 2026-11-24T15:41:37.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eedb1af14536
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-11-24T15:41:37.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f976cbb55e6
+  - type: verified_by
+    from: SCEN-NEG-prolog-release-pack-publish-drops-binding
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:41:37.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a87c98b2c58
+  - type: executable_for
+    from: SYM-test-kibi-required-evidence-at-remember
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T09:48:44.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d250c7035540

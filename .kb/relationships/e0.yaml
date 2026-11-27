@@ -409,3 +409,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51275889ca43
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-PRED-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:04.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96181341e71e
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-managed-hook-names
+    created_at: 2026-11-25T09:44:04.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79187754fc48
+  - type: assumes
+    from: SCEN-cli-migrate-managed-hooks-refresh
+    to: FACT-hook-block-begin
+    created_at: 2026-11-25T09:44:04.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6be3d80699d
+  - type: implements
+    from: SYM-decision-hooks-guarded-change-stop
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:07.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c44bb9472ce8
+  - type: covered_by
+    from: SYM-decision-hooks-guarded-change-stop
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:07.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d6f178029a3
+  - type: implements
+    from: SYM-retrieval-eval-replay-cases
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-11-25T15:14:50.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6fa90c30183
+  - type: covered_by
+    from: SYM-retrieval-eval-replay-cases
+    to: TEST-retrieval-replay-harness
+    created_at: 2026-11-25T15:14:50.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f235850a16ae
+  - type: assumes
+    from: SCEN-CASE-capability-search-hints-v1-scores-hint-counts
+    to: FACT-CASE-capability-search-hints-v1-scores-0-hints
+    created_at: 2026-11-25T20:06:02.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b1a9eb7f396
+  - type: verified_by
+    from: SCEN-CASE-capability-search-hints-v1-scores-hint-counts
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T20:06:02.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea8dfc4369e9

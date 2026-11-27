@@ -300,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77b99dc41814
-  - type: covered_by
-    from: SYM-build-search-hints
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:28.038Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bc33575d3965
   - type: assumes
     from: SCEN-NEG-bootstrap-intent-claim-accounting-EMPTY-AUTHORITATIVE-SOURCE
     to: FACT-CASE-bootstrap-intent-claim-accounting-SOURCE-UNREPORTED
@@ -475,3 +468,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba4f4c7b9b72
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:35.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9798e77feba
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-checks-token-VIOLATED
+    created_at: 2026-11-18T14:19:35.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-712e0b999c4f
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:35.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcf2f75acab6
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-coverage-matched-count
+    created_at: 2026-11-19T15:28:18.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-773b34b51e84
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:18.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0db0702d84b1
+  - type: assumes
+    from: SCEN-NEG-impact-review-public-preparation-ROWLESS
+    to: FACT-NEG-impact-review-preparation-file-rows-ROWLESS
+    created_at: 2026-11-19T19:21:21.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-919a45f22d96
+  - type: assumes
+    from: SCEN-vibe-win32-routing-drive-letter-native
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N01
+    created_at: 2026-11-21T18:28:13.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1760376e4a00
+  - type: verified_by
+    from: SCEN-vibe-win32-routing-drive-letter-native
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-21T18:28:14.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37c6986209da
+  - type: assumes
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: FACT-zcode-bundled-skills
+    created_at: 2026-11-23T18:33:21.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-914aac6b02fd
+  - type: assumes
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: FACT-zcode-mcp-server-launcher
+    created_at: 2026-11-23T18:33:21.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3814857f700
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-manifest-fields
+    created_at: 2026-11-23T18:33:21.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79d1ac4d72e3
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-commands
+    created_at: 2026-11-23T18:33:21.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aa85537de1d
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-skills
+    created_at: 2026-11-23T18:33:21.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b55bab6c9851
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-mcp-launcher
+    created_at: 2026-11-23T18:33:21.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be6701e93f7c
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-proof-zcode-lifecycle-hooks
+    created_at: 2026-11-23T18:33:21.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f57786327fd0
+  - type: verified_by
+    from: SCEN-zcode-plugin-package-ships-declared-parts
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-23T18:34:59.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9bfe931e731
+  - type: assumes
+    from: SCEN-kb-search-close-matches-candidates
+    to: FACT-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:02:29.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3900118a737
+  - type: verified_by
+    from: SCEN-kb-search-close-matches-candidates
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-24T20:02:29.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5ce9cf242d1
+  - type: validates
+    from: TEST-cli-migrate-managed-hooks-refresh
+    to: SCEN-cli-migrate-managed-hooks-refresh
+    created_at: 2026-11-25T09:44:08.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b32a0d648ee9

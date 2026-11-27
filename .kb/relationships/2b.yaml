@@ -405,3 +405,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79b92e5741f4
+  - type: implements
+    from: SYM-reporting-summarize-coverage-row
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:27:44.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5c62f89df90
+  - type: covered_by
+    from: SYM-reporting-summarize-coverage-row
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:27:44.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26ee74f702ca
+  - type: implements
+    from: SYM-result-budget-result-budgets
+    to: REQ-result-budget-declared
+    created_at: 2026-11-19T15:29:09.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0c872d606d5
+  - type: covered_by
+    from: SYM-result-budget-result-budgets
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:29:09.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-078ce32933d7
+  - type: implements
+    from: SYM-cli-coverage-input
+    to: REQ-summary-rows-default
+    created_at: 2026-11-19T15:48:07.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a3db977a8f2
+  - type: covered_by
+    from: SYM-cli-coverage-input
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:07.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e2131f8e9d9
+  - type: implements
+    from: SYM-kibi-check-build-structured-content
+    to: REQ-kb-check-symbols-without-links
+    created_at: 2026-11-24T19:21:42.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6d5da2f4dca
+  - type: covered_by
+    from: SYM-kibi-check-build-structured-content
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:42.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25f12cadfc89
+  - type: implements
+    from: SYM-retrieval-decision-coverage
+    to: REQ-search-weak-answer
+    created_at: 2026-11-25T19:43:45.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b1f5f12975
+  - type: covered_by
+    from: SYM-retrieval-decision-coverage
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:43:46.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18dfcaecbbbd

@@ -468,3 +468,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17a7dd63b8b4
+  - type: executable_for
+    from: SYM-vibe-launcher-contract-test
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:38:27.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e2d112d6d14
+  - type: implements
+    from: SYM-vcs-authored-sources
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:21.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4358500ea4
+  - type: covered_by
+    from: SYM-vcs-authored-sources
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:21.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de7090e17731
+  - type: assumes
+    from: SCEN-CASE-capability-search-hints-v1-scores-50001-hints
+    to: FACT-NEG-capability-search-hints-v1-scores-max-hints-ABOVE
+    created_at: 2026-11-25T19:25:05.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e40125e3004
+  - type: verified_by
+    from: SCEN-CASE-capability-search-hints-v1-scores-50001-hints
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-11-25T19:28:29.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-190d381938fc
+  - type: implements
+    from: SYM-vibe-kibi-runtime-serve-deferred-mcp-server
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-26T17:46:11.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d2727d2dff4
+  - type: covered_by
+    from: SYM-vibe-kibi-runtime-serve-deferred-mcp-server
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-26T17:46:11.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6e825f733e7

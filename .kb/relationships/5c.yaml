@@ -461,3 +461,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f419da071c8
+  - type: implements
+    from: SYM-read-context-hook-read-rows
+    to: REQ-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:09.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8da4b740e8a6
+  - type: covered_by
+    from: SYM-read-context-hook-read-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:29:09.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52b1b1a502af
+  - type: implements
+    from: SYM-read-context-hook-read-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T14:30:11.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b69027409d0
+  - type: validates
+    from: TEST-proof-search-meaning-list-limit
+    to: SCEN-search-meaning-limits
+    created_at: 2026-11-25T19:26:50.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-648c88e6c38d

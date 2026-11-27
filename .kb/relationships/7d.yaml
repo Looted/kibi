@@ -391,3 +391,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeb08f6436d4
+  - type: implements
+    from: SYM-result-budget-result-budget-chars
+    to: REQ-result-budget-chars
+    created_at: 2026-11-19T15:25:45.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63132a97132b
+  - type: covered_by
+    from: SYM-result-budget-result-budget-chars
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:25:45.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a5cf3c1e524
+  - type: executable_for
+    from: SYM-test-cli-json-format-alias
+    to: TEST-cli-json-format-alias
+    created_at: 2026-11-22T17:45:43.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b6326772140
+  - type: executable_for
+    from: SYM-test-kibi-check-rule-selection-by-level
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:44:51.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c067f471d46
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp
+    to: FACT-vscode-mcp-provider-registration
+    created_at: 2026-11-25T18:10:17.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ef123c14ad2
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp
+    to: FACT-vscode-mcp-provider-opt-in
+    created_at: 2026-11-25T18:10:17.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4423fb69c07
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp
+    to: FACT-vscode-mcp-provider-attach-env
+    created_at: 2026-11-25T18:10:17.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee9625981571
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp
+    to: FACT-vscode-mcp-provider-host-fallback
+    created_at: 2026-11-25T18:10:17.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e5ce0037419

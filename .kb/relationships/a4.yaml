@@ -517,3 +517,206 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa79a405cab4
+  - type: assumes
+    from: SCEN-NEG-result-budget-row-cut-UNCUT-ROW
+    to: FACT-NEG-result-budget-row-cut-UNCUT-ROW
+    created_at: 2026-11-19T15:26:33.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4059e2cd9a16
+  - type: implements
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-11-19T20:42:22.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c86e2ef8bcd
+  - type: covered_by
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-19T20:42:22.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c598569994d
+  - type: covered_by
+    from: SYM-impact-review-preparation-capture-impact-review
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T20:42:22.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee130fc878e2
+  - type: assumes
+    from: SCEN-NEG-antigravity-skills-missing-usage
+    to: FACT-NEG-antigravity-skills-missing-usage
+    created_at: 2026-11-24T05:07:31.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d39c7e16f08
+  - type: verified_by
+    from: SCEN-NEG-antigravity-skills-missing-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:31.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9275e465608c
+  - type: specified_by
+    from: REQ-kibi-check-rule-layers
+    to: SCEN-kibi-check-rule-layers
+    created_at: 2026-11-25T08:32:01.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-371af0d07ad4
+  - type: verified_by
+    from: REQ-kibi-check-rule-layers
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:32:01.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4baacb6f37c
+  - type: requires_property
+    from: REQ-kibi-check-rule-layers
+    to: FACT-PROP-kibi-check-rule-layers-c02
+    created_at: 2026-11-25T08:34:17.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbc1b05ed672
+  - type: specified_by
+    from: REQ-kibi-check-rule-layers
+    to: SCEN-NEG-kibi-check-rule-layers-unlayered-rule
+    created_at: 2026-11-25T08:36:21.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a13274e2bbc7
+  - type: specified_by
+    from: REQ-kibi-check-rule-layers
+    to: SCEN-NEG-kibi-check-rule-layers-proof-rule-in-knowledge
+    created_at: 2026-11-25T08:36:24.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7356b14a82fc
+  - type: specified_by
+    from: REQ-kibi-check-rule-layers
+    to: SCEN-NEG-kibi-check-rule-layers-knowledge-rule-in-verification
+    created_at: 2026-11-25T08:36:27.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3df8c4c8cd0e
+  - type: requires_property
+    from: REQ-kibi-check-rule-layers
+    to: FACT-PROP-kibi-check-rule-layers-count
+    created_at: 2026-11-25T08:37:31.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83eeeaed3f67
+  - type: constrains
+    from: REQ-kibi-check-rule-layers
+    to: FACT-SUBJ-kibi-check-rule-selection
+    created_at: 2026-11-25T08:39:17.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97fb74cf3294
+  - type: implements
+    from: SYM-canonical-resolveCheckRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:45:00.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33a54c71023e
+  - type: covered_by
+    from: SYM-canonical-resolveCheckRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T09:45:00.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15753f083932
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c01
+    created_at: 2026-11-25T14:06:55.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4714a11d1ad
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-PROP-agent-hosts-guarded-change-notice-c02
+    created_at: 2026-11-25T14:06:55.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-591187908cf0
+  - type: constrains
+    from: REQ-agent-hosts-guarded-change-notice
+    to: FACT-SUBJ-kibi-agent-hooks-guarded-change
+    created_at: 2026-11-25T14:06:55.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb0e388354bf
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:01.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0012fdc20c91
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-rejected
+    created_at: 2026-11-25T14:07:01.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ebd59c8e703
+  - type: verified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:01.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e836ab776d5a
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-notice
+    to: REQ-agent-hosts-level-ask
+    created_at: 2026-11-25T14:07:49.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc705fc9148
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-notice
+    to: REQ-agent-hosts-required-evidence-lowering-ask
+    created_at: 2026-11-25T14:07:49.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-673f3c52643c
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:41.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a7a0857d5ad
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-notice
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c02-eq-false
+    created_at: 2026-11-25T14:08:47.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e2fc0d7e127
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: FACT-NEG-kibi-skills-stated-rule-signoff
+    created_at: 2026-11-26T11:44:18.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70ca491b503a
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: FACT-NEG-kibi-skills-ask-for-workflow-steps
+    created_at: 2026-11-26T11:44:19.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee5c8add83f2
+  - type: verified_by
+    from: SCEN-NEG-kibi-skills-ask-only-for-decisions-SIGNOFF
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-26T11:44:19.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-854de369432f

@@ -146,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e22ed8f79b
-  - type: assumes
-    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
-    to: FACT-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
-    created_at: 2026-10-30T14:56:46.698Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93cabfba84d9
-  - type: verified_by
-    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
-    to: TEST-kibi-plugin-search-hints
-    created_at: 2026-10-30T14:56:46.812Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-436453128ce4
   - type: requires_rule
     from: REQ-kibi-suggestion-explainable-output
     to: FACT-RULE-6F232D165E251652
@@ -223,3 +209,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e047c7f3910b
+  - type: implements
+    from: SYM-cli-result-truncation
+    to: REQ-result-budget-paging-notice
+    created_at: 2026-11-19T15:47:41.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-558f6868bbc5
+  - type: covered_by
+    from: SYM-cli-result-truncation
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:47:41.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b5d544b59cd
+  - type: implements
+    from: SYM-result-budget-preparation-after-cut
+    to: REQ-impact-review-preparation-paging
+    created_at: 2026-11-19T19:11:14.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0095f38d734f
+  - type: covered_by
+    from: SYM-result-budget-preparation-after-cut
+    to: TEST-impact-review-compact-preparation
+    created_at: 2026-11-19T19:20:57.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c993a3971fe3
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-named-evidence
+    created_at: 2026-11-19T19:21:56.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2746aa7a6d52
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-named-evidence-UNNAMED-EVIDENCE
+    created_at: 2026-11-19T19:21:56.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6407e43a3f35
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-requirements-once
+    created_at: 2026-11-19T19:21:56.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbeb3a96c572
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-requirements-once-REPEATED
+    created_at: 2026-11-19T19:21:56.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-162650783712
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-preparation-paging
+    created_at: 2026-11-19T19:21:56.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7874bb613a7c
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-preparation-paging-NARROWED
+    created_at: 2026-11-19T19:21:56.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b63cf5609e5a
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-schema-resource
+    created_at: 2026-11-19T19:21:56.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e8bf03eecbd
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:21:56.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f294272bc064
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-impact-review-public-preparation
+    created_at: 2026-11-19T19:21:56.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53e7c0c15e54
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-public-preparation-ROWLESS
+    created_at: 2026-11-19T19:21:56.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2a7cfc5914f
+  - type: validates
+    from: TEST-impact-review-compact-preparation
+    to: SCEN-NEG-impact-review-requirements-once-MISSING
+    created_at: 2026-11-19T20:18:33.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-227516290ae9
+  - type: constrains
+    from: REQ-cli-prove-ingest-refusal-reported
+    to: FACT-SUBJ-kibi-prove-command
+    created_at: 2026-11-20T16:11:16.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7417c5586044
+  - type: requires_property
+    from: REQ-cli-prove-ingest-refusal-reported
+    to: FACT-cli-prove-ingest-refusal-reported
+    created_at: 2026-11-20T16:11:16.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28503f8a9bd3
+  - type: specified_by
+    from: REQ-cli-prove-ingest-refusal-reported
+    to: SCEN-cli-prove-ingest-refusal-reported
+    created_at: 2026-11-20T16:11:16.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd0f292d2d1c
+  - type: specified_by
+    from: REQ-cli-prove-ingest-refusal-reported
+    to: SCEN-NEG-cli-prove-ingest-refusal-reported-THROWN
+    created_at: 2026-11-20T16:11:16.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c772dcb408cd
+  - type: assumes
+    from: SCEN-vs-code-extension-register-kibi-mcp-reject
+    to: FACT-assume-vscode-mcp-non-provider
+    created_at: 2026-11-25T15:00:44.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-125770a38d16
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-layers-proof-rule-in-knowledge
+    to: FACT-NEG-kibi-check-rule-layers-PROOF-RULE-IN-KNOWLEDGE
+    created_at: 2026-11-25T08:36:23.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1baa4e0d89aa
+  - type: verified_by
+    from: SCEN-NEG-kibi-check-rule-layers-proof-rule-in-knowledge
+    to: TEST-kibi-check-rule-layers
+    created_at: 2026-11-25T08:36:23.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cd72f950f4d

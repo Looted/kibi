@@ -300,3 +300,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e9b9758a82f0
+  - type: implements
+    from: SYM-cli-protocol-budgeted-operation-result
+    to: REQ-result-route-parity
+    created_at: 2026-11-19T15:28:52.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb501195b2e
+  - type: covered_by
+    from: SYM-cli-protocol-budgeted-operation-result
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:52.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec46bec072aa
+  - type: covered_by
+    from: SYM-mcp-register-mcp-server-provider
+    to: TEST-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:54:02.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ebe423a847
+  - type: executable_for
+    from: SYM-test-kibi-remember-level-surface
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T09:49:21.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc71d1d64b3
+  - type: assumes
+    from: SCEN-NEG-kibi-remember-level-surface-c01-eq-true
+    to: FACT-NEG-kibi-remember-level-surface-c01-eq-true
+    created_at: 2026-11-25T10:20:43.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5e19a9564f9
+  - type: executable_for
+    from: SYM-test-kibi-signoff-level
+    to: TEST-kibi-signoff-level
+    created_at: 2026-11-25T13:40:43.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b506301bef
+  - type: constrains
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-subject
+    created_at: 2026-11-25T19:29:24.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7dd221245a6
+  - type: requires_property
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-limits-max-meaning-decisions
+    created_at: 2026-11-25T19:29:24.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-470ec3cab6b2
+  - type: requires_property
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-limits-max-scored-entities
+    created_at: 2026-11-25T19:29:24.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76614b18076c
+  - type: requires_property
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-limits-meaning-weight
+    created_at: 2026-11-25T19:29:24.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b803643ac8c
+  - type: requires_property
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-limits-default-decision-cards
+    created_at: 2026-11-25T19:29:24.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a668c58641a
+  - type: requires_property
+    from: REQ-search-meaning-limits
+    to: FACT-search-meaning-limits-governing-coverage
+    created_at: 2026-11-25T19:29:24.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-099d35dfe823
+  - type: specified_by
+    from: REQ-search-meaning-limits
+    to: SCEN-search-meaning-limits
+    created_at: 2026-11-25T19:29:24.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f85166ddc466
+  - type: specified_by
+    from: REQ-search-meaning-limits
+    to: SCEN-NEG-search-meaning-limits-OUT-OF-BOUNDS
+    created_at: 2026-11-25T19:29:24.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-007892ba8d15
+  - type: verified_by
+    from: REQ-search-meaning-limits
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:29:24.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5730c344624f
+  - type: supersedes
+    from: REQ-search-meaning-limits
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-11-25T19:29:24.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c304a0b9f6f
+  - type: implements
+    from: SYM-mcp-register-mcp-server-provider
+    to: REQ-vscode-mcp-server-provider
+    created_at: 2026-11-25T18:05:57.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75834055dae

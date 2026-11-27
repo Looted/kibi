@@ -41,6 +41,7 @@ import {
   EngineClient,
   type EnginePublicationLease,
   acquireEnginePublicationLease,
+  enginePidPath,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
   formatEngineAttachmentMismatch,
@@ -83,6 +84,11 @@ import {
   committedOnLocalBranch,
   pendingReceiptScope,
 } from "../utils/pending-source-branch.js";
+import { adoptNoGitStore } from "../vcs/no-git-adoption.js";
+import {
+  type AuthoredSources,
+  authoredSourcesSync,
+} from "../vcs/source-inventory.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
@@ -253,19 +259,26 @@ export function trackedRelationshipFiles(
   recoverMissingPendingSources = false,
   recoveredPendingReceiptPaths?: PendingSourceReceiptSnapshot[],
 ): string[] {
-  let tracked: Set<string>;
+  const shards = (): string[] => {
+    try {
+      return readdirSync(relationshipsDir)
+        .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+        .map((file) => path.join(relationshipsDir, file));
+    } catch {
+      return [];
+    }
+  };
+  let sources: AuthoredSources;
   try {
-    tracked = new Set(
-      gitText(
-        workspaceRoot,
-        "git ls-files --cached -- .kb/relationships",
-      ).split("\n"),
-    );
+    sources = authoredSourcesSync(workspaceRoot, [".kb/relationships"]);
   } catch {
-    // A non-Git workspace has no tracked relationship inputs. The caller's
-    // branch resolver will produce the user-facing attachment diagnostic.
+    // Git failed in a repository: no shard can be vouched for. The caller's
+    // branch resolver produces the user-facing attachment diagnostic.
     return [];
   }
+  // Outside Git every shard on disk is input, and receipts do not apply.
+  if (sources.kind === "disk") return shards().sort();
+  const tracked = sources.tracked;
 
   const pending = new Set<string>();
   const pendingRoot = path.join(
@@ -340,15 +353,7 @@ export function trackedRelationshipFiles(
     }
   }
 
-  let names: string[];
-  try {
-    names = readdirSync(relationshipsDir);
-  } catch {
-    return [];
-  }
-  return names
-    .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
-    .map((file) => path.join(relationshipsDir, file))
+  return shards()
     .filter((file) => {
       const relative = path
         .relative(workspaceRoot, file)
@@ -623,6 +628,7 @@ export function reportValidationErrors(
 /** Everything one sync compiled, before failed sources are left out. */
 export interface NextSyncCache {
   hashes: Record<string, string>;
+  manifestBytesHashes?: Record<string, string>;
   seenAt: Record<string, string>;
   semanticHashes: Record<string, string>;
   semanticContracts: Record<string, boolean>;
@@ -656,9 +662,17 @@ export function compiledSyncCache(
       semanticContracts[key] = next.semanticContracts[key] === true;
     }
   }
+  let manifestBytesHashes: Record<string, string> | undefined;
+  if (next.manifestBytesHashes !== undefined) {
+    manifestBytesHashes = {};
+    for (const [key, hash] of Object.entries(next.manifestBytesHashes)) {
+      if (!skip(key)) manifestBytesHashes[key] = hash;
+    }
+  }
   return {
     version: SYNC_CACHE_VERSION,
     hashes,
+    ...(manifestBytesHashes !== undefined ? { manifestBytesHashes } : {}),
     relationshipHashes: next.relationshipHashes,
     entityHashes: next.entityHashes,
     sourceEntityIds: next.sourceEntityIds,
@@ -693,6 +707,8 @@ export async function syncCommand(
      * a store's first use runs this, so a read never dirties the checkout.
      */
     compileOnly?: boolean;
+    /** Optional compiler-lock wait timeout (ms); omitted uses the default lock wait. */
+    lockTimeoutMs?: number;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
@@ -742,7 +758,12 @@ export async function syncCommand(
     if (!validateOnly) {
       compilerLock = await (
         runtime.acquireSymbolCompilerLock ?? acquireSymbolCompilerLock
-      )(workspaceRoot);
+      )(
+        workspaceRoot,
+        options.lockTimeoutMs !== undefined
+          ? { timeoutMs: options.lockTimeoutMs }
+          : undefined,
+      );
     }
     assertNoUnresolvedGitConflicts(workspaceRoot);
     // Branch resolution
@@ -783,6 +804,13 @@ export async function syncCommand(
 
     currentBranch = branchResult.kbBranch;
 
+    // A repository created since Kibi last ran without Git takes over the
+    // knowledge recorded there before anything is compiled.
+    if (!validateOnly && recoveryBackupPath === undefined) {
+      const adopted = adoptNoGitStore(workspaceRoot, branchResult);
+      if (adopted !== null) console.error(`[KIBI] ${adopted.notice}`);
+    }
+
     // Cut over legacy branches before creating a staging copy.  If another
     // CLI/MCP operation has an engine attached, stop that single writer so the
     // atomic publish below cannot race its RDF lock.
@@ -819,9 +847,10 @@ export async function syncCommand(
         timeout: 2_000,
         allowPublicationLock: true,
       });
-      const engineSocketExists = existsSync(
-        engineSocketPath(workspaceRoot, currentBranch),
-      );
+      const engineSocket = engineSocketPath(workspaceRoot, currentBranch);
+      const enginePid = enginePidPath(workspaceRoot, currentBranch);
+      const engineSocketExists = existsSync(engineSocket);
+      const hadEngineArtifacts = engineSocketExists || existsSync(enginePid);
       try {
         publicationLease = acquireEnginePublicationLease(
           workspaceRoot,
@@ -830,22 +859,28 @@ export async function syncCommand(
         // This client is explicitly allowed to attach under its own lease so
         // a daemon that appeared between the socket probe and lease creation
         // is still stopped before publication.
-        if (
-          engineSocketExists ||
-          existsSync(engineSocketPath(workspaceRoot, currentBranch))
-        ) {
+        if (engineSocketExists || existsSync(engineSocket)) {
           await existingEngine.start(false);
         }
         if (existingEngine.isRunning()) {
           await existingEngine.stop(false);
         } else if (
-          engineSocketExists ||
-          existsSync(engineSocketPath(workspaceRoot, currentBranch))
+          hadEngineArtifacts ||
+          existsSync(engineSocket) ||
+          existsSync(enginePid)
         ) {
-          throw new SyncError(
-            `Kibi engine socket remains present but is not reachable: ${engineSocketPath(workspaceRoot, currentBranch)}`,
-            "ENGINE_SOCKET_UNREACHABLE",
-          );
+          try {
+            await existingEngine.stopOrReclaim({ holdsPublicationLease: true });
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            throw new SyncError(
+              message,
+              /did not stop/i.test(message)
+                ? "ENGINE_SHUTDOWN_TIMEOUT"
+                : "ENGINE_SOCKET_UNREACHABLE",
+            );
+          }
         }
       } finally {
         await existingEngine.terminate();
@@ -1006,6 +1041,13 @@ export async function syncCommand(
       key: toCacheKey(workspaceRoot, file),
       hash: effectiveSourceHash(file),
     }));
+    const nextManifestBytesHashes: Record<string, string> = {};
+    for (const file of manifestFiles) {
+      nextManifestBytesHashes[toCacheKey(workspaceRoot, file)] = hashFile(
+        workspaceRoot,
+        file,
+      );
+    }
 
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
@@ -1361,6 +1403,9 @@ export async function syncCommand(
 
     const nextCache: NextSyncCache = {
       hashes: nextHashes,
+      ...(manifestFiles.length > 0
+        ? { manifestBytesHashes: nextManifestBytesHashes }
+        : {}),
       seenAt: nextSeenAt,
       semanticHashes: nextSemanticHashes,
       semanticContracts: nextSemanticContracts,

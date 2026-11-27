@@ -391,3 +391,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-344409054570
+  - type: implements
+    from: SYM-impact-review-authoring-sent-decisions
+    to: REQ-impact-review-author-strict
+    created_at: 2026-11-19T19:12:17.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e80059361107
+  - type: covered_by
+    from: SYM-impact-review-authoring-sent-decisions
+    to: TEST-impact-review-authoring
+    created_at: 2026-11-19T19:12:17.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bf8bbe939a2
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-SILENT
+    to: FACT-NEG-vibe-hooks-firm-edit-notice-SILENT
+    created_at: 2026-11-22T18:24:26.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6fa71f25f07
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-SILENT
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:26.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1367222cfbe

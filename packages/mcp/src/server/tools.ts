@@ -20,23 +20,32 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import {
   type DetachedReadOnlyDiagnostic,
+  type NoGitRepositoryDiagnostic,
+  type NoGitStoreAdoptedDiagnostic,
   type OperationRuntime,
   type ProgressReporter,
   QUERY_LIMIT_EXCEEDED_CODE,
   type RuntimeOperationSpec,
+  alwaysAdvisesNoGit,
   codedErrorOf,
   detachedReadOnlyDiagnostic,
   executeOperation,
   isKbRejection,
+  noGitDiagnosticOfResult,
+  noGitRepositoryDiagnostic,
+  noGitStoreAdoptedDiagnostic,
   queryLimitExceededOf,
 } from "kibi-runtime";
 import {
   KB_DEPENDENCY_ARGUMENT,
+  fitOperationResult,
   kbDependencyArgument,
   operationData,
   prepareOperationInput,
   toKibiResult,
+  withInputAliases,
 } from "kibi-runtime";
+import type { OperationResult } from "kibi-runtime";
 import type { z } from "zod";
 import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
@@ -80,6 +89,33 @@ const TOOL_TIMEOUT_GRACE_MS = 100;
 // then tear down the shared session engine — never on ordinary read timeouts,
 // which would reject sibling tools with "Kibi engine connection closed".
 const TOOL_TIMEOUT_WEDGE_MS = 1_000;
+
+/**
+ * A tool result fitted to the result budget by the same function as the CLI
+ * JSON route, so both carry the same data for the same call. A handler that
+ * returns bare data gets bare (fitted) data back.
+ */
+export function budgetedToolResult(
+  spec: Parameters<typeof fitOperationResult>[0],
+  args: unknown,
+  rawResult: unknown,
+): { fitted: ReturnType<typeof fitOperationResult>; result: unknown } {
+  const hasContent =
+    rawResult !== null &&
+    typeof rawResult === "object" &&
+    "content" in rawResult;
+  const fitted = fitOperationResult(
+    spec,
+    args,
+    hasContent
+      ? (rawResult as OperationResult)
+      : { content: [], structuredContent: operationData(rawResult) },
+  );
+  return {
+    fitted,
+    result: hasContent ? fitted.result : fitted.result.structuredContent,
+  };
+}
 
 function isMutationEffect(effects: readonly string[]): boolean {
   return effects.some(
@@ -345,7 +381,12 @@ function acceptsKbDependency(inputSchema: object): boolean {
 /** A result's diagnostics carry a routing or detached-HEAD notice when one applies. */
 function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
   envelope: T,
-  notice: WorkspaceMismatchDiagnostic | DetachedReadOnlyDiagnostic | undefined,
+  notice:
+    | WorkspaceMismatchDiagnostic
+    | DetachedReadOnlyDiagnostic
+    | NoGitRepositoryDiagnostic
+    | NoGitStoreAdoptedDiagnostic
+    | undefined,
 ): T {
   if (!notice) return envelope;
   return { ...envelope, diagnostics: [...envelope.diagnostics, notice] };
@@ -358,8 +399,10 @@ function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
 function observeDetachedReads(base: OperationRuntime): {
   readonly runtime: OperationRuntime;
   readonly notice: () => DetachedReadOnlyDiagnostic | undefined;
+  readonly noGit: () => NoGitRepositoryDiagnostic | undefined;
 } {
   let notice: DetachedReadOnlyDiagnostic | undefined;
+  let noGit: NoGitRepositoryDiagnostic | undefined;
   return {
     runtime: {
       // Read the attachment at close (success or error) so opening the
@@ -368,11 +411,37 @@ function observeDetachedReads(base: OperationRuntime): {
       afterSuccess: (spec, context) => base.afterSuccess(spec, context),
       close: (context, outcome) => {
         notice = detachedReadOnlyDiagnostic(context.branchAttachment);
+        noGit = noGitRepositoryDiagnostic(context.branchAttachment);
         return base.close(context, outcome);
       },
     },
     notice: () => notice,
+    noGit: () => noGit,
   };
+}
+
+/** The no-Git store this server session last advised about. */
+let noGitAdvisedStore: string | undefined;
+
+/**
+ * The no-Git advisory for a result, at most once per server session for a
+ * store (again after the attachment changes), and on every result the
+ * missing repository changes (status, check).
+ */
+export function sessionNoGitNotice(
+  operation: string,
+  diagnostic: NoGitRepositoryDiagnostic | undefined,
+): NoGitRepositoryDiagnostic | undefined {
+  if (diagnostic === undefined) return undefined;
+  const store = diagnostic.detail.storePath;
+  if (!alwaysAdvisesNoGit(operation) && noGitAdvisedStore === store)
+    return undefined;
+  noGitAdvisedStore = store;
+  return diagnostic;
+}
+
+export function _resetNoGitAdvisoryForTests(): void {
+  noGitAdvisedStore = undefined;
 }
 
 export function addTool<TProlog>(
@@ -495,6 +564,11 @@ export function addTool<TProlog>(
       // withToolTimeout installs touch before the operation can report.
       const activity = {} as ToolTimeoutActivity;
       const onProgress = progressReporter(extra, activity);
+      // A field given under another name its contract declares runs under
+      // its own name, as on the CLI JSON route.
+      if (businessInputSchema !== undefined) {
+        businessArgs = withInputAliases(businessArgs, businessInputSchema);
+      }
       const inputError =
         businessInputSchema === undefined
           ? undefined
@@ -513,7 +587,7 @@ export function addTool<TProlog>(
 
       try {
         // Execute handler
-        const result = await withToolTimeout(
+        const rawResult = await withToolTimeout(
           name,
           handlerPromise,
           async (error) => {
@@ -550,13 +624,30 @@ export function addTool<TProlog>(
           activity,
         );
 
+        const { fitted, result } = budgetedToolResult(
+          operationSpec,
+          businessArgs,
+          rawResult,
+        );
         const data = operationData(result);
         const envelope = withWorkspaceNotice(
           withWorkspaceNotice(
-            toKibiResult(operationSpec, data),
-            workspaceNotice,
+            withWorkspaceNotice(
+              withWorkspaceNotice(
+                toKibiResult(operationSpec, data, {
+                  appendDiagnostics: fitted.diagnostics,
+                  appendNextActions: fitted.nextActions,
+                }),
+                workspaceNotice,
+              ),
+              observed.notice(),
+            ),
+            sessionNoGitNotice(
+              operationSpec.name,
+              observed.noGit() ?? noGitDiagnosticOfResult(data),
+            ),
           ),
-          observed.notice(),
+          noGitStoreAdoptedDiagnostic(),
         );
 
         recordMcpToolTelemetry({

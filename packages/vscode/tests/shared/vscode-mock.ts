@@ -37,6 +37,12 @@ type VscodeMockState = {
   ) => DefaultRelativePattern;
   MarkdownString: new (value: string) => DefaultMarkdownString;
   Hover: new (contents: unknown) => DefaultHover;
+  McpStdioServerDefinition: new (
+    label: string,
+    command: string,
+    args?: string[],
+    env?: Record<string, string | number | null>,
+  ) => DefaultMcpStdioServerDefinition;
   Uri: {
     file: (filePath: string) => {
       fsPath: string;
@@ -48,6 +54,7 @@ type VscodeMockState = {
   workspace: MockNamespace;
   commands: MockNamespace;
   languages: MockNamespace;
+  lm: MockNamespace;
 };
 
 export type VscodeMockOverrides = {
@@ -62,6 +69,7 @@ export type VscodeMockOverrides = {
   RelativePattern?: unknown;
   MarkdownString?: unknown;
   Hover?: unknown;
+  McpStdioServerDefinition?: unknown;
   TreeItemCollapsibleState?: Partial<
     VscodeMockState["TreeItemCollapsibleState"]
   >;
@@ -72,6 +80,7 @@ export type VscodeMockOverrides = {
   workspace?: MockNamespace;
   commands?: MockNamespace;
   languages?: MockNamespace;
+  lm?: MockNamespace;
 };
 
 function createDisposable(): DisposableLike {
@@ -218,6 +227,16 @@ export class DefaultHover {
   constructor(public contents: unknown) {}
 }
 
+export class DefaultMcpStdioServerDefinition {
+  cwd?: unknown;
+  constructor(
+    public label: string,
+    public command: string,
+    public args?: string[],
+    public env?: Record<string, string | number | null>,
+  ) {}
+}
+
 export class DefaultFileSystemWatcher {
   changeListeners: Array<(...args: unknown[]) => void> = [];
   createListeners: Array<(...args: unknown[]) => void> = [];
@@ -269,6 +288,13 @@ function createDefaultState(): VscodeMockState {
   }>;
   const openTextDocumentListeners = [] as Array<(value: unknown) => void>;
   const workspaceFolderChangeListeners = [] as Array<(value: unknown) => void>;
+  const configurationChangeListeners = [] as Array<
+    (event: { affectsConfiguration: (section: string) => boolean }) => void
+  >;
+  const registerMcpProviderCalls = [] as Array<{
+    id: string;
+    provider: unknown;
+  }>;
 
   return {
     EventEmitter: DefaultEventEmitter,
@@ -286,6 +312,7 @@ function createDefaultState(): VscodeMockState {
     RelativePattern: DefaultRelativePattern,
     MarkdownString: DefaultMarkdownString,
     Hover: DefaultHover,
+    McpStdioServerDefinition: DefaultMcpStdioServerDefinition,
     Uri: {
       file: (filePath: string) => ({
         fsPath: filePath,
@@ -337,6 +364,24 @@ function createDefaultState(): VscodeMockState {
           listener(value);
         }
       },
+      onDidChangeConfiguration: mock(
+        (
+          listener: (event: {
+            affectsConfiguration: (section: string) => boolean;
+          }) => void,
+        ) => {
+          configurationChangeListeners.push(listener);
+          return createDisposable();
+        },
+      ),
+      emitConfigurationChange(affectedSection: string) {
+        for (const listener of configurationChangeListeners) {
+          listener({
+            affectsConfiguration: (section: string) =>
+              section === affectedSection,
+          });
+        }
+      },
     },
     commands: {
       registerCommandCalls,
@@ -358,6 +403,15 @@ function createDefaultState(): VscodeMockState {
       ),
       registerHoverProvider: mock((_selector: unknown, _provider: unknown) =>
         createDisposable(),
+      ),
+    },
+    lm: {
+      registerMcpProviderCalls,
+      registerMcpServerDefinitionProvider: mock(
+        (id: string, provider: unknown) => {
+          registerMcpProviderCalls.push({ id, provider });
+          return createDisposable();
+        },
       ),
     },
   };
@@ -411,6 +465,9 @@ const vscodeMockModule = {
   get Hover() {
     return state.Hover;
   },
+  get McpStdioServerDefinition() {
+    return state.McpStdioServerDefinition;
+  },
   get Uri() {
     return state.Uri;
   },
@@ -425,6 +482,9 @@ const vscodeMockModule = {
   },
   get languages() {
     return state.languages;
+  },
+  get lm() {
+    return state.lm;
   },
 };
 
@@ -469,6 +529,10 @@ export function resetVscodeMock(overrides: VscodeMockOverrides = {}): void {
         | undefined) ?? base.MarkdownString,
     Hover:
       (overrides.Hover as VscodeMockState["Hover"] | undefined) ?? base.Hover,
+    McpStdioServerDefinition:
+      (overrides.McpStdioServerDefinition as
+        | VscodeMockState["McpStdioServerDefinition"]
+        | undefined) ?? base.McpStdioServerDefinition,
     TreeItemCollapsibleState: {
       ...base.TreeItemCollapsibleState,
       ...(overrides.TreeItemCollapsibleState ?? {}),
@@ -486,5 +550,6 @@ export function resetVscodeMock(overrides: VscodeMockOverrides = {}): void {
     workspace: mergeNamespace(base.workspace, overrides.workspace),
     commands: mergeNamespace(base.commands, overrides.commands),
     languages: mergeNamespace(base.languages, overrides.languages),
+    lm: mergeNamespace(base.lm, overrides.lm),
   };
 }

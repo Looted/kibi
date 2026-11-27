@@ -300,3 +300,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f7887a3d09e
+  - type: constrains
+    from: REQ-hook-read-rows-every-named-file
+    to: FACT-SUBJECT-kibi-host-read-rows
+    created_at: 2026-11-25T14:27:49.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ef7bf3360e1
+  - type: requires_property
+    from: REQ-hook-read-rows-every-named-file
+    to: FACT-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:49.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-218bfa55f8bb
+  - type: specified_by
+    from: REQ-hook-read-rows-every-named-file
+    to: SCEN-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:49.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b7ee79f0729
+  - type: specified_by
+    from: REQ-hook-read-rows-every-named-file
+    to: SCEN-NEG-hook-read-rows-every-named-file-FIRST-FILE-ONLY
+    created_at: 2026-11-25T14:27:49.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce0191b731fe
+  - type: implements
+    from: SYM-vcs-authored-sources-sync
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:24.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3d85ffbe779
+  - type: covered_by
+    from: SYM-vcs-authored-sources-sync
+    to: TEST-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:24.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79c5045fcaf8

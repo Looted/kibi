@@ -1,0 +1,21 @@
+{
+  "name": "kibi",
+  "displayName": "Kibi",
+  "description": "Agent-native requirements compiler and enforcement layer: progressive-disclosure requirement snippets, firm-edit confirmation, decision capture, signoff reminders, bundled skills, and the workspace-gated Kibi MCP server.",
+  "version": "0.2.0",
+  "logo": "assets/logo.svg",
+  "author": {
+    "name": "Piotr Franczyk",
+    "url": "https://github.com/Looted/kibi"
+  },
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  },
+  "suggestedPrompts": [
+    "Search Kibi for requirements governing this area before we edit code",
+    "Check KB impact and symbol traceability for my current changes",
+    "Show the Kibi requirements signoff view for this branch"
+  ]
+}

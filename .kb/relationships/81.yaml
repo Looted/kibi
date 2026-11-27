@@ -363,3 +363,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c46b35dc5e1
+  - type: verified_by
+    from: SCEN-CASE-prolog-win32-prebuilt-pe-audit-DLL
+    to: TEST-prolog-win32-repack-contract
+    created_at: 2026-11-20T12:19:09.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50ea0f41fd4a
+  - type: assumes
+    from: SCEN-CASE-prolog-win32-prebuilt-pe-audit-DLL
+    to: FACT-prolog-win32-prebuilt-clean-runner-pe-audit
+    created_at: 2026-11-20T14:54:45.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61d23fdc1596
+  - type: assumes
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    to: FACT-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    created_at: 2026-11-22T18:24:27.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aeb9284dc8f
+  - type: verified_by
+    from: SCEN-NEG-vibe-hooks-firm-edit-notice-REPEATS
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:24:27.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70eadebd714c
+  - type: constrains
+    from: REQ-hook-read-row-budgets
+    to: FACT-SUBJECT-kibi-host-read-rows
+    created_at: 2026-11-25T14:29:07.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-640f822edc9d
+  - type: requires_property
+    from: REQ-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:07.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f96b5550cedc
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-hook-read-row-budgets
+    created_at: 2026-11-25T14:29:07.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4130e8cae72
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:29:07.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbcc6751238a
+  - type: requires_property
+    from: REQ-hook-read-row-budgets
+    to: FACT-hook-read-row-budgets-repeated-requirement-rows
+    created_at: 2026-11-25T14:29:07.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87c185e5a32a
+  - type: specified_by
+    from: REQ-hook-read-row-budgets
+    to: SCEN-NEG-hook-read-row-budgets-OVER-BUDGET
+    created_at: 2026-11-25T14:39:34.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96716009eb47
+  - type: implements
+    from: SYM-vcs-probe-workspace-vcs
+    to: REQ-kibi-no-git-detection-never-inside-repository
+    created_at: 2026-11-25T09:16:54.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f5305e7b40b
+  - type: covered_by
+    from: SYM-vcs-probe-workspace-vcs
+    to: TEST-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:54.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dd44c3e192e
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-guarded-change-prompt-c01-eq-false
+    to: FACT-NEG-agent-hosts-guarded-change-prompt-c01-eq-false
+    created_at: 2026-11-25T14:08:26.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e459d5a5a4e3
+  - type: assumes
+    from: SCEN-search-answers-lift-two
+    to: FACT-search-answers-lift-two-answers-lift-two-hop
+    created_at: 2026-11-25T19:28:01.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee0cf348400
+  - type: verified_by
+    from: SCEN-search-answers-lift-two
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:28:30.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0703fe45e55
+  - type: validates
+    from: TEST-mcp-default-tool-profile
+    to: SCEN-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:15.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bda841a27806
+  - type: validates
+    from: TEST-mcp-default-tool-profile
+    to: SCEN-NEG-kibi-remember-level-tool-list
+    created_at: 2026-11-26T10:33:15.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c48f60f308d

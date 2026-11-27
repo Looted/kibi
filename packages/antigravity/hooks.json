@@ -1,0 +1,49 @@
+{
+  "kibi": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
+        "timeout": 10
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
+        "timeout": 10
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "read_file|view_file|edit_file|write_file|replace_file_content|multi_replace_file_content|write_to_file|run_command|grep_search|find_by_name|call_mcp_tool|.*kb_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "edit_file|write_file|replace_file_content|multi_replace_file_content|write_to_file|run_command|call_mcp_tool|.*kb_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "\"./bin/run-node.cmd\" ./bin/hook-runner.mjs",
+        "timeout": 10
+      }
+    ]
+  }
+}

@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46b1b1e96319
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-next-step-ABSTAINED-NO-NEXT-ACTION
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:39:00.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58be6846adcc
+  - type: assumes
+    from: SCEN-NEG-kibi-search-next-step-ABSTAINED-NO-NEXT-ACTION
+    to: FACT-NEG-kibi-search-next-step-ABSTAINED-NO-NEXT-ACTION
+    created_at: 2026-11-24T08:39:00.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99629a54cf3c
+  - type: executable_for
+    from: SYM-test-cla-workflow-contract
+    to: TEST-cla-workflow-contract
+    created_at: 2026-11-25T06:08:40.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98ed8c2158e

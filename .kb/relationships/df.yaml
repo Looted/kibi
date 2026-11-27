@@ -349,3 +349,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54c8f6052fe6
+  - type: implements
+    from: SYM-cli-janitor-sweep-runtime-sockets
+    to: REQ-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T15:54:48.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bdda2b5c35f
+  - type: covered_by
+    from: SYM-cli-janitor-sweep-runtime-sockets
+    to: TEST-cli-engine-janitor-workspace-sockets
+    created_at: 2026-11-22T15:54:48.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fee3fb206951
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-kibi-level-setting
+    created_at: 2026-11-25T09:48:04.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f5898161616
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-rejected
+    created_at: 2026-11-25T09:48:04.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1babfc68db2
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:39.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12bc52c15ea8
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-rejected
+    created_at: 2026-11-25T09:49:39.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e9e09d38b3
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c02-eq-false
+    created_at: 2026-11-25T10:19:23.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0735f39d21fc
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c01-eq-false
+    created_at: 2026-11-25T10:19:28.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4d28a94495
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-neq-0
+    created_at: 2026-11-25T10:19:34.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6ea7ea35f99
+  - type: validates
+    from: TEST-kibi-level-setting
+    to: SCEN-NEG-kibi-level-setting-c03-gt-0
+    created_at: 2026-11-25T10:19:40.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc47f7999ab
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c01-eq-false
+    created_at: 2026-11-25T10:20:54.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc71c4db5b72
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c02-eq-false
+    created_at: 2026-11-25T10:20:59.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b7fbe893af9
+  - type: validates
+    from: TEST-kibi-init-level-choice
+    to: SCEN-NEG-kibi-init-level-choice-c03-eq-false
+    created_at: 2026-11-25T10:21:05.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175aa9537c03
+  - type: assumes
+    from: SCEN-NEG-kibi-no-git-attached-store
+    to: FACT-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:06.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c4d668c6ec7
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: REQ-kibi-no-git-compiles-sources-on-disk
+    created_at: 2026-11-25T09:17:16.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f0f2fd4127a
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: SCEN-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:16.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f8d9c27d9b9
+  - type: validates
+    from: TEST-kibi-no-git-sources-on-disk
+    to: SCEN-NEG-kibi-no-git-sources-on-disk
+    created_at: 2026-11-25T09:17:16.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f79c34bbb66c

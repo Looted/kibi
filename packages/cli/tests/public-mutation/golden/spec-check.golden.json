@@ -55,6 +55,7 @@
             "exception-unapproved",
             "exception-approval-self-attested",
             "agent-requirement-unapproved",
+            "required-evidence-above-level",
             "requirement-rationale-missing",
             "symbol-owner-superseded",
             "adr-unlinked",
@@ -82,7 +83,7 @@
           ],
           "x-kibi-advertised-open": true
         },
-        "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, quantity-duplicate, subject-hierarchy-invalid, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+        "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, required-evidence-above-level, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, quantity-duplicate, subject-hierarchy-invalid, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs the canonical and advisory rules of the project's Kibi level (level remember skips the verification rules) plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
         "x-kibi-advertised-description": "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit."
       },
       "sourceFiles": {
@@ -97,6 +98,13 @@
         "type": "boolean",
         "description": "Return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary, which a check with sourceFiles always gives and any other check gives when the result is over its size budget.",
         "x-kibi-advertised-description": "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary."
+      },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0,
+        "description": "With rules: the first finding to list. A rule selection lists its findings in pages that keep to the size budget, and a cut page names the next offset.",
+        "x-kibi-advertised-description": "With rules: the first finding to list; findings come in pages within the size budget."
       },
       "includeSymbolDebt": {
         "type": "boolean",
@@ -210,6 +218,13 @@
                   "additionalProperties": true
                 }
               },
+              "impactAdvice": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Advice that impact diagnostics share, once each. An impact diagnostic whose advice is an index into this list carries no suggestion of its own."
+              },
               "sourceFiles": {
                 "type": "array",
                 "items": {
@@ -314,6 +329,9 @@
                         }
                       }
                     }
+                  },
+                  "filesOmitted": {
+                    "type": "integer"
                   }
                 },
                 "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."

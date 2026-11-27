@@ -1,11 +1,19 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
+import { type DecisionCard, formatCardLine } from "kibi-agent-core/retrieval";
+import { sessionBriefFor } from "kibi-agent-core/session-brief";
+import { BranchResolutionFailure, OperationError } from "../../cli-errors.js";
 import {
   compilerFingerprintReason,
   sourceExtractionFailureReasons,
 } from "../../commands/sync/cache.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
+import {
+  type AnswerSeed,
+  DECISION_CARD_LIMIT,
+  type DecisionSearchResult,
+  searchDecisions,
+} from "../../decision-search.js";
 import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
@@ -19,13 +27,19 @@ import {
 } from "../../intent-search.js";
 import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
+import { normalizeEntityId, parseAtomList } from "../../prolog/codec.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
-import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
+import {
+  type SearchAnswer,
+  answerQuotedIds,
+  buildSearchAnswer,
+  governingLabel,
+} from "../../search-answer.js";
 import {
   type SearchHintsAnalysis,
-  buildSearchHints,
+  providerMeaningRanker,
+  searchHintsAnalysis,
   searchHintsNote,
-  searchHintsTrigger,
 } from "../../search-hints.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
@@ -40,7 +54,17 @@ import {
   storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
-import { confirmSourceNewerReasons } from "../../utils/content-freshness.js";
+import {
+  confirmSourceNewerReasons,
+  missingCachedKbSourceReasons,
+  readSyncCacheRecord,
+  staleStoreWarningNote,
+} from "../../utils/content-freshness.js";
+import { KB_ROOT } from "../../utils/kb-paths.js";
+import {
+  type NoGitRepositoryDiagnostic,
+  noGitRepositoryDiagnostic,
+} from "../../vcs/advisory.js";
 import {
   loadEntities,
   loadSearchCandidates,
@@ -94,6 +118,11 @@ export type QueryInput = {
   readonly propertyKey?: string;
   /** With `id`: also return the entity's authored Markdown body. */
   readonly includeBody?: boolean;
+  /**
+   * summary (default without `id`): each listed entity's identifying fields;
+   * full: every field. A lookup by `id` always returns the full entity.
+   */
+  readonly fields?: "summary" | "full";
 };
 
 /** A ready-to-run follow-up call the query suggests. */
@@ -126,6 +155,8 @@ export type QueryPayload = {
   readonly factQuery?: FactQueryPayload;
   /** Present when an empty answer came from a store never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+  /** Present when the queried compiled branch store is confirmed stale. */
+  readonly meta?: Readonly<Record<string, unknown>>;
   /** Present when `includeBody` was requested for an `id`. */
   readonly body?: QueryBody;
 };
@@ -202,20 +233,80 @@ export type SearchInput = {
 };
 
 export type SearchPayload = {
-  readonly results: readonly (SearchMatch | IntentSearchMatch)[];
+  readonly results: readonly (
+    | SearchMatch
+    | IntentSearchMatch
+    | DecisionCardRow
+  )[];
   /** Matches in the whole ranking, before `limit` and `offset`. */
   readonly count: number;
   /** Rows in `results`: the page this call returned. */
   readonly returned: number;
   readonly truncated?: boolean;
-  readonly queryAnalysis?: IntentSearchAnalysis & {
+  readonly queryAnalysis?: (IntentSearchAnalysis | DecisionSearchAnalysis) & {
     readonly hints?: SearchHintsAnalysis;
   };
   readonly answer?: SearchAnswer;
+  /**
+   * What to do next, for harnesses that show only the structured result:
+   * list the requirement titles after an abstained or weak search with no
+   * hint shown, re-ask with sourceLocations for a file path the question
+   * names, run the contradiction check for a question about conflicts.
+   */
+  readonly nextActions?: readonly SearchNextAction[];
+  /** Sentences the text digest holds that the structured result must hold too. */
+  readonly notes?: readonly string[];
   /** The Kibi branch whose store was searched, when the runtime attached one. */
   readonly branch?: string | null;
   /** Present when the searched store was never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+  /** Present when the searched compiled branch store is confirmed stale. */
+  readonly meta?: Readonly<Record<string, unknown>>;
+};
+
+/** One decision card of a kb_search answer. */
+export type DecisionCardRow = {
+  readonly entity: Record<string, unknown>;
+  readonly score: number;
+  /** Why the card is here, in short phrases. */
+  readonly reasons: readonly string[];
+  /** The card as one line of at most 300 characters. */
+  readonly line: string;
+  readonly scope: DecisionCard["scope"];
+  /** Near-identical or replaced decisions shown through this card. */
+  readonly folded?: readonly string[];
+};
+
+/** How a decision search ranked the question. */
+export type DecisionSearchAnalysis = {
+  readonly rankingMode: "intent-v1";
+  readonly unit: "decision";
+  /** Requirements and ADRs ranked. */
+  readonly decisionCount: number;
+  /** Whether an embedding provider's ranking was fused in. */
+  readonly fused: boolean;
+  /** No card covers enough of the question to govern it. */
+  readonly weak: boolean;
+  /** Top governing requirements are close and should be confirmed as candidates. */
+  readonly ambiguous: boolean;
+  /** No decision shares a word of the question. */
+  readonly abstained: boolean;
+  /** Share of the question's weight the best card covers, 0 to 1. */
+  readonly coverage: number;
+  /** Words of the question no returned decision contains. */
+  readonly uncoveredTerms: readonly string[];
+  /** Matching decisions linked only to files this workspace lacks. */
+  readonly otherScopes: {
+    readonly count: number;
+    readonly ids: readonly string[];
+  };
+};
+
+export type SearchNextAction = {
+  readonly operation: "kb_query" | "kb_search" | "kb_check";
+  readonly input: Record<string, unknown>;
+  readonly reason: string;
+  readonly required: false;
 };
 
 export type SearchBranchStoreNotice = {
@@ -252,6 +343,265 @@ function uncompiledSearchNotice(
   };
 }
 
+const COMPACT_STALE_REASON_LIMIT = 10;
+const COMPACT_STALE_ENTITY_LIMIT = 10;
+
+type QueryFreshnessResult =
+  | { readonly state: "fresh" }
+  | {
+      readonly state: "stale";
+      readonly meta: Readonly<Record<string, unknown>>;
+      readonly note: string;
+      readonly staleReasonCount: number;
+    }
+  | { readonly state: "unknown" };
+
+function compactStaleReason(
+  reason: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const code = typeof reason.code === "string" ? reason.code : "stale_source";
+  const reasonPath = typeof reason.path === "string" ? reason.path : undefined;
+  const entityIds = Array.isArray(reason.entityIds)
+    ? reason.entityIds
+        .filter((id): id is string => typeof id === "string")
+        .slice(0, COMPACT_STALE_ENTITY_LIMIT)
+    : [];
+  return {
+    code,
+    ...(reasonPath !== undefined ? { path: reasonPath } : {}),
+    entityIds,
+  };
+}
+
+function buildCompactStaleMeta(
+  reasons: readonly Readonly<Record<string, unknown>>[],
+): Readonly<Record<string, unknown>> {
+  const compact = reasons
+    .slice(0, COMPACT_STALE_REASON_LIMIT)
+    .map(compactStaleReason);
+  return {
+    syncState: "stale",
+    dirty: true,
+    staleReasonCount: reasons.length,
+    staleReasons: compact,
+    ...(reasons.length > COMPACT_STALE_REASON_LIMIT
+      ? { staleReasonsTruncated: true }
+      : {}),
+  };
+}
+
+function normalizeFilterPath(
+  workspaceRoot: string,
+  rawFilter: string,
+): string | null {
+  const withoutFragment = (rawFilter.split("#", 1)[0] ?? "").trim();
+  if (withoutFragment === "") return null;
+  const rel = path
+    .relative(workspaceRoot, path.resolve(workspaceRoot, withoutFragment))
+    .replaceAll(path.sep, "/")
+    .replace(/^\.\//, "");
+  if (rel === ".." || rel.startsWith("../")) return null;
+  return rel;
+}
+
+function sourcePathsOverlap(
+  workspaceRoot: string,
+  rawFilter: string,
+  reasonPosix: string,
+): boolean {
+  const rel = normalizeFilterPath(workspaceRoot, rawFilter);
+  if (rel === null) return false;
+  if (rel === "" || rel === ".") return true;
+  return (
+    rel === reasonPosix ||
+    reasonPosix.startsWith(`${rel}/`) ||
+    rel.startsWith(`${reasonPosix}/`)
+  );
+}
+
+function isRelevantQueryStaleReason(
+  reason: Readonly<Record<string, unknown>>,
+  workspaceRoot: string,
+  sourceFilterPaths: readonly string[],
+): boolean {
+  if (reason.code !== "indexed_source_newer") return true;
+  if (typeof reason.path !== "string") return true;
+  const posix = reason.path.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (posix === KB_ROOT || posix.startsWith(`${KB_ROOT}/`)) return true;
+  if (sourceFilterPaths.length === 0) return false;
+  return sourceFilterPaths.some((candidate) =>
+    sourcePathsOverlap(workspaceRoot, candidate, posix),
+  );
+}
+
+function sortReasons(
+  reasons: readonly Readonly<Record<string, unknown>>[],
+): Record<string, unknown>[] {
+  return [...reasons].sort((left, right) =>
+    String(left.path ?? "").localeCompare(String(right.path ?? "")),
+  );
+}
+
+type HealthyStoreEvidence = Readonly<{
+  confirmed: ReturnType<typeof confirmSourceNewerReasons>;
+  compilerReason: ReturnType<typeof compilerFingerprintReason>;
+  extractionReasons: ReturnType<typeof sourceExtractionFailureReasons>;
+  missingShardReasons: ReturnType<typeof missingCachedKbSourceReasons>;
+}>;
+
+function collectHealthyStoreEvidence(
+  workspaceRoot: string,
+  storePath: string,
+  prologReasons: readonly Readonly<Record<string, unknown>>[],
+  includeHealthyOnlyReasons: boolean,
+): HealthyStoreEvidence {
+  const syncCache = readSyncCacheRecord(storePath);
+  const cachedArgs =
+    syncCache !== null ? ([syncCache] as const) : ([] as const);
+  const depCacheArgs =
+    syncCache !== null ? ([undefined, syncCache] as const) : ([] as const);
+  return {
+    confirmed: confirmSourceNewerReasons(
+      workspaceRoot,
+      storePath,
+      prologReasons,
+      ...cachedArgs,
+    ),
+    compilerReason: compilerFingerprintReason(storePath, ...depCacheArgs),
+    extractionReasons: includeHealthyOnlyReasons
+      ? sourceExtractionFailureReasons(
+          workspaceRoot,
+          storePath,
+          ...depCacheArgs,
+        )
+      : [],
+    missingShardReasons: includeHealthyOnlyReasons
+      ? missingCachedKbSourceReasons(
+          workspaceRoot,
+          storePath,
+          undefined,
+          ...cachedArgs,
+        )
+      : [],
+  };
+}
+
+async function inspectQueryFreshness(
+  context: OperationContext,
+  prolog: PrologPort,
+  options: { readonly sourceFilterPaths: readonly string[] },
+): Promise<QueryFreshnessResult> {
+  const attachment = context.branchAttachment;
+  if (attachment === undefined) return { state: "unknown" };
+  const store = inspectBranchStore(context.workspaceRoot, attachment.kbBranch);
+  if (store.state === "missing") return { state: "unknown" };
+  if (store.state !== "healthy") {
+    const storeReason = branchStoreReason(store);
+    if (storeReason === null) return { state: "unknown" };
+    return {
+      state: "stale",
+      meta: buildCompactStaleMeta([storeReason]),
+      note: staleStoreWarningNote(1, [store.path]),
+      staleReasonCount: 1,
+    };
+  }
+
+  let prologReasons: Record<string, unknown>[] = [];
+  let prologSyncState: string | undefined;
+  let prologUnavailable = false;
+  const normalizedScopePaths = [
+    ...new Set(
+      options.sourceFilterPaths
+        .map((raw) => normalizeFilterPath(context.workspaceRoot, raw))
+        .filter((rel): rel is string => rel !== null),
+    ),
+  ];
+  const scopeAtoms = normalizedScopePaths.map(toPrologAtom).join(",");
+  let statusPayload: Record<string, unknown> | undefined;
+  try {
+    statusPayload = await runOperationJsonQuery<Record<string, unknown>>(
+      prolog,
+      "status.pl",
+      `status:kb_query_freshness_json([${scopeAtoms}], JsonString)`,
+      "Query freshness",
+      context.signal,
+    );
+  } catch {
+    if (context.signal?.aborted) {
+      prologUnavailable = true;
+    } else {
+      try {
+        statusPayload = await runOperationJsonQuery<Record<string, unknown>>(
+          prolog,
+          "status.pl",
+          "status:kb_status_json(JsonString)",
+          "Status execution",
+          context.signal,
+        );
+      } catch {
+        prologUnavailable = true;
+      }
+    }
+  }
+  if (
+    statusPayload !== undefined &&
+    statusPayload !== null &&
+    typeof statusPayload === "object" &&
+    typeof statusPayload.syncState === "string"
+  ) {
+    prologSyncState = statusPayload.syncState;
+    prologReasons = Array.isArray(statusPayload.staleReasons)
+      ? (statusPayload.staleReasons as Record<string, unknown>[])
+      : [];
+  } else if (!prologUnavailable) {
+    prologUnavailable = true;
+  }
+
+  // Filter to query-relevant paths before content hashing so unrequested
+  // production code edits do not trigger disk reads even on the fallback path.
+  const relevantPrologReasons = prologReasons.filter((reason) =>
+    isRelevantQueryStaleReason(
+      reason,
+      context.workspaceRoot,
+      options.sourceFilterPaths,
+    ),
+  );
+  const evidence = collectHealthyStoreEvidence(
+    context.workspaceRoot,
+    store.path,
+    relevantPrologReasons,
+    true,
+  );
+  const allReasons = sortReasons([
+    ...evidence.confirmed.kept,
+    ...(evidence.compilerReason ? [evidence.compilerReason] : []),
+    ...evidence.extractionReasons,
+    ...evidence.missingShardReasons,
+  ]);
+  const relevantReasons = allReasons.filter((reason) =>
+    isRelevantQueryStaleReason(
+      reason,
+      context.workspaceRoot,
+      options.sourceFilterPaths,
+    ),
+  );
+  if (relevantReasons.length > 0) {
+    const paths = relevantReasons.flatMap((reason) =>
+      typeof reason.path === "string" ? [reason.path] : [],
+    );
+    return {
+      state: "stale",
+      meta: buildCompactStaleMeta(relevantReasons),
+      note: staleStoreWarningNote(relevantReasons.length, paths),
+      staleReasonCount: relevantReasons.length,
+    };
+  }
+  if (prologUnavailable || prologSyncState === "unknown") {
+    return { state: "unknown" };
+  }
+  return { state: "fresh" };
+}
+
 export type StatusInput = Readonly<Record<string, never>>;
 
 export type StatusPayload = {
@@ -280,7 +630,8 @@ export type StatusPayload = {
       | "exact"
       | "explicit_override"
       | "legacy_compat"
-      | "detached_snapshot";
+      | "detached_snapshot"
+      | "no_git";
     readonly migrationRequired: boolean;
   };
   readonly proofSnapshotChanges?: readonly Record<string, unknown>[];
@@ -719,6 +1070,18 @@ async function executeFactQuery(
         : response.mode === "schemas"
           ? "predicate schemas"
           : `${String(factKind)} facts`;
+  const storeNotice = count === 0 ? uncompiledSearchNotice(context) : null;
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, { sourceFilterPaths: [] })
+      : null;
+  const staleSuffix = storeNotice
+    ? [
+        `Note: ${storeNotice.detail} Run kibi sync before relying on query results.`,
+      ]
+    : freshness?.state === "stale"
+      ? [freshness.note]
+      : [];
   const lines = [
     count === 0
       ? `No ${subject} matched.`
@@ -733,10 +1096,17 @@ async function executeFactQuery(
       : []),
     ...warnings.map((warning) => `Warning: ${warning}`),
     ...factQuery.next.map((entry) => `Next: ${entry.call} (${entry.why})`),
+    ...staleSuffix,
   ];
   return {
     content: [{ type: "text", text: lines.join("\n") }],
-    structuredContent: { entities: rows, count, factQuery },
+    structuredContent: {
+      entities: rows,
+      count,
+      factQuery,
+      ...(storeNotice ? { branchStore: storeNotice } : {}),
+      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+    },
   };
 }
 
@@ -821,9 +1191,31 @@ async function executeSubjectDomainQuery(
     subjectKey,
     definition: fact.definition,
   }));
+  const storeNotice =
+    rows.length === 0 ? uncompiledSearchNotice(context) : null;
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, { sourceFilterPaths: [] })
+      : null;
+  const allLines = [
+    ...lines,
+    ...(storeNotice
+      ? [
+          `Note: ${storeNotice.detail} Run kibi sync before relying on query results.`,
+        ]
+      : freshness?.state === "stale"
+        ? [freshness.note]
+        : []),
+  ];
   return {
-    content: [{ type: "text", text: lines.join("\n") }],
-    structuredContent: { entities: rows, count: rows.length, factQuery },
+    content: [{ type: "text", text: allLines.join("\n") }],
+    structuredContent: {
+      entities: rows,
+      count: rows.length,
+      factQuery,
+      ...(storeNotice ? { branchStore: storeNotice } : {}),
+      ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
+    },
   };
 }
 
@@ -862,19 +1254,29 @@ export async function executeQuery(
     // A requirement or ADR without authored firmness reads as its origin
     // implies (`default` when an agent wrote it, else `firm`); the row says
     // so, so a reader never has to know the rule.
+    const summaryRows =
+      (id === undefined || id === "") && input.fields !== "full";
     const paginated = indexedPage.entities.map((entity) => {
       const firmness = effectiveFirmness(
         entity.type,
         entity.firmness,
         entity.origin,
       );
-      return entity.firmness === firmness ? entity : { ...entity, firmness };
+      const row =
+        entity.firmness === firmness ? entity : { ...entity, firmness };
+      return summaryRows ? summaryEntity(row) : row;
     });
     // An empty page from a never-compiled store says nothing about the
     // authored entities, so the answer names the store state.
     const storeNotice =
       indexedPage.count === 0 ? uncompiledSearchNotice(context) : null;
-    const text =
+    const freshness =
+      storeNotice === null
+        ? await inspectQueryFreshness(context, prolog, {
+            sourceFilterPaths: sourceFile !== undefined ? [sourceFile] : [],
+          })
+        : null;
+    const baseText =
       indexedPage.count === 0
         ? `No entities found${type ? ` of type '${type}'` : ""}.${storeNotice ? ` Note: ${storeNotice.detail} Run kibi sync before relying on query results.` : ""}`
         : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
@@ -886,6 +1288,17 @@ export async function executeQuery(
               return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
             })
             .join(", ")}`;
+    const staleText =
+      freshness?.state === "stale" ? `${baseText} ${freshness.note}` : baseText;
+    // An id lookup returns metadata only; say that the authored body is one
+    // flag away so the reader does not have to know the parameter exists.
+    const text =
+      id !== undefined &&
+      id !== "" &&
+      indexedPage.count > 0 &&
+      input.includeBody !== true
+        ? `${staleText} Pass includeBody: true to read its authored body.`
+        : staleText;
     const body =
       input.includeBody === true
         ? await readQueryBody(
@@ -903,6 +1316,7 @@ export async function executeQuery(
         entities: paginated,
         count: indexedPage.count,
         ...(storeNotice ? { branchStore: storeNotice } : {}),
+        ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
         ...(body ? { body } : {}),
       },
     };
@@ -981,6 +1395,21 @@ const SUMMARY_ENTITY_FIELDS = [
 ] as const;
 
 /**
+ * A listed entity as a list needs it: identifying metadata, and its
+ * firmness when it has one. `fields: "full"` or a lookup by id returns the
+ * rest.
+ */
+export function summaryEntity(
+  entity: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const summary: Record<string, unknown> = {};
+  for (const field of [...SUMMARY_ENTITY_FIELDS, "firmness"]) {
+    if (entity[field] !== undefined) summary[field] = entity[field];
+  }
+  return summary;
+}
+
+/**
  * A match as discovery needs it: identifying metadata, and evidence without
  * its traceability graph paths. The paths name every symbol and link that
  * reached the entity; `reasons` already says a graph match counted, and
@@ -999,6 +1428,34 @@ export function summarizeMatch<
     match as unknown as IntentSearchMatch
   ).evidence;
   return { ...match, entity: summary, evidence };
+}
+
+/**
+ * Each entity once: a match whose entity the answer already quotes (a
+ * requirement with its whole statement, a fact with its claim) keeps only
+ * its id, type, title, score and match reasons. Every other match is
+ * returned as it is.
+ */
+export function slimAnsweredMatches<
+  TMatch extends {
+    readonly entity: Record<string, unknown>;
+    readonly score: number;
+    readonly reasons: readonly string[];
+  },
+>(matches: readonly TMatch[], quoted: ReadonlySet<string>): readonly TMatch[] {
+  if (quoted.size === 0) return matches;
+  return matches.map((match) => {
+    const id = match.entity.id;
+    if (typeof id !== "string" || !quoted.has(id)) return match;
+    const entity: Record<string, unknown> = { id };
+    if (match.entity.type !== undefined) entity.type = match.entity.type;
+    if (match.entity.title !== undefined) entity.title = match.entity.title;
+    return {
+      entity,
+      score: match.score,
+      reasons: match.reasons,
+    } as unknown as TMatch;
+  });
 }
 
 // Candidates are projected rows, so `fields: "full"` reloads the final page's
@@ -1024,14 +1481,17 @@ const CONTRADICTION_HINT =
 
 // A file path written in the question is left out of its topic. Passed as
 // sourceLocations it also brings the requirements linked to that file.
-function questionPathHint(
+function questionPathsNotLocated(
   query: string,
   locations: readonly SourceLocation[] | undefined,
-): string {
+): string[] {
   const located = new Set(
     (locations ?? []).map((location) => location.path.replace(/^\.\//, "")),
   );
-  const named = questionPaths(query).filter((file) => !located.has(file));
+  return questionPaths(query).filter((file) => !located.has(file));
+}
+
+function questionPathHint(named: readonly string[]): string {
   if (named.length === 0) return "";
   const list = named.join(", ");
   return named.length === 1
@@ -1040,48 +1500,61 @@ function questionPathHint(
 }
 
 /**
- * Hints from the workspace's kibi.search-hints.v1 provider. A host without a
- * plugin runtime, or a registry that fails to load, gives no hints rather than
- * failing the search.
+ * The sentence an abstained search carries in its structured result, so the
+ * advice never depends on the text digest.
  */
-async function searchHintsFor(
-  context: OperationContext,
-  options: Omit<
-    Parameters<typeof buildSearchHints>[0],
-    "resolution" | "workspaceRoot"
-  >,
-): Promise<SearchHintsAnalysis | undefined> {
-  if (!context.ensurePlugins) return undefined;
-  let resolution: Awaited<ReturnType<CapabilityRegistry["resolveSearchHints"]>>;
-  try {
-    resolution = await (await context.ensurePlugins()).resolveSearchHints();
-  } catch (error) {
-    // A configured provider that cannot load is reported, not thrown: the
-    // lexical answer stands on its own.
-    const trigger = searchHintsTrigger(options.analysis);
-    return trigger === null
-      ? undefined
-      : {
-          trigger,
-          provider: null,
-          items: [],
-          diagnostics: [
-            {
-              pluginId: "unresolved",
-              packageName: null,
-              mode: "replace",
-              code: "provider_unavailable",
-              message: error instanceof Error ? error.message : String(error),
-            },
-          ],
-        };
-  }
-  return buildSearchHints({
-    ...options,
-    resolution,
-    workspaceRoot: context.workspaceRoot,
-  });
+const ABSTENTION_NOTE =
+  "The search abstained: no entity shares enough of the question's words. That is not evidence that nothing is recorded: ask again in the words and language the KB is written in, or pass sourceLocations.";
+
+/**
+ * The next calls the structured result names. They mirror the advice in the
+ * text digest and never change when it is given.
+ */
+export function searchNextActions(options: {
+  readonly query: string;
+  readonly type: string | undefined;
+  readonly abstained: boolean;
+  /** An abstained or weak first page whose hints (if any) showed nothing. */
+  readonly listTitles: boolean;
+  readonly unlocatedPaths: readonly string[];
+  readonly sourceLocations: readonly SourceLocation[] | undefined;
+}): SearchNextAction[] {
+  const actions: SearchNextAction[] = [];
+  if (options.listTitles)
+    actions.push({
+      operation: "kb_query",
+      input: { type: options.type ?? "req" },
+      reason: `The search ${options.abstained ? "abstained" : "matched weakly"}: no entity shares enough of the question's words. That is not evidence that nothing is recorded. List the ${options.type ?? "requirement"} titles to find the words the knowledge base uses, then search again in those words.`,
+      required: false,
+    });
+  if (options.unlocatedPaths.length > 0)
+    actions.push({
+      operation: "kb_search",
+      input: {
+        query: options.query,
+        sourceLocations: [
+          ...(options.sourceLocations ?? []),
+          ...options.unlocatedPaths.map((path) => ({ path })),
+        ],
+      },
+      reason: questionPathHint(options.unlocatedPaths).trimStart(),
+      required: false,
+    });
+  if (CONTRADICTION_QUESTION.test(options.query))
+    actions.push({
+      operation: "kb_check",
+      input: { rules: ["domain-contradictions"] },
+      reason: CONTRADICTION_HINT.trim(),
+      required: false,
+    });
+  return actions;
 }
+
+/**
+ * Below this top score a typed intent search (scenarios, tests, facts,
+ * symbols) matched weakly, and the next actions suggest listing titles.
+ */
+const WEAK_TOP_SCORE = 0.44;
 
 /**
  * A top match as the text digest names it. A negative-path fact describes a
@@ -1093,6 +1566,342 @@ function topMatchLabel(match: {
 }): string {
   const id = String(match.entity.id ?? "");
   return match.negativePath === undefined ? id : `${id} (forbidden situation)`;
+}
+
+/**
+ * The sentence a weak decision search carries in its structured result. A
+ * missing match is not evidence that nothing governs the question.
+ */
+const WEAK_DECISION_NOTE =
+  "No decision in this workspace's scope matches the question strongly, so no requirement is named as governing. That is not evidence that nothing governs it: the cards are the nearest decisions, and the words listed in queryAnalysis.uncoveredTerms appear in none of them. Ask again in the KB's words, or read the nearest card with kb_query.";
+
+const EMPTY_KB_DECISION_NOTE =
+  "No decisions (requirements or ADRs) are recorded in this knowledge base yet.";
+
+/**
+ * Checks which corpus ids actually exist in the attached compiled branch store.
+ * Returns null when the Prolog port does not answer (e.g. a mock port in a unit
+ * test), so callers only drop seeds on a confirmed store mismatch.
+ */
+async function findUnindexedCorpusIds(
+  prolog: PrologPort,
+  ids: readonly string[],
+): Promise<Set<string> | null> {
+  const uniqueIds = [...new Set(ids.filter((id) => id.length > 0))];
+  if (uniqueIds.length === 0) return new Set();
+  const list = uniqueIds.map(toPrologAtom).join(",");
+  try {
+    const result = await prolog.query(
+      `findall(Id, (member(Id, [${list}]), kb_entity(Id, _, _)), Present)`,
+    );
+    if (!result.success || typeof result.bindings.Present !== "string")
+      return null;
+    const present = new Set(
+      parseAtomList(result.bindings.Present).map(normalizeEntityId),
+    );
+    return new Set(uniqueIds.filter((id) => !present.has(id)));
+  } catch {
+    return null;
+  }
+}
+
+/** A decision card as a result row; the line is what an agent reads. */
+function decisionCardRow(card: DecisionCard): DecisionCardRow {
+  return {
+    entity: {
+      id: card.id,
+      type: card.type,
+      title: card.title,
+      status: card.status,
+      ...(card.firm ? { firmness: "firm" } : {}),
+    },
+    score: Math.round(card.score * 10_000) / 10_000,
+    reasons: card.evidence,
+    line: formatCardLine(card),
+    scope: card.scope,
+    ...(card.folded.length > 0 ? { folded: card.folded } : {}),
+  };
+}
+
+/**
+ * The answer layer's seeds as ranked matches: the cards and the decisions
+ * folded into them that cover enough of the question. The answer names the
+ * current requirements among them as governing, proposes the replacement
+ * of a replaced one that matched about as well as the best, and takes the
+ * ADRs as rationale.
+ */
+function answerSeeds(seeds: readonly AnswerSeed[]): IntentSearchMatch[] {
+  return seeds.map((seed) => ({
+    entity: {
+      id: seed.id,
+      type: seed.type,
+      title: seed.title,
+      status: seed.status,
+    },
+    score: seed.score,
+    reasons: seed.reasons.slice(),
+    evidence: {
+      normalizedScore: seed.score,
+      matchedFacets: [],
+      sourceMatches: [],
+      abstentionEligible: false,
+    },
+  }));
+}
+
+function decisionSearchText(options: {
+  readonly query: string;
+  readonly found: DecisionSearchResult;
+  readonly answer: SearchAnswer | undefined;
+  readonly hints: SearchHintsAnalysis | undefined;
+  readonly offset: number;
+  readonly ambiguous: boolean;
+}): string {
+  const { found, answer, query } = options;
+  const lines = found.cards.map((card) => formatCardLine(card));
+  if (lines.length === 0)
+    return `No decision in this workspace's scope shares the words of '${query}'${found.retrieval.uncoveredTerms.length > 0 ? ` (no decision contains: ${found.retrieval.uncoveredTerms.join(", ")})` : ""}. That is not evidence that nothing governs it: ask again in the KB's words.`;
+  const head = found.weak
+    ? `No strong match for '${query}' in this workspace's scope; the nearest decisions are:`
+    : `Decisions for '${query}'${options.offset > 0 ? ` (from rank ${options.offset + 1})` : ""}:`;
+  const tail: string[] = [];
+  if (answer)
+    tail.push(
+      `${governingLabel(options.ambiguous, answer.governing.length)}: ${answer.governing.map((req) => req.id).join(", ") || "no current requirement among the cards"}.`,
+    );
+  if (found.retrieval.uncoveredTerms.length > 0)
+    tail.push(`Not in any card: ${found.retrieval.uncoveredTerms.join(", ")}.`);
+  if (found.retrieval.otherScopes.count > 0)
+    tail.push(
+      `${found.retrieval.otherScopes.count} more in other scopes (${found.retrieval.otherScopes.ids.join(", ")}).`,
+    );
+  return `${head}\n${lines.join("\n")}${tail.length > 0 ? `\n${tail.join(" ")}` : ""}${searchHintsNote(options.hints)}`;
+}
+
+/**
+ * kb_search over decisions: five cards from the words of the question with
+ * the meaning ranking fused in, the decisions related by meaning beside
+ * them, and the answer layer over the cards unless the match is weak.
+ */
+async function executeDecisionSearch(
+  input: SearchInput,
+  context: OperationContext,
+  prolog: PrologPort,
+  shared: {
+    readonly query: string;
+    readonly storeNotice: SearchBranchStoreNotice | null;
+    readonly branchFields: Record<string, unknown>;
+    readonly storeNote: string;
+  },
+): Promise<OperationResult<SearchPayload>> {
+  const {
+    type,
+    offset = 0,
+    semanticFacets,
+    sourceLocations,
+    fields,
+    answer,
+    hints: meaningWanted = true,
+  } = input;
+  const limit = input.limit ?? DECISION_CARD_LIMIT;
+  const { query, storeNotice } = shared;
+  const facetWords = semanticFacets
+    ? Object.values(semanticFacets).flatMap((values) => values ?? [])
+    : [];
+  let ranker: ReturnType<typeof providerMeaningRanker> | undefined;
+  let unavailable: SearchHintsAnalysis | undefined;
+  if (meaningWanted && context.ensurePlugins) {
+    try {
+      ranker = providerMeaningRanker(
+        await (await context.ensurePlugins()).resolveSearchHints(),
+        context.workspaceRoot,
+      );
+    } catch (error) {
+      // A provider that cannot load is reported, not thrown: the word
+      // ranking answers on its own.
+      unavailable = {
+        provider: null,
+        items: [],
+        diagnostics: [
+          {
+            pluginId: "unresolved",
+            packageName: null,
+            mode: "replace",
+            code: "provider_unavailable",
+            message: error instanceof Error ? error.message : String(error),
+          },
+        ],
+      };
+    }
+  }
+  const found = await searchDecisions(context.workspaceRoot, {
+    query: [query, ...facetWords].join(" "),
+    ...(type === "req" || type === "adr" ? { types: [type] } : {}),
+    paths: (sourceLocations ?? []).map((location) =>
+      location.path.replace(/^\.\//, ""),
+    ),
+    limit,
+    offset,
+    ...(ranker ? { meaning: ranker.rank } : {}),
+  });
+  const hints =
+    offset !== 0
+      ? undefined
+      : (unavailable ?? searchHintsAnalysis(found.meaning, ranker?.report()));
+  const freshness =
+    storeNotice === null
+      ? await inspectQueryFreshness(context, prolog, {
+          sourceFilterPaths: (sourceLocations ?? []).map((loc) => loc.path),
+        })
+      : undefined;
+  // Cross-check corpus cards and answer seeds against the attached branch store
+  // so un-ingested or sync-refused files are never named as Governing, and any
+  // corpus-vs-store divergence emits a stale notice.
+  const unindexedIds =
+    storeNotice === null
+      ? await findUnindexedCorpusIds(prolog, [
+          ...found.cards.map((card) => card.id),
+          ...found.seeds.map((seed) => seed.id),
+        ])
+      : null;
+  const missingList = unindexedIds ? [...unindexedIds].sort() : [];
+  const sources = found.sources ?? {};
+  const supersededBy = found.supersededBy ?? {};
+  const ambiguous = found.ambiguous ?? false;
+  const unindexedReasons: Record<string, unknown>[] = missingList.map((id) => {
+    const source = sources[id];
+    return {
+      code: "unindexed_corpus_entity",
+      ...(source ? { path: source } : {}),
+      entityIds: [id],
+    };
+  });
+  const storedSeeds =
+    unindexedIds && unindexedIds.size > 0
+      ? found.seeds.filter((seed) => !unindexedIds.has(seed.id))
+      : found.seeds;
+  const combinedStaleReasons: Record<string, unknown>[] = [
+    ...(freshness?.state === "stale" &&
+    Array.isArray(freshness.meta.staleReasons)
+      ? (freshness.meta.staleReasons as Record<string, unknown>[])
+      : []),
+    ...unindexedReasons,
+  ];
+  const staleMeta =
+    combinedStaleReasons.length > 0
+      ? buildCompactStaleMeta(combinedStaleReasons)
+      : freshness?.state === "stale"
+        ? freshness.meta
+        : undefined;
+  const staleCount =
+    combinedStaleReasons.length > 0
+      ? combinedStaleReasons.length
+      : freshness?.state === "stale"
+        ? freshness.staleReasonCount
+        : undefined;
+  const staleWarningNote =
+    freshness?.state === "stale"
+      ? freshness.note
+      : unindexedReasons.length > 0
+        ? staleStoreWarningNote(
+            unindexedReasons.length,
+            unindexedReasons.flatMap((reason) =>
+              typeof reason.path === "string" ? [reason.path] : [],
+            ),
+          )
+        : undefined;
+  const syncState: "fresh" | "stale" | "unknown" =
+    storeNotice !== null || staleMeta !== undefined
+      ? "stale"
+      : (freshness?.state ?? "unknown");
+  // Only cards that cover enough of the question and exist in the compiled
+  // branch store seed the answer: the rest are the nearest decisions, not ones
+  // known to govern it.
+  const answerLayer =
+    (answer ?? true) && offset === 0 && storedSeeds.length > 0
+      ? await buildSearchAnswer(prolog, answerSeeds(storedSeeds), {
+          workspaceRoot: context.workspaceRoot,
+          branch: context.branchAttachment?.kbBranch ?? null,
+          detail: fields === "full" ? "full" : "summary",
+          syncState,
+          ...(ambiguous ? { ambiguous: true } : {}),
+          ...(Object.keys(supersededBy).length > 0 ? { supersededBy } : {}),
+          ...(storeNotice !== null
+            ? { staleReasonCount: 1 }
+            : staleCount !== undefined
+              ? {
+                  staleReasonCount: staleCount,
+                  ...(staleWarningNote ? { staleWarningNote } : {}),
+                }
+              : {}),
+        })
+      : undefined;
+  const unlocatedPaths = questionPathsNotLocated(query, sourceLocations);
+  // With a meaning ranking fused in, the nearest decisions are cards even
+  // when none shares a word: the search abstains on its words alone.
+  const abstained = found.retrieval.cards.every((card) => card.coverage === 0);
+  const nextActions = searchNextActions({
+    query,
+    type,
+    abstained,
+    listTitles: offset === 0 && found.weak,
+    unlocatedPaths,
+    sourceLocations,
+  });
+  const rows = found.cards.map(decisionCardRow);
+  const staleOrStoreNote =
+    shared.storeNote || (staleWarningNote ? ` ${staleWarningNote}` : "");
+  const text = `${decisionSearchText({
+    query,
+    found,
+    answer: answerLayer,
+    hints,
+    offset,
+    ambiguous,
+  })}${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(query) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
+  const analysis: DecisionSearchAnalysis = {
+    rankingMode: "intent-v1",
+    unit: "decision",
+    decisionCount: found.decisionCount,
+    fused: found.fused,
+    weak: found.weak,
+    ambiguous,
+    abstained,
+    coverage: Math.round(found.retrieval.coverage * 1000) / 1000,
+    uncoveredTerms: found.retrieval.uncoveredTerms,
+    otherScopes: found.retrieval.otherScopes,
+  };
+  const weakNotes =
+    found.decisionCount === 0
+      ? [EMPTY_KB_DECISION_NOTE]
+      : found.cards.length === 0
+        ? [ABSTENTION_NOTE]
+        : found.weak
+          ? [WEAK_DECISION_NOTE]
+          : undefined;
+  return {
+    content: [{ type: "text", text }],
+    structuredContent: {
+      // A card whose statement the answer already quotes is cut to its
+      // identity, score and reasons.
+      results:
+        fields === "full"
+          ? await reloadFullEntities(prolog, rows)
+          : slimAnsweredMatches(
+              rows,
+              answerLayer ? answerQuotedIds(answerLayer) : new Set<string>(),
+            ),
+      count: found.retrieval.ranking.length,
+      returned: rows.length,
+      truncated: offset + rows.length < found.retrieval.ranking.length,
+      queryAnalysis: hints !== undefined ? { ...analysis, hints } : analysis,
+      ...(answerLayer ? { answer: answerLayer } : {}),
+      ...(weakNotes ? { notes: weakNotes } : {}),
+      ...(nextActions.length > 0 ? { nextActions } : {}),
+      ...shared.branchFields,
+      ...(staleMeta !== undefined ? { meta: staleMeta } : {}),
+    },
+  };
 }
 
 export async function executeSearch(
@@ -1110,7 +1919,6 @@ export async function executeSearch(
     minScore,
     fields,
     answer,
-    hints: hintsWanted = true,
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -1134,6 +1942,15 @@ export async function executeSearch(
       rankingMode === "intent-v1" ||
       semanticFacets !== undefined ||
       sourceLocations !== undefined;
+    // Requirements and ADRs are ranked as decisions; scenarios, tests, facts
+    // and symbols are rows of their own only when the caller asks for them.
+    if (intentMode && (type === undefined || type === "req" || type === "adr"))
+      return await executeDecisionSearch(input, context, prolog, {
+        query: trimmedQuery,
+        storeNotice,
+        branchFields,
+        storeNote,
+      });
     if (intentMode) {
       const intentInput = {
         query: trimmedQuery,
@@ -1143,21 +1960,20 @@ export async function executeSearch(
         ...(minScore !== undefined ? { minScore } : {}),
       } as const;
       validateIntentSearchInput(intentInput);
-      let corpus:
-        | {
-            entities: readonly Record<string, unknown>[];
-            bodies: MarkdownBodyCache;
-          }
-        | undefined;
       const intentResult = await executeIntentSearch(
         intentInput,
         prolog,
         context.workspaceRoot,
-        (entities, bodies) => {
-          corpus = { entities, bodies };
-        },
       );
       const paginated = paginateResults(intentResult.matches, limit, offset);
+      const freshness =
+        storeNotice === null
+          ? await inspectQueryFreshness(context, prolog, {
+              sourceFilterPaths: (sourceLocations ?? []).map((loc) => loc.path),
+            })
+          : undefined;
+      const answerSyncState: "fresh" | "stale" | "unknown" =
+        storeNotice !== null ? "stale" : (freshness?.state ?? "unknown");
       // The answer layer summarizes the whole ranking, so it belongs to the
       // first page only.
       const answerLayer =
@@ -1166,6 +1982,16 @@ export async function executeSearch(
               workspaceRoot: context.workspaceRoot,
               branch: context.branchAttachment?.kbBranch ?? null,
               detail: fields === "full" ? "full" : "summary",
+              syncState: answerSyncState,
+              ...(intentResult.analysis.ambiguous ? { ambiguous: true } : {}),
+              ...(storeNotice !== null
+                ? { staleReasonCount: 1 }
+                : freshness?.state === "stale"
+                  ? {
+                      staleReasonCount: freshness.staleReasonCount,
+                      staleWarningNote: freshness.note,
+                    }
+                  : {}),
             })
           : undefined;
       // The structured payload carries every row; the text is a short
@@ -1175,22 +2001,24 @@ export async function executeSearch(
       const topUngoverned = answerLayer?.ungoverned.find(
         (entry) => entry.rank === 1,
       );
-      // Hints come after the lexical answer and never change it; a strong
-      // answer never reaches a provider.
-      const hints =
-        hintsWanted &&
-        offset === 0 &&
-        corpus !== undefined &&
-        searchHintsTrigger(intentResult.analysis) !== null
-          ? await searchHintsFor(context, {
-              query: trimmedQuery,
-              analysis: intentResult.analysis,
-              entities: corpus.entities,
-              bodies: corpus.bodies,
-              governingIds: (answerLayer?.governing ?? []).map((req) => req.id),
-              prolog,
-            })
-          : undefined;
+      const unlocatedPaths = questionPathsNotLocated(
+        trimmedQuery,
+        sourceLocations,
+      );
+      const abstained = intentResult.matches.length === 0;
+      const nextActions = searchNextActions({
+        query: trimmedQuery,
+        type,
+        abstained,
+        listTitles:
+          offset === 0 &&
+          (intentResult.analysis.abstained ||
+            (intentResult.analysis.topScore ?? 0) < WEAK_TOP_SCORE),
+        unlocatedPaths,
+        sourceLocations,
+      });
+      const staleOrStoreNote =
+        storeNote || (freshness?.state === "stale" ? ` ${freshness.note}` : "");
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -1199,21 +2027,26 @@ export async function executeSearch(
               .map((match) => topMatchLabel(match))
               .join(
                 ", ",
-              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+              )}${answerLayer ? `. ${governingLabel(intentResult.analysis.ambiguous, answerLayer.governing.length)}: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
+      }${questionPathHint(unlocatedPaths)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${staleOrStoreNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: await projectMatches(prolog, paginated, fields),
+          results: slimAnsweredMatches(
+            await projectMatches(prolog, paginated, fields),
+            answerLayer !== undefined && fields !== "full"
+              ? answerQuotedIds(answerLayer)
+              : new Set<string>(),
+          ),
           count: intentResult.matches.length,
           returned: paginated.length,
           truncated: offset + paginated.length < intentResult.matches.length,
-          queryAnalysis:
-            hints !== undefined
-              ? { ...intentResult.analysis, hints }
-              : intentResult.analysis,
+          queryAnalysis: intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
+          ...(abstained ? { notes: [ABSTENTION_NOTE] } : {}),
+          ...(nextActions.length > 0 ? { nextActions } : {}),
           ...branchFields,
+          ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
         },
       };
     }
@@ -1234,6 +2067,14 @@ export async function executeSearch(
       context.workspaceRoot,
     );
     const paginated = paginateResults(matches, limit, offset);
+    const freshness =
+      storeNotice === null
+        ? await inspectQueryFreshness(context, prolog, {
+            sourceFilterPaths: [],
+          })
+        : undefined;
+    const staleOrStoreNote =
+      storeNote || (freshness?.state === "stale" ? ` ${freshness.note}` : "");
     const text = `${
       matches.length === 0
         ? `No search results for '${trimmedQuery}'.`
@@ -1243,7 +2084,7 @@ export async function executeSearch(
                 `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
             )
             .join(", ")}`
-    }${storeNote}`;
+    }${staleOrStoreNote}`;
     return {
       content: [{ type: "text", text }],
       structuredContent: {
@@ -1252,6 +2093,7 @@ export async function executeSearch(
         returned: paginated.length,
         truncated: offset + paginated.length < matches.length,
         ...branchFields,
+        ...(freshness?.state === "stale" ? { meta: freshness.meta } : {}),
       },
     };
   } catch (error) {
@@ -1270,7 +2112,7 @@ export async function executeStatus(
       context.branchAttachment ??
       resolveBranchAttachment(context.workspaceRoot);
     if ("error" in attachment) {
-      throw new Error(`Failed to resolve active branch: ${attachment.error}`);
+      throw new BranchResolutionFailure(attachment);
     }
     let payload: StatusPayload;
     const store = inspectBranchStore(
@@ -1356,10 +2198,16 @@ export async function executeStatus(
     // every mtime without changing a byte, so confirm each "newer" source
     // against the content hashes the last compilation recorded.
     const prologReasons = payload.staleReasons ?? [];
-    const confirmed = confirmSourceNewerReasons(
+    const {
+      confirmed,
+      compilerReason,
+      extractionReasons,
+      missingShardReasons,
+    } = collectHealthyStoreEvidence(
       context.workspaceRoot,
       store.path,
       prologReasons,
+      store.state === "healthy",
     );
     const existingReasons = confirmed.kept;
     if (
@@ -1389,13 +2237,6 @@ export async function executeStatus(
       ...(takeoverNotice ? [takeoverNotice] : []),
       ...(repairNotice ? [repairNotice] : []),
     ];
-    const compilerReason = compilerFingerprintReason(store.path);
-    // A source the last sync could not extract is missing from the store
-    // even when every compiled file is current.
-    const extractionReasons =
-      store.state === "healthy"
-        ? sourceExtractionFailureReasons(context.workspaceRoot, store.path)
-        : [];
     // A status the engine could not give always carries its code and detail.
     const engineReason = engineStatus
       ? {
@@ -1415,16 +2256,15 @@ export async function executeStatus(
           },
         }
       : null;
-    const staleReasons = [
+    const staleReasons = sortReasons([
       ...existingReasons,
       ...(storeReason ? [storeReason] : []),
       ...(lockReason ? [lockReason] : []),
       ...(compilerReason ? [compilerReason] : []),
       ...extractionReasons,
+      ...missingShardReasons,
       ...(engineReason ? [engineReason] : []),
-    ].sort((left, right) =>
-      String(left.path ?? "").localeCompare(String(right.path ?? "")),
-    );
+    ]);
     const enrichedPayload: StatusPayload = {
       ...payload,
       // Source hashes can all match while the compilation itself is lossy, so
@@ -1433,6 +2273,10 @@ export async function executeStatus(
       // An authored source sync cannot extract leaves its entities out of
       // the store, so the KB is not current until the file is fixed.
       ...(extractionReasons.length > 0
+        ? { syncState: "stale", dirty: true }
+        : {}),
+      // A deleted relationship shard leaves stale edges in RDF until sync runs.
+      ...(missingShardReasons.length > 0
         ? { syncState: "stale", dirty: true }
         : {}),
       // A missing or empty store has no stale file to report, yet nothing in
@@ -1444,7 +2288,16 @@ export async function executeStatus(
       branchStore: store,
       // The session brief every host opens with, for an agent whose host
       // has no Kibi plugin and only calls kb_status.
-      sessionBrief: SESSION_BRIEF,
+      sessionBrief: sessionBriefFor(attachment.noGit !== undefined),
+      // Only a workspace without Git says so: a repository's status is
+      // unchanged.
+      ...(attachment.noGit !== undefined
+        ? {
+            versionControl: (
+              noGitRepositoryDiagnostic(attachment) as NoGitRepositoryDiagnostic
+            ).detail,
+          }
+        : {}),
       ...(notices.length > 0 ? { notices } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
@@ -1622,6 +2475,8 @@ export async function executeStatus(
       structuredContent: statusWithPlan,
     };
   } catch (error) {
+    // A coded refusal reaches the caller with its code and its own message.
+    if (error instanceof OperationError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Status execution failed: ${message}`);
   }

@@ -131,6 +131,16 @@ export type UpsertPayload = {
     readonly required: boolean;
   }[];
   /**
+   * For a written requirement below its evidence floor: the decisions only a
+   * person can make before it reaches the floor, to ask in one question.
+   */
+  readonly approvalsNeeded?: readonly {
+    readonly kind: string;
+    readonly about: string;
+    readonly ask: string;
+    readonly alternative?: true;
+  }[];
+  /**
    * For a written requirement: other current requirements on the same terms,
    * so one this write replaces can be superseded.
    */

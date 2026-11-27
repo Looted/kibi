@@ -643,3 +643,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3dd07b697bbe
+  - type: assumes
+    from: SCEN-NEG-result-budget-paging-notice-SILENT-CUT
+    to: FACT-NEG-result-budget-paging-notice-SILENT-CUT
+    created_at: 2026-11-19T15:26:15.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edbb5e0d4032
+  - type: implements
+    from: SYM-cli-coverage-options
+    to: REQ-coverage-plan-summaries
+    created_at: 2026-11-19T15:48:15.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a6b07616142
+  - type: covered_by
+    from: SYM-cli-coverage-options
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:48:15.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dccc32633cb
+  - type: assumes
+    from: SCEN-kb-query-source-file-requirements
+    to: FACT-kb-query-source-file-requirements
+    created_at: 2026-11-24T20:01:02.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4f74a1a077d
+  - type: verified_by
+    from: SCEN-kb-query-source-file-requirements
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-11-24T20:01:02.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb158e819cab
+  - type: constrains
+    from: REQ-search-decision-card-line
+    to: FACT-search-decision-card-subject
+    created_at: 2026-11-25T14:29:20.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac46a0f7f7ed
+  - type: requires_property
+    from: REQ-search-decision-card-line
+    to: FACT-search-decision-card-line-one-line-at-most-300
+    created_at: 2026-11-25T14:29:20.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4392d197a24b
+  - type: specified_by
+    from: REQ-search-decision-card-line
+    to: SCEN-search-decision-card-one-line
+    created_at: 2026-11-25T14:29:20.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a08ada4d72ea
+  - type: verified_by
+    from: REQ-search-decision-card-line
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:29:20.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f56d7ee900be
+  - type: specified_by
+    from: REQ-search-decision-card-line
+    to: SCEN-NEG-search-decision-card-line-one-line-at-most-300-ABOVE
+    created_at: 2026-11-25T14:37:19.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b71d2b18e6d3
+  - type: specified_by
+    from: REQ-search-decision-card-line
+    to: SCEN-search-decision-card-line-one-line-at-most-300-AT
+    created_at: 2026-11-25T14:37:19.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-564c38b70e74

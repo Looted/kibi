@@ -344,13 +344,6 @@ relationships:
     id: rel-3fc9e79bf893
   - type: requires_property
     from: REQ-prolog-build-workflow-targets
-    to: FACT-prolog-build-accepts-four-launch-targets
-    created_at: 2026-11-10T09:23:06.456Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-db733f8d678a
-  - type: requires_property
-    from: REQ-prolog-build-workflow-targets
     to: FACT-prolog-build-declares-separate-build-and-smoke-jobs
     created_at: 2026-11-10T09:23:06.490Z
     created_by: kibi/upsert
@@ -496,3 +489,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cce81c741f9f
+  - type: requires_property
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-accepts-four-launch-targets
+    created_at: 2026-11-20T11:29:56.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db733f8d678a
+  - type: implements
+    from: SYM-content-freshness-missing-cached-kb-source-reasons
+    to: REQ-kb-query-kb-search-confirm-source
+    created_at: 2026-11-23T10:33:54.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c10976e20b6
+  - type: covered_by
+    from: SYM-content-freshness-missing-cached-kb-source-reasons
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-23T10:33:54.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb486b5e66c1
+  - type: covered_by
+    from: SYM-vibe-probeWslNode
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:00:54.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3addd3086b7
+  - type: implements
+    from: SYM-vibe-probeWslNode
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-24T10:00:54.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad8defa9d311
+  - type: implements
+    from: SYM-init-level-init-can-ask
+    to: REQ-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:52.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbe1ead31878
+  - type: covered_by
+    from: SYM-init-level-init-can-ask
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T09:49:52.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b2a1408b91f
+  - type: assumes
+    from: SCEN-NEG-kibi-required-evidence-at-remember-c02-gt-0
+    to: FACT-NEG-kibi-required-evidence-at-remember-c02-gt-0
+    created_at: 2026-11-25T10:20:16.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d39f29f7b1a

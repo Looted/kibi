@@ -332,3 +332,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09c3a490c148
+  - type: validates
+    from: TEST-kibi-signoff-level
+    to: SCEN-kibi-signoff-level
+    created_at: 2026-11-25T13:40:41.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b6d70d4568
+  - type: validates
+    from: TEST-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-rejected
+    created_at: 2026-11-25T13:40:41.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebf8de096de8
+  - type: validates
+    from: TEST-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-c01-eq-false
+    created_at: 2026-11-25T13:45:13.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-978b4130c69d
+  - type: validates
+    from: TEST-kibi-signoff-level
+    to: SCEN-NEG-kibi-signoff-level-c02-count-gt-0
+    created_at: 2026-11-25T13:57:33.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a08a68fe6e71
+  - type: assumes
+    from: SCEN-NEG-search-decisions-are-the-unit-ROWS
+    to: FACT-NEG-search-decisions-are-the-unit-other-types-ROWS
+    created_at: 2026-11-25T19:24:31.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6627955ccc77
+  - type: verified_by
+    from: SCEN-NEG-search-decisions-are-the-unit-ROWS
+    to: TEST-search-decision-answers
+    created_at: 2026-11-25T19:28:09.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08f26db89817

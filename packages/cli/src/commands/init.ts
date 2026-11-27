@@ -19,15 +19,24 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  KIBI_LEVELS,
+  isKibiLevel,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
+import { BranchResolutionFailure } from "../cli-errors.js";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { readLegacyKbConfig } from "../utils/config.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
+import { adoptNoGitStore } from "../vcs/no-git-adoption.js";
 import {
   reportAgentInstructions,
   writeAgentInstructions,
@@ -56,6 +65,7 @@ import {
   isRepositoryManagedHooksDir,
   updateGitIgnore,
 } from "./init-helpers.js";
+import { initCanAsk, settleKibiLevel } from "./init-level.js";
 import {
   SETUP_CHOICE_NAMES,
   type SetupChoices,
@@ -77,6 +87,10 @@ interface InitOptions {
   prepareHooks?: boolean;
   agentInstructions?: boolean;
   ciGate?: boolean;
+  /** The Kibi level to record; asked at a terminal when not given. */
+  level?: string;
+  /** Allow changing an already-recorded Kibi level non-interactively. */
+  changeLevel?: boolean;
 }
 
 /**
@@ -245,7 +259,19 @@ export async function initCommand(
     return { exitCode: 0 };
   }
 
+  if (
+    options.level !== undefined &&
+    !isKibiLevel(options.level.trim().toLowerCase())
+  ) {
+    noteCliErrorCategory("INVALID_LEVEL");
+    console.error(
+      `Error: unknown --level '${options.level}'. Expected one of: ${KIBI_LEVELS.join(", ")}.`,
+    );
+    return { exitCode: 1 };
+  }
+
   if (options.badgeOnly === true && options.github !== true) {
+    noteCliErrorCategory("INVALID_OPTIONS");
     console.error(
       "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",
     );
@@ -256,10 +282,11 @@ export async function initCommand(
   // answer, so init works from linked worktrees (.git is a file there) and
   // from subdirectories (cwd has no .kb or .git at all). Bare repositories,
   // unreadable contexts, and operational Git refusals are rejected before any
-  // workspace write — even when KIBI_BRANCH makes a standalone fallback
-  // available for genuinely non-repository directories.
+  // workspace write. A directory outside any repository is initialized on
+  // the no-Git store, with the advisory to use Git.
   const resolution = resolveGitRepository(process.cwd());
   if (resolution.status === "git-refused") {
+    noteCliErrorCategory("GIT_REPOSITORY_UNREADABLE");
     console.error(`Error: ${resolution.reason}`);
     console.error(
       "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
@@ -267,6 +294,7 @@ export async function initCommand(
     return { exitCode: 1 };
   }
   if (resolution.status === "unsupported") {
+    noteCliErrorCategory("UNSUPPORTED_REPOSITORY");
     console.error(`Error: ${resolution.reason}`);
     console.error(
       "Kibi requires a working-tree checkout; refusing to create workspace state.",
@@ -283,25 +311,21 @@ export async function initCommand(
 
   // Resolve the exact active Git branch against the project root (not cwd):
   // recovery journals, legacy stores, and identity manifests are read from
-  // the same .kb tree init is about to write.
-  // Standalone use must be explicit via KIBI_BRANCH; there is no implicit
-  // default branch.
+  // the same .kb tree init is about to write. Outside Git this is the
+  // reserved no-Git store, never a default branch.
   let currentBranch: string;
   const result = resolveBranchAttachment(projectRoot);
 
   if ("error" in result) {
-    const isNonGitError =
-      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
-
-    console.error("Error: Failed to resolve the active git branch.");
-    console.error(
-      isNonGitError
-        ? `${result.error} Set KIBI_BRANCH explicitly for a standalone workspace.`
-        : result.error,
-    );
+    // Nothing is written: a repository whose branch cannot be resolved is
+    // refused with a coded reason (recorded for telemetry) and one step.
+    const failure = new BranchResolutionFailure(result);
+    noteCliErrorCategory(failure.code);
+    console.error(`Error: ${failure.message}`);
     return { exitCode: 1 };
   }
   if (result.migrationRequired) {
+    noteCliErrorCategory("LEGACY_BRANCH_STORAGE");
     console.error(
       `Error: KB is attached through legacy branch storage for '${result.gitBranch}'. Run 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' first.`,
     );
@@ -309,7 +333,35 @@ export async function initCommand(
   }
   currentBranch = result.kbBranch;
 
+  if (
+    options.level !== undefined &&
+    !initCanAsk() &&
+    options.changeLevel !== true
+  ) {
+    const requestedLevel = options.level.trim().toLowerCase();
+    const recorded = readKibiLevel(projectRoot);
+    if (
+      recorded.source !== "default" &&
+      recorded.invalid === undefined &&
+      recorded.level !== requestedLevel
+    ) {
+      const where = kibiLevelSettingName(projectRoot);
+      noteCliErrorCategory("LEVEL_CHANGE_REQUIRES_CONFIRMATION");
+      console.error(
+        `Error: this project already records Kibi level '${recorded.level}' in ${where}. Changing the Kibi level is the person's decision: run 'kibi init --level ${requestedLevel}' at a terminal, or pass --change-level if the person explicitly asked to change it.`,
+      );
+      return { exitCode: 1 };
+    }
+  }
+
   try {
+    // A repository created since Kibi last ran without Git takes over the
+    // knowledge recorded there before init lays out the branch store.
+    const adopted = adoptNoGitStore(projectRoot, result);
+    if (adopted !== null)
+      console.log(
+        `✓ Knowledge recorded without Git now belongs to branch '${adopted.branch}' (${adopted.files} source file(s) sealed for it)`,
+      );
     if (kbExists) {
       console.log(
         "✓ .kb/ directory already exists; completing missing infrastructure",
@@ -338,8 +390,28 @@ export async function initCommand(
     }
 
     const choices = settleSetupChoices(projectRoot, options);
+    const level =
+      options.changeLevel === true
+        ? await settleKibiLevel(
+            projectRoot,
+            options.level,
+            initCanAsk(),
+            undefined,
+            { changeLevel: true },
+          )
+        : await settleKibiLevel(projectRoot, options.level, initCanAsk());
+    if ("error" in level) {
+      noteCliErrorCategory("LEVEL_CHANGE_REQUIRES_CONFIRMATION");
+      console.error(`Error: ${level.error}`);
+      return { exitCode: 1 };
+    }
+    if (level.warning !== undefined) console.warn(level.warning);
+    if (level.written !== null)
+      console.log(`✓ Recorded Kibi level ${level.level} in ${level.written}`);
     if (choices.agentInstructions) {
-      reportAgentInstructions(writeAgentInstructions(projectRoot));
+      reportAgentInstructions(
+        writeAgentInstructions(projectRoot, result.noGit !== undefined),
+      );
     }
 
     if (options.hooks) {
@@ -351,7 +423,9 @@ export async function initCommand(
           )
         : null;
       if (!repoContext) {
-        console.error("Warning: No git repository found, skipping hooks");
+        console.log(
+          "- Git hooks: not installed; this directory has no Git repository",
+        );
       } else if (manager) {
         reportHookManager(manager, repoContext.worktreeRoot);
       } else if (!isRepositoryManagedHooksDir(repoContext)) {
@@ -390,6 +464,7 @@ export async function initCommand(
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
     }
+    if (result.noGit !== undefined) console.log(`! ${result.noGit.notice}`);
     console.log(
       legacyConfig
         ? "  Next: run 'kibi migrate --yes' to move the legacy knowledge into .kb/."
@@ -413,6 +488,7 @@ export async function initCommand(
 
     return { exitCode: 0 };
   } catch (error) {
+    noteCliErrorCategory("INIT_FAILED");
     console.error("Error during initialization:", error);
     return { exitCode: 1 };
   }

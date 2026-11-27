@@ -120,6 +120,21 @@ export function getJob(jobId: string): JobRecord | undefined {
   return jobs.get(jobId);
 }
 
+/**
+ * A finished job's result as its data once: an operation result's
+ * structuredContent without the content text that restates it.
+ */
+function jobResultData(
+  result: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  const structured = result.structuredContent;
+  return structured !== null &&
+    typeof structured === "object" &&
+    !Array.isArray(structured)
+    ? (structured as Readonly<Record<string, unknown>>)
+    : result;
+}
+
 /** Public JSON shape for kb_job_status responses. */
 export function jobSnapshot(job: JobRecord): Readonly<Record<string, unknown>> {
   return {
@@ -130,7 +145,7 @@ export function jobSnapshot(job: JobRecord): Readonly<Record<string, unknown>> {
     status: job.status,
     startedAt: job.startedAt,
     ...(job.finishedAt === undefined ? {} : { finishedAt: job.finishedAt }),
-    ...(job.result === undefined ? {} : { result: job.result }),
+    ...(job.result === undefined ? {} : { result: jobResultData(job.result) }),
     ...(job.error === undefined ? {} : { error: job.error }),
   };
 }

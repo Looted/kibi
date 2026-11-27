@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as kibiLevel from "kibi-agent-core/kibi-level";
 import * as aggregated from "../../../src/commands/aggregated-checks.js";
 import * as impact from "../../../src/public/impact-diagnostics.js";
 import {
@@ -422,6 +423,30 @@ describe("executeCheck", () => {
     expect(calls.inspect).not.toHaveBeenCalled();
   });
 
+  test("a level setting that names no level is a warning, and the check runs at test", async () => {
+    harness({ snapshot: false, rules: ["evidence-floor"] });
+    const level = spyOn(kibiLevel, "readKibiLevel").mockReturnValue({
+      level: "test",
+      source: "package.json",
+      invalid: "prove",
+    });
+    try {
+      const result = await run({}, context());
+      expect(level).toHaveBeenCalledWith(ROOT);
+      expect(result.structuredContent.diagnostics.at(-1)).toStrictEqual({
+        category: "CONFIG_WARNING",
+        severity: "warning",
+        message:
+          'level in .kb/setup.json is "prove", which is not a Kibi level (remember or test), so Kibi runs at test.',
+        file: "package.json",
+        suggestion:
+          'Ask the person which level the project uses and set level in .kb/setup.json to "remember" or "test".',
+      });
+    } finally {
+      level.mockRestore();
+    }
+  });
+
   test("runs no rule for an empty rule set", async () => {
     const calls = harness({ snapshot: false });
     const ctx = context();
@@ -462,7 +487,7 @@ describe("executeCheck", () => {
     ]);
     expect(calls.full).not.toHaveBeenCalled();
     expect(calls.aggregated).not.toHaveBeenCalled();
-    expect(calls.resolveRules).toHaveBeenCalledWith({ rules: [] });
+    expect(calls.resolveRules).toHaveBeenCalledWith({ rules: [] }, "test");
     expect(calls.impact).toHaveBeenCalledWith(ROOT, { rules: [] });
     expect(calls.staged).toHaveBeenCalledWith(ROOT, { rules: [] });
     expect(calls.impactQuality).toHaveBeenCalledWith(undefined);
@@ -897,7 +922,7 @@ describe("executeCheck", () => {
     expect(fit).not.toHaveBeenCalled();
   });
 
-  test("keeps an unscoped result within budget and adds the debt list on top", async () => {
+  test("keeps an unscoped result and its debt list within budget", async () => {
     const many = Array.from({ length: 400 }, (_, index) => ({
       rule: "required-fields",
       entityId: `REQ-${index}`,
@@ -929,9 +954,13 @@ describe("executeCheck", () => {
     expect(listed.structuredContent.truncated).toBe(true);
     // The other fake rules add one finding each.
     expect(listed.structuredContent.count).toBe(412);
-    expect(listed.structuredContent.symbolDebt.files).toBe(files);
-    const { symbolDebt, ...rest } = listed.structuredContent;
-    expect(JSON.stringify(rest).length).toBeLessThanOrEqual(
+    const listedDebt = listed.structuredContent.symbolDebt;
+    expect(listedDebt.files.length).toBeGreaterThan(0);
+    expect(listedDebt.files).toStrictEqual(
+      files.slice(0, listedDebt.files.length),
+    );
+    expect(listedDebt.filesOmitted).toBe(300 - listedDebt.files.length);
+    expect(JSON.stringify(listed.structuredContent).length).toBeLessThanOrEqual(
       format.SCOPED_CHECK_BUDGET_CHARS,
     );
     // The plan nobody asked for in full is summarized to fit.

@@ -430,20 +430,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c33ce7b3b293
-  - type: implements
-    from: SYM-search-hints-max-limit
-    to: REQ-kibi-search-hints-limits
-    created_at: 2026-10-29T21:28:16.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-82189591c4d0
-  - type: covered_by
-    from: SYM-search-hints-max-limit
-    to: TEST-proof-search-hints-result-limit
-    created_at: 2026-10-29T21:29:34.387Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0e99e11fb027
   - type: covered_by
     from: SYM-search-hints-max-limit
     to: TEST-capability-search-hints-v1
@@ -731,3 +717,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a59ada73c446
+  - type: assumes
+    from: SCEN-hook-search-tip-after-rows
+    to: FACT-hook-search-tip-after-rows
+    created_at: 2026-11-25T14:30:26.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-249b5e30cc6c
+  - type: verified_by
+    from: SCEN-hook-search-tip-after-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:30:26.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9f575cb1d06
+  - type: covered_by
+    from: SYM-search-hints-max-limit
+    to: TEST-proof-search-meaning-score-limit
+    created_at: 2026-11-25T19:27:06.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c10ceb88c72
+  - type: executable_for
+    from: SYM-proof-search-governing-coverage
+    to: TEST-proof-search-governing-coverage
+    created_at: 2026-11-25T19:27:28.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0cb483264a6
+  - type: implements
+    from: SYM-search-hints-max-limit
+    to: REQ-search-meaning-limits
+    created_at: 2026-11-25T19:33:03.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e80884ae188

@@ -8,15 +8,19 @@ import * as hookManagers from "../../src/commands/hook-managers.js";
 import * as hooksInstall from "../../src/commands/hooks-install.js";
 import * as initHelpers from "../../src/commands/init-helpers.js";
 import { MANAGED_HOOK_NAMES } from "../../src/commands/init-helpers.js";
+import * as initLevel from "../../src/commands/init-level.js";
 import { initCommand } from "../../src/commands/init.js";
 import * as setupChoices from "../../src/commands/setup-choices.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
 import * as languageNote from "../../src/plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import * as telemetry from "../../src/usage-telemetry.js";
 import * as branchResolver from "../../src/utils/branch-resolver.js";
+import type { BranchErrorCode } from "../../src/utils/branch-resolver.js";
 import * as config from "../../src/utils/config.js";
 import * as gitContext from "../../src/utils/git-repository-context.js";
 import type { GitRepositoryContext } from "../../src/utils/git-repository-context.js";
+import * as noGitAdoption from "../../src/vcs/no-git-adoption.js";
 import {
   createTempDir,
   removeTempDir,
@@ -81,6 +85,7 @@ let failOn = "";
 let recordedChoices: setupChoices.ResolvedSetupChoices;
 let written: string | null = null;
 let prepare = "present";
+let levelWritten: string | null = null;
 const failure = new Error("disk full");
 
 beforeEach(() => {
@@ -102,6 +107,7 @@ beforeEach(() => {
   } as setupChoices.ResolvedSetupChoices;
   written = null;
   prepare = "present";
+  levelWritten = null;
   // A mutant that skips an early return must not reach the real checkout.
   track(spyOn(process, "cwd").mockReturnValue(tempRoot()));
   track(
@@ -136,6 +142,11 @@ beforeEach(() => {
   record(setupChoices, "readSetupChoices", () => recordedChoices);
   record(setupChoices, "writeSetupChoices", () => written);
   record(hooksInstall, "syncPrepareScript", () => prepare);
+  track(spyOn(initLevel, "initCanAsk").mockReturnValue(false));
+  record(initLevel, "settleKibiLevel", async () => ({
+    level: "test",
+    written: levelWritten,
+  }));
   record(agentInstructions, "writeAgentInstructions", () => "instructions");
   record(agentInstructions, "reportAgentInstructions");
   record(nodeFilesystem, "glob", async () => ["a.md"]);
@@ -181,6 +192,17 @@ const DOCTOR =
   "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.";
 
 describe("initCommand option checks", () => {
+  test("--level must name a Kibi level", async () => {
+    resolveTo({ status: "not-a-repository" });
+    expect(await initCommand({ level: "prove" })).toStrictEqual({
+      exitCode: 1,
+    });
+    expect(errorLines()).toStrictEqual([
+      "Error: unknown --level 'prove'. Expected one of: remember, test.",
+    ]);
+    expect(named("resolveGitRepository")).toStrictEqual([]);
+  });
+
   test("--format needs --print-hook", async () => {
     resolveTo({ status: "not-a-repository" });
     expect(await initCommand({ format: "shell" })).toStrictEqual({
@@ -265,31 +287,43 @@ describe("initCommand repository checks", () => {
 
   test("explains a branch it cannot resolve", async () => {
     const root = tempRoot();
-    const cases: Array<[string, string]> = [
-      [
-        "NOT_A_GIT_REPO",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
-      ],
+    const cases: Array<[BranchErrorCode, string, string]> = [
       [
         "GIT_NOT_AVAILABLE",
-        "boom. Set KIBI_BRANCH explicitly for a standalone workspace.",
+        "GIT_NOT_AVAILABLE",
+        "boom. Install Git (or put it on PATH), then retry.",
       ],
-      ["DETACHED_HEAD", "boom."],
+      [
+        "GIT_REPOSITORY_UNREADABLE",
+        "GIT_REPOSITORY_UNREADABLE",
+        "boom. Make the repository readable for this user (run 'git status' to see why Git refuses it), then retry.",
+      ],
+      ["DETACHED_HEAD", "DETACHED_HEAD", "boom."],
+      ["UNBORN_BRANCH", "BRANCH_UNRESOLVED", "boom."],
     ];
-    for (const [code, detail] of cases) {
-      errors = [];
-      resolveTo(
-        { status: "ok", context: context(root) },
-        { error: "boom.", code },
-      );
-      expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
-      expect(errorLines()).toStrictEqual([
-        "Error: Failed to resolve the active git branch.",
-        detail,
-      ]);
-      expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
-      restores.pop()?.();
-      restores.pop()?.();
+    // Not called through: a note left behind would reach the next test file.
+    const category = spyOn(
+      telemetry,
+      "noteCliErrorCategory",
+    ).mockImplementation(() => {});
+    try {
+      for (const [code, noted, detail] of cases) {
+        errors = [];
+        resolveTo(
+          { status: "ok", context: context(root) },
+          { error: "boom.", code },
+        );
+        expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+        expect(errorLines()).toStrictEqual([
+          `Error: Failed to resolve active branch: ${detail}`,
+        ]);
+        expect(category.mock.calls.at(-1)).toStrictEqual([noted]);
+        expect(named("resolveBranchAttachment").at(-1)).toStrictEqual([root]);
+        restores.pop()?.();
+        restores.pop()?.();
+      }
+    } finally {
+      category.mockRestore();
     }
   });
 
@@ -329,11 +363,13 @@ describe("initCommand infrastructure", () => {
       "ensureSymbolsManifestFile",
       "readSetupChoices",
       "writeSetupChoices",
+      "settleKibiLevel",
       "glob",
       "classifyActivation",
       "workspaceReferenceLanguageNote",
     ]);
     expect(named("readLegacyKbConfig")).toStrictEqual([[root]]);
+    expect(named("settleKibiLevel")).toStrictEqual([[root, undefined, false]]);
     expect(named("createKbDirectoryStructure")).toStrictEqual([[kb, "main"]]);
     expect(named("createManifestFile")).toStrictEqual([[kb]]);
     expect(named("updateGitIgnore")).toStrictEqual([[root]]);
@@ -368,6 +404,35 @@ describe("initCommand infrastructure", () => {
     expect(errors).toStrictEqual([]);
   });
 
+  test("a level it records is reported; --level is passed on", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    levelWritten = "package.json";
+    expect(await initCommand({ level: "Remember" })).toStrictEqual({
+      exitCode: 0,
+    });
+    expect(named("settleKibiLevel")[0]?.slice(0, 2)).toStrictEqual([
+      root,
+      "Remember",
+    ]);
+    expect(logs).toContain("✓ Recorded Kibi level test in package.json");
+  });
+
+  test("reports knowledge recorded without Git that the new repository adopted", async () => {
+    const root = tempRoot();
+    track(spyOn(process, "cwd").mockReturnValue(root));
+    resolveTo({ status: "ok", context: context(root) });
+    record(noGitAdoption, "adoptNoGitStore", () => ({
+      branch: "main",
+      files: 2,
+      retiredStorePath: "/retired",
+    }));
+    expect(await initCommand({})).toStrictEqual({ exitCode: 0 });
+    expect(logs).toContain(
+      "✓ Knowledge recorded without Git now belongs to branch 'main' (2 source file(s) sealed for it)",
+    );
+  });
+
   test("falls back to the working directory outside a repository", async () => {
     const root = tempRoot();
     track(spyOn(process, "cwd").mockReturnValue(root));
@@ -377,9 +442,10 @@ describe("initCommand infrastructure", () => {
       [path.join(root, ".kb"), "main"],
     ]);
     expect(named("resolveGitRepository")).toStrictEqual([[root]]);
-    expect(errorLines()).toStrictEqual([
-      "Warning: No git repository found, skipping hooks",
-    ]);
+    expect(errorLines()).toStrictEqual([]);
+    expect(logs).toContain(
+      "- Git hooks: not installed; this directory has no Git repository",
+    );
     expect(named("syncPrepareScript")).toStrictEqual([[root, true]]);
   });
 
@@ -770,7 +836,7 @@ describe("initCommand setup choices", () => {
     expect(logs).toContain(
       "✓ Recorded Kibi setup choices in .kb/setup.json (autoSync: false, prepareHooks: true, agentInstructions: true, ciGate: true)",
     );
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("reportAgentInstructions")).toStrictEqual([["instructions"]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
   });
@@ -786,7 +852,7 @@ describe("initCommand setup choices", () => {
     await initCommand({});
     expect(named("writeSetupChoices")).toStrictEqual([[root, {}]]);
     expect(logs.some((line) => line.startsWith("✓ Recorded"))).toBe(false);
-    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root, false]]);
     expect(named("scaffoldCheckWorkflow")).toStrictEqual([]);
   });
 

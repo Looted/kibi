@@ -307,3 +307,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-617970cf488b
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-restated-rule-quiet-NAGGED
+    to: FACT-NEG-agent-hosts-restated-rule-quiet-NAGGED
+    created_at: 2026-11-24T20:02:21.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48647dac4ac
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-restated-rule-quiet-NAGGED
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-24T20:02:21.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7df42fdc0ab
+  - type: implements
+    from: SYM-index-create-search-hints
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:03.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dab18abe5f5
+  - type: covered_by
+    from: SYM-index-create-search-hints
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T18:15:03.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00bf72845f3f
+  - type: covered_by
+    from: SYM-requirement-lifting-resolve-supersedes-target
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:31:32.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddf476991ac3
+  - type: implements
+    from: SYM-requirement-lifting-resolve-supersedes-target
+    to: REQ-search-answers-lift-two
+    created_at: 2026-11-25T19:31:32.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0918356816fa

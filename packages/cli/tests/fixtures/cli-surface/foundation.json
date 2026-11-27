@@ -83,6 +83,18 @@
         "description": "Add no pull-request gate workflow (default)",
         "default": null,
         "mandatory": false
+      },
+      {
+        "flags": "--level <level>",
+        "description": "How hard Kibi holds the agent to its requirements: test (default; also asks for scenarios and linked tests) or remember (records requirements without them). Asked at a terminal when not given; recorded in package.json kibi.level or .kb/setup.json",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--change-level",
+        "description": "Allow changing an already recorded Kibi level when running non-interactively with --level",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
@@ -136,6 +148,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {
@@ -195,7 +213,9 @@
   },
   {
     "name": "query",
-    "aliases": ["kb-query"],
+    "aliases": [
+      "kb-query"
+    ],
     "description": "Read entities from the KB with exact filters, or ask typed fact questions. Use for lookup by id, type, tags or sourceFile, and for precise questions about modeled facts: predicate facts by name with named arguments (predicate + where), property facts of a subject (subjectKey + propertyKey), the domain view of a subject (factKind 'subject' + subjectKey: its definition, broader and narrower subjects, every current requirement about it and the claims and scenarios on it), or the catalog of facts of one kind (factKind; 'predicate_schema' lists the predicates you can ask about with their argument names and constants). Typed answers return matching fact rows plus factQuery: the schema used, distinct counts, values that do exist when nothing matched, warnings about the question and the next call to make. Read-only. Tags filter by metadata tags only, not entity IDs.",
     "summary": "Read entities from the KB with exact filters, or ask typed fact questions.",
     "arguments": [
@@ -211,6 +231,12 @@
       {
         "flags": "--input <path>",
         "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
         "default": null,
         "mandatory": false
       },
@@ -245,6 +271,12 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--limit <n>",
         "description": "Limit results",
         "default": "100",
@@ -268,7 +300,7 @@
   {
     "name": "search",
     "aliases": [],
-    "description": "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+    "description": "Ask the KB a question or search it. Default intent-v1 ranking returns five one-line decision cards (requirements and ADRs, ranked by words and, with a search-hints plugin, by meaning), up to seven more decisions related by meaning, and an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer names no governing requirement and lists the words no card holds. Pass type to search scenarios, tests, facts or symbols. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
     "summary": "Ask the KB a question or search it.",
     "arguments": [
       {
@@ -287,6 +319,12 @@
         "mandatory": false
       },
       {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--type <type>",
         "description": "Filter by entity type",
         "default": null,
@@ -299,9 +337,15 @@
         "mandatory": false
       },
       {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--limit <n>",
-        "description": "Limit results",
-        "default": "20",
+        "description": "Limit results (default: 5 decision cards, or 10 rows with --type)",
+        "default": null,
         "mandatory": false
       },
       {
@@ -333,9 +377,21 @@
         "mandatory": false
       },
       {
+        "flags": "--schema",
+        "description": "Print the JSON input schema and exit",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--json",
+        "description": "Alias for --format json",
+        "default": null,
         "mandatory": false
       },
       {

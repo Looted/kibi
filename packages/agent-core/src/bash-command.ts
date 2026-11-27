@@ -110,10 +110,10 @@ export function filesChangedSince(root: string, sinceMs: number): string[] {
 
 // Simple commands of a command line: `;`, `&&`, `||`, `|` and newlines end one.
 const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
-// `> file`, `>> file`, `>| file`, `&> file` and `&>> file` (not `2>&1`,
-// `>&2` or a here-document marker). It runs on the masked copy, where a
-// quoted target is a run of `_`.
-const REDIRECT_TARGET = /(?:^|[^0-9&<>])(?:&>>?|>>?\|?)\s*([^\s;&|<>()]+)/g;
+// `> file`, `>> file`, `>| file`, `&> file`, `&>> file`, and numbered
+// redirections like `2> file` (not `2>&1`, `>&2`, `<>`, or `<<`). It runs on
+// the masked copy, where a quoted target is a run of `_`.
+const REDIRECT_TARGET = /(?:^|[^&<>])(?:&>>?|>>?\|?)\s*(?!&)([^\s;&|<>()]+)/g;
 // sed and perl edit in place with -i (alone, bundled as -pi or -ni, or with a
 // backup suffix as -i.bak) or sed's --in-place.
 const IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
@@ -226,7 +226,43 @@ function unbracketed(words: readonly string[]): string[] {
   });
 }
 
-/** Names a command line writes: redirection targets and editor/tee operands. */
+/** Non-flag operands of a command, skipping flags that take a separate value. */
+function operandsSkipping(
+  args: readonly string[],
+  valueFlags: ReadonlySet<string>,
+): string[] {
+  const operands: string[] = [];
+  let afterDoubleDash = false;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (afterDoubleDash) {
+      operands.push(arg);
+      continue;
+    }
+    if (arg === "--") {
+      afterDoubleDash = true;
+      continue;
+    }
+    if (valueFlags.has(arg)) {
+      index++;
+      continue;
+    }
+    if (arg.startsWith("-")) continue;
+    operands.push(arg);
+  }
+  return operands;
+}
+
+const TRUNCATE_VALUE_FLAGS = new Set(["-s", "--size", "-r", "--reference"]);
+const CP_MV_VALUE_FLAGS = new Set([
+  "-t",
+  "--target-directory",
+  "-S",
+  "--suffix",
+]);
+const GIT_RESTORE_VALUE_FLAGS = new Set(["-s", "--source"]);
+
+/** Names a command line writes: redirection targets, editor/tee, and destructive commands. */
 function* writtenNames(command: string): Generator<string> {
   const masked = maskQuoted(command);
   for (const match of masked.matchAll(REDIRECT_TARGET)) {
@@ -251,8 +287,75 @@ function* writtenNames(command: string): Generator<string> {
       (IN_PLACE_EDITORS.has(program) &&
         args.some((arg) => IN_PLACE_FLAG.test(arg))) ||
       program === "tee"
-    )
+    ) {
       yield* args;
+    } else if (program === "rm") {
+      yield* operandsSkipping(args, new Set());
+    } else if (program === "truncate") {
+      yield* operandsSkipping(args, TRUNCATE_VALUE_FLAGS);
+    } else if (program === "mv") {
+      yield* operandsSkipping(args, CP_MV_VALUE_FLAGS);
+    } else if (program === "cp") {
+      let targetDir: string | undefined;
+      const operands: string[] = [];
+      let afterDoubleDash = false;
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i] as string;
+        if (afterDoubleDash) {
+          operands.push(arg);
+          continue;
+        }
+        if (arg === "--") {
+          afterDoubleDash = true;
+          continue;
+        }
+        if (arg === "-t" || arg === "--target-directory") {
+          const next = args[i + 1];
+          if (next !== undefined) targetDir = unquote(next);
+          i += 1;
+          continue;
+        }
+        if (arg.startsWith("--target-directory=")) {
+          targetDir = unquote(arg.slice("--target-directory=".length));
+          continue;
+        }
+        if (arg.startsWith("-t") && arg.length > 2) {
+          targetDir = unquote(arg.slice(2));
+          continue;
+        }
+        if (arg === "-S" || arg === "--suffix") {
+          i += 1;
+          continue;
+        }
+        if (arg.startsWith("-")) continue;
+        operands.push(arg);
+      }
+      if (targetDir !== undefined) {
+        for (const src of operands) {
+          yield path.join(targetDir, path.basename(unquote(src)));
+        }
+      } else {
+        const destination = operands.at(-1);
+        if (operands.length >= 2 && destination !== undefined)
+          yield destination;
+      }
+    } else if (program === "dd") {
+      for (const arg of args) {
+        const cleaned = unquote(arg);
+        if (cleaned.startsWith("of=") && cleaned.length > 3)
+          yield cleaned.slice(3);
+      }
+    } else if (program === "git") {
+      const subIndex = args.findIndex((arg) => !arg.startsWith("-"));
+      const sub = subIndex >= 0 ? args[subIndex] : undefined;
+      const subArgs = subIndex >= 0 ? args.slice(subIndex + 1) : [];
+      if (sub === "restore") {
+        yield* operandsSkipping(subArgs, GIT_RESTORE_VALUE_FLAGS);
+      } else if (sub === "checkout") {
+        const dashIndex = subArgs.indexOf("--");
+        if (dashIndex >= 0) yield* subArgs.slice(dashIndex + 1);
+      }
+    }
   }
 }
 
@@ -272,11 +375,21 @@ export function commandEditPaths(command: string, cwd: string): string[] {
     // An empty name resolves to a directory, which is never a named file,
     // and an absolute one resolves to itself from every base.
     const name = unquote(target);
+    if (!name || name.startsWith("-")) continue;
     for (const base of bases) wanted.add(path.resolve(base, name));
   }
-  return commandFilePaths(scanned, cwd).filter((absolute) =>
-    wanted.has(absolute),
+  const seen = new Set(
+    commandFilePaths(scanned, cwd).filter((absolute) => wanted.has(absolute)),
   );
+  for (const absolute of wanted) {
+    if (seen.has(absolute)) continue;
+    try {
+      if (fs.statSync(absolute).isFile()) seen.add(absolute);
+    } catch {
+      // Missing or unreadable targets are skipped.
+    }
+  }
+  return [...seen];
 }
 
 /** Hosts' shell tool names: a `sed -i` or `>` through them edits files too. */
@@ -290,16 +403,15 @@ const SHELL_TOOLS = new Set([
 ]);
 
 /**
- * Absolute paths of existing files a shell tool call writes in place, or
- * none when the call is not a shell call. Hosts pass the command as a string
- * or an argv array; both are read.
+ * The command line of a shell tool call, or undefined when the call is not
+ * a shell call. Hosts pass the command as a string or an argv array; both
+ * are read, and `["bash", "-lc", "<script>"]` is its script.
  */
-export function shellToolEditPaths(
+export function shellToolCommand(
   toolName: string | undefined,
   toolInput: unknown,
-  cwd: string,
-): string[] {
-  if (toolName === undefined || !SHELL_TOOLS.has(toolName)) return [];
+): string | undefined {
+  if (toolName === undefined || !SHELL_TOOLS.has(toolName)) return undefined;
   const raw =
     toolInput !== null && typeof toolInput === "object"
       ? (toolInput as { command?: unknown }).command
@@ -307,9 +419,517 @@ export function shellToolEditPaths(
   const argv = Array.isArray(raw)
     ? raw.filter((part): part is string => typeof part === "string")
     : undefined;
-  // `["bash", "-lc", "<script>"]` runs the script as its own command line.
   const command =
     argv === undefined ? raw : (shellScript(argv) ?? argv.join(" "));
-  if (typeof command !== "string") return [];
-  return commandEditPaths(command, cwd);
+  return typeof command === "string" ? command : undefined;
+}
+
+/**
+ * Absolute paths of existing files a shell tool call writes in place, or
+ * none when the call is not a shell call.
+ */
+export function shellToolEditPaths(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): string[] {
+  const command = shellToolCommand(toolName, toolInput);
+  return command === undefined ? [] : commandEditPaths(command, cwd);
+}
+
+/**
+ * What a shell tool call shows of each file it names (see
+ * {@link commandReadViews}), or nothing when the call is not a shell call.
+ * Files the call writes in place are left out: they are edits.
+ */
+export function shellToolReadViews(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): ShellRead[] {
+  const command = shellToolCommand(toolName, toolInput);
+  if (command === undefined) return [];
+  const edited = new Set(commandEditPaths(command, cwd));
+  return commandReadViews(command, cwd).filter(
+    (view) => !edited.has(view.absolute),
+  );
+}
+
+/** Lines of a file, 1-based and inclusive. */
+export type ShellLineRange = { start: number; end: number };
+
+/** How a shell search matches lines (grep, egrep, fgrep, rg). */
+export type ShellGrep = {
+  pattern: string;
+  /** `-i`: case-insensitive. */
+  ignoreCase: boolean;
+  /** `-F` or fgrep: the pattern is a literal string. */
+  fixed: boolean;
+  /** grep without `-E`/`-P`: basic regular expression syntax. */
+  basic: boolean;
+  /** `-w`: the match is a whole word. */
+  word: boolean;
+};
+
+/**
+ * What one shell command shows of a file or directory: the lines in view
+ * (`sed -n 'a,bp'`, `head`, `tail`), the lines a search matches (`grep`,
+ * `rg`), or the whole file (`cat`, any other command naming it).
+ */
+export type ShellRead = {
+  /** Absolute path of an existing file or, for a search, a directory. */
+  absolute: string;
+  directory: boolean;
+  /** Lines in view; absent when the whole file is (or for a search). */
+  focus?: ShellLineRange[];
+  /** The search whose matching lines are in view. */
+  grep?: ShellGrep;
+};
+
+const SEARCH_PROGRAMS = new Set(["grep", "egrep", "fgrep", "rg"]);
+const WHOLE_FILE_PROGRAMS = new Set(["cat", "nl", "bat", "less", "more"]);
+// grep and rg options that take the next word as their value.
+const GREP_VALUE_FLAGS = new Set([
+  "-A",
+  "-B",
+  "-C",
+  "-m",
+  "-g",
+  "-t",
+  "-T",
+  "-f",
+  "--glob",
+  "--type",
+  "--max-count",
+  "--context",
+  "--after-context",
+  "--before-context",
+  "--include",
+  "--exclude",
+  "--exclude-dir",
+]);
+const SED_PRINT = /^(\d+)(?:,(\d+|\$))?p$/;
+/** Lines a `tail` with no length shows, and `head` alike. */
+const DEFAULT_HEAD_LINES = 10;
+
+/** The value of `-n N`, `-nN`, `-N` or `--lines=N`, and the words it used. */
+function lineCount(
+  args: readonly string[],
+  index: number,
+): { value: string; used: number } | undefined {
+  const arg = args[index] as string;
+  if (arg === "-n" || arg === "--lines") {
+    const value = args[index + 1];
+    return value !== undefined && /^[+-]?\d+$/.test(value)
+      ? { value, used: 2 }
+      : undefined;
+  }
+  const attached =
+    /^(?:-n|--lines=)([+-]?\d+)$/.exec(arg) ?? /^-(\d+)$/.exec(arg);
+  return attached ? { value: attached[1] as string, used: 1 } : undefined;
+}
+
+/** A file's text, or undefined when it cannot be read. */
+export function readText(absolute: string): string | undefined {
+  try {
+    return fs.readFileSync(absolute, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Number of lines of a file; an unreadable file has none. */
+function fileLineCount(absolute: string): number {
+  const content = readText(absolute) ?? "";
+  const lines = content.split("\n").length;
+  return content.endsWith("\n") || content === "" ? lines - 1 : lines;
+}
+
+type Stage = {
+  /** Operand words (files or directories) the stage names. */
+  operands: string[];
+  /** Lines the stage keeps of what it reads, when it narrows them. */
+  range?: (absolute: string) => ShellLineRange;
+  grep?: ShellGrep;
+  /** A recursive search with no operand searches the working directory. */
+  recursive: boolean;
+  whole: boolean;
+};
+
+/** One simple command of a pipeline, read as a view of the files it names. */
+function readStage(words: readonly string[]): Stage | undefined {
+  const [name, ...args] = words;
+  const program = path.basename(String(name));
+  if (program === "sed") {
+    if (args.some((arg) => IN_PLACE_FLAG.test(arg))) return undefined;
+    let quiet = false;
+    const scripts: string[] = [];
+    const operands: string[] = [];
+    let expectExpr = false;
+    let expectFile = false;
+    let hasScriptFile = false;
+    for (let index = 0; index < args.length; index++) {
+      const arg = args[index] as string;
+      if (expectExpr) {
+        scripts.push(unquote(arg));
+        expectExpr = false;
+        continue;
+      }
+      if (expectFile) {
+        expectFile = false;
+        continue;
+      }
+      if (arg === "--") {
+        operands.push(...args.slice(index + 1));
+        break;
+      }
+      if (arg === "--quiet" || arg === "--silent") {
+        quiet = true;
+        continue;
+      }
+      if (arg === "-e" || arg === "--expression") {
+        expectExpr = true;
+        continue;
+      }
+      if (arg.startsWith("--expression=")) {
+        scripts.push(unquote(arg.slice("--expression=".length)));
+        continue;
+      }
+      if (arg === "-f" || arg === "--file") {
+        expectFile = true;
+        hasScriptFile = true;
+        continue;
+      }
+      if (arg.startsWith("--file=")) {
+        hasScriptFile = true;
+        continue;
+      }
+      if (arg.startsWith("-") && arg.length > 1) {
+        if (!arg.startsWith("--")) {
+          const flags = arg.slice(1);
+          if (flags.includes("n")) quiet = true;
+          const exprPos = flags.indexOf("e");
+          if (exprPos >= 0) {
+            const attached = flags.slice(exprPos + 1);
+            if (attached.length > 0) scripts.push(unquote(attached));
+            else expectExpr = true;
+          }
+          const filePos = flags.indexOf("f");
+          if (filePos >= 0) {
+            hasScriptFile = true;
+            if (filePos === flags.length - 1) expectFile = true;
+          }
+        }
+        continue;
+      }
+      if (scripts.length === 0 && !hasScriptFile) scripts.push(unquote(arg));
+      else operands.push(arg);
+    }
+    if (quiet && scripts.length === 1) {
+      const print = SED_PRINT.exec(scripts[0] as string);
+      if (print) {
+        const start = Number(print[1]);
+        const endText = print[2] ?? print[1];
+        return {
+          operands,
+          range: (absolute) => ({
+            start,
+            end: endText === "$" ? fileLineCount(absolute) : Number(endText),
+          }),
+          recursive: false,
+          whole: false,
+        };
+      }
+    }
+    return operands.length > 0
+      ? { operands, recursive: false, whole: true }
+      : undefined;
+  }
+  if (program === "head" || program === "tail") {
+    let count = String(DEFAULT_HEAD_LINES);
+    const operands: string[] = [];
+    for (let index = 0; index < args.length; index++) {
+      const arg = args[index] as string;
+      if (
+        arg === "-c" ||
+        arg === "--bytes" ||
+        /^-c.+/.test(arg) ||
+        arg.startsWith("--bytes=")
+      )
+        return undefined;
+      const found = lineCount(args, index);
+      if (found) {
+        count = found.value;
+        index += found.used - 1;
+      } else if (!arg.startsWith("-")) operands.push(arg);
+    }
+    const lines = Number(count.replace(/^[+-]/, ""));
+    return {
+      operands,
+      range: (absolute) => {
+        if (program === "head") {
+          if (count.startsWith("-")) {
+            const total = fileLineCount(absolute);
+            return { start: 1, end: Math.max(0, total - lines) };
+          }
+          return { start: 1, end: lines };
+        }
+        const total = fileLineCount(absolute);
+        return count.startsWith("+")
+          ? { start: lines, end: total }
+          : { start: Math.max(1, total - lines + 1), end: total };
+      },
+      recursive: false,
+      whole: false,
+    };
+  }
+  if (SEARCH_PROGRAMS.has(program)) return searchStage(program, args);
+  if (WHOLE_FILE_PROGRAMS.has(program))
+    return {
+      operands: args.filter((arg) => !arg.startsWith("-")),
+      recursive: false,
+      whole: true,
+    };
+  return undefined;
+}
+
+/** The pattern, flags and operands of a grep, egrep, fgrep or rg command. */
+function searchStage(
+  program: string,
+  args: readonly string[],
+): Stage | undefined {
+  let pattern: string | undefined;
+  let ignoreCase = false;
+  let fixed = program === "fgrep";
+  let basic = program === "grep";
+  let word = false;
+  let recursive = program === "rg";
+  let skipSearchView = false;
+  const operands: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (arg === "--") {
+      for (const rest of args.slice(index + 1)) {
+        if (pattern === undefined) pattern = unquote(rest);
+        else operands.push(rest);
+      }
+      break;
+    }
+    if (arg === "-e" || arg === "--regexp") {
+      pattern = unquote(String(args[++index]));
+      continue;
+    }
+    if (GREP_VALUE_FLAGS.has(arg)) {
+      index++;
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      if (arg === "--ignore-case") ignoreCase = true;
+      else if (arg === "--fixed-strings") fixed = true;
+      else if (arg === "--extended-regexp" || arg === "--perl-regexp")
+        basic = false;
+      else if (arg === "--word-regexp") word = true;
+      else if (arg === "--recursive") recursive = true;
+      else if (
+        arg === "--invert-match" ||
+        arg === "--files-without-match" ||
+        arg === "--count"
+      )
+        skipSearchView = true;
+      continue;
+    }
+    if (arg.startsWith("-") && arg.length > 1) {
+      // Bundled short flags (`-rn`, `-inE`); a trailing value flag such as
+      // `-A3` carries its value.
+      for (const flag of arg.slice(1)) {
+        if (flag === "i") ignoreCase = true;
+        else if (flag === "F") fixed = true;
+        else if (flag === "E" || flag === "P") basic = false;
+        else if (flag === "w") word = true;
+        else if (flag === "r" || flag === "R") recursive = true;
+        else if (flag === "v" || flag === "L" || flag === "c")
+          skipSearchView = true;
+      }
+      continue;
+    }
+    if (pattern === undefined) pattern = unquote(arg);
+    else operands.push(arg);
+  }
+  if (skipSearchView) return undefined;
+  return {
+    operands,
+    ...(pattern === undefined || pattern.length === 0
+      ? {}
+      : { grep: { pattern, ignoreCase, fixed, basic: basic && !fixed, word } }),
+    recursive,
+    whole: pattern === "",
+  };
+}
+
+/** The pipelines of a command line, each a list of stages' words. */
+function* pipelines(command: string): Generator<string[][]> {
+  const masked = maskQuoted(command);
+  const separator = /&&|\|\||[;\n]/g;
+  let start = 0;
+  const pieces: Array<[number, number]> = [];
+  for (const match of masked.matchAll(separator)) {
+    pieces.push([start, match.index]);
+    start = match.index + match[0].length;
+  }
+  pieces.push([start, masked.length]);
+  for (const [from, to] of pieces) {
+    const stages: string[][] = [];
+    let stageStart = from;
+    const cut = (end: number) => {
+      const words = [...masked.slice(stageStart, end).matchAll(/\S+/g)].map(
+        (word) => {
+          const at = stageStart + word.index;
+          return command.slice(at, at + word[0].length);
+        },
+      );
+      const plain = unbracketed(words);
+      stages.push(plain.slice(Math.max(0, commandStart(plain))));
+    };
+    for (let index = from; index < to; index++) {
+      if (masked[index] === "|") {
+        cut(index);
+        stageStart = index + 1;
+      }
+    }
+    cut(to);
+    yield stages;
+  }
+}
+
+/**
+ * What a shell command shows of each workspace file or directory it names,
+ * before it runs: line ranges from `sed -n 'a,bp'`, `head` and `tail` (also
+ * when they read a piped `cat` or `nl` of one file), the search of a `grep`
+ * or `rg` (over named files, or over directories when recursive), and the
+ * whole file for `cat` or any other command that names it. A file named in
+ * several ways keeps its narrowest view; nothing is lost when parsing fails,
+ * since every file the command names is still listed whole.
+ */
+export function commandReadViews(command: string, cwd: string): ShellRead[] {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const views = new Map<string, ShellRead>();
+  const resolve = (
+    word: string,
+  ): { absolute: string; directory: boolean } | undefined => {
+    const name = unquote(word);
+    for (const base of bases) {
+      const absolute = path.resolve(base, name);
+      try {
+        const stat = fs.statSync(absolute);
+        if (stat.isFile() || stat.isDirectory())
+          return { absolute, directory: stat.isDirectory() };
+      } catch {
+        // Not here; try the next base.
+      }
+    }
+    return undefined;
+  };
+  const add = (view: ShellRead) => {
+    const known = views.get(view.absolute);
+    // A focused or searched view says more than a whole-file one.
+    if (!known || (!known.focus && !known.grep)) views.set(view.absolute, view);
+  };
+  const visit = (line: string, depth: number) => {
+    for (const stages of pipelines(line)) {
+      let source: string | undefined;
+      for (const words of stages) {
+        const script = shellScript(words);
+        if (script !== undefined && depth < 2) {
+          visit(unquote(script), depth + 1);
+          continue;
+        }
+        const stage = readStage(words);
+        if (!stage) {
+          source = undefined;
+          continue;
+        }
+        const operands = stage.operands
+          .map(resolve)
+          .filter((target) => target !== undefined);
+        if (stage.grep) {
+          const targets =
+            operands.length === 0 && stage.recursive
+              ? [
+                  {
+                    absolute: path.resolve(bases.at(-1) as string),
+                    directory: true,
+                  },
+                ]
+              : operands;
+          for (const target of targets)
+            if (!target.directory || stage.recursive)
+              add({ ...target, grep: stage.grep });
+          if (operands.length === 0 && source)
+            add({ absolute: source, directory: false, grep: stage.grep });
+          source = undefined;
+          continue;
+        }
+        const files = operands.filter((target) => !target.directory);
+        if (stage.range) {
+          const targets =
+            files.length === 0 && source
+              ? [{ absolute: source, directory: false }]
+              : files;
+          for (const target of targets)
+            add({ ...target, focus: [stage.range(target.absolute)] });
+          source = undefined;
+          continue;
+        }
+        for (const target of files) add(target);
+        source =
+          files.length === 1
+            ? (files[0] as { absolute: string }).absolute
+            : undefined;
+      }
+    }
+  };
+  visit(scanned, 0);
+  return [...views.values()];
+}
+
+/**
+ * The `--level` value a shell command passes to `kibi init` (including via
+ * `npx`, `bun`, `node`, or `bash -c`), or undefined when the command does not
+ * invoke `kibi init --level`.
+ */
+export function kibiInitLevelTarget(command: string): string | undefined {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const find = (line: string, depth: number): string | undefined => {
+    for (const stages of pipelines(line)) {
+      for (const words of stages) {
+        const script = shellScript(words);
+        if (script !== undefined && depth < 2) {
+          const nested = find(unquote(script), depth + 1);
+          if (nested !== undefined) return nested;
+          continue;
+        }
+        const cleaned = words.map(unquote);
+        const initIndex = cleaned.findIndex(
+          (word, index) =>
+            word === "init" &&
+            index > 0 &&
+            /(?:^|[\\/])kibi(?:\.[cm]?js)?$/.test(cleaned[index - 1] as string),
+        );
+        if (initIndex < 0) continue;
+        for (let index = initIndex + 1; index < cleaned.length; index++) {
+          const arg = cleaned[index] as string;
+          if (arg === "--level") {
+            const value = cleaned[index + 1];
+            if (value !== undefined && value.length > 0) return value;
+          } else if (arg.startsWith("--level=")) {
+            const value = arg.slice("--level=".length);
+            if (value.length > 0) return value;
+          }
+        }
+      }
+    }
+    return undefined;
+  };
+  return find(scanned, 0);
 }

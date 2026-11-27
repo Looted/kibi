@@ -377,3 +377,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6168e9063e87
+  - type: assumes
+    from: SCEN-summary-rows-default
+    to: FACT-summary-rows-default
+    created_at: 2026-11-19T15:27:03.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d263349467a
+  - type: implements
+    from: SYM-staged-evidence-floor-partition-staged-floor-findings
+    to: REQ-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:08.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10951d614b07
+  - type: covered_by
+    from: SYM-staged-evidence-floor-partition-staged-floor-findings
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T09:49:08.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65d861c8a81f
+  - type: implements
+    from: SYM-level-guard-guarded-change-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:09.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b1d70f6f914
+  - type: covered_by
+    from: SYM-level-guard-guarded-change-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:09.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc3fab3f2388

@@ -1,5 +1,5 @@
 ---
-title: The search hints embedding model shall be minishlab/potion-base-8M, by a regex proof
+title: The search hints embedding model shall be minishlab/potion-retrieval-32M, by a regex proof
 status: passing
 tags:
   - proof
@@ -16,7 +16,7 @@ proof_contract:
   success_policy: all_required_first_attempt
   kind: regex
   proves:
-    - CLAIM-1F6530C9D5F1B2F4
+    - CLAIM-519FA42596BB464F
   pattern_source:
     symbol_id: SYM-const-search-hints-model-id
 origin:
@@ -26,20 +26,20 @@ id: TEST-proof-search-hints-model-id
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-57349bf242dd9a89e2c4e68e
+    receipt_id: PR-b7f071ad75939c462e7161e6
     test_id: TEST-proof-search-hints-model-id
     scope: unit
     outcome: passed
-    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:24:43.511Z'
-    finished_at: '2026-11-16T12:24:47.390Z'
-    artifact_digest: c302c7e24a7620ef48186a4712785c1415b13bf1adc13e148ea4b8358965a583
-    contract_hash: 045629ba13f11e322c6678e5d99a2f655255dfba8f5b6429c1e7b2ceb165cd4e
-    binding_hash: 62454443a3e07a390cc3707a4cd6699aa31e209c11a1b3a8ed9937a45b3a0140
-    fingerprint: a26e13757e130a54382df97b2b7b26e92fa3c1c188e3c8aafa498104519fc051
+    code_snapshot: 5cf1f3c42e74e0fb26fa20e3b699037c8ed23ee0c308ebb628690b15abc9ff4c
+    environment_hash: 706cc4b3a09461713e9b5f9322b745f0ff9efde3e1a78b85f7ca1a67475b6988
+    started_at: '2026-11-24T18:41:26.508Z'
+    finished_at: '2026-11-24T18:41:27.324Z'
+    artifact_digest: 3fefa43a3267dd1c7891341d7927aa9a8e9f90d47dfd34f86c7a05455edea05e
+    contract_hash: cbb020383b80045cc0a79f61c976ef238692806fd3e6e8ff934fb02b9288cb4b
+    binding_hash: 8ae491032763fdb91f07978f8cb77d3d8229230f62fe6a9db9a5fabc697c2b35
+    fingerprint: b03972dea4066a13ead7b883a2502d6ec989db122204a71aa3537af6f20658bd
     fingerprint_components:
-      contract: 045629ba13f11e322c6678e5d99a2f655255dfba8f5b6429c1e7b2ceb165cd4e
+      contract: cbb020383b80045cc0a79f61c976ef238692806fd3e6e8ff934fb02b9288cb4b
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -67,10 +67,10 @@ proof_receipts:
       pattern:
         symbol_id: SYM-const-search-hints-model-id
         type: string
-        value: minishlab/potion-base-8M
-    certificate_digest: a8415f1e3de1110559b7c6d65f94f1e37b8755f19c33cbb4c69550f0820d4bc9
+        value: minishlab/potion-retrieval-32M
+    certificate_digest: 6502f22a3fba387bbabd2d9f7bdd2e26e471e4e00684c8e108433f3ba9e04f6c
     claim_bindings:
-      - claim_key: CLAIM-1F6530C9D5F1B2F4
+      - claim_key: CLAIM-519FA42596BB464F
         requirement_id: REQ-search-hints-model-pin
         fact_id: FACT-search-hints-model-id
         binding: derived
@@ -79,6 +79,6 @@ proof_receipts:
           kind: string_constraint
           operator: eq
           polarity: require
-          value: minishlab/potion-base-8M
+          value: minishlab/potion-retrieval-32M
 ---
-Proves that the search hints embedding model shall be minishlab/potion-base-8M, against the code Kibi reads at ingest.
+Proves that the search hints embedding model shall be minishlab/potion-retrieval-32M, against the code Kibi reads at ingest.

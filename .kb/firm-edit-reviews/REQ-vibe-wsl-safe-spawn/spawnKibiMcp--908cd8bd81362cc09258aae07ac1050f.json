@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-wsl-safe-spawn",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "spawnKibiMcp",
+  "verdict": "keeps",
+  "note": "Preserves wsl.exe --exec literal argv spawning with -d for UNC paths and loud failure on unconvertible Windows paths.",
+  "statementHash": "sha256:0d03d2dbf38e0376a711e82ecbae23f065c08f89dc077207b1f3a184d639b119",
+  "codeHash": "sha256:75fe2ad1d745a778b4304328592a02435bf0d83d72f3cb94b73fbc83d618f813",
+  "startLine": 512,
+  "endLine": 541,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

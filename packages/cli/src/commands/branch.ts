@@ -22,6 +22,7 @@ import * as path from "node:path";
 import {
   EngineClient,
   acquireEnginePublicationLease,
+  enginePidPath,
   engineSocketPath,
 } from "../engine.js";
 import {
@@ -41,6 +42,7 @@ import {
   readBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
 import { inspectBranchStore } from "../utils/branch-store.js";
+import { assertGitWorkspace } from "../vcs/git-boundary.js";
 
 export interface BranchEnsureOptions {
   from?: string;
@@ -260,6 +262,7 @@ export async function branchEnsureCommand(
   options?: BranchEnsureOptions,
 ): Promise<void> {
   const workspaceRoot = path.resolve(options?.workspaceRoot ?? process.cwd());
+  assertGitWorkspace(workspaceRoot, "branch_stores", "kibi branch ensure");
   const branchResult = resolveBranchAttachment(workspaceRoot);
 
   if ("error" in branchResult) {
@@ -296,6 +299,7 @@ export async function branchMigrateCommand(
   options: BranchMigrateOptions = {},
 ): Promise<void> {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
+  assertGitWorkspace(workspaceRoot, "branch_stores", "kibi branch migrate");
   if (options.recoverJournal !== undefined) {
     recoverBranchMigration(
       workspaceRoot,
@@ -374,14 +378,15 @@ export async function branchMigrateCommand(
       allowPublicationLock: true,
     });
     const engineSocket = engineSocketPath(workspaceRoot, from);
+    const enginePid = enginePidPath(workspaceRoot, from);
+    const hasSocket = fs.existsSync(engineSocket);
+    const hasArtifacts = hasSocket || fs.existsSync(enginePid);
     try {
-      if (fs.existsSync(engineSocket)) await engine.start(false);
+      if (hasSocket) await engine.start(false);
       if (engine.isRunning()) {
         await engine.stop(false);
-      } else if (fs.existsSync(engineSocket)) {
-        throw new Error(
-          `Kibi engine socket remains present but is not reachable: ${engineSocket}`,
-        );
+      } else if (hasArtifacts) {
+        await engine.stopOrReclaim({ holdsPublicationLease: true });
       }
     } catch (error) {
       throw new Error(

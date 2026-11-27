@@ -37,7 +37,7 @@
  *
  * Configuration comes from the environment (the action sets it):
  *   MERGE_TRAIN_BASE    base branch (required)
- *   MERGE_TRAIN_CHECKS  required check names, comma or newline separated
+ *   MERGE_TRAIN_CHECKS  required check names, one per line (or comma separated on one line)
  *   MERGE_TRAIN_TRAIN_CHECKS  check names a train must also pass before it
  *                       lands, but a pull request needs not to board, such as
  *                       a slow proof that runs only on trains
@@ -278,6 +278,7 @@ export function aggregate(
  */
 export const VERIFY_UNSET_ENV: readonly string[] = [
   "GH_TOKEN",
+  "MERGE_TRAIN_CHECKS_TOKEN",
   "GITHUB_TOKEN",
   "GH_ENTERPRISE_TOKEN",
   "GITHUB_ENTERPRISE_TOKEN",
@@ -287,8 +288,12 @@ export const VERIFY_UNSET_ENV: readonly string[] = [
 ];
 
 export type Runner = Readonly<{
-  /** Runs gh with the arguments; stdin is `input` when given. Throws on failure. */
-  gh(args: readonly string[], input?: string): string;
+  /**
+   * Runs gh with the arguments; stdin is `input` when given. Throws on failure.
+   * `as: "checks"` reads check runs, with the checks token when one is set:
+   * fine-grained personal access tokens cannot read check runs.
+   */
+  gh(args: readonly string[], input?: string, as?: "checks"): string;
   /** Runs a command; never throws. */
   exec(
     command: string,
@@ -338,12 +343,17 @@ export class MergeTrain {
     this.run = run;
   }
 
-  private api(path: string, method = "GET", body?: unknown): unknown {
+  private api(
+    path: string,
+    method = "GET",
+    body?: unknown,
+    as?: "checks",
+  ): unknown {
     const args = ["api", "--method", method, path];
     const out =
       body === undefined
-        ? this.run.gh(args)
-        : this.run.gh([...args, "--input", "-"], JSON.stringify(body));
+        ? this.run.gh(args, undefined, as)
+        : this.run.gh([...args, "--input", "-"], JSON.stringify(body), as);
     return out.trim() === "" ? null : JSON.parse(out);
   }
 
@@ -369,6 +379,9 @@ export class MergeTrain {
     const { repo } = this.settings;
     const response = this.api(
       `repos/${repo}/commits/${sha}/check-runs?per_page=100`,
+      "GET",
+      undefined,
+      "checks",
     ) as {
       check_runs: Array<{
         id: number;
@@ -674,11 +687,21 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   if (!base) throw new Error("MERGE_TRAIN_BASE names the base branch");
   if (!repo || !/^[\w.-]+\/[\w.-]+$/.test(repo))
     throw new Error("GH_REPO names the repository as owner/name");
-  const names = (value: string | undefined) =>
-    (value ?? "")
-      .split(/[\n,]/)
-      .map((name) => name.trim())
+  // One name per line when the input contains a newline (including a
+  // single-entry YAML block scalar), so a check name may hold a comma
+  // ("Secrets, dependencies"); a single inline value is comma separated.
+  const names = (value: string | undefined) => {
+    const raw = value ?? "";
+    const lines = raw
+      .split("\n")
+      .map((line) => line.trim())
       .filter(Boolean);
+    const parts =
+      lines.length > 1 || raw.includes("\n")
+        ? lines.map((line) => line.replace(/,$/, ""))
+        : (lines[0] ?? "").split(",");
+    return parts.map((name) => name.trim()).filter(Boolean);
+  };
   const checks = names(env.MERGE_TRAIN_CHECKS);
   if (checks.length === 0)
     throw new Error("MERGE_TRAIN_CHECKS names at least one required check");
@@ -709,10 +732,16 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
 }
 
 export const processRunner: Runner = {
-  gh(args, input) {
+  gh(args, input, as) {
+    const checksToken = process.env.MERGE_TRAIN_CHECKS_TOKEN?.trim();
+    const env =
+      as === "checks" && checksToken
+        ? { ...process.env, GH_TOKEN: checksToken }
+        : process.env;
     const result = spawnSync("gh", args, {
       encoding: "utf8",
       input,
+      env,
       maxBuffer: 64 * 1024 * 1024,
     });
     if (result.status !== 0)

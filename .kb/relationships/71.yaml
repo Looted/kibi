@@ -328,3 +328,241 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b31e96ebdbe
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:15:58.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cc00da5ff23
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:15:58.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3fddbc8aef1
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-workspace-resolution
+    created_at: 2026-11-19T20:15:58.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e5a0d711763
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:15:58.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0832a00de276
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-skills-mirror
+    created_at: 2026-11-19T20:15:58.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e40bb7614166
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-19T20:15:58.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce9957408580
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-19T20:15:58.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c13cb2271aa
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-workspace-resolution
+    created_at: 2026-11-19T20:15:58.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33750632312e
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T20:15:58.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab6bd6235b61
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-skills-mirror
+    created_at: 2026-11-19T20:15:58.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de796899f99
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: REQ-vibe-launcher-win32-workspace-routing
+    created_at: 2026-11-21T18:29:21.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbaa9b51ef67
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-drive-letter-native
+    created_at: 2026-11-21T18:29:21.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57014dccb66
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-unc-named-distro
+    created_at: 2026-11-21T18:29:21.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ac1a9b843a
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-wsl
+    created_at: 2026-11-21T18:29:21.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-538e260000e3
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-vibe-win32-routing-force-direct
+    created_at: 2026-11-21T18:29:21.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bc0cee9372b
+  - type: validates
+    from: TEST-vibe-plugin-contract-v1
+    to: SCEN-NEG-vibe-win32-forced-wsl-silent-fallback
+    created_at: 2026-11-21T18:29:21.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a5fd1a7d56
+  - type: implements
+    from: SYM-guard-is-edit-tool
+    to: REQ-vibe-hooks-firm-edit-notice
+    created_at: 2026-11-22T18:31:48.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e0cfdb8e0f5
+  - type: covered_by
+    from: SYM-guard-is-edit-tool
+    to: TEST-vibe-hooks-decision-guard
+    created_at: 2026-11-22T18:31:48.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61140326c114
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: FACT-PROP-agent-hosts-guarded-change-prompt-c01
+    created_at: 2026-11-25T14:06:34.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93d93f2b0cfb
+  - type: requires_property
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: FACT-PROP-agent-hosts-guarded-change-prompt-c02
+    created_at: 2026-11-25T14:06:34.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a2898b98492
+  - type: constrains
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: FACT-SUBJ-kibi-agent-hooks-guarded-change
+    created_at: 2026-11-25T14:06:34.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd398442a49c
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: SCEN-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:41.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ff58b1344be
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-rejected
+    created_at: 2026-11-25T14:06:41.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6758a849c1ed
+  - type: verified_by
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:06:41.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f42e33ac63ed
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: REQ-agent-hosts-level-ask
+    created_at: 2026-11-25T14:07:47.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77d265e47cc4
+  - type: supersedes
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: REQ-agent-hosts-required-evidence-lowering-ask
+    created_at: 2026-11-25T14:07:47.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee66963de815
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-c01-eq-false
+    created_at: 2026-11-25T14:08:27.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6baeac126a0
+  - type: specified_by
+    from: REQ-agent-hosts-guarded-change-prompt
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-c02-eq-false
+    created_at: 2026-11-25T14:08:33.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cbaff53d1b2
+  - type: executable_for
+    from: SYM-proof-search-decision-card-limit
+    to: TEST-proof-search-decision-card-limit
+    created_at: 2026-11-25T19:27:19.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29269e1c9b0d
+  - type: validates
+    from: TEST-init-agent-instructions-carry-brief
+    to: SCEN-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:41:54.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1fcba62099f
+  - type: validates
+    from: TEST-init-agent-instructions-carry-brief
+    to: SCEN-NEG-init-agent-instructions-brief-drift
+    created_at: 2026-11-26T11:41:54.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-314ad62254c2
+  - type: validates
+    from: TEST-init-agent-instructions-carry-brief
+    to: REQ-init-agent-instructions-carry-brief
+    created_at: 2026-11-26T11:41:54.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-992435a3bcb5
+  - type: covered_by
+    from: SYM-kibi-usage-proof-first-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-26T11:45:53.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ec3fc2c2d61
+  - type: implements
+    from: SYM-kibi-usage-proof-first-guidance
+    to: REQ-kibi-usage-core-arc
+    created_at: 2026-11-26T11:46:31.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10fa6cb6ebda

@@ -4,7 +4,7 @@ This document provides complete command-by-command documentation for the kibi CL
 
 ## Dedicated JSON operation routes
 
-The CLI exposes the canonical public operation catalog as a peer to MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout. Every JSON-only route (the operations without their own flags, such as `plan-bootstrap`, `upsert` or `apply-plan`) also takes `--schema`, which prints the JSON Schema its input is validated against, with each field and its allowed values. When such a route rejects its input with `VALIDATION_FAILED`, the message names each failing field and points at `--schema`.
+The CLI exposes the canonical public operation catalog as a peer to MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout. Every route also takes `--schema`, which prints the JSON Schema its input is validated against, with each field and its allowed values. When a route rejects its input with `VALIDATION_FAILED`, the message names each failing field and points at `--schema`. Commands that accept `--format json` also accept `--json` as an alias; combining `--json` with another `--format` value is an error.
 
 ```bash
 # Read an input object from a file
@@ -41,12 +41,16 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_record` | `kibi record --input <file|->` |
 | `kb_delete` | `kibi delete --input <file|->` |
 | `kb_check` | `kibi check --input <file|->` |
+| `kb_review_firm_edit` | `kibi review-firm-edit --input <file|->` |
+| `kb_prepare_impact_review` | `kibi prepare-impact-review --input <file|->` |
+| `kb_author_impact_review` | `kibi author-impact-review --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP catalog has 18 tools rather than one per operation, and a session
-lists all of them unless the `core` profile is chosen (see the
-[MCP reference](mcp-reference.md#tool-list)); under `core` the rest run through
-the routes above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
+The MCP catalog has 19 tools rather than one per operation, and a session
+lists all of them at level `test` unless the `core` profile is chosen (at level
+`remember`, `full` lists only the knowledge tools; see the
+[MCP reference](mcp-reference.md#tool-list)); under `core` or `remember`, the
+rest run through the routes above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
 
 - `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and
@@ -121,6 +125,13 @@ A failed route writes its JSON result with `status: "error"` and `error.code`, `
 Initializes Kibi repository infrastructure in the current directory. It does
 not infer or write product knowledge.
 
+Outside a Git repository `kibi init` sets up a workspace without version
+control: it writes `.kb/` and the agent instructions (which say to finish
+each change with `kibi check`, since there is no commit gate), installs no
+Git hooks and prints the `no_git_repository` advisory. After `git init`, run
+`kibi init` again to install the hooks; the knowledge recorded so far carries
+over. See [Working without Git](error-reference.md#working-without-git-no_git_repository-git_required).
+
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. When the repository uses a hook manager (lefthook, husky or the pre-commit framework), init installs no hooks at all and prints the manager configuration for every hook it does not visibly run Kibi's commands for yet; see [existing Git hooks and hook managers](install.md#existing-git-hooks-and-hook-managers). Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
@@ -138,6 +149,8 @@ not infer or write product knowledge.
 
 - `--format <format>` - With `--print-hook` only: `shell` (default), `lefthook` (entries to merge into `lefthook.yml`), `husky` (one shell snippet per `.husky/<hook>` file) or `pre-commit` (local hooks for `.pre-commit-config.yaml`). Every format runs the same commands under the same conditions as the managed hooks.
 - `--auto-sync` / `--no-auto-sync`, `--prepare-hooks` / `--no-prepare-hooks`, `--agent-instructions` / `--no-agent-instructions`, `--ci-gate` / `--no-ci-gate` - Set and record a [setup choice](#setup-choices). A flag left out keeps the recorded choice.
+- `--level <level>` - Set and record the [Kibi level](#kibi-level): `test` or `remember`. An unknown level is refused before anything is written. Without it, a project that already records a level keeps it; otherwise init asks at a terminal (test recommended) and records `test` without one (CI, an agent's shell, a pipe). Changing an already-recorded level to a different value non-interactively requires `--change-level`.
+- `--change-level` - Explicitly confirm changing an already-recorded Kibi level when passing `--level <level>` non-interactively.
 
 ```bash
 kibi init --print-hook pre-commit >> .husky/pre-commit
@@ -150,12 +163,29 @@ Git never clones `.git/hooks` or the compiled branch store, and agent plugins ar
 
 | Choice | Default | What it does |
 | --- | --- | --- |
-| `autoSync` | on | A query, check or write that finds this branch's store never compiled compiles it first (a compile that writes nothing Git tracks), instead of answering from an empty store. `KIBI_AUTO_SYNC=0` turns it off for one environment. |
+| `autoSync` | on | A query, check or write that finds this branch's store never compiled or out of date with tracked `.kb/` sources or the compiler contract compiles it first (a compile that writes nothing Git tracks), instead of answering from an empty or stale store. `KIBI_AUTO_SYNC=0` turns it off for one environment. |
 | `prepareHooks` | on | Adds a step to the root `package.json` `prepare` script that runs `kibi hooks install --quiet`, so installing the project's dependencies installs the hooks. The step does nothing when `kibi-cli` is not installed (a production `npm ci --omit=dev`), in CI, or outside a Git work tree, and never fails the install. It is not added when a hook manager owns the hooks or there is no root `package.json`. Yarn 2+ does not run `prepare` on install; there, run `kibi hooks install` after cloning. |
 | `agentInstructions` | on | Keeps a marked Kibi section in `AGENTS.md` (read by Codex, Cursor, OpenCode, ZCode and most other agents) an `@AGENTS.md` import in `CLAUDE.md` for Claude Code, and an `@./AGENTS.md` import in `GEMINI.md` for Gemini CLI. Text outside the markers is never touched, and neither is a file that is a symlink leaving the repository. |
 | `ciGate` | off | Adds `.github/workflows/kibi-check.yml` ([example](examples/github/kibi-check.yml)), which runs `kibi check` on every pull request. It can fail pull requests of a repository whose KB already has violations, so it is offered rather than defaulted. |
 
 `kibi doctor` reports a recorded choice that is not in place under "Fresh-clone setup"; `kibi init` applies it.
+
+### Kibi level
+
+The Kibi level says how hard Kibi holds the coding agent to the requirements it records. It is a person's choice, recorded in `package.json` as `kibi.level` (or as `level` in `.kb/setup.json` when the repository has no root `package.json`). Only `kibi init` writes it; no MCP tool or JSON route does.
+
+| Level | What Kibi asks for |
+| --- | --- |
+| `test` (default) | Everything `remember` does, plus the scenarios and linked tests that show each requirement holds: `kibi check` and the commit gate run the verification rules (`evidence-floor`, `symbol-coverage`, `must-priority-coverage`, `must-positive-scenario`, `proof-contract-claims`, `proof-contract-symbols`). |
+| `remember` | Requirements, code links, capture, hooks, the firm-edit guard, the commit gate and the contradiction checks. No scenario, test or proof is asked for. |
+
+A project that sets no level is at `test`, which is what Kibi ran before levels existed. A value that is neither is read as `test`, and `kibi check` reports it as a `CONFIG_WARNING` diagnostic. At `remember`:
+
+- A current requirement whose `required_evidence` is `tested` or `proved` is reported by the advisory `required-evidence-above-level` rule (non-blocking) instead of enforced, and `kb_upsert`/`kb_record` refuse a write that raises `required_evidence` to `tested` or `proved`: a person chooses `test` first.
+- A requirement write's `nextActions` ask for the pair reviews and the `kb_model` step of its unmodeled claims (as at every level) and for no scenario, test or proof.
+- The MCP server does not list `kb_ingest_proof`, and `kb_skills` (and `kibi skills list`) does not offer `kibi-provable-code`, which still loads by id. The server lists only the knowledge tools, and names `kb_find_gaps`, `kb_coverage` and the planning tools as CLI commands instead (see the [MCP reference](mcp-reference.md)).
+
+The bootstrap skill has the agent ask the person for the level before it runs `kibi init --level <level>`.
 
 **GitHub integration:**
 - `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)). That workflow generates the report on pull requests (artifact only) and deploys GitHub Pages only from the repository default branch or `workflow_dispatch`.
@@ -170,6 +200,7 @@ Git never clones `.git/hooks` or the compiled branch store, and agent plugins ar
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs, authored `.kb/symbols.yaml` entries, or a symbol manifest that already covers every declaration the commit adds or changes in the edited file). Test-only and docs-only edits are exempt.
 - The pre-commit hook also blocks a commit whose staged knowledge introduces a `domain-contradictions`, `scenario-feasibility`, `exception-claim-keys` or `kb-consistency` violation, the same finding full `kibi check` reports on that tree. A violation already present at the last commit does not block an unrelated commit.
 - The pre-commit hook also runs the requirement-scoped blocking rules on the entity documents the commit stages, from the KB schema that blocks each: `claim-subject-missing`, `claim-subject-undefined` and `subject-definition-missing` (schema 16), `must-positive-scenario` (schema 17, except requirements the upgrade recorded) `related-requirement-unmodeled` (schema 18, run only when a staged requirement has an unmodeled claim) and `quantity-duplicate` (schema 19; a pair counts when the commit stages one of its facts or the requirements grounding them, and a `distinct_from` entry naming no value fact counts on its fact). A finding on an entity the commit does not stage, or one the same entity already had at the last commit, does not block.
+- At [Kibi level](#kibi-level) `remember` the pre-commit hook runs no verification rule: no `evidence-floor`, `must-positive-scenario` or `symbol-coverage` on the staged change. At `test`, a requirement the commit adds while it is below its floor is reported as a non-blocking evidence floor finding, not refused, so it can land before the scenario and test that lift it.
 - The pre-commit hook also blocks a commit that adds a current requirement, or changes the fields that set its evidence floor (`status`, `priority`, `firmness`, `required_evidence`, `origin`), while that requirement is below its floor (`evidence-floor`) or is an implemented, unapproved agent-written must requirement past its grace period (`agent-requirement-unapproved-implemented`). The requirement's front matter and links are judged as staged: its evidence (tests, symbols, proof receipts) is read from the synced branch store, as `kibi check` reads it, through a private copy with the staged requirement document projected over the synced one, so an edit not synced yet (adding or removing `origin.approved_by`, say) is judged as it will be committed. A requirement the store does not hold yet is not judged; run `kibi sync` first.
 - The pre-commit hook also blocks a commit that adds or edits an entity document without the body context full `kibi check` requires (`entity-context-missing`). An entity that already lacked context at the last commit, or that the schema 8 migration acknowledged in `.kb/manifest.json`, does not block.
 - Idempotent: safe to run multiple times
@@ -295,7 +326,9 @@ as `{"tests": [...], "shard": "K/N"}` and runs nothing. With `--test`, `--requir
 `--stale`, a `playwright` integration whose command is a direct
 `playwright test` invocation runs only the selected tests'
 `proof_bindings[].source_file` spec files; every producer also receives them
-as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
+as `KIBI_PROOF_SOURCE_FILES` (a JSON array). An integration that runs whole
+under these selectors is listed in the JSON summary's `notNarrowed` with the
+reason.
 `--integration` accepts one or more comma-separated integration ids.
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no
@@ -503,7 +536,7 @@ printf '%s\n' '{"subjectKey":"user.role_assignment","propertyKey":"max_roles"}' 
 
 ## `kibi search <query>`
 
-Searches entity metadata and markdown body text for exploratory discovery. The JSON route defaults to deterministic intent-v1 ranking, which accepts natural-language questions, host-agent facets, and changed source locations, and adds an answer layer; pass `"rankingMode": "legacy"` for lexical ranking.
+Asks the KB a question. Without `--type` (or `type`) it answers with five one-line decision cards for the requirements and ADRs that match best, ranked by the question's words, scope and supersession and, when the search-hints plugin is installed, by meaning too, with up to seven more decisions related by meaning in `queryAnalysis.hints`. A weak answer names no governing requirement and lists the words no card holds in `queryAnalysis.uncoveredTerms`. With a type (`fact`, `scenario`, `test`, `symbol`) it ranks those entities, ten rows by default. Both routes accept natural-language questions, host-agent facets and changed source locations, and add an answer layer; pass `"rankingMode": "legacy"` for lexical ranking.
 
 **Syntax:**
 ```bash
@@ -525,7 +558,9 @@ printf '%s\n' '{
 }' | kibi search --input -
 ```
 
-Intent results include `queryAnalysis` (with `ambiguous` read from `topRivalMargin`, the margin to the best match the top match is not linked to), matched semantic facets, source-location evidence (the requirements a located symbol `implements` match too), bounded traceability graph paths (with `fields: "full"` only), `count` (the whole ranking), `returned` (this page), `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted, and a closed requirement ranks below a current one that matches as well (`demoted: closed`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+Typed intent results include `queryAnalysis` (with `ambiguous` read from `topRivalMargin`, the margin to the best match the top match is not linked to), matched semantic facets, source-location evidence (the requirements a located symbol `implements` match too), bounded traceability graph paths (with `fields: "full"` only), `count` (the whole ranking), `returned` (this page), `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted, and a closed requirement ranks below a current one that matches as well (`demoted: closed`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+
+An abstained or weak first page that shows no hint also carries `nextActions` (a `kb_query` listing the requirement titles, `required: false`) and, when it abstained, `notes`; see the `kb_search` reference in [mcp-reference.md](mcp-reference.md).
 
 On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests` (including scenario-backed tests, each with `via`), and `adrs`, plus each requirement's `verdict` (`contradiction`, `infeasible`, `unknown` or `none`, with the contradiction and scenario-feasibility `witnesses` that name it), `exceptions` (requirements that exempt it, with `approvedBy`) and `unknowns`; `rationale` ADRs with their `source` and a decision `excerpt`; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `ungoverned` matched facts, scenarios, symbols and tests no requirement owns, with their `rank` (when the top match is one, the `note` says the governing list came from lower-ranked matches) and, for an unlinked fact that disagrees with a governing requirement's fact on the same key arguments, `overriddenBy` naming the fact that holds; `scope` (`branch`, `snapshotId`, `syncedAt`); `truncated`; and a `note`. The layer follows graph links and runs the existing checks for the governing requirements only: it is discovery, not proof, and a `none` verdict means no check named the requirement. A negative-path fact (a situation a rejecting scenario assumes, which must not happen) carries `negativePath`, ranks below the requirement it guards and is titled `Forbidden: …` in the table output, the answer layer and search hints. See the [MCP reference](mcp-reference.md#kb_search) for details.
 
@@ -753,7 +788,11 @@ evidence level, the evidence floor and whether it is met (a floor lowered with
 any certificate that no longer re-checks. Each firm-edit receipt the change
 adds or rewrites (see `kibi review-firm-edit`) is listed under its
 requirement as the agent's verdict, labelled "judged by the agent, not
-approved by you". `--no-proof` skips the proof
+approved by you". The view names the project's Kibi level under its heading
+(`Kibi level: test (the default)`), and a "Decisions only you make" section
+lists a change of the level against `HEAD` and each changed requirement whose
+evidence floor is now lower; the JSON view carries them as `level` and
+`decisions`. `--no-proof` skips the proof
 lookup, which runs a full coverage pass and can take tens of seconds on a
 large knowledge base.
 
@@ -793,7 +832,7 @@ files:
 | Cursor, ZCode | `/kibi-signoff` |
 | OpenCode | The fenced block (`--format md`) drawn as a framed card, `/kibi-signoff`, and a toast for each new view |
 | VS Code (and Cursor with the extension) | The **Kibi: Show Requirements Signoff** panel |
-| Claude Code, Codex, Cursor, ZCode hooks | After a session writes a requirement, the stop hook asks once for `kibi signoff` unless it already ran since |
+| Claude Code, Codex, Cursor, ZCode hooks; OpenCode v1 plugin | After a session writes a requirement, the stop hook (OpenCode: when the session goes idle) asks once for `kibi signoff` unless it already ran since |
 
 **Examples:**
 ```bash
@@ -860,7 +899,9 @@ signoff` shows it as such. Hooks read receipts too: the Claude Code
 PreToolUse hook lets the retry of an edit it asked about through when a
 `keeps` receipt recorded after the question covers every edited symbol (a
 receipt from an earlier session never skips the question), and the Codex,
-Cursor and ZCode notices name this command. `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
+Cursor, ZCode and OpenCode notices name this command (OpenCode v1 stops the
+first attempt of such an edit once and lets the same edit through when it is
+tried again). `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
 the staged gate.
 
 **Example:**
@@ -893,6 +934,7 @@ kibi graph --from REQ-mcp-search-discovery,TEST-mcp-search-discovery --direction
 Validates knowledge base integrity and runs inference rules.
 
 **Behavior:**
+- Runs the canonical and advisory rules of the knowledge layer at every [Kibi level](#kibi-level), and those of the verification layer (`evidence-floor`, `symbol-coverage`, `must-priority-coverage`, `must-positive-scenario`, `proof-contract-claims`, `proof-contract-symbols`) only at level `test`. Each rule's layer is in `packages/core/schema/rule-registry.json`. `--rules` runs the rules it names at any level.
 - Validates required fields are present
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
@@ -1075,12 +1117,12 @@ Verifies environment setup and diagnostics.
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
-- Checks git repository presence
+- Checks git repository presence: outside any repository it is a warning carrying the `no_git_repository` advisory (what is off until there is a repository, and `git init`, then `kibi init`), not a failure
 - Checks the current branch's KB store ("Branch store"): when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), it warns that the next Kibi query or check compiles it when auto-sync is on (`kibi.setup.autoSync`, the default), and fails naming `kibi sync` when auto-sync is off (`KIBI_AUTO_SYNC=0` or `autoSync: false`) or the attachment is read-only, detached or awaiting migration; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - When a hook manager owns the hooks (lefthook, husky, the pre-commit framework), reads the commands from its configuration instead of the generated hook files. A hook whose configuration visibly runs Kibi's commands passes; one that does not (for example because it calls a task runner) is a warning with `kibi init --print-hook <hook> --format <manager>` as the remediation, since doctor cannot see through the runner
 - Otherwise treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
-- Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
+- Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), compared by content rather than by version, for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
 - Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints only the setup steps that are missing (the `.gitattributes` lines, the `git config` command, or both); merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
 - Fails ("Capability plugins") when a plugin `package.json#kibi.plugins` declares is not installed in the workspace (run `npm install`), and when an installed release-qualified source analyzer such as `kibi-plugin-treesitter` is not the exact build this Kibi pins (its pinned file hashes or version differ, for example an older build published under the same version): the remediation is to remove `node_modules/<package>` and install the qualified build. Doctor resolves and hashes the package; it never imports plugin code
@@ -1104,7 +1146,7 @@ artifacts are executing.
 - Branch store not compiled with auto-sync off → Run `kibi sync`
 - Kibi-managed hook section without kibi CLI resolution → Run `kibi init` to regenerate it
 - Custom (non-Kibi) pre-commit hook does not run `kibi check-generated --staged --changed-only` and `kibi check --staged` → Add both to the hook; `kibi init --print-hook pre-commit` prints a ready-to-paste snippet. Re-running `kibi init` does not help, because init never edits a custom hook. An unmarked file that is an old Kibi template can instead be deleted so `kibi init` reinstalls it
-- Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
+- Kibi-managed hook sections outdated for this CLI → Run `kibi migrate --yes` (or `kibi init`) to refresh them (hooks are shared by every worktree of the repository)
 - `.kb/manifest.json` missing beside a legacy `.kb/config.json` → Run `kibi migrate --yes` (not `kibi init`)
 - Legacy knowledge files that `kibi migrate` cannot move (a destination already exists) → doctor prints the same resolution `kibi migrate` and the migration plan report (stale symbols subset, generated coordinates, ambiguous symbols manifest, or a conflict to compare), instead of sending you back to `kibi migrate`. Legacy copies identical to their `.kb/` file are counted separately; `kibi migrate --yes` removes them
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
@@ -1208,6 +1250,7 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Schema 14: accepts `status: retired` (with `retired_reason`) on requirements, and `kibi check` blocks `retired-reason-missing` and `retired-owner-only`. No file is rewritten. At any schema version the plan lists each `closed` requirement that nothing supersedes and whose own source says it was retired (its `proof_exempt_reason` or title says retired or archived, its body says "this requirement was retired", or a `historical-status:` tag records retired, archived, deprecated or superseded) as a `req_retired_status_suggest` review action (id `req-retired-status-<REQ>`). Its evidence lists the `signals` and the `retiredReason` it would write; approving it by id (`--approved-action req-retired-status-<REQ>`) sets `status: retired` and `retired_reason`, changing only those two lines, and refuses when the requirement is no longer `closed`. `--dry-run` and `--yes` print the requirements it found. Leave a requirement that is done and still valid `closed` and mark the action deferred
 - Schema 16: domain subjects. No file is rewritten by the upgrade itself; at any schema version the plan lists the subject layer's open items. An unmodeled rule claim that names no subject gets `claim_subject_anchor_suggest` (id `claim-subject-anchor-<REQ>-<claim_key>`) when its words match one defined subject better than any other: approving it by id adds `subjects: [<subject_key>]` to the inventory entry, inserting only those lines. A tie or no match gets `claim_subject_anchor_review` with the candidates, for a person to pick or define. A subject fact without a definition gets `subject_definition_review` (id `subject-definition-<FACT>`), and two subject facts that read as one get `subject_duplicate_review` (id `subject-duplicate-<FACT>-<FACT>`). Kibi never writes a definition
 - Schema 19: `quantity-duplicate` blocks two value facts of current requirements that state one quantity under different keys. No file is rewritten: whether two facts are one quantity is a person's call, so at any schema version the plan lists each pair as a `quantity_duplicate_review` action (id `quantity-duplicate-<FACT>-<FACT>`) naming both claims, keys, values, requirements and files, and the upgrade notes how many pairs it found. Ground both claims on one key, or add `distinct_from` on either fact when they are different quantities; Kibi never writes `distinct_from` on its own.
+- Schema 20: [Kibi levels](#kibi-level). No file is rewritten: the upgrade leaves the level as it is, so a project that sets none stays at `test`, and its note says how a person chooses `remember` (set `kibi.level` in `package.json`, or `level` in `.kb/setup.json`, to `remember`, or run `kibi init --level remember`).
 - Treats malformed `.kb/config.json` as a blocker instead of guessing `documentation/` paths
 - Classifies a legacy file whose `.kb/` destination already exists, with or without a legacy `.kb/config.json`: a byte-identical copy is removed (the dry run lists it as `would remove`), and anything else blocks the move with a resolution. A legacy symbols manifest whose symbol ids are all in `.kb/symbols.yaml` is reported as a stale subset to remove with `git rm`, a `symbol-coordinates.yaml` copy as generated (keep `.kb/`, `kibi sync --refresh-symbol-coordinates` regenerates it), and other content as a conflict to compare. Kibi only deletes the identical copy itself.
 - Without `paths.symbols` in a legacy config whose lanes sit under another folder (for example `kibi-docs/requirements`), takes the symbols manifest beside those lanes (`kibi-docs/symbols.yaml`) instead of the `documentation/symbols.yaml` default. When a `documentation/symbols.yaml` exists too, or is the only candidate, the move is blocked as ambiguous until `paths.symbols` names the current manifest or the stale one is removed.
@@ -1225,6 +1268,7 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Lists the schema 6 items a person must decide as review actions with stable ids: exceptions that exempt a requirement but have no `approved_by` (`review_exception_unapproved`), agent-recorded exception approvals nobody corroborated (`review_exception_approval_self_attested`), one action per predicate named by `rule-key-arguments-missing` (`review_predicate_key_arguments`), one per scenario reported by `scenario-feasibility-unknown` (`review_scenario_feasibility_unknown`), one queue for the agent-authored requirements `agent-requirement-unapproved` lists (`review_agent_requirements_unapproved`), one queue for the symbols `symbol-owner-superseded` lists (`review_symbol_owner_superseded`), one queue for the requirements `requirement-rationale-missing` lists (`review_requirement_rationale_missing`), one action per ADR reported by `adr-unlinked` (`review_adr_unlinked`) or `adr-proposed` (`review_adr_proposed`), and any blocking violation. It also lists, as one review queue (`review_inline_implements_comment`), every `implements REQ-...` comment still in a tracked source file: Kibi no longer reads these comments, so each one whose link still holds needs a `.kb/symbols.yaml` entry, and the comment can then be deleted. The evidence gives each comment's file, line, the ids it names, and `manifestLinked` (the ids a manifest symbol of the same file already implements, for which deleting the comment loses nothing). `kibi migrate` never edits source code.
 - When the plan rewrites authored sources, the schema upgrade depends on those rewrites and a `migration-sync` action recompiles the KB, so the check and coverage readback after `--apply-safe` already see the migrated files. `migration-sync` is left out while a requirement still needs a manual inventory fix, because sync would reject it, and when no source is rewritten and the status plan already compiles or resyncs the KB after the schema upgrade, so the plan matches the `kb_status` plan. For the same reason, the status plan's `freshness-resync` and `branch-store-compile` syncs depend on the inventory re-derivations, and are blocked (evidence `blockedBy`) while a `semantic_inventory_review` is open.
 - Plans quality actions only from a branch store that has been synced at least once; a never-synced store is reported as an incomplete `quality` domain instead of as one missing-relationship action per authored link.
+- Refreshes the kibi-managed sections of this checkout's Git hooks (`post-checkout`, `post-merge`, `post-rewrite`, `pre-commit`) when they differ from the template the running CLI installs, at any schema version, so `kibi doctor` passes "Kibi-managed hook sections" after an upgrade without a `kibi init`. The comparison is by content, not by version string, so a section written by another build of the same version is refreshed too. Only the text between `# BEGIN kibi-managed` and `# END kibi-managed` is rewritten; user-authored lines stay, a hook without a kibi-managed section is never installed, a symlinked hook is left alone with a warning, and nothing is touched where a hook manager owns the hooks or the hooks directory resolves outside the repository. `kibi migrate --yes` prints `Refreshed the kibi-managed sections of <hooks> ...`, and `--dry-run` names them. The plan offers it as the automatic `managed_hook_sections_outdated` action (id `git-hooks-refresh`, category `hooks`), whose evidence lists the hooks and the SHA-256 `templateDigest` of the templates it was planned with; applying it with a CLI whose templates differ is refused, so rerun `kibi migrate` for a current plan
 - Idempotent: safe to run if already on the latest version. A second run after a completed migration plans no schema 6 actions, and `kibi migrate --yes` reports that no migration is needed.
 
 - The text preview lists migration actions apart from the quality backlog: review findings `kibi check` and `kb_status` report at any schema version (codes `quality_*`, `coverage_*`, and check reviews such as `review_adr_unlinked`) are counted per code under "Quality backlog (not part of the migration)", and `Migration: complete` means no migration action remains even when the backlog is long. `--backlog` lists each backlog action; `--format json` keeps the complete, unchanged plan.

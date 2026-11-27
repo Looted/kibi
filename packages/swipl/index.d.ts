@@ -6,18 +6,23 @@ export type PlatformKey =
   | "linux-x64-gnu"
   | "linux-arm64-gnu"
   | "darwin-arm64"
-  | "darwin-x64";
+  | "darwin-x64"
+  | "win32-x64";
 
 export type PlatformPackage = {
   readonly package: string;
-  readonly os: "linux" | "darwin";
+  readonly os: "linux" | "darwin" | "win32";
   readonly cpu: "x64" | "arm64";
   readonly libc?: "glibc";
+  readonly binary: string;
 };
 
 export declare const PLATFORM_PACKAGES: Readonly<
   Record<PlatformKey, PlatformPackage>
 >;
+
+export declare function bundledBinaryPath(key: PlatformKey): string;
+export declare function bundledBinaryPath(key: string): string | undefined;
 
 export declare function platformKey(host: {
   platform: string;
@@ -35,7 +40,7 @@ export type BuildManifestValidation =
   | {
       ok: true;
       swiplVersion: string;
-      binaryPath: "bin/swipl";
+      binaryPath: string;
       binarySha256: string;
       home: string;
     }

@@ -426,3 +426,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d89b11849400
+  - type: assumes
+    from: SCEN-impact-review-author-carry
+    to: FACT-impact-review-author-carry
+    created_at: 2026-11-19T19:12:31.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa1629539079
+  - type: assumes
+    from: SCEN-impact-review-author-carry
+    to: FACT-impact-review-author-dropped-reported
+    created_at: 2026-11-19T19:12:31.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efd0f8a96858
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-impact-review-author-write
+    created_at: 2026-11-19T19:21:58.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e94381dbc87
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-NEG-impact-review-author-write-COPIED-EVIDENCE
+    created_at: 2026-11-19T19:21:58.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-706c8f6f315b
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-impact-review-author-scope-fingerprint
+    created_at: 2026-11-19T19:21:58.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8770f941176d
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-NEG-impact-review-author-scope-fingerprint-STALE-SCOPE
+    created_at: 2026-11-19T19:21:58.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11138233a523
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-impact-review-author-strict
+    created_at: 2026-11-19T19:21:58.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1bd168049d2
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-NEG-impact-review-author-strict-INVALID-WRITTEN
+    created_at: 2026-11-19T19:21:58.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45120d2f6628
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-impact-review-author-carry
+    created_at: 2026-11-19T19:21:58.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb933f8e5f30
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-NEG-impact-review-author-carry-STALE-KEPT
+    created_at: 2026-11-19T19:21:58.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e93b0a3cd4e8
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-impact-review-author-no-generation
+    created_at: 2026-11-19T19:21:58.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14928e88cb6d
+  - type: validates
+    from: TEST-impact-review-authoring
+    to: SCEN-NEG-impact-review-author-no-generation-SELF-DECIDED
+    created_at: 2026-11-19T19:21:58.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-794a505365e9
+  - type: verified_by
+    from: SCEN-kibi-search-hints-default
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-11-24T08:21:14.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f465bb8c5f0b
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-without-configuration
+    created_at: 2026-11-24T08:22:01.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90a23c2b7349
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-when-declined
+    created_at: 2026-11-24T08:22:01.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ce4382c61a2
+  - type: assumes
+    from: SCEN-kibi-search-hints-default
+    to: FACT-search-hints-default-beside-configured
+    created_at: 2026-11-24T08:22:01.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c8f281c63d

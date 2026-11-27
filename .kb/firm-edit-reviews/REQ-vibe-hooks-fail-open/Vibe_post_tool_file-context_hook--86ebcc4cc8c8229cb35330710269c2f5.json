@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-hooks-fail-open",
+  "sourceFile": "packages/vibe/bin/hooks/kibi-file-context.mjs",
+  "symbol": "Vibe post_tool file-context hook",
+  "verdict": "keeps",
+  "note": "Preserves payload cwd workspace resolution and fail-open exit 0 outside Kibi workspaces or on errors while hardening temp state permissions and frontmatter id lookup.",
+  "statementHash": "sha256:c339c739b735734199e6c6d88e7b8f066986a385ca514e53252568579c38b9ee",
+  "codeHash": "sha256:a30513942f2de15bc35eac07e70b85ca3ed805d99b6da3c85f11808a1f7c678d",
+  "startLine": 1,
+  "endLine": 71,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

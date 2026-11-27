@@ -2,7 +2,7 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
@@ -110,15 +110,12 @@
         }
       ]
     },
-    "mcp": {
-      "servers": {
-        "kibi": {
-          "command": "bun",
-          "args": ["${config:kibi.mcp.serverPath}"],
-          "env": {}
-        }
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "kibi.mcpProvider",
+        "label": "Kibi"
       }
-    }
+    ]
   },
   "scripts": {
     "build": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
@@ -139,7 +136,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^2.42.0"
+    "kibi-cli": "^2.46.0"
   },
   "homepage": "https://looted.github.io/kibi/",
   "repository": {

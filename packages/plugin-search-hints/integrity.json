@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-search-hints",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 4475,
-      "sha256": "0dacf3a4471ea8d3e00ab3ca5f09a7449a6f60721db6de3cd974fbda9958a0ec"
+      "bytes": 12850,
+      "sha256": "6c38baac9d4174d805231027e74a9e39b0b7c857096bc70cee477e815ad4043d"
     },
     {
       "path": "LICENSE.md",
@@ -21,83 +21,83 @@
     },
     {
       "path": "README.md",
-      "bytes": 1474,
-      "sha256": "0607469f6a6a35aa3eb6a5eecf7d7ebe4663f1f707dd8dcd8c292183372955e8"
+      "bytes": 2342,
+      "sha256": "7aa98c90388ee0be8a69dbf381d8ec6d000ba509499032d422d6f57ad5cd831b"
     },
     {
       "path": "SBOM.spdx.json",
-      "bytes": 2353,
-      "sha256": "69cb853dd24f886fc7f4c466bb0965a868d701053373b534b0e2cc01af522c95"
+      "bytes": 2464,
+      "sha256": "800d20ceff75f0f129932c400c2cf45635f0024ead125e555b28cdb2ac9c0b24"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "bytes": 993,
-      "sha256": "3b0b169c9173957364e4b03aeab1ebe87efd488fb3b465c022027ce7adc8c331"
+      "bytes": 1098,
+      "sha256": "7c24f8ec72b9c4169a880665b4908fbcbca56d5f11b97efa34390de55a6584bb"
     },
     {
-      "path": "assets/potion-base-8M.int8.bin",
-      "bytes": 7677296,
-      "sha256": "02eb3b486a152a01c49055e109cce3e483fc3b49761f5343b5518c0cfc76f54f"
+      "path": "assets/potion-retrieval-32M.int8.bin",
+      "bytes": 32554972,
+      "sha256": "8e15738797a07a51bd4388abdc4e86f8aa5b47f66179739f3a19e65fa0e52d01"
     },
     {
       "path": "assets/vocab.txt",
-      "bytes": 219690,
-      "sha256": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c"
+      "bytes": 492156,
+      "sha256": "4b3452e69455f96c6cfc1cdb212d3b7b1a3e9d2505ab6f61a50022f61467a6a3"
     },
     {
       "path": "catalog.json",
-      "bytes": 900,
-      "sha256": "d370f8529bd6ceb852c58823b0bb956fdc3f62a657a2fb2fc3b7627fa9336003"
+      "bytes": 983,
+      "sha256": "fa6ad09ba0169181a11df59f035dc58d91820fa60e0306286b374f88c8723a03"
     },
     {
       "path": "dist/cache.d.ts",
-      "bytes": 1103,
-      "sha256": "adeca3b210197f3f1039eb82024d800e806744a2e248b0d193de3ac4e0faf749"
+      "bytes": 1449,
+      "sha256": "d1ad9a92822deda4bc3befc8201edc9c6a90a08e93e1ec08a85217bcb5510584"
     },
     {
       "path": "dist/cache.d.ts.map",
-      "bytes": 723,
-      "sha256": "b4961ecf967c867aa963ff0aced7348aeab8fe45fd88171c9225bf48dd807fb7"
+      "bytes": 916,
+      "sha256": "9df33115d67e597c6a20d37813bb1cc0dc8f1156aac355e8584a9d3d3a242e26"
     },
     {
       "path": "dist/cache.js",
-      "bytes": 4283,
-      "sha256": "114aa58ffff06ff3b50d806191c15123ce589d76c9d79d2257c104715d9da0a6"
+      "bytes": 4824,
+      "sha256": "87b1ed6cb11a167970ae09227612f684d015a8b24bf5d5938af3289a587e4349"
     },
     {
       "path": "dist/index.d.ts",
-      "bytes": 1288,
-      "sha256": "73eb11ee7415166394fd4df7cee6c53b9e12f0e149b2681721a28a36053c33ec"
+      "bytes": 1292,
+      "sha256": "0ce17d4a0d15784a139a1a799447584cac757d9ba7608e06efa5f74ec2b1aef0"
     },
     {
       "path": "dist/index.d.ts.map",
       "bytes": 720,
-      "sha256": "0235afbfceae488d7b0559b81882e99fa2fe95e72c330b4dc287c19414f8e36f"
+      "sha256": "c0516d406d5fc51b4400ff23ad8862b137d95cd85f8ad7884d950c4d4c9d2b22"
     },
     {
       "path": "dist/index.js",
-      "bytes": 2849,
-      "sha256": "ef0a57ef29c12ba2df3bf5a8a2e13249a406bd5450d0b8810e31525707d0c407"
+      "bytes": 2873,
+      "sha256": "e2564e2a7454725300c83221ea78ab113b84313d6a3ad20b23930a2a33987e81"
     },
     {
       "path": "dist/model.d.ts",
-      "bytes": 831,
-      "sha256": "a9bc35f94df9392d8bb7d3167ee6bc17da6a2176532735132f20704e78039ddc"
+      "bytes": 837,
+      "sha256": "60266c47b1d0010496af26b1bff101e5f3efc7ad2fd43a3473d05f904b79f9ad"
     },
     {
       "path": "dist/model.d.ts.map",
       "bytes": 451,
-      "sha256": "a5470076876c76947aafc7b250ca11a1e332b5ac2fafb8688e307862a9ad9c4e"
+      "sha256": "d4a6c843f6e6beccab33bad9c2bca431277b000a86027e65dd6520abbc8c0e1d"
     },
     {
       "path": "dist/model.js",
-      "bytes": 2722,
-      "sha256": "2cb1d4ef776173bf4643d845845bf39fdbb9821ecbbace8d535b5887f4f1c25d"
+      "bytes": 2734,
+      "sha256": "e9d766f07f8c686e15a413a3d759a1f0bf00083169e62939fbd72e797d147556"
     },
     {
       "path": "dist/tokenizer.d.ts",
-      "bytes": 704,
-      "sha256": "d949a9244fae4f6a29d53d3a75c554d517c3b3fe684028d52ef26d3b0981ab21"
+      "bytes": 710,
+      "sha256": "af96a3002d034769244ac1c1ae6932f8e85c0f0e4a2590a4d62ed95b1d0b9187"
     },
     {
       "path": "dist/tokenizer.d.ts.map",
@@ -106,8 +106,8 @@
     },
     {
       "path": "dist/tokenizer.js",
-      "bytes": 4599,
-      "sha256": "4f020f316e3f57ef312dd9fe9aff7390acd05534fce619ba6ebe63b4dc947e2d"
+      "bytes": 4605,
+      "sha256": "16913af626660c810aa6984c74a08765f3c4de1a81bd1b6907f8523c3afed459"
     },
     {
       "path": "licenses/bge-base-en-v1.5-vocabulary-MIT.txt",
@@ -115,14 +115,14 @@
       "sha256": "587a673933425dbc36ec61268d3b954051b2d3ef3c9b322ede357976055ffdd5"
     },
     {
-      "path": "licenses/potion-base-8M-MIT.txt",
+      "path": "licenses/potion-retrieval-32M-MIT.txt",
       "bytes": 1074,
       "sha256": "b0214f148eceae739f916209e78cfe15712c4b810c8bc9d44b6c2d1d1616aab6"
     },
     {
       "path": "package.json",
       "bytes": 1340,
-      "sha256": "8a799fe94f9fc2adfeb7f3cd42d175e63438e05b3cbc8172dbf19c9030e91ee2"
+      "sha256": "1ce85f94ae5b29cebfee4fa25fdcbc29b9603c0d5d1072f9d74d888314a3fca3"
     }
   ]
 }

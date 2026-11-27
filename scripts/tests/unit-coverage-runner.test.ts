@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   COVERAGE_SHARDS,
+  activeShardCosts,
   formatCoverageFailure,
   mergeDirFromArgv,
   partitionFromArgv,
@@ -11,6 +12,11 @@ import {
   shardLabelsFromArgv,
   testFailureOutput,
 } from "../run-unit-coverage";
+import {
+  combineShardCosts,
+  measuredShardCosts,
+  parseShardCostFile,
+} from "../unit-coverage-costs";
 
 const runnerSource = readFileSync(
   join(import.meta.dir, "..", "run-unit-coverage.ts"),
@@ -33,7 +39,7 @@ describe("unit coverage runner contract", () => {
   test("owns SkillOpt and scripts tests in dedicated coverage shards", () => {
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "skillopt",
-      costSeconds: 60,
+      costSeconds: 337,
       paths: ["./scripts/skillopt-eval/tests"],
       timeoutMs: 120_000,
     });
@@ -255,6 +261,57 @@ describe("unit coverage runner contract", () => {
     }
   });
 
+  test("partitionShards balances measured shard costs across four jobs", () => {
+    const costs = activeShardCosts({ KIBI_UNIT_COVERAGE_COSTS: "" });
+    expect(costs).toBeDefined();
+    const count = 4;
+    const loads = Array.from({ length: count }, (_, index) =>
+      partitionShards(
+        { index: index + 1, count },
+        COVERAGE_SHARDS,
+        costs,
+      ).reduce(
+        (total, shard) =>
+          total + (costs?.[shard.label] ?? shard.costSeconds ?? 2),
+        0,
+      ),
+    );
+    // The seed measured on run 45412098451 packs to a one-second spread.
+    // A new heavy shard with no measurement must fail this, so the seed
+    // (or the next CI cost cache) gets a number for it.
+    expect(Math.max(...loads) - Math.min(...loads)).toBeLessThanOrEqual(60);
+    expect(Math.max(...loads)).toBeLessThanOrEqual(
+      Math.ceil((loads.reduce((sum, load) => sum + load, 0) / count) * 1.15),
+    );
+  });
+
+  test("measured durations replace only the shards that passed cleanly", () => {
+    const previous = { "cli.commands": 10, skillopt: 20 };
+    const measured = measuredShardCosts([
+      {
+        shard: "cli.commands",
+        durationMs: 290_100,
+        files: { "a.test.ts": { tests: 1, failures: 0, skipped: 0 } },
+      },
+      {
+        shard: "skillopt",
+        durationMs: 50_000,
+        files: { "b.test.ts": { tests: 1, failures: 1, skipped: 0 } },
+      },
+      { shard: "mcp", durationMs: 0, files: {} },
+      { shard: "", durationMs: 5_000, files: {} },
+      null,
+    ]);
+    expect(measured).toEqual({ "cli.commands": 291 });
+    expect(combineShardCosts(previous, measured)).toEqual({
+      "cli.commands": 291,
+      skillopt: 20,
+    });
+    expect(
+      parseShardCostFile({ version: "nope", shards: { a: 1 } }),
+    ).toBeUndefined();
+  });
+
   test("partitionShards balances known shard costs and is deterministic", () => {
     const count = 4;
     const loads = Array.from({ length: count }, (_, index) =>
@@ -406,6 +463,8 @@ describe("unit coverage runner contract", () => {
       "signoff",
       "helpers",
       "dependencies",
+      "kibi-levels",
+      "vcs",
     ].map((name) => `./packages/cli/tests/${name}`);
     const supportShard = COVERAGE_SHARDS.find(
       (shard) => shard.label === "cli.support",

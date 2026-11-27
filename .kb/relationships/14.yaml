@@ -377,3 +377,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e358858214ab
+  - type: assumes
+    from: SCEN-NEG-coverage-matched-count-NO-MATCHED
+    to: FACT-NEG-coverage-matched-count-NO-MATCHED
+    created_at: 2026-11-19T15:28:12.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21910c613bc7
+  - type: implements
+    from: SYM-prolog-win32-repack-build-archive
+    to: REQ-prolog-win32-prebuilt-provenance
+    created_at: 2026-11-20T11:45:00.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87cadfa86a43
+  - type: covered_by
+    from: SYM-prolog-win32-repack-build-archive
+    to: TEST-prolog-win32-repack-contract
+    created_at: 2026-11-20T11:54:04.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44e24903c0a
+  - type: verified_by
+    from: SCEN-NEG-zcode-marketplace-install-hooks-BUILD-ONLY-RUNNER
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-20T15:32:35.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-266adaeb3b04
+  - type: assumes
+    from: SCEN-NEG-zcode-marketplace-install-hooks-BUILD-ONLY-RUNNER
+    to: FACT-NEG-zcode-marketplace-hooks-BUILD-ONLY-RUNNER
+    created_at: 2026-11-20T15:39:30.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7cc0436e93b
+  - type: executable_for
+    from: SYM-antigravity-kb-tools-session-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:18.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bf54f7aee6c
+  - type: validates
+    from: TEST-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp
+    created_at: 2026-11-25T14:53:21.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb9fe69dab7
+  - type: validates
+    from: TEST-vs-code-extension-register-kibi-mcp
+    to: SCEN-vs-code-extension-register-kibi-mcp-reject
+    created_at: 2026-11-25T15:00:46.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70f1b41b4d65
+  - type: assumes
+    from: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    to: FACT-NEG-hook-read-row-budgets-REPEATED-ROW
+    created_at: 2026-11-25T14:28:18.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f765eec0da09
+  - type: verified_by
+    from: SCEN-NEG-hook-read-row-budgets-REPEATED-ROW
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:28:18.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8573828e5711
+  - type: implements
+    from: SYM-cli-rule-registry-getCanonicalRules
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:03.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d4423bde11e
+  - type: covered_by
+    from: SYM-cli-rule-registry-getCanonicalRules
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:03.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12a21cb3ea8a

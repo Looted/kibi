@@ -496,3 +496,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6017adddc2cb
+  - type: constrains
+    from: REQ-kb-check-impact-advice-once
+    to: FACT-SUBJ-kibi-impact-next-actions
+    created_at: 2026-11-24T19:21:18.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6859df13d90
+  - type: requires_property
+    from: REQ-kb-check-impact-advice-once
+    to: FACT-check-impact-advice-once
+    created_at: 2026-11-24T19:21:18.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9122c5ade43a
+  - type: specified_by
+    from: REQ-kb-check-impact-advice-once
+    to: SCEN-kb-check-impact-advice-once
+    created_at: 2026-11-24T19:21:18.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43a4d2eb09c
+  - type: relates_to
+    from: REQ-kb-check-impact-advice-once
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-24T19:21:18.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16e208a8b259
+  - type: specified_by
+    from: REQ-kb-check-impact-advice-once
+    to: SCEN-CASE-kb-check-impact-advice-once-CHECK-ADVICE-COPIED
+    created_at: 2026-11-24T19:26:51.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20afc26bf577
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-agent-hosts-guarded-change-prompt
+    created_at: 2026-11-25T14:06:38.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12ead0557058
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-rejected
+    created_at: 2026-11-25T14:06:39.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31e33d12b7ca
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:06:59.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fac7a6315ba
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-rejected
+    created_at: 2026-11-25T14:06:59.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3220d993cdc4
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-vibe-guarded-change-after-notice
+    created_at: 2026-11-25T14:07:17.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b0de8f2a991
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-vibe-guarded-change-after-notice-rejected
+    created_at: 2026-11-25T14:07:17.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d83559b0fb58
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-c01-eq-false
+    created_at: 2026-11-25T14:08:30.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c46e5ec1f801
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-prompt-c02-eq-false
+    created_at: 2026-11-25T14:08:35.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ebf068235c6
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:43.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14ab4bb29177
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-agent-hosts-guarded-change-notice-c02-eq-false
+    created_at: 2026-11-25T14:08:50.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-251cd66f5119
+  - type: validates
+    from: TEST-agent-hosts-guarded-change-ask
+    to: SCEN-NEG-vibe-guarded-change-after-notice-c01-eq-false
+    created_at: 2026-11-25T14:08:59.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e5d7850b987
+  - type: implements
+    from: SYM-bash-command-command-read-views
+    to: REQ-hook-read-rows-every-named-file
+    created_at: 2026-11-25T14:27:51.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6f453546e55
+  - type: covered_by
+    from: SYM-bash-command-command-read-views
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:27:51.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa4ba56f5ab9

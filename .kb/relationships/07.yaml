@@ -608,3 +608,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-504cddba7b28
+  - type: executable_for
+    from: SYM-test-kibi-result-budget
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:24:25.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9da98aa9f81
+  - type: requires_property
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: FACT-prolog-win32-prebuilt-pinned-installer
+    created_at: 2026-11-20T11:18:21.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7645b7886cc7
+  - type: requires_property
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: FACT-prolog-win32-prebuilt-manifest-prebuilt-block
+    created_at: 2026-11-20T11:18:21.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f60623b18aa1
+  - type: constrains
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: FACT-prolog-win32-prebuilt-subject
+    created_at: 2026-11-20T11:18:21.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7d69594a2c4
+  - type: specified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: SCEN-prolog-win32-prebuilt-repack
+    created_at: 2026-11-20T11:18:21.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a7eee7c357f
+  - type: verified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: TEST-prolog-win32-repack-contract
+    created_at: 2026-11-20T11:18:21.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7539965722b
+  - type: specified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: SCEN-NEG-prolog-win32-prebuilt-tampered-installer
+    created_at: 2026-11-20T11:47:08.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f308ad343c6a
+  - type: requires_property
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: FACT-prolog-win32-prebuilt-clean-runner-pe-audit
+    created_at: 2026-11-20T12:13:37.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eab9aaa134af
+  - type: specified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: SCEN-CASE-prolog-win32-prebuilt-pe-audit-EXE
+    created_at: 2026-11-20T12:19:11.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd2f08cfd8b4
+  - type: specified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: SCEN-CASE-prolog-win32-prebuilt-pe-audit-DLL
+    created_at: 2026-11-20T12:19:11.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdbeef5bb061
+  - type: specified_by
+    from: REQ-prolog-win32-prebuilt-provenance
+    to: SCEN-NEG-prolog-win32-prebuilt-pe-audit-outside-set
+    created_at: 2026-11-20T15:13:10.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5238f9872986
+  - type: implements
+    from: SYM-swipl-archive-cache-mode
+    to: REQ-prolog-release-pack-pr-archive-cache
+    created_at: 2026-11-24T15:48:38.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a43ef5a2aa96
+  - type: covered_by
+    from: SYM-swipl-archive-cache-mode
+    to: TEST-prolog-bundled-release
+    created_at: 2026-11-24T15:48:38.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6eeca685a6a
+  - type: implements
+    from: SYM-hook-runner-requirement-rows
+    to: REQ-hook-read-rows-every-harness
+    created_at: 2026-11-25T15:04:40.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc6b326c838f
+  - type: covered_by
+    from: SYM-hook-runner-requirement-rows
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T15:04:40.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a4eaf02079a

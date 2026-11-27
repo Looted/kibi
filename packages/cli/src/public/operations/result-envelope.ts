@@ -1,12 +1,19 @@
 import { MIGRATION_PLAN_REFUSED } from "../../operations/planning/migration-refusal.js";
+import {
+  BRANCH_STORE_STALE,
+  staleStoreWarningNote,
+} from "../../utils/content-freshness.js";
 import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export {
+  BranchResolutionFailure,
+  GitRequired,
   KbRejection,
   codedErrorOf,
   isKbRejection,
 } from "../../cli-errors.js";
 export { prepareOperationInput } from "../../cli-validate.js";
+export { withInputAliases } from "./input-aliases.js";
 export type { CodedErrorFields } from "../../cli-errors.js";
 
 export const KIBI_PROTOCOL_VERSION = 1 as const;
@@ -101,6 +108,35 @@ function uncompiledStoreDiagnostics(
       ...(typeof store.code === "string" ? { code: store.code } : {}),
       severity: "warning",
       message: `${typeof store.detail === "string" ? `${store.detail} ` : ""}An empty answer here does not mean no requirement governs this; run \`kibi sync\` and ask again.`,
+    },
+  ];
+}
+
+function staleStoreDiagnostics(
+  operation: string,
+  row: Record<string, unknown> | undefined,
+): KibiResult["diagnostics"] {
+  if (!STORE_READ_OPERATIONS.has(operation)) return [];
+  const meta = row?.meta;
+  if (!record(meta) || meta.syncState !== "stale") return [];
+  const count =
+    typeof meta.staleReasonCount === "number" &&
+    Number.isInteger(meta.staleReasonCount) &&
+    meta.staleReasonCount > 0
+      ? meta.staleReasonCount
+      : Array.isArray(meta.staleReasons)
+        ? Math.max(1, meta.staleReasons.length)
+        : 1;
+  const paths = Array.isArray(meta.staleReasons)
+    ? meta.staleReasons.flatMap((reason) =>
+        record(reason) && typeof reason.path === "string" ? [reason.path] : [],
+      )
+    : [];
+  return [
+    {
+      code: BRANCH_STORE_STALE,
+      severity: "warning",
+      message: staleStoreWarningNote(count, paths),
     },
   ];
 }
@@ -243,6 +279,11 @@ function refusalDetail(row: Record<string, unknown>): string {
     : "";
 }
 
+/** `list` with `more` after it; `list` itself when there is nothing more. */
+function appended<T>(list: readonly T[], more: readonly T[] | undefined) {
+  return more === undefined || more.length === 0 ? list : [...list, ...more];
+}
+
 export function toKibiResult<T>(
   spec: {
     readonly name: OperationName | string;
@@ -259,6 +300,10 @@ export function toKibiResult<T>(
      * failed.
      */
     readonly attempted?: boolean;
+    /** Diagnostics added after the operation's own (a size-budget cut). */
+    readonly appendDiagnostics?: KibiResult["diagnostics"];
+    /** Next actions added after the operation's own (paging on). */
+    readonly appendNextActions?: KibiResult["nextActions"];
   } = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
@@ -312,18 +357,40 @@ export function toKibiResult<T>(
     operation: spec.name as OperationName,
     resultVersion: resultVersion(spec),
     status,
-    data,
+    data: withoutLiftedNextActions(spec, data),
     effects: [
       ...spec.effects.map((effect) => effectStatus(effect, row, outcome)),
       ...extraFailedEffects(spec.effects, row),
     ],
-    diagnostics: options.diagnostics ?? [
-      ...diagnostics(row?.diagnostics),
-      ...uncompiledStoreDiagnostics(String(spec.name), row),
-    ],
-    nextActions: options.nextActions ?? nextActions(row?.nextActions),
+    diagnostics: appended(
+      options.diagnostics ?? [
+        ...diagnostics(row?.diagnostics),
+        ...uncompiledStoreDiagnostics(String(spec.name), row),
+        ...staleStoreDiagnostics(String(spec.name), row),
+      ],
+      options.appendDiagnostics,
+    ),
+    nextActions: appended(
+      options.nextActions ?? nextActions(row?.nextActions),
+      options.appendNextActions,
+    ),
     ...(resultError ? { error: resultError } : {}),
   };
+}
+
+/**
+ * A kb_search payload names its next calls in `nextActions`, and the envelope
+ * lifts them to its own top-level field. The copy in the data would show the
+ * same calls twice to a host that reads the whole result, so it is dropped.
+ */
+function withoutLiftedNextActions<T>(
+  spec: { readonly name: string },
+  data: T,
+): T {
+  if (spec.name !== "kb_search" || !record(data) || !("nextActions" in data))
+    return data;
+  const { nextActions: _lifted, ...rest } = data;
+  return rest as T;
 }
 
 export function operationData(value: unknown): unknown {
@@ -396,3 +463,11 @@ export function appendPayloadCountField(
   fields.result_summary =
     count === null ? `${noun} count unavailable` : `${count} ${noun}`;
 }
+
+export {
+  RESULT_BUDGET_CHARS,
+  RESULT_CEILING_CHARS,
+  RESULT_TOO_LARGE,
+  RESULT_TRUNCATED,
+  fitOperationResult,
+} from "./result-budget.js";

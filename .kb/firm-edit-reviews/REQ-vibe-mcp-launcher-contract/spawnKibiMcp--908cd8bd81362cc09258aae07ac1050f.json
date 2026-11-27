@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-vibe-mcp-launcher-contract",
+  "sourceFile": "packages/vibe/bin/kibi-runtime.mjs",
+  "symbol": "spawnKibiMcp",
+  "verdict": "keeps",
+  "note": "Preserves project-local kibi-mcp spawning while adding stdio option forwarding and JSDoc annotations for deferred stdio proxying.",
+  "statementHash": "sha256:01862ae15164c38e94e9ae3d66e7c364df9d831c991c1e7683669a3b0bcd2bcf",
+  "codeHash": "sha256:75fe2ad1d745a778b4304328592a02435bf0d83d72f3cb94b73fbc83d618f813",
+  "startLine": 512,
+  "endLine": 541,
+  "recordedAt": "2026-11-26T18:45:24.378Z"
+}

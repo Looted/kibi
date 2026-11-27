@@ -28,6 +28,7 @@
  * shared with the kb_check input enum and the Prolog rule_registry facts.
  */
 
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { GENERATED_RULES } from "./rule-registry.generated.js";
 
 export type RuleEnforcementClass =
@@ -48,12 +49,22 @@ export type RuleEnforcementClass =
    */
   | "migration";
 
+/**
+ * The layer of Kibi a rule belongs to. Knowledge rules guard the recorded
+ * intent itself: requirements, their links to code, capture and
+ * contradictions. Verification rules ask for scenarios, tests and proof
+ * receipts that show the code keeps that intent.
+ */
+export type RuleLayer = "knowledge" | "verification";
+
 export interface RuleDefinition {
   name: string;
   description: string;
   /** Kibi-owned role of this rule in the enforcement contract. */
   enforcementClass: RuleEnforcementClass;
   category: "coverage" | "integrity" | "lifecycle" | "traceability";
+  /** The layer of Kibi the rule belongs to. */
+  layer: RuleLayer;
   /**
    * Severity for non-canonical findings rendered as quality diagnostics.
    * Omitted means "warning"; "info" marks purely informational signals.
@@ -86,6 +97,17 @@ export function getRuleDefinition(name: string): RuleDefinition | undefined {
   return RULES_BY_NAME.get(name);
 }
 
+export function getRuleLayer(name: string): RuleLayer | undefined {
+  return RULES_BY_NAME.get(name)?.layer;
+}
+
+/** The names of the rules of one layer, in registry order. */
+export function getLayerRules(layer: RuleLayer): Set<string> {
+  return new Set(
+    RULES.filter((rule) => rule.layer === layer).map((rule) => rule.name),
+  );
+}
+
 export function getRuleEnforcementClass(
   name: string,
 ): RuleEnforcementClass | undefined {
@@ -104,14 +126,26 @@ export function ruleRunsByDefault(
 }
 
 /**
- * Rules that a plain `kibi check` evaluates. Derived from enforcement
- * class: canonical and advisory run, migration does not.
+ * Whether a rule's layer runs at a Kibi level: the knowledge layer at every
+ * level, the verification layer only at `test`.
  */
-export function getDefaultRules(): Set<string> {
+export function layerRunsAtLevel(layer: RuleLayer, level: KibiLevel): boolean {
+  return layer === "knowledge" || level === "test";
+}
+
+/**
+ * Rules that a plain `kibi check` evaluates at a Kibi level. Derived from
+ * enforcement class and layer: canonical and advisory rules run, migration
+ * rules do not, and verification rules run only at level `test` (the
+ * level of a project that does not set one).
+ */
+export function getDefaultRules(level: KibiLevel = "test"): Set<string> {
   return new Set(
-    RULES.filter((rule) => ruleRunsByDefault(rule.enforcementClass)).map(
-      (rule) => rule.name,
-    ),
+    RULES.filter(
+      (rule) =>
+        ruleRunsByDefault(rule.enforcementClass) &&
+        layerRunsAtLevel(rule.layer, level),
+    ).map((rule) => rule.name),
   );
 }
 
@@ -135,20 +169,22 @@ export function isCanonicalRule(name: string): boolean {
  * Resolve the rule set for one check invocation.
  *
  * @param requestedRules Optional invocation-time diagnostic selector
- *   (`--rules`). When absent, canonical and advisory rules run. When
+ *   (`--rules`). When absent, the default rules of the level run. When
  *   present, only the selected rules run for that invocation and nothing is
  *   persisted. Selection never changes enforcement class.
+ * @param level The project's Kibi level.
  * @returns Set of rule names that should run
  */
 export function getEffectiveRules(
   requestedRules?: readonly string[],
+  level: KibiLevel = "test",
 ): Set<string> {
   if (requestedRules !== undefined) {
     return new Set(
       requestedRules.filter((name): name is string => RULE_NAMES.has(name)),
     );
   }
-  return getDefaultRules();
+  return getDefaultRules(level);
 }
 
 /**

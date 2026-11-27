@@ -1,6 +1,8 @@
 import { KB_DEPENDENCY_INPUT_SCHEMA } from "../../../dependencies/kb-dependency-scope.js";
 import { confirmMetaFreshness } from "../../../utils/content-freshness.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+import { summarizeMigrationPlan } from "../check-format-shared.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
   type LegacyMigrationPlan,
@@ -18,6 +20,14 @@ import {
   toPrologList,
 } from "../prolog-json.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
+import {
+  RESULT_BUDGET_CHARS,
+  type ResultTruncation,
+  cutRowToBudget,
+  edgesFromNodes,
+  idListText,
+  truncationSentence,
+} from "../result-budget.js";
 import type { OperationContext } from "../runtime-types.js";
 import {
   addCoordinateRepairEvidence,
@@ -25,7 +35,8 @@ import {
 } from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+
+const sizeOf = (value: unknown): number => JSON.stringify(value ?? null).length;
 
 const ENTITY_TYPES = [
   "req",
@@ -100,6 +111,8 @@ export type CoverageInput = {
   readonly migrationOffset?: number;
   readonly migrationPredicateLimit?: number;
   readonly migrationPredicateMinScore?: number;
+  /** summary (default): stage statuses and plan summaries; full: everything. */
+  readonly fields?: "summary" | "full";
 };
 
 export type CoveragePayload = {
@@ -109,6 +122,14 @@ export type CoveragePayload = {
   readonly legacyMigrationPlan?: LegacyMigrationPlan;
   readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
   readonly migrationPlan?: MigrationPlan;
+  readonly repairPlanSummary?: Readonly<Record<string, unknown>>;
+  readonly symbolRepairPlanSummary?: Readonly<Record<string, unknown>>;
+  readonly migrationPlanSummary?: Readonly<Record<string, unknown>>;
+  /** Rows the filters select before paging. */
+  readonly matched?: number;
+  readonly truncated?: boolean;
+  readonly truncation?: ResultTruncation;
+  readonly omittedFields?: readonly string[];
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -120,12 +141,15 @@ export type GraphInput = {
   readonly entityTypes?: readonly string[];
   readonly maxNodes?: number;
   readonly maxEdges?: number;
+  readonly offset?: number;
 };
 
 export type GraphPayload = {
   readonly nodes: readonly Readonly<Record<string, unknown>>[];
   readonly edges: readonly Readonly<Record<string, unknown>>[];
   readonly truncated: boolean;
+  /** Nodes the traversal reached, before paging. */
+  readonly nodeCount?: number;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -185,7 +209,7 @@ export async function executeFindGaps(
           text:
             rows.length === 0
               ? `No matching gaps found.${stubNote}`
-              : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}.${stubNote}`,
+              : `${idListText("gap rows", "rows")({ ...payload, rows })}${stubNote}`,
         },
       ],
       structuredContent: withBranchName(
@@ -241,8 +265,12 @@ export const findGapsSpec = {
       },
       limit: {
         type: "integer",
+        minimum: 0,
         default: 100,
-        description: "Maximum rows to return; count reports the full total.",
+        description:
+          "Maximum rows to return; count reports the full total. A result past its size budget returns fewer and says the offset to call again with.",
+        [ADVERTISED_DESCRIPTION]:
+          "Maximum rows; count reports the total. A result past its size budget returns fewer and names the next offset.",
       },
       offset: {
         type: "integer",
@@ -364,11 +392,33 @@ export async function perContractTestBindings(
  */
 export const COVERAGE_ROW_PAGE_SIZE = 10;
 
+/**
+ * The check time a coverage report is computed at: the end of the current
+ * window. The engine keeps the last report for the same arguments and check
+ * time, so repeated calls and the pages after the first reuse it instead of
+ * recomputing it. The end, not the start: a receipt recorded earlier in the
+ * window is never judged as dated after the check, and a receipt's age is
+ * judged at most one window late.
+ */
+export const COVERAGE_CLOCK_WINDOW_MS = 15 * 60 * 1000;
+
+export function coverageCheckTime(now: Date): string {
+  const time = now.getTime();
+  const intoWindow = time % COVERAGE_CLOCK_WINDOW_MS;
+  return new Date(
+    intoWindow === 0 ? time : time - intoWindow + COVERAGE_CLOCK_WINDOW_MS,
+  ).toISOString();
+}
+
 export async function readCoveragePages(
   prolog: NonNullable<OperationContext["prolog"]>,
   goalFor: (limit: number, offset: number) => string,
   limit: number,
   offset: number,
+  /** Stop reading once the rows read so far are enough to answer. */
+  enough: (
+    rows: readonly Readonly<Record<string, unknown>>[],
+  ) => boolean = () => false,
 ): Promise<CoveragePayload> {
   const read = (pageLimit: number, pageOffset: number) =>
     runOperationJsonQuery<CoveragePayload>(
@@ -381,7 +431,7 @@ export async function readCoveragePages(
   const rows = [...first.rows];
   // A short page is the last one.
   let full = rows.length === Math.min(COVERAGE_ROW_PAGE_SIZE, limit);
-  while (full && rows.length < limit) {
+  while (full && rows.length < limit && !enough(rows)) {
     const pageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
     const page = await read(pageLimit, offset + rows.length);
     rows.push(...page.rows);
@@ -390,16 +440,108 @@ export async function readCoveragePages(
   return { ...first, rows };
 }
 
+/**
+ * Set on a coverage input by readers of the whole report (kibi report,
+ * signoff, migrate, kb_apply_plan and the kibi coverage command): every
+ * requested row and both plans in full, past the size budget an
+ * agent-facing result keeps. A symbol, so no JSON input (MCP or the CLI
+ * JSON route) can carry it.
+ */
+export const COVERAGE_FULL_LISTING: unique symbol = Symbol.for(
+  "kibi.coverage.fullListing",
+);
+
+/** `input` marked for a reader of the whole report. */
+export function withFullListing<T extends CoverageInput>(input: T): T {
+  return { ...input, [COVERAGE_FULL_LISTING]: true };
+}
+
+/** Options for internal readers of the coverage report. */
+export type CoverageOptions = Readonly<{
+  /**
+   * Every requested row and both plans in full, past the size budget: for
+   * kibi report, signoff, migrate, kb_apply_plan and the kibi coverage
+   * command, which read the whole report rather than hand it to an agent.
+   */
+  fullListing?: boolean;
+  budget?: number;
+}>;
+
+/** A requirement row with each proof stage reduced to its status. */
+export function summarizeCoverageRow(
+  row: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  const { testResolutions: _resolutions, proofStages, ...rest } = row;
+  if (
+    proofStages === null ||
+    typeof proofStages !== "object" ||
+    Array.isArray(proofStages)
+  ) {
+    return rest;
+  }
+  // Each stage keeps its status; evidence without one, such as the source
+  // coordinates, is left to fields full.
+  const statuses: Record<string, unknown> = {};
+  for (const [stage, value] of Object.entries(proofStages)) {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      statuses[stage] = value;
+      continue;
+    }
+    const status = (value as Record<string, unknown>).status;
+    if (status !== undefined) statuses[stage] = status;
+  }
+  return { ...rest, proofStages: statuses };
+}
+
+const COVERAGE_PLAN_HINT =
+  'Pass fields: "full" (with filters or a small limit) for the batches and actions; kb_check includeMigrationPlan or kb_status gives the plan kb_apply_plan applies.';
+
+/** The repair plan without its batches: what it covers and what is next. */
+export function summarizeRepairPlan(
+  plan: RepairPlan,
+): Readonly<Record<string, unknown>> {
+  return {
+    version: plan.version,
+    planId: plan.planId,
+    status: plan.status,
+    scope: plan.scope,
+    summary: plan.summary,
+    diagnostics: plan.diagnostics,
+    hint: COVERAGE_PLAN_HINT,
+  };
+}
+
+/** The symbol repair plan with each list reduced to its length. */
+export function summarizeSymbolRepairPlan(
+  plan: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  const summary: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(plan)) {
+    if (Array.isArray(value)) summary[`${key}Count`] = value.length;
+    else summary[key] = value;
+  }
+  return { ...summary, hint: COVERAGE_PLAN_HINT };
+}
+
 export async function executeCoverage(
   input: CoverageInput,
   context: OperationContext,
+  options: CoverageOptions = {},
 ): Promise<OperationResult<CoveragePayload>> {
   try {
+    const by = input.by ?? "req";
+    const fullListing =
+      options.fullListing === true ||
+      (input as { [COVERAGE_FULL_LISTING]?: boolean })[
+        COVERAGE_FULL_LISTING
+      ] === true;
+    const fullFields = fullListing || input.fields === "full";
+    const budget = options.budget ?? RESULT_BUDGET_CHARS;
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const codeSnapshot = snapshotEvidence.available
       ? snapshotEvidence.snapshot.hash
       : "unknown";
-    const checkedAt = context.clock().toISOString();
+    const checkedAt = coverageCheckTime(context.clock());
     const statuses = (input.statuses ?? []).map((status) =>
       validateCoverageStatus(status),
     );
@@ -407,45 +549,30 @@ export async function executeCoverage(
     // the unfiltered report; otherwise its rows and summary disagree with
     // every other proof view.
     const bindingsDict =
-      (input.by ?? "req") === "req"
-        ? await perContractTestBindings(context)
-        : null;
+      by === "req" ? await perContractTestBindings(context) : null;
     const goalFor = (limit: number, offset: number): string =>
       bindingsDict !== null && statuses.length > 0
-        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        ? `discovery:coverage_report_json('${by}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
         : bindingsDict !== null
-          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+          ? `discovery:coverage_report_json('${by}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
           : statuses.length > 0
-            ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
-            : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+            ? `discovery:coverage_report_json('${by}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+            : `discovery:coverage_report_json('${by}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+    const shape = (row: Readonly<Record<string, unknown>>) =>
+      fullFields || by !== "req" ? row : summarizeCoverageRow(row);
+    const offset = input.offset ?? 0;
     const payload = await readCoveragePages(
       requireProlog(context),
       goalFor,
       input.limit ?? 100,
-      input.offset ?? 0,
+      offset,
+      // Rows past the budget would be cut again, so they are not read.
+      fullListing ? undefined : (rows) => sizeOf(rows.map(shape)) > budget,
     );
-    const rows =
-      (input.by ?? "req") === "req"
+    const allRows =
+      by === "req"
         ? await addCoordinateRepairEvidence(payload.rows, context)
         : payload.rows;
-    const repairPlan = buildRepairPlan(
-      { ...payload, rows },
-      input,
-      codeSnapshot,
-    );
-    const symbolRepairPlan =
-      input.by === "symbol"
-        ? await buildSymbolRepairPlan(payload.rows, context)
-        : undefined;
-    const legacyMigrationPlan =
-      input.includeMigrationPreview === true && repairPlan !== undefined
-        ? await buildLegacyMigrationPlanFromContext(
-            repairPlan,
-            input,
-            codeSnapshot,
-            context,
-          )
-        : undefined;
     // Coverage can still report its complete Prolog-backed domain in a
     // synthetic or non-Git workspace where branch status cannot be resolved.
     // Preserve the coverage plan and let status expose its own branch action
@@ -458,60 +585,163 @@ export async function executeCoverage(
       const message = error instanceof Error ? error.message : String(error);
       if (!message.includes("Failed to resolve active branch")) throw error;
     }
-    const coveragePlan = buildMigrationPlan({
-      expected: {
-        branch: context.branchAttachment?.gitBranch ?? null,
-        kbBranch: context.branchAttachment?.kbBranch ?? null,
-        ...(typeof payload.meta?.snapshotId === "string"
-          ? { kbSnapshotId: payload.meta.snapshotId }
-          : {}),
-        workspaceSnapshot: codeSnapshot,
-      },
-      evaluatedDomains: ["semantic", "proof", "symbol"],
-      incompleteDomains:
-        payload.meta?.scopeComplete === false ? ["coverage"] : [],
-      // An undefined plan reads as no plan.
-      actions: buildActionsFromCoverage({
-        repairPlan,
-        symbolRepairPlan,
-      } as Parameters<typeof buildActionsFromCoverage>[0]),
-    });
-    const migrationPlan = statusPlan
-      ? mergeMigrationPlans([statusPlan, coveragePlan])
-      : coveragePlan;
     const confirmed = withBranchName(
       confirmMetaFreshness(payload, context.workspaceRoot),
       context,
     );
-    const enrichedPayload = {
-      ...confirmed,
-      rows,
-      ...(repairPlan !== undefined ? { repairPlan } : {}),
-      ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
-      ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
-      migrationPlan,
-      meta: {
-        ...(confirmed.meta ?? {}),
-        proofReceiptMaxAgeSeconds: PROOF_RECEIPT_MAX_AGE_SECONDS,
-        proofSnapshot: codeSnapshot,
-        proofSnapshotAvailable: snapshotEvidence.available,
-        ...(snapshotEvidence.available
-          ? {
-              proofSnapshotDirty: snapshotEvidence.snapshot.dirty,
-              proofSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
-              proofSnapshotVersion: snapshotEvidence.snapshot.version,
-            }
-          : { proofSnapshotError: snapshotEvidence.error }),
-      },
+    const meta = {
+      ...(confirmed.meta ?? {}),
+      proofReceiptMaxAgeSeconds: PROOF_RECEIPT_MAX_AGE_SECONDS,
+      proofSnapshot: codeSnapshot,
+      proofSnapshotAvailable: snapshotEvidence.available,
+      ...(snapshotEvidence.available
+        ? {
+            proofSnapshotDirty: snapshotEvidence.snapshot.dirty,
+            proofSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
+            proofSnapshotVersion: snapshotEvidence.snapshot.version,
+          }
+        : { proofSnapshotError: snapshotEvidence.error }),
     };
-    const fullyCovered = Number(enrichedPayload.summary?.fullyCovered ?? 0);
-    const proofTested = Number(enrichedPayload.summary?.proofTested ?? 0);
-    const total = Number(enrichedPayload.summary?.total ?? 0);
+    // The report for the first `count` rows, with plans for exactly them.
+    const assemble = async (count: number): Promise<CoveragePayload> => {
+      const rows = allRows.slice(0, count);
+      const pageInput =
+        fullListing || count === allRows.length
+          ? input
+          : { ...input, limit: count };
+      const repairPlan = buildRepairPlan(
+        { ...payload, rows },
+        pageInput,
+        codeSnapshot,
+      );
+      const symbolRepairPlan =
+        by === "symbol"
+          ? await buildSymbolRepairPlan(rows, context)
+          : undefined;
+      const legacyMigrationPlan =
+        input.includeMigrationPreview === true && repairPlan !== undefined
+          ? await buildLegacyMigrationPlanFromContext(
+              repairPlan,
+              input,
+              codeSnapshot,
+              context,
+            )
+          : undefined;
+      const coveragePlan = buildMigrationPlan({
+        expected: {
+          branch: context.branchAttachment?.gitBranch ?? null,
+          kbBranch: context.branchAttachment?.kbBranch ?? null,
+          ...(typeof payload.meta?.snapshotId === "string"
+            ? { kbSnapshotId: payload.meta.snapshotId }
+            : {}),
+          workspaceSnapshot: codeSnapshot,
+        },
+        evaluatedDomains: ["semantic", "proof", "symbol"],
+        incompleteDomains:
+          payload.meta?.scopeComplete === false ? ["coverage"] : [],
+        // An undefined plan reads as no plan.
+        actions: buildActionsFromCoverage({
+          repairPlan,
+          symbolRepairPlan,
+        } as Parameters<typeof buildActionsFromCoverage>[0]),
+      });
+      const migrationPlan = statusPlan
+        ? mergeMigrationPlans([statusPlan, coveragePlan])
+        : coveragePlan;
+      return {
+        ...confirmed,
+        rows: rows.map(shape),
+        ...(fullFields
+          ? {
+              ...(repairPlan !== undefined ? { repairPlan } : {}),
+              ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
+              migrationPlan,
+            }
+          : {
+              ...(repairPlan !== undefined
+                ? { repairPlanSummary: summarizeRepairPlan(repairPlan) }
+                : {}),
+              ...(symbolRepairPlan !== undefined
+                ? {
+                    symbolRepairPlanSummary:
+                      summarizeSymbolRepairPlan(symbolRepairPlan),
+                  }
+                : {}),
+              migrationPlanSummary: {
+                ...summarizeMigrationPlan(migrationPlan),
+                hint: COVERAGE_PLAN_HINT,
+              },
+            }),
+        ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
+        meta,
+      };
+    };
+    let count = allRows.length;
+    let enrichedPayload = await assemble(count);
+    if (!fullListing) {
+      // Fewer rows (with their plans) until the result fits, at least one.
+      while (count > 1 && sizeOf(enrichedPayload) > budget) {
+        count = Math.max(
+          1,
+          Math.min(
+            count - 1,
+            Math.floor((count * budget) / sizeOf(enrichedPayload)),
+          ),
+        );
+        enrichedPayload = await assemble(count);
+      }
+      const matched =
+        typeof payload.matched === "number" ? payload.matched : undefined;
+      const omitted =
+        matched !== undefined
+          ? Math.max(0, matched - offset - count)
+          : undefined;
+      const requested = Math.min(
+        input.limit ?? 100,
+        matched !== undefined ? Math.max(0, matched - offset) : allRows.length,
+      );
+      if (count < requested || sizeOf(enrichedPayload) > budget) {
+        const truncation: ResultTruncation = {
+          budgetChars: budget,
+          returned: count,
+          ...(matched !== undefined && omitted !== undefined
+            ? { total: matched, omitted }
+            : {}),
+          ...((omitted ?? 0) > 0 ? { nextOffset: offset + count } : {}),
+          hint:
+            count < requested
+              ? "Rows past the budget were left out; page with offset, or narrow with tags or statuses."
+              : "The result was cut to the budget; omittedFields names the parts left out.",
+        };
+        enrichedPayload = {
+          ...enrichedPayload,
+          truncated: true,
+          truncation,
+        };
+        // One row, or its plans, still too large: leave out its largest
+        // parts and name them.
+        if (sizeOf(enrichedPayload) > budget) {
+          enrichedPayload = cutRowToBudget(enrichedPayload, budget, [
+            "rows",
+            "summary",
+            "matched",
+            "meta",
+            "truncated",
+            "truncation",
+          ]) as CoveragePayload;
+        }
+      }
+    }
+    const summary = enrichedPayload.summary ?? {};
+    const fullyCovered = Number(summary.fullyCovered ?? 0);
+    const proofTested = Number(summary.proofTested ?? 0);
+    const total = Number(summary.total ?? 0);
+    const truncation = enrichedPayload.truncation;
     return {
       content: [
         {
           type: "text",
-          text: `Coverage summary: ${fullyCovered} structurally covered and ${proofTested} tested end to end out of ${total}.`,
+          text: `Coverage summary: ${fullyCovered} structurally covered and ${proofTested} tested end to end out of ${total}.${truncation ? ` ${truncationSentence(truncation)}` : ""}`,
         },
       ],
       structuredContent: enrichedPayload,
@@ -526,7 +756,7 @@ export const coverageSpec = {
   name: "kb_coverage",
   cliName: "coverage",
   description:
-    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Rows give each requirement's proof-stage statuses with repair and migration plan summaries; fields full adds the stage evidence and the plans' batches and actions. A result stays within its size budget and says the offset to call again with. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     properties: {
@@ -571,9 +801,19 @@ export const coverageSpec = {
       },
       limit: {
         type: "integer",
+        minimum: 0,
         default: 100,
         description:
-          "Maximum rows to return. When the repair plan reports scope.complete false, rerun with offset 0 and a larger limit.",
+          "Maximum rows to return. A result past its size budget returns fewer and says the offset to call again with.",
+      },
+      fields: {
+        type: "string",
+        enum: ["summary", "full"],
+        default: "summary",
+        description:
+          "summary returns each requirement's proof stages as their statuses and the repair and migration plans as summaries; full returns the stages' evidence and the plans' batches and actions, for fewer rows per page.",
+        [ADVERTISED_DESCRIPTION]:
+          "summary: stage statuses and plan summaries; full: stage evidence and full plans, fewer rows per page.",
       },
       offset: {
         type: "integer",
@@ -620,7 +860,8 @@ export const coverageSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executeCoverage,
+  execute: (input: CoverageInput, context: OperationContext) =>
+    executeCoverage(input, context),
 } as const satisfies OperationSpec<CoverageInput, CoveragePayload>;
 
 export async function executeGraph(
@@ -638,8 +879,19 @@ export async function executeGraph(
       `discovery:graph_expand_json(${toPrologList(input.seedIds)}, ${toPrologList(input.relationships)}, '${input.direction ?? "outgoing"}', ${depth}, ${toPrologList(input.entityTypes)}, ${input.maxNodes ?? 200}, ${input.maxEdges ?? 500}, JsonString)`,
       "Graph execution",
     );
-    const nodes = payload.nodes ?? [];
-    const edges = payload.edges ?? [];
+    // A page of the reached nodes, sorted by id, with the edges that leave
+    // them; nodeCount says how many were reached.
+    const offset = input.offset ?? 0;
+    const reached = payload.nodes ?? [];
+    const paged =
+      offset > 0
+        ? (edgesFromNodes(
+            { ...payload, nodes: reached.slice(offset) },
+            reached.slice(offset),
+          ) as unknown as GraphPayload)
+        : payload;
+    const nodes = paged.nodes ?? [];
+    const edges = paged.edges ?? [];
     return {
       content: [
         {
@@ -651,7 +903,10 @@ export async function executeGraph(
         },
       ],
       structuredContent: withBranchName(
-        confirmMetaFreshness(payload, context.workspaceRoot),
+        confirmMetaFreshness(
+          { ...paged, nodeCount: reached.length },
+          context.workspaceRoot,
+        ),
         context,
       ),
     };
@@ -709,13 +964,24 @@ export const graphSpec = {
       },
       maxNodes: {
         type: "integer",
+        minimum: 1,
+        maximum: 2000,
         default: 200,
         description: "Stop and set truncated once this many nodes are reached.",
       },
       maxEdges: {
         type: "integer",
+        minimum: 1,
+        maximum: 5000,
         default: 500,
         description: "Stop and set truncated once this many edges are reached.",
+      },
+      offset: {
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "Zero-based offset into the reached nodes (sorted by id); each page lists the edges that leave its nodes.",
       },
     },
   },

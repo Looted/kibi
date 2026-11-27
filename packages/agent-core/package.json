@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",
@@ -62,9 +62,33 @@
       "types": "./dist/workspace-optin.d.ts",
       "default": "./dist/workspace-optin.js"
     },
+    "./version-control": {
+      "types": "./dist/version-control.d.ts",
+      "default": "./dist/version-control.js"
+    },
     "./hook-input": {
       "types": "./dist/hook-input.d.ts",
       "default": "./dist/hook-input.js"
+    },
+    "./read-context": {
+      "types": "./dist/read-context.d.ts",
+      "default": "./dist/read-context.js"
+    },
+    "./kibi-level": {
+      "types": "./dist/kibi-level.d.ts",
+      "default": "./dist/kibi-level.js"
+    },
+    "./level-guard": {
+      "types": "./dist/level-guard.d.ts",
+      "default": "./dist/level-guard.js"
+    },
+    "./retrieval": {
+      "types": "./dist/retrieval.d.ts",
+      "default": "./dist/retrieval.js"
+    },
+    "./retrieval-tokens": {
+      "types": "./dist/retrieval-tokens.d.ts",
+      "default": "./dist/retrieval-tokens.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],
@@ -90,10 +114,12 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
   "devDependencies": {
     "@types/node": "^25.9.8",
     "semver": "^7.8.5",
-    "typescript": "^5.7.0",
-    "yaml": "^2.9.1"
+    "typescript": "^5.7.0"
   }
 }

@@ -319,16 +319,27 @@ export function normalize(value: string): string {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s/)
     .filter(Boolean)
-    .map((token) =>
-      token.length > 4 &&
-      token.endsWith("s") &&
-      !token.endsWith("ss") &&
-      !token.endsWith("ies")
-        ? token.slice(0, -1)
-        : token,
-    )
+    .map(singular)
     .map(stem)
     .join(" ");
+}
+
+// A plural meets its singular ("tags" / "tag", "keys" / "key", "ids" /
+// "id"). Short words count too: a four-letter plural is as common in a
+// question as a long one. Endings that are not plurals stay ("status",
+// "class", "analysis"); "-ies" plurals are left to stem, which turns them
+// into "-y".
+const SHORT_PLURALS = new Set(["ids"]);
+function singular(token: string): string {
+  if (SHORT_PLURALS.has(token)) return token.slice(0, -1);
+  return token.length > 3 &&
+    token.endsWith("s") &&
+    !token.endsWith("ss") &&
+    !token.endsWith("us") &&
+    !token.endsWith("is") &&
+    !token.endsWith("ies")
+    ? token.slice(0, -1)
+    : token;
 }
 
 // A deliberately small suffix stripper so a question's verb meets the
@@ -530,6 +541,7 @@ export function tokenizerSources(): string[] {
   return [
     ...[
       normalize,
+      singular,
       stem,
       tokens,
       expandIdentifiers,
@@ -884,13 +896,17 @@ export async function rankIntentEntities(
     });
   }
   const rankScore = negativePathRankScores(ranked);
-  ranked.sort((left, right) => {
+  const compareMatches = (
+    left: IntentSearchMatch,
+    right: IntentSearchMatch,
+    scores: ReadonlyMap<IntentSearchMatch, number>,
+  ): number => {
     const stubOrder =
       Number(isProvenanceStub(left.entity)) -
       Number(isProvenanceStub(right.entity));
     if (stubOrder !== 0) return stubOrder;
-    const leftScore = rankScore.get(left) ?? left.score;
-    const rightScore = rankScore.get(right) ?? right.score;
+    const leftScore = scores.get(left) ?? left.score;
+    const rightScore = scores.get(right) ?? right.score;
     if (rightScore !== leftScore) return rightScore - leftScore;
     // At the same rank a negative-path fact follows what it guards.
     const negativeOrder =
@@ -907,7 +923,8 @@ export async function rankIntentEntities(
       String(left.entity.id ?? ""),
       String(right.entity.id ?? ""),
     );
-  });
+  };
+  ranked.sort((left, right) => compareMatches(left, right, rankScore));
   const [first, second] = ranked;
   let topScore: number | null = null;
   let topTwoMargin: number | null = null;
@@ -917,6 +934,10 @@ export async function rankIntentEntities(
     if (second !== undefined) topTwoMargin = first.score - second.score;
     const rival = rivalOf(first, ranked, graphEdges);
     if (rival !== undefined) topRivalMargin = first.score - rival.score;
+  }
+  if (isBroadRationaleQuery(options)) {
+    const broadScores = broadRationaleRankScores(ranked, rankScore);
+    ranked.sort((left, right) => compareMatches(left, right, broadScores));
   }
   return {
     matches: ranked,
@@ -933,6 +954,48 @@ export async function rankIntentEntities(
       ambiguous: topRivalMargin !== null && topRivalMargin < AMBIGUOUS_MARGIN,
     },
   };
+}
+
+const BROAD_RATIONALE_QUERY =
+  /\b(?:adr|adrs|architecture|architectural|design|decision|decisions|rationale|trade[- ]?offs?|why\s+(?:did|do|does|is|are|was|were|choose|chose|chosen|use|used)|chosen|alternatives?)\b/i;
+const SPECIFIC_ENTITY_ID =
+  /\b(?:REQ|SCEN|TEST|FACT|ADR|FLAG|EVENT|SYM)-[A-Za-z0-9]/;
+const BROAD_ADR_SORT_BONUS = 0.08;
+
+/**
+ * True for an unfiltered broad rationale or architectural query where current
+ * ADRs receive a pure sort-key boost without modifying `match.score` or
+ * `analysis` thresholds.
+ */
+export function isBroadRationaleQuery(options: IntentSearchOptions): boolean {
+  return (
+    options.type === undefined &&
+    (options.sourceLocations?.length ?? 0) === 0 &&
+    !SPECIFIC_ENTITY_ID.test(options.query) &&
+    BROAD_RATIONALE_QUERY.test(options.query)
+  );
+}
+
+function broadRationaleRankScores(
+  ranked: readonly IntentSearchMatch[],
+  baseScores: ReadonlyMap<IntentSearchMatch, number>,
+): Map<IntentSearchMatch, number> {
+  const scores = new Map<IntentSearchMatch, number>(baseScores);
+  for (const match of ranked) {
+    if (String(match.entity.type ?? "") !== "adr") continue;
+    const status = String(match.entity.status ?? "")
+      .trim()
+      .toLowerCase();
+    if (
+      NON_GOVERNING_STATUSES.has(status) ||
+      match.reasons.includes("demoted: superseded")
+    ) {
+      continue;
+    }
+    const base = baseScores.get(match) ?? match.score;
+    scores.set(match, Math.min(1, base + BROAD_ADR_SORT_BONUS));
+  }
+  return scores;
 }
 
 /**

@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PACKAGE_CATALOG } from "../package-catalog.ts";
+import { swiplArchiveCacheMode } from "../swipl-archive-cache.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
 
@@ -52,6 +53,14 @@ function commands(job: Job): string[] {
     step.run ? [step.run.trim()] : [],
   );
 }
+/** Index of a step whose script is the command, or ends a guard with that line. */
+function commandIndex(run: string[], command: string): number {
+  return run.findIndex(
+    (entry) =>
+      entry === command ||
+      entry.split("\n").some((line) => line.trim() === command),
+  );
+}
 
 const POPULATE =
   'node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"';
@@ -73,7 +82,7 @@ describe("SWI-Prolog archives reach the release by same-run artifacts", () => {
     for (const job of [publish, dry]) {
       const run = commands(job);
       const indexes = [POPULATE, VERIFY, CLEAN, PACK].map((command) =>
-        run.indexOf(command),
+        commandIndex(run, command),
       );
       expect(indexes.every((index) => index >= 0)).toBe(true);
       expect(indexes).toEqual([...indexes].sort((a, b) => a - b));
@@ -169,7 +178,9 @@ describe("publish.yml ships the platform packages", () => {
     const body = steps[verify]?.run ?? "";
     expect(body).toContain("sha256sum -c SHA256SUMS");
     expect(body).toContain("package/build-manifest.json");
-    expect(body).toContain("package/bin/swipl");
+    // The binary path is per target: bin/swipl on POSIX, lib/swipl/bin/swipl.exe on win32.
+    expect(body).toContain("m.binary?.path");
+    expect(body).toContain("package/$binary_path");
   });
 });
 
@@ -178,7 +189,7 @@ describe("the dry run cannot publish", () => {
   const dry = workflow("release-pack.yml");
 
   test("holds no secret, no OIDC token, and no write permission", () => {
-    expect(dry.permissions).toEqual({ contents: "read" });
+    expect(dry.permissions).toEqual({ contents: "read", actions: "read" });
     for (const job of Object.values(dry.jobs)) {
       expect(job.permissions).toBeUndefined();
     }
@@ -224,8 +235,9 @@ describe("the dry run cannot publish", () => {
     expect(dry.jobs["swipl-build"].uses).toBe(
       "./.github/workflows/swipl-build.yml",
     );
-    expect(needs(dry.jobs.pack)).toEqual(["swipl-build"]);
-    expect(needs(dry.jobs.smoke)).toEqual(["pack"]);
+    expect(needs(dry.jobs.pack)).toEqual(["reuse", "swipl-build"]);
+    expect(needs(dry.jobs.smoke)).toEqual(["reuse", "pack"]);
+    expect(needs(dry.jobs.attest)).toEqual(["smoke"]);
     expect(dry.jobs.smoke.uses).toBe("./.github/workflows/release-smoke.yml");
     expect(dry.jobs.smoke.with).toEqual({
       "tarballs-artifact": "release-pack-tarballs",
@@ -245,7 +257,7 @@ describe("the bundled-runtime smoke proves the run with no SWI-Prolog", () => {
   const smoke = workflow("release-smoke.yml");
   const job = smoke.jobs.smoke;
 
-  test("covers Linux x64 and macOS arm64, plus the other two launch targets", () => {
+  test("covers Linux x64 and macOS arm64, plus the other three launch targets", () => {
     const rows = job.strategy?.matrix.include ?? [];
     const runners = Object.fromEntries(
       rows.map((row) => [row.target, row.runner]),
@@ -255,6 +267,7 @@ describe("the bundled-runtime smoke proves the run with no SWI-Prolog", () => {
       "darwin-arm64": "macos-15",
       "linux-arm64-gnu": "ubuntu-24.04-arm",
       "darwin-x64": "macos-15-intel",
+      "win32-x64": "windows-2025",
     });
   });
 
@@ -301,7 +314,7 @@ describe("the README quick start is followed literally on every launch platform"
   const smoke = workflow("release-smoke.yml");
   const job = smoke.jobs["readme-quickstart"];
 
-  test("runs on the same four runners as the bundled-runtime smoke", () => {
+  test("runs on the same five runners as the bundled-runtime smoke", () => {
     const rows = (job?.strategy?.matrix.include ?? []).map((row) => [
       row.target,
       row.runner,
@@ -309,7 +322,7 @@ describe("the README quick start is followed literally on every launch platform"
     const smokeRows = (smoke.jobs.smoke.strategy?.matrix.include ?? []).map(
       (row) => [row.target, row.runner],
     );
-    expect(rows.length).toBe(4);
+    expect(rows.length).toBe(5);
     expect(rows.sort()).toEqual(smokeRows.sort());
   });
 
@@ -339,5 +352,39 @@ describe("the README quick start is followed literally on every launch platform"
     expect(
       dry.match(/^ {6}- scripts\/simulate-readme-quickstart\.mjs$/gm)?.length,
     ).toBe(2);
+  });
+});
+
+describe("pull requests reuse archives and every release build stays from source", () => {
+  test("the dry run selects the cache mode from the event", () => {
+    expect(workflow("release-pack.yml").jobs["swipl-build"]?.with).toEqual({
+      "archive-cache":
+        "${{ github.event_name == 'pull_request' && 'read' || github.event_name == 'push' && 'write' || 'off' }}",
+    });
+    expect(swiplArchiveCacheMode("pull_request")).toBe("read");
+    expect(swiplArchiveCacheMode("push")).toBe("write");
+    expect(swiplArchiveCacheMode("workflow_dispatch")).toBe("off");
+  });
+
+  test("publish omits the cache input so the reusable workflow default stays off", () => {
+    expect(workflow("publish.yml").jobs["swipl-build"]?.with).toBeUndefined();
+    const populate = commands(
+      workflow("publish.yml").jobs["build-and-check"],
+    ).find((entry) => entry.includes("populate-swipl-platform-packages"));
+    expect(populate).toBe(POPULATE);
+  });
+
+  test("the dry run drops the run binding only after a pull request restored an archive", () => {
+    const step = (workflow("release-pack.yml").jobs.pack.steps ?? []).find(
+      (entry) => entry.run?.includes(POPULATE),
+    );
+    const run = step?.run ?? "";
+    expect(step?.env?.EVENT_NAME).toBe("${{ github.event_name }}");
+    expect(run).toContain('[[ "$EVENT_NAME" == "pull_request" ]]');
+    expect(run).toContain('"$RUNNER_TEMP"/swipl-artifacts/swipl-*/cache-status');
+    expect(run).toContain('== "hit"');
+    expect(run).toContain("unset GITHUB_SHA GITHUB_RUN_ID");
+    expect(run.indexOf("unset GITHUB_SHA")).toBeLessThan(run.indexOf(POPULATE));
+    expect(run.trim().endsWith(POPULATE)).toBe(true);
   });
 });

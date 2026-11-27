@@ -1,6 +1,6 @@
 {
   "name": "kibi-runtime",
-  "version": "2.33.0",
+  "version": "2.34.0",
   "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,15 +13,16 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-plugin-builtin --external kibi-plugin-search-hints --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && node -e \"import('node:fs').then(f=>{f.rmSync('dist/skills',{recursive:true,force:true});f.mkdirSync('dist/skills',{recursive:true});f.cpSync('src/skills','dist/skills',{recursive:true});})\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-runtime"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "kibi-core": "^0.34.0",
-    "kibi-plugin-builtin": "^0.7.0",
-    "kibi-swipl": "^1.0.2"
+    "kibi-core": "^0.35.0",
+    "kibi-plugin-builtin": "^0.7.1",
+    "kibi-plugin-search-hints": "^2.0.0",
+    "kibi-swipl": "^1.1.0"
   },
   "devDependencies": {
     "kibi-cli": "workspace:*"

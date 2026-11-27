@@ -398,3 +398,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8919f30c5039
+  - type: constrains
+    from: REQ-kb-upsert-capture-proof-setup-named
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-24T20:04:41.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca9baf6a6cb1
+  - type: requires_property
+    from: REQ-kb-upsert-capture-proof-setup-named
+    to: FACT-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:04:41.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3165192c6e2e
+  - type: specified_by
+    from: REQ-kb-upsert-capture-proof-setup-named
+    to: SCEN-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:04:41.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d13bff90ed8e
+  - type: specified_by
+    from: REQ-kb-upsert-capture-proof-setup-named
+    to: SCEN-NEG-kb-upsert-capture-proof-setup-named-UNNAMED
+    created_at: 2026-11-24T20:04:41.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf8e401d6a43
+  - type: implements
+    from: SYM-agent-core-find-repository-marker
+    to: REQ-kibi-no-git-detection-never-inside-repository
+    created_at: 2026-11-25T09:16:57.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76300e53b2b8
+  - type: covered_by
+    from: SYM-agent-core-find-repository-marker
+    to: TEST-kibi-no-git-unreadable-repository
+    created_at: 2026-11-25T09:16:57.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abab531c69f2
+  - type: assumes
+    from: SCEN-kibi-check-rule-layers
+    to: FACT-PROP-kibi-check-rule-layers-c02
+    created_at: 2026-11-25T08:34:01.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18445bebfc88
+  - type: assumes
+    from: SCEN-kibi-check-rule-layers
+    to: FACT-PROP-kibi-check-rule-layers-count
+    created_at: 2026-11-25T08:37:33.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcf56d78bccf

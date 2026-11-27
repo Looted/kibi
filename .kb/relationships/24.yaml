@@ -230,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7401b0b684c2
-  - type: validates
-    from: TEST-proof-search-hints-result-limit
-    to: SCEN-capability-search-hints-v1
-    created_at: 2026-10-29T21:35:38.666Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79da02d8f66b
   - type: specified_by
     from: REQ-opencode-sync-feedback
     to: SCEN-opencode-sync-feedback
@@ -461,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-477276f04a81
+  - type: assumes
+    from: SCEN-NEG-coverage-plan-summaries-FULL-PLANS
+    to: FACT-NEG-coverage-plan-summaries-FULL-PLANS
+    created_at: 2026-11-19T15:27:54.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb531834c913
+  - type: assumes
+    from: SCEN-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    to: FACT-NEG-impact-review-schema-resource-INLINE-SCHEMA
+    created_at: 2026-11-19T19:11:25.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68021509c232
+  - type: implements
+    from: SYM-usage-log-flush-hook-telemetry
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:23.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c260b615e18e
+  - type: covered_by
+    from: SYM-usage-log-flush-hook-telemetry
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:23.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f77f77608d30

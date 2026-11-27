@@ -426,3 +426,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d3114ae4b83
+  - type: executable_for
+    from: SYM-antigravity-serve-deferred-test
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:08:31.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42146b3edda0
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: REQ-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:02:03.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a50559c541f
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-agent-hosts-capture-ask-once
+    created_at: 2026-11-24T20:02:03.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34882b754304
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-NEG-agent-hosts-capture-ask-once-PER-RESULT
+    created_at: 2026-11-24T20:02:03.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84d3ef50a4e7
+  - type: covered_by
+    from: SYM-requirement-lifting-owning-requirements
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-25T19:31:53.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-556970707d05
+  - type: implements
+    from: SYM-requirement-lifting-owning-requirements
+    to: REQ-search-answers-lift-two
+    created_at: 2026-11-25T19:31:53.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e00b273fdbb0

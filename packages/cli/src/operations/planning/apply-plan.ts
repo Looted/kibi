@@ -9,6 +9,7 @@ import {
   isSupportedLegacyBranchMigration,
   legacyBranchMigrationApprovalHash,
 } from "../../commands/branch.js";
+import { managedHookTemplatesDigest } from "../../commands/init-helpers.js";
 import {
   describeMigrationRun,
   migrateCommand,
@@ -51,6 +52,11 @@ import {
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
 import { validateBootstrapPayload } from "../bootstrap/validation.js";
+import {
+  MANAGED_HOOKS_REFRESH_CODE,
+  findOutdatedManagedHooks,
+  refreshOutdatedManagedHooks,
+} from "../migration/managed-hooks.js";
 import {
   MIGRATION_SYNC_CODE,
   SCHEMA6_APPROVABLE_REVIEW_CODES,
@@ -3120,10 +3126,12 @@ export async function applyMigrationPlan(
         const coverage = await executeCoverage(
           { by: "req", limit: 10_000, offset: 0 },
           operationContext,
+          { fullListing: true },
         );
         const symbolCoverage = await executeCoverage(
           { by: "symbol", limit: 10_000, offset: 0 },
           operationContext,
+          { fullListing: true },
         );
         const fragments = [
           check.structuredContent?.migrationPlan,
@@ -3363,6 +3371,8 @@ export async function applyMigrationAction(
     case PROOF_INTEGRATION_CONFIGURE:
       applyProofIntegrationAction(action, context.workspaceRoot);
       return;
+    case MANAGED_HOOKS_REFRESH_CODE:
+      return applyManagedHooksRefresh(action, context.workspaceRoot);
     default:
       if (
         SCHEMA6_AUTOMATIC_CODES.has(action.code) ||
@@ -3375,6 +3385,30 @@ export async function applyMigrationAction(
         `Migration action '${action.code}' has no automatic executor.`,
       );
   }
+}
+
+/**
+ * Refresh the outdated kibi-managed hook sections the plan names. A plan
+ * built against another hook template (a different CLI build, whatever its
+ * version string) is refused rather than applied with this one.
+ */
+function applyManagedHooksRefresh(
+  action: MigrationAction,
+  workspaceRoot: string,
+): string {
+  if (action.evidence.templateDigest !== managedHookTemplatesDigest())
+    throw new MigrationActionRefusedError(
+      "The Kibi hook template changed after this plan was built; rerun kibi migrate for a current plan.",
+    );
+  const outdated = findOutdatedManagedHooks(workspaceRoot);
+  if (outdated === null)
+    return "Kibi-managed hook sections are already current.";
+  const { refreshed, skipped } = refreshOutdatedManagedHooks(outdated);
+  if (skipped.length > 0)
+    throw new Error(
+      `Could not refresh the kibi-managed section of ${skipped.join(", ")} (a symlinked or unreadable hook); run kibi init and kibi doctor.`,
+    );
+  return `Refreshed the kibi-managed hook sections of ${refreshed.join(", ")}.`;
 }
 
 /**

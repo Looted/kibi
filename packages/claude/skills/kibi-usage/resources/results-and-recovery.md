@@ -15,9 +15,14 @@ question about why a rule is what it is from that requirement's `why`: quote
 its recorded text; a neighbouring requirement's reason is not this one's; when
 `why.recorded` is false, say no reason is recorded, do not supply one, and
 offer to record the person's. Pass `sourceLocations` before changing a source
-file, and `rankingMode: "legacy"` for literal identifier lookups. A weak
-answer may add `queryAnalysis.hints` (requirements the question may mean):
-re-ask in their words, never cite a hint as the rule. See
+file, and `rankingMode: "legacy"` for literal identifier lookups. The rows
+are five one-line decision cards; `queryAnalysis.hints.items` adds up to seven
+decisions related by meaning: read one with `kb_query` before relying on it,
+never cite it as the rule. A weak answer (`queryAnalysis.weak`) names no
+governing requirement and lists the words no card holds in
+`queryAnalysis.uncoveredTerms`; without related decisions it names the next
+call in `nextActions` (list the requirement titles, then search in the KB's own
+words): a missing match does not mean nothing is recorded. See
 `resources/workflows.md` for the mode recipe.
 
 ## Typed results and recovery
@@ -41,6 +46,21 @@ deleted yet, and `nextActions` names the call that does it. If the status is
 execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
 diagnostic telemetry.
+
+## Results cut to the size budget
+
+Every result keeps its `data` within 24,000 characters. A list cut to the
+budget still returns at least one row and says so: `data.truncated: true`,
+`data.truncation` (`returned`, `total`, `omitted`, `nextOffset`, `hint`), a
+`RESULT_TRUNCATED` info diagnostic and a `nextActions` entry that repeats the
+call with `offset: nextOffset`. Page with that offset or narrow the filters;
+a larger `limit` returns the same page. One row past the budget is cut and
+lists the parts it left out in `omittedFields`. `kb_coverage` and `kb_query`
+without an `id` list summary rows, and `kb_coverage` returns its plans as
+summaries; pass `fields: "full"` with a small `limit` or a narrow filter for
+the full rows and plans. A `kb_check` with `rules` lists its findings in pages
+the same way. A read whose data is still over 64,000 characters fails with
+`RESULT_TOO_LARGE`: narrow the call.
 
 ## Exact Git attachment
 

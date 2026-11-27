@@ -127,21 +127,22 @@ fact_kind: observation
     const data = result.data as Json;
     expect((data.queryAnalysis as Json).rankingMode).toBe("intent-v1");
 
-    // The superseded requirement ranks below the current one it was
-    // replaced by.
-    const ranked = data.results as Array<{ entity: Brief; reasons: string[] }>;
+    // The superseded requirement is folded into the card of the current one
+    // it was replaced by; the full row lists it.
+    const fullRows = (
+      ws.json(["search"], { query: "client call quota", fields: "full" })
+        .data as Json
+    ).results as Array<{ entity: Brief; folded?: string[] }>;
+    expect(fullRows[0]?.entity.id).toBe("REQ-QUOTA-CALL");
+    expect(fullRows[0]?.folded).toEqual(["REQ-QUOTA-CALL-LEGACY"]);
+    const ranked = data.results as Array<{
+      entity: Brief;
+      reasons: string[];
+      folded?: string[];
+    }>;
     const ids = ranked.map((row) => row.entity.id);
-    expect(ids).toContain("REQ-QUOTA-CALL");
-    expect(ids).toContain("REQ-QUOTA-CALL-LEGACY");
-    expect(ids.indexOf("REQ-QUOTA-CALL")).toBeLessThan(
-      ids.indexOf("REQ-QUOTA-CALL-LEGACY"),
-    );
-    const legacy = ranked.find(
-      (row) => row.entity.id === "REQ-QUOTA-CALL-LEGACY",
-    );
-    expect(legacy?.reasons.some((reason) => reason.startsWith("demoted"))).toBe(
-      true,
-    );
+    expect(ids[0]).toBe("REQ-QUOTA-CALL");
+    expect(ids).not.toContain("REQ-QUOTA-CALL-LEGACY");
 
     const answer = data.answer as Json;
     expect(answer.version).toBe("kibi.search-answer.v1");
@@ -168,13 +169,14 @@ fact_kind: observation
     expect(answer.truncated).toBe(false);
     expect(String(answer.note)).toContain("Links are discovery, not proof");
 
-    // A question that matches only an unowned note says absence of a
-    // governing requirement is not evidence.
+    // A question that matches only an unowned note matches no decision
+    // strongly, and says that is not evidence nothing governs it.
     const unowned = ws.json(["search"], { query: "billing export" });
-    const unownedAnswer = (unowned.data as Json).answer as Json;
-    expect(unownedAnswer.governing).toEqual([]);
-    expect(String(unownedAnswer.note)).toContain(
-      "Absence here is not evidence",
+    const unownedData = unowned.data as Json;
+    expect(unownedData.answer).toBeUndefined();
+    expect((unownedData.queryAnalysis as Json).weak).toBe(true);
+    expect(String((unownedData.notes as string[])[0])).toContain(
+      "That is not evidence that nothing governs it",
     );
   }, 300_000);
 
@@ -574,6 +576,7 @@ links:
       branch: "main",
       snapshotId: status.snapshotId,
       syncedAt: status.syncedAt,
+      syncState: status.syncState,
     });
     expect(String(status.snapshotId)).not.toBe("missing");
   }, 300_000);
@@ -713,18 +716,54 @@ links:
     );
     expect(positive?.claim).toBe("client.call_quota remaining gt 0");
     expect(positive && "ask" in positive).toBe(false);
-    const results = data.results as Array<{ evidence: Json }>;
+    const results = data.results as Array<{
+      entity: { id: string };
+      evidence?: Json;
+    }>;
     expect(results.length).toBeGreaterThan(0);
-    for (const row of results) expect("graphPaths" in row.evidence).toBe(false);
+    for (const row of results)
+      expect("graphPaths" in (row.evidence ?? {})).toBe(false);
+    // An entity the answer quotes (a whole statement, a fact's claim) comes
+    // back once: its result keeps only its identity, score and reasons.
+    const ungoverned = ((data.answer as Json).ungoverned ?? []) as Array<{
+      id: string;
+      claim?: string;
+    }>;
+    const quoted = new Set([
+      ...governing
+        .filter((req) => req.statement && !req.statement.endsWith("…"))
+        .map((req) => req.id),
+      ...[...governing.flatMap((req) => req.facts), ...ungoverned]
+        .filter((fact) => fact.claim !== undefined)
+        .map((fact) => fact.id),
+    ]);
+    expect(quoted.has("REQ-QUOTA-CALL")).toBe(true);
+    expect(results.some((row) => row.entity.id === "REQ-QUOTA-CALL")).toBe(
+      true,
+    );
+    // A card the answer quotes is its identity, score and reasons; every
+    // other result is a decision card with its scope and one line.
+    for (const row of results)
+      expect(
+        Object.keys(row)
+          .filter((key) => key !== "folded")
+          .sort(),
+      ).toEqual(
+        quoted.has(String(row.entity.id))
+          ? ["entity", "reasons", "score"]
+          : ["entity", "line", "reasons", "scope", "score"],
+      );
 
     const full = ws.json(["search"], {
       query: "client call quota",
       fields: "full",
     });
     const fullData = full.data as Json;
-    const fullResults = fullData.results as Array<{ evidence: Json }>;
-    for (const row of fullResults)
-      expect(Array.isArray(row.evidence.graphPaths)).toBe(true);
+    // Full results reload each decision's whole entity.
+    const fullResults = fullData.results as Array<{ entity: Json }>;
+    expect(fullResults[0]?.entity.source).toBe(
+      ".kb/requirements/REQ-QUOTA-CALL.md",
+    );
     const fullQuota = (
       (fullData.answer as Json).governing as Array<{
         id: string;
@@ -736,8 +775,7 @@ links:
     ).toBe(
       'kb_query({"subjectKey":"client.call_quota","propertyKey":"remaining"})',
     );
-    // The abstention and ambiguity signals stay in the summary.
-    expect((data.queryAnalysis as Json).abstained).toBe(false);
-    expect(typeof (data.queryAnalysis as Json).ambiguous).toBe("boolean");
+    // The weak-answer signal stays in the summary.
+    expect((data.queryAnalysis as Json).weak).toBe(false);
   }, 300_000);
 });

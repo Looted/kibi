@@ -17,6 +17,11 @@
 */
 
 import * as path from "node:path";
+import {
+  type KibiLevel,
+  kibiLevelInSettings,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import { EngineClient } from "../engine.js";
 import { isCliTraceOrDebugEnabled } from "../env.js";
@@ -107,8 +112,11 @@ import {
 import { collectIntroducedEntityContextViolations } from "../traceability/staged-entity-context.js";
 import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
+  addedRequirementIds,
   collectStagedEvidenceFloorViolations,
   floorChangedRequirementIds,
+  partitionStagedFloorFindings,
+  stagedRequirementProofRules,
 } from "../traceability/staged-evidence-floor.js";
 import {
   type StagedFileCoverageResult,
@@ -156,8 +164,9 @@ import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import { readKbManifest } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
-import type { Violation } from "../utils/rule-registry.js";
+import { type Violation, layerRunsAtLevel } from "../utils/rule-registry.js";
 import { getSchemaVersionStatus } from "../utils/schema-version.js";
+import { refuseWithoutGit } from "../vcs/git-boundary.js";
 
 export type { Violation };
 
@@ -371,6 +380,12 @@ export function formatQualityDiagnostics(
 export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
+  diagnostics?: readonly Readonly<{
+    category?: string;
+    severity?: string;
+    message?: string;
+    suggestion?: string;
+  }>[];
   migrationPlan?: MigrationPlan | undefined;
   symbolDebt?: SymbolDebt | undefined;
 }): void {
@@ -379,7 +394,7 @@ export function printStructuredCheckResult(input: {
       structuredContent: {
         violations: input.violations,
         count: input.violations.length,
-        diagnostics: [],
+        diagnostics: input.diagnostics ?? [],
         qualityDiagnostics: input.qualityDiagnostics,
         // The same migration plan kb_check returns, so the CLI and MCP agree
         // (JSON leaves the key out when there is none).
@@ -388,6 +403,31 @@ export function printStructuredCheckResult(input: {
       },
     }),
   );
+}
+
+/** Read the Kibi level from an immutable Git tree (`package.json`, else `.kb/setup.json`). */
+function readSnapshotKibiLevel(
+  snapshot: { readGit(args: readonly string[]): Buffer },
+  tree: string,
+  fallback?: () => KibiLevel,
+): KibiLevel {
+  const readTreeJson = (file: string): string | undefined => {
+    try {
+      const raw = snapshot
+        .readGit(["show", `${tree}:${file}`])
+        .toString("utf8");
+      const parsed: unknown = JSON.parse(raw);
+      return typeof parsed === "object" && parsed !== null ? raw : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const pkg = readTreeJson("package.json");
+  if (pkg !== undefined) return kibiLevelInSettings(pkg, "package.json").level;
+  const setup = readTreeJson(".kb/setup.json");
+  if (setup !== undefined)
+    return kibiLevelInSettings(setup, "setup.json").level;
+  return fallback ? fallback() : "test";
 }
 
 const countFormat = new Intl.NumberFormat("en-US");
@@ -800,7 +840,10 @@ export function requireActiveProlog<E, P>(
  * Resolve the branch a check reads, refreshing a detached snapshot and
  * compiling a store nothing compiled yet, and return its KB branch.
  */
-async function attachReadBranch(workspaceRoot: string): Promise<string> {
+async function attachReadBranch(
+  workspaceRoot: string,
+  staged: boolean,
+): Promise<string> {
   const attachment = resolveReadBranchAttachment(workspaceRoot);
   if ("error" in attachment) throw new Error(attachment.error);
   if (attachment.readOnly !== undefined) {
@@ -816,6 +859,7 @@ async function attachReadBranch(workspaceRoot: string): Promise<string> {
   // A fresh clone's first commit must not fail on a store nothing compiled.
   await ensureBranchStoreCompiled(workspaceRoot, attachment, {
     name: "kb_check",
+    syncDrift: !staged,
   });
   return attachment.kbBranch;
 }
@@ -823,13 +867,26 @@ async function attachReadBranch(workspaceRoot: string): Promise<string> {
 export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.staged && !options.kbPath) {
+    const refusal = refuseWithoutGit(
+      process.cwd(),
+      "commit_gate",
+      "kibi check --staged",
+    );
+    if (refusal !== null) return refusal;
+  }
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
   try {
     // An explicit store is read as given; otherwise the attached branch.
     const store: { kbPath: string } | { branch: string } = options.kbPath
       ? { kbPath: options.kbPath }
-      : { branch: await attachReadBranch(process.cwd()) };
+      : {
+          branch: await attachReadBranch(
+            process.cwd(),
+            options.staged === true,
+          ),
+        };
 
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
@@ -842,6 +899,22 @@ export async function checkCommand(
       } | null = null;
       try {
         const snapshot = captureStagedSnapshot(process.cwd());
+        // The commit gate judges the commit itself, so the Kibi level comes
+        // from the staged snapshot, never from unstaged working-tree edits.
+        const level = readSnapshotKibiLevel(
+          snapshot,
+          snapshot.headTree,
+          () => readKibiLevel(process.cwd()).level,
+        );
+        const baseLevel = readSnapshotKibiLevel(
+          snapshot,
+          snapshot.baseTree,
+          () => level,
+        );
+        const levelChangeNotice =
+          baseLevel !== level
+            ? `Note: this commit changes the Kibi level from ${baseLevel} to ${level}.`
+            : undefined;
         const stagedInventory = snapshot.inventory;
         const trustedSourceConfig = readSnapshotSourceConfig(
           snapshot,
@@ -1055,6 +1128,7 @@ export async function checkCommand(
             stagedRequirementRules(snapshot, {
               stagedPaths: markdownFiles.map((file) => file.path),
               knowledge: snapshotEntities,
+              level,
             }) ?? undefined,
           );
           if (consistency.length > 0) {
@@ -1124,8 +1198,10 @@ export async function checkCommand(
         }
         // A requirement whose floor the commit moves must reach that floor,
         // judged on its staged front matter and the evidence the synced
-        // store holds.
-        const floor =
+        // store holds. The floor is a verification rule: it runs at level
+        // test only, and a requirement the commit adds is reported there,
+        // not refused.
+        const floorFindings =
           "branch" in store
             ? await collectStagedEvidenceFloorViolations({
                 workspaceRoot: process.cwd(),
@@ -1136,8 +1212,21 @@ export async function checkCommand(
                 ),
                 schemaVersion: readTreeManifest(snapshot)?.schemaVersion,
                 stagedEntities: snapshotEntities,
+                rules: stagedRequirementProofRules(level),
               })
             : [];
+        const { blocking: floor, reported: reportedFloor } =
+          partitionStagedFloorFindings(
+            floorFindings,
+            addedRequirementIds(markdownFiles, readStagedBase),
+          );
+        if (reportedFloor.length > 0)
+          baselineNotes.push(
+            ...formatConsistencyViolations(
+              reportedFloor,
+              "non-blocking evidence floor",
+            ),
+          );
         if (floor.length > 0) {
           printSnapshotResult({
             format: options.format,
@@ -1517,9 +1606,9 @@ export async function checkCommand(
         );
 
         // Run the Prolog rules over the staged knowledge: the minLinks
-        // ownership gate for changed source symbols, and full-check
-        // symbol-coverage for every changed symbol (changed source symbols
-        // plus symbols whose staged manifest entry changed).
+        // ownership gate for changed source symbols, and, at level test,
+        // full-check symbol-coverage for every changed symbol (changed source
+        // symbols plus symbols whose staged manifest entry changed).
         let violationsRaw: Awaited<ReturnType<typeof validateStagedSymbols>> =
           [];
         let coverageViolations: Awaited<
@@ -1542,10 +1631,12 @@ export async function checkCommand(
             minLinks,
             prolog: tempCtx.prolog,
           });
-          coverageViolations = await validateStagedSymbolCoverage({
-            prolog: tempCtx.prolog,
-            extraSymbolIds: [...activeStagedSymbolEntityIds],
-          });
+          // symbol-coverage asks for linked tests: a verification rule.
+          if (layerRunsAtLevel("verification", level))
+            coverageViolations = await validateStagedSymbolCoverage({
+              prolog: tempCtx.prolog,
+              extraSymbolIds: [...activeStagedSymbolEntityIds],
+            });
           await cleanupTempKb(tempCtx.tempDir);
         }
 
@@ -1606,6 +1697,7 @@ export async function checkCommand(
             qualityDiagnostics: stagedKibiDiagnostics,
             ownerFindings,
             messages: [
+              ...(levelChangeNotice ? [levelChangeNotice] : []),
               ...(ownerText.length > 0 ? [ownerText] : []),
               ...(shown.diagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(shown.diagnostics)]
@@ -1635,6 +1727,7 @@ export async function checkCommand(
             qualityDiagnostics: stagedKibiDiagnostics,
             ownerFindings,
             messages: [
+              ...(levelChangeNotice ? [levelChangeNotice] : []),
               ...(ownerText.length > 0 ? [ownerText] : []),
               ...(shown.diagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(shown.diagnostics)]
@@ -1653,6 +1746,7 @@ export async function checkCommand(
           format: options.format,
           coverage: stagedCoverage,
           messages: [
+            ...(levelChangeNotice ? [levelChangeNotice] : []),
             allSymbols.length === 0 && stagedEntityResults.length === 0
               ? noValidatedSymbolsMessage(sourceAnalysis)
               : passMessage,
@@ -1746,10 +1840,12 @@ export async function checkCommand(
     const violations = result.structuredContent?.violations ?? [];
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
+    const diagnostics = result.structuredContent?.diagnostics ?? [];
     if (options.format === "json") {
       printStructuredCheckResult({
         violations,
         qualityDiagnostics,
+        diagnostics,
         migrationPlan: result.structuredContent?.migrationPlan,
         symbolDebt: result.structuredContent?.symbolDebt,
       });
@@ -1760,6 +1856,12 @@ export async function checkCommand(
     const schemaNote = schemaUpgradeNote(process.cwd());
     if (schemaNote !== null) {
       console.log(schemaNote);
+      console.log();
+    }
+    for (const warning of diagnostics.filter((d) => d.severity === "warning")) {
+      console.log(`Warning: ${warning.message}`);
+      if (warning.suggestion)
+        console.log(`  Suggestion: ${warning.suggestion}`);
       console.log();
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);

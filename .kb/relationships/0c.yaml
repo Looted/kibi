@@ -461,3 +461,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6335f4aa6e76
+  - type: covered_by
+    from: SYM-vibe-packageVersion
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:14:43.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4d18433ca42
+  - type: implements
+    from: SYM-vibe-packageVersion
+    to: REQ-vibe-mcp-launcher-contract
+    created_at: 2026-11-24T10:14:43.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c630353481e
+  - type: assumes
+    from: SCEN-kb-upsert-capture-proof-setup-named
+    to: FACT-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:01:41.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12db67074b0d
+  - type: verified_by
+    from: SCEN-kb-upsert-capture-proof-setup-named
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-24T20:01:41.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-199caba109a3
+  - type: implements
+    from: SYM-shared-advice-shared-advice-of
+    to: REQ-kb-check-impact-advice-once
+    created_at: 2026-11-24T19:21:21.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95fa7ca4586c
+  - type: covered_by
+    from: SYM-shared-advice-shared-advice-of
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:21:21.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb883e1d665f
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-guarded-change-prompt-c02-eq-false
+    to: FACT-NEG-agent-hosts-guarded-change-prompt-c02-eq-false
+    created_at: 2026-11-25T14:08:32.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1b9ccb58fc9

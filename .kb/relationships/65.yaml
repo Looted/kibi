@@ -370,3 +370,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fbd1c9481ab
+  - type: implements
+    from: SYM-merge-train-merge-train-checks-of
+    to: REQ-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:36.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd3a73e08e6
+  - type: assumes
+    from: SCEN-coverage-plan-summaries
+    to: FACT-coverage-plan-summaries
+    created_at: 2026-11-19T15:27:53.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb7eb7ee462a
+  - type: constrains
+    from: REQ-antigravity-plugin-package
+    to: FACT-SUBJECT-antigravity-plugin
+    created_at: 2026-11-22T05:04:31.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-238661091e51
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-antigravity-plugin-package
+    created_at: 2026-11-22T05:04:31.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc3af8ae678d
+  - type: verified_by
+    from: REQ-antigravity-plugin-package
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:04:31.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a04fdcd617c
+  - type: requires_property
+    from: REQ-antigravity-plugin-package
+    to: FACT-antigravity-package-parts
+    created_at: 2026-11-22T05:14:02.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9151077e5fb9
+  - type: requires_property
+    from: REQ-antigravity-plugin-package
+    to: FACT-antigravity-bundled-skills
+    created_at: 2026-11-22T05:14:02.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb3d767db7e
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-skills-missing-usage
+    created_at: 2026-11-24T05:07:52.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46e4db86d923
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-skills-outside-set
+    created_at: 2026-11-24T05:07:52.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-981c9f85ad12
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-parts-missing-rules
+    created_at: 2026-11-24T05:07:52.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b56ec2a3bb
+  - type: specified_by
+    from: REQ-antigravity-plugin-package
+    to: SCEN-NEG-antigravity-parts-outside-set
+    created_at: 2026-11-24T07:46:13.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-853b84c31013
+  - type: verified_by
+    from: SCEN-search-collapse-chains-and-twins
+    to: TEST-search-decision-retrieval
+    created_at: 2026-11-25T14:28:54.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889c48a3a5d4
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-superseded-folds-into-chain-head
+    created_at: 2026-11-25T14:30:37.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3970f9cf5ae5
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-near-identical-folds-unless-firm-or-polarity
+    created_at: 2026-11-25T14:30:37.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b2f3964a81
+  - type: assumes
+    from: SCEN-search-collapse-chains-and-twins
+    to: FACT-search-decision-collapse-folded-listed-on-card
+    created_at: 2026-11-25T14:30:37.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-283251eddd32
+  - type: implements
+    from: SYM-kibi-level-read-kibi-level
+    to: REQ-kibi-level-setting
+    created_at: 2026-11-25T09:48:11.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1fe5d49094c
+  - type: covered_by
+    from: SYM-kibi-level-read-kibi-level
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T09:48:11.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476559a2d89d

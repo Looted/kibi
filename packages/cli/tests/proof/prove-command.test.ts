@@ -913,8 +913,8 @@ describe("proveCommand", () => {
         "playwright",
         "test",
         "--project=chromium",
-        "e2e/a.spec.ts",
-        "e2e/b.spec.ts",
+        "e2e/a\\.spec\\.ts",
+        "e2e/b\\.spec\\.ts",
       ],
       narrowed: true,
     });

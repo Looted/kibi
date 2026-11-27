@@ -391,3 +391,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b8de009cfc8
+  - type: executable_for
+    from: SYM-zcode-case-tracked-hook-targets
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-20T15:18:23.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bf5692b5858
+  - type: verified_by
+    from: REQ-engine-client-reclaim-dead-unix-socket
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-23T10:34:26.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a75c94686d50
+  - type: constrains
+    from: REQ-engine-client-reclaim-dead-unix-socket
+    to: FACT-SUBJ-kibi-engine-dead-socket-reclaim
+    created_at: 2026-11-23T10:47:04.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-187ade401402
+  - type: requires_property
+    from: REQ-engine-client-reclaim-dead-unix-socket
+    to: FACT-kibi-engine-dead-socket-reclaim
+    created_at: 2026-11-23T10:47:04.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a1e79a604ed
+  - type: specified_by
+    from: REQ-engine-client-reclaim-dead-unix-socket
+    to: SCEN-kibi-engine-dead-socket-reclaim
+    created_at: 2026-11-23T10:47:04.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7153dda32988
+  - type: specified_by
+    from: REQ-engine-client-reclaim-dead-unix-socket
+    to: SCEN-NEG-kibi-engine-dead-socket-reclaim-UNSAFE
+    created_at: 2026-11-23T10:47:04.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1e2bafd7bfa
+  - type: assumes
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    to: FACT-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    created_at: 2026-11-24T19:29:40.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b400eb1dde28
+  - type: verified_by
+    from: SCEN-CASE-kb-search-answered-results-identity-only-SEARCH-TRIMMED-WITHOUT-ANSWER
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:29:40.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-736dc84a248b

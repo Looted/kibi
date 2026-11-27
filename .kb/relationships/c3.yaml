@@ -615,3 +615,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7273854feb12
+  - type: specified_by
+    from: REQ-result-route-parity
+    to: SCEN-result-route-parity
+    created_at: 2026-11-19T15:28:48.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7002b074438
+  - type: specified_by
+    from: REQ-result-route-parity
+    to: SCEN-NEG-result-route-parity-ROUTES-DIFFER
+    created_at: 2026-11-19T15:28:48.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fbe723678e1
+  - type: verified_by
+    from: REQ-result-route-parity
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:49.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-133e758ef012
+  - type: constrains
+    from: REQ-result-route-parity
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:28:49.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a97c437824c
+  - type: requires_property
+    from: REQ-result-route-parity
+    to: FACT-result-route-parity
+    created_at: 2026-11-19T15:28:49.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af86221efdec
+  - type: implements
+    from: SYM-usage-log-append-hook-usage
+    to: REQ-antigravity-hook-usage-telemetry
+    created_at: 2026-11-22T05:07:22.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac5317ea7755
+  - type: covered_by
+    from: SYM-usage-log-append-hook-usage
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:07:22.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f52694aed839
+  - type: assumes
+    from: SCEN-NEG-antigravity-journal-not-append-only
+    to: FACT-NEG-antigravity-journal-not-append-only
+    created_at: 2026-11-24T05:07:28.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82858d220234
+  - type: verified_by
+    from: SCEN-NEG-antigravity-journal-not-append-only
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-24T05:07:28.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ea67ad7538

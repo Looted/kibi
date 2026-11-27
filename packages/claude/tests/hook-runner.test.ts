@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
@@ -179,23 +180,21 @@ describe("session start", () => {
 });
 
 describe("pre-read snippets", () => {
-  test("a linked file shows requirement titles, symbols, tests, and next calls once", async () => {
+  test("a linked file shows one row per current requirement, once", async () => {
     const fixture = createKibiWorkspace();
     const { pre } = session(fixture);
     const text = await pre("Read", {
       file_path: path.join(fixture.root, "src/checkout.ts"),
     });
-    expect(text).toContain(
-      "REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
+    expect(text).toBe(
+      [
+        "Kibi requirements for the code in view:",
+        "- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
+        'kb_query({id:"<id>", includeBody:true}) gives a requirement\'s full text and why it exists.',
+      ].join("\n"),
     );
-    expect(text).toContain(
-      "REQ-currency-display (superseded): Totals display with a currency symbol — formatTotal",
-    );
-    expect(text).toContain("Covered by: TEST-checkout-rounding.");
-    expect(text).toContain(
-      'kb_query({id:"REQ-checkout-rounding", includeBody:true})',
-    );
-    expect(text).toContain('sourceLocations:[{path:"src/checkout.ts"}]');
+    // A superseded requirement no longer governs the code.
+    expect(text).not.toContain("REQ-currency-display");
 
     expect(
       await pre("Read", {
@@ -204,16 +203,21 @@ describe("pre-read snippets", () => {
     ).toBeUndefined();
   });
 
-  test("a read window names the symbol it lands in", async () => {
+  test("a read window names only the requirements of the symbol in view", async () => {
     const fixture = createKibiWorkspace();
-    const text = await session(fixture).pre("Read", {
+    const { pre } = session(fixture);
+    // formatTotal implements only a superseded requirement.
+    expect(
+      await pre("Read", { file_path: "src/checkout.ts", offset: 9, limit: 3 }),
+    ).toBeUndefined();
+    const text = await pre("Read", {
       file_path: "src/checkout.ts",
-      offset: 9,
-      limit: 3,
+      offset: 4,
+      limit: 2,
     });
-    expect(text).toContain("These lines are inside formatTotal");
-    // The focused symbol's requirement leads the list.
-    expect(text?.split("\n")[1]).toContain("REQ-currency-display");
+    expect(text?.split("\n")[1]).toBe(
+      "- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
+    );
   });
 
   test("unlinked, generated, and non-code files stay silent on read", async () => {
@@ -226,12 +230,12 @@ describe("pre-read snippets", () => {
     }
   });
 
-  test("test code shows what it executes", async () => {
+  test("test code that implements no requirement stays silent", async () => {
     const fixture = createKibiWorkspace();
     const text = await session(fixture).pre("Read", {
       file_path: "tests/checkout.test.ts",
     });
-    expect(text).toContain("Test code for: TEST-checkout-rounding.");
+    expect(text).toBeUndefined();
   });
 
   test("a file the agent already explored through Kibi stays silent", async () => {
@@ -249,6 +253,70 @@ describe("pre-read snippets", () => {
     await post("mcp__kibi__kb_query", { id: "REQ-checkout-rounding" });
     await post("mcp__kibi__kb_query", { id: "REQ-currency-display" });
     expect(await pre("Read", { file_path: "src/checkout.ts" })).toBeUndefined();
+  });
+});
+
+describe("search and shell read rows", () => {
+  const ROW =
+    "- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal";
+
+  test("a Grep whose matches fall in a linked symbol names its requirement and skips the tip", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    const text = await pre("Grep", { pattern: "MATH\\.ROUND", "-i": true });
+    expect(text?.split("\n")[1]).toBe(ROW);
+    // The tip would only repeat that the code is governed.
+    expect(await pre("Grep", { pattern: "nothing-here" })).toBeUndefined();
+  });
+
+  test("a Grep limited by path and glob searches only those files", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    expect(await pre("Grep", { pattern: "total", glob: "*.js" })).toContain(
+      "Kibi tip",
+    );
+    expect(
+      await pre("Grep", { pattern: "total", path: "src/checkout.ts" }),
+    ).toContain(ROW);
+  });
+
+  test("a Grep outside the workspace, without a pattern or matching nothing linked, gets no rows", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture, "g2");
+    expect(
+      await pre("Grep", { pattern: "total", path: os.tmpdir() }),
+    ).toContain("Kibi tip");
+    const other = session(fixture, "g3");
+    expect(await other.pre("Grep", {})).toContain("Kibi tip");
+    expect(
+      await session(fixture, "g4").pre("Glob", { pattern: "**/*.ts" }),
+    ).toContain("Kibi tip");
+  });
+
+  test("a shell range read focuses the rows; every named file is described", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    // formatTotal (lines 9-11) implements only a superseded requirement.
+    expect(
+      await pre("Bash", { command: "sed -n '9,11p' src/checkout.ts" }),
+    ).toBeUndefined();
+    const text = await pre("Bash", {
+      command: "cat src/helper.ts src/checkout.ts",
+    });
+    expect(text).toContain(ROW);
+  });
+
+  test("a shell grep names the requirements of the symbols it matches", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    expect(
+      await pre("Bash", { command: "grep -rn 'Math.round' src" }),
+    ).toContain(ROW);
+    expect(
+      await session(fixture, "g5").pre("Bash", {
+        command: "grep -rn toFixed src",
+      }),
+    ).toContain("Kibi tip");
   });
 });
 
@@ -552,10 +620,9 @@ describe("evaluation trace replays", () => {
     const fixture = createKibiWorkspace();
     const { call, pre, post } = session(fixture, "b1");
     await call({ hook_event_name: "SessionStart", source: "startup" });
-    await pre("Grep", { pattern: "total" });
+    await pre("Grep", { pattern: "nothing-here" });
     const read = await pre("Read", { file_path: linked(fixture) });
-    expect(read).toContain("Covered by: TEST-checkout-rounding.");
-    expect(read).toContain("Next layer:");
+    expect(read).toContain("- REQ-checkout-rounding");
     expect(read).not.toContain("must keep true");
 
     const edit = await pre("Edit", {
@@ -591,7 +658,7 @@ describe("evaluation trace replays", () => {
     const { call, pre } = session(fixture, "b1");
     await call({ hook_event_name: "SessionStart", source: "startup" });
     expect(await pre("Read", { file_path: linked(fixture) })).toContain(
-      "Kibi knowledge for src/checkout.ts",
+      "- REQ-checkout-rounding",
     );
     expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
 
@@ -601,8 +668,8 @@ describe("evaluation trace replays", () => {
     );
     expect(compact).toContain("the 1 linked source files");
     const again = await pre("Read", { file_path: linked(fixture) });
-    expect(again).toContain("Kibi knowledge for src/checkout.ts");
-    expect(again).toContain("Covered by: TEST-checkout-rounding.");
+    expect(again).toContain("- REQ-checkout-rounding");
+    expect(again).toContain('kb_query({id:"<id>", includeBody:true})');
     // Deduplication resumes from the reset.
     expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
   });
@@ -611,15 +678,17 @@ describe("evaluation trace replays", () => {
     const fixture = createKibiWorkspace();
     const { call, pre, post } = session(fixture, "b1");
     await pre("Read", { file_path: linked(fixture) });
-    await pre("Grep", { pattern: "total" });
+    await pre("Grep", { pattern: "nothing-here" });
     await call({ hook_event_name: "SessionStart", source: "resume" });
     expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
-    expect(await pre("Grep", { pattern: "total" })).toBeUndefined();
+    expect(await pre("Grep", { pattern: "nothing-here" })).toBeUndefined();
 
     // Pending edits survive a reset: the Stop reminder is about work, not context.
     await post("Edit", { file_path: linked(fixture) });
     await call({ hook_event_name: "SessionStart", source: "compact" });
-    expect(await pre("Grep", { pattern: "total" })).toContain("Kibi tip");
+    expect(await pre("Grep", { pattern: "nothing-here" })).toContain(
+      "Kibi tip",
+    );
     expect(await session(fixture, "b1").stop()).toContain("src/checkout.ts");
   });
 });
@@ -628,14 +697,18 @@ describe("search tip", () => {
   test("appears once and only before the agent uses Kibi", async () => {
     const fixture = createKibiWorkspace();
     const first = session(fixture, "a");
-    expect(await first.pre("Grep", { pattern: "total" })).toContain("Kibi tip");
+    expect(await first.pre("Grep", { pattern: "nothing-here" })).toContain(
+      "Kibi tip",
+    );
     expect(await first.pre("Glob", { pattern: "**/*.ts" })).toBeUndefined();
 
     const second = session(fixture, "b");
     await second.post("Bash", {
       command: `printf '%s\\n' '{"query":"totals"}' | npx --no-install kibi search --input -`,
     });
-    expect(await second.pre("Grep", { pattern: "total" })).toBeUndefined();
+    expect(
+      await second.pre("Grep", { pattern: "nothing-here" }),
+    ).toBeUndefined();
   });
 });
 
@@ -774,10 +847,8 @@ describe("shell commands", () => {
     const text = await pre("Bash", {
       command: "cd src && sed -n 1,20p checkout.ts | head",
     });
-    expect(text).toContain("REQ-checkout-rounding");
-    expect(text).toContain(
-      'kb_query({id:"REQ-checkout-rounding", includeBody:true})',
-    );
+    expect(text).toContain("- REQ-checkout-rounding");
+    expect(text).toContain('kb_query({id:"<id>", includeBody:true})');
     expect(await pre("Bash", { command: "cat src/checkout.ts" })).toBe(
       undefined,
     );
@@ -792,10 +863,11 @@ describe("shell commands", () => {
         command: "cat .kb/requirements/REQ-checkout-rounding.md",
       }),
     ).toContain(".kb/ holds Kibi-managed knowledge");
+    // A search that matches no linked symbol gets the tip, once.
     expect(
-      await pre("Bash", { command: "grep -rn 'total' src | head -20" }),
+      await pre("Bash", { command: "grep -rn 'nothing-here' src | head -20" }),
     ).toContain("Kibi tip");
-    expect(await pre("Grep", { pattern: "total" })).toBeUndefined();
+    expect(await pre("Grep", { pattern: "nothing-here" })).toBeUndefined();
     expect(await pre("Bash", { command: "ls src" })).toBeUndefined();
   });
 
@@ -1577,7 +1649,7 @@ describe("usage telemetry", () => {
     const { pre, post } = session(fixture, "s-telemetry", optedIn);
     const source = path.join(fixture.root, "src/checkout.ts");
 
-    await pre("Grep", { pattern: "total" });
+    await pre("Grep", { pattern: "nothing-here" });
     await pre("Read", { file_path: source });
     await post("Edit", { file_path: source });
     await post("mcp__plugin_kibi-claude_kibi__kb_search", {
@@ -1601,7 +1673,7 @@ describe("usage telemetry", () => {
       host_tool: "Read",
       path: "src/checkout.ts",
       path_kind: "source",
-      requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
+      requirement_ids: ["REQ-checkout-rounding"],
     });
     expect(rows[3]).toMatchObject({ kb_operation: "kb_search" });
     // Edit rows name the requirements the edited file implements, which is
@@ -1654,7 +1726,7 @@ describe("usage telemetry", () => {
 });
 
 describe("workspace stamp", () => {
-  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+  test("PreToolUse names the session workspace on a Kibi MCP call that carries none", async () => {
     const fixture = createKibiWorkspace();
     const result = await runHook(
       {
@@ -1673,6 +1745,25 @@ describe("workspace stamp", () => {
         updatedInput: { query: "rounding", workspaceRoot: fixture.root },
       },
     });
+  });
+
+  test("PreToolUse leaves a Kibi MCP call that names a workspace alone", async () => {
+    const fixture = createKibiWorkspace();
+    const worktree = tempDir("kibi-claude-worktree-");
+    // The agent's workspace is not replaced by the session's, so the call
+    // still reaches the worktree the agent asked for.
+    expect(
+      await runHook(
+        {
+          session_id: "s-stamp",
+          cwd: path.join(fixture.root, "src"),
+          hook_event_name: "PreToolUse",
+          tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+          tool_input: { query: "rounding", workspaceRoot: worktree },
+        },
+        { pluginData: fixture.pluginData, env: {} },
+      ),
+    ).toEqual({});
   });
 
   test("a Kibi call outside any Kibi workspace is left alone", async () => {
@@ -1819,4 +1910,93 @@ describe("hook command pre-edit snippet (end to end)", () => {
       "Kibi asked the person to confirm this edit",
     );
   }, 30_000);
+});
+
+describe("Kibi level and required evidence confirmation", () => {
+  const requirementDoc = (evidence: string) =>
+    `---\nid: REQ-floor\ntitle: Floor\nstatus: open\nrequired_evidence: ${evidence}\norigin:\n  kind: agent\n---\nBody.\n`;
+
+  function guarded() {
+    const fixture = createKibiWorkspace();
+    fs.writeFileSync(
+      path.join(fixture.root, "package.json"),
+      `${JSON.stringify({ name: "app" })}\n`,
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb/requirements/REQ-floor.md"),
+      requirementDoc("tested"),
+    );
+    const { call } = session(fixture, "guard");
+    const raw = (toolName: string, toolInput: Record<string, unknown>) =>
+      call({
+        hook_event_name: "PreToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+    return { fixture, raw };
+  }
+
+  test("an edit that changes the level is put to the person every time", async () => {
+    const { raw } = guarded();
+    const write = {
+      file_path: "package.json",
+      content: JSON.stringify({ name: "app", kibi: { level: "remember" } }),
+    };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const specific = (await raw("Write", write)).hookSpecificOutput;
+      expect(specific?.permissionDecision).toBe("ask");
+      expect(specific?.permissionDecisionReason).toBe(
+        "Kibi: this edit changes the Kibi level from test to remember (package.json). At remember, Kibi stops asking for the scenarios, tests and proofs that show each requirement holds. Allow it only if you chose this level.",
+      );
+      expect(specific?.additionalContext).toContain(
+        "That is the person's decision",
+      );
+    }
+    // An edit that keeps the level is not asked.
+    expect(
+      (
+        await raw("Write", {
+          file_path: "package.json",
+          content: JSON.stringify({ name: "renamed" }),
+        })
+      ).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+  });
+
+  test("an edit of a requirement that lowers its floor is put to the person", async () => {
+    const { raw } = guarded();
+    const specific = (
+      await raw("Edit", {
+        file_path: ".kb/requirements/REQ-floor.md",
+        old_string: "required_evidence: tested",
+        new_string: "required_evidence: asserted",
+      })
+    ).hookSpecificOutput;
+    expect(specific?.permissionDecision).toBe("ask");
+    expect(specific?.permissionDecisionReason).toContain(
+      "lowers the evidence REQ-floor must reach from tested to asserted",
+    );
+  });
+
+  test("a kb_upsert that lowers a floor is asked, with the workspace still stamped", async () => {
+    const { fixture, raw } = guarded();
+    const specific = (
+      await raw("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "unverified" },
+      })
+    ).hookSpecificOutput;
+    expect(specific?.permissionDecision).toBe("ask");
+    expect(specific?.updatedInput?.workspaceRoot).toBe(fixture.root);
+    const raised = (
+      await raw("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-floor",
+        properties: { required_evidence: "proved" },
+        workspaceRoot: fixture.root,
+      })
+    ).hookSpecificOutput;
+    expect(raised).toBeUndefined();
+  });
 });

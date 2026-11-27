@@ -391,3 +391,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c68a028df437
+  - type: specified_by
+    from: REQ-coverage-report-reuse
+    to: SCEN-coverage-report-reuse
+    created_at: 2026-11-19T15:28:32.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8e33e08a50b
+  - type: specified_by
+    from: REQ-coverage-report-reuse
+    to: SCEN-NEG-coverage-report-reuse-RECOMPUTED
+    created_at: 2026-11-19T15:28:32.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-977f5a676325
+  - type: verified_by
+    from: REQ-coverage-report-reuse
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:28:32.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3ee02b507c4
+  - type: constrains
+    from: REQ-coverage-report-reuse
+    to: FACT-SUBJECT-kibi-coverage-report
+    created_at: 2026-11-19T15:28:32.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-362108ef62ff
+  - type: requires_property
+    from: REQ-coverage-report-reuse
+    to: FACT-coverage-report-reuse
+    created_at: 2026-11-19T15:28:32.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a351ed0273
+  - type: covered_by
+    from: SYM-vibe-parseWslNodeProbe
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-24T10:14:45.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff32ef378e29
+  - type: implements
+    from: SYM-vibe-parseWslNodeProbe
+    to: REQ-vibe-wsl-safe-spawn
+    created_at: 2026-11-24T10:14:45.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fbcf70ea6f3
+  - type: constrains
+    from: REQ-kb-search-close-matches-candidates
+    to: FACT-SUBJECT-kibi-discovery-search
+    created_at: 2026-11-24T20:05:19.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7915784b836f
+  - type: requires_property
+    from: REQ-kb-search-close-matches-candidates
+    to: FACT-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:05:19.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6609586aea9e
+  - type: specified_by
+    from: REQ-kb-search-close-matches-candidates
+    to: SCEN-kb-search-close-matches-candidates
+    created_at: 2026-11-24T20:05:19.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b41e934e45
+  - type: specified_by
+    from: REQ-kb-search-close-matches-candidates
+    to: SCEN-NEG-kb-search-close-matches-candidates-GOVERNING
+    created_at: 2026-11-24T20:05:19.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9889cd2b6317
+  - type: implements
+    from: SYM-packages-zcode-src-hook-runner-guarded-notice
+    to: REQ-agent-hosts-guarded-change-notice
+    created_at: 2026-11-25T14:07:06.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11486db9add4
+  - type: covered_by
+    from: SYM-packages-zcode-src-hook-runner-guarded-notice
+    to: TEST-agent-hosts-guarded-change-ask
+    created_at: 2026-11-25T14:07:06.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ba22e623191

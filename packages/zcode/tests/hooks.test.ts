@@ -61,11 +61,35 @@ describe("kibi-zcode hooks.json", () => {
         for (const hook of entry.hooks ?? []) {
           expect(hook.type).toBe("command");
           expect(hook.command).toBe(
-            'node "${ZCODE_PLUGIN_ROOT}/dist/hook-runner.js"',
+            'node "${ZCODE_PLUGIN_ROOT}/bin/hook-runner.mjs"',
           );
           expect(typeof hook.timeoutMs).toBe("number");
           expect(hook.timeoutMs).toBeGreaterThan(0);
           void event;
+        }
+      }
+    }
+  });
+
+  test("hook commands point at files a source checkout already contains", () => {
+    // A ZCode marketplace install copies the repository's tracked files and
+    // never builds, so a hook target that only exists after `bun run
+    // build:zcode` leaves every lifecycle hook silently dead on arrival.
+    for (const [event, entries] of Object.entries(config.hooks ?? {})) {
+      for (const entry of entries) {
+        for (const hook of entry.hooks ?? []) {
+          const match = /^node "\$\{ZCODE_PLUGIN_ROOT\}\/([^"]+)"$/.exec(
+            hook.command ?? "",
+          );
+          expect(
+            match,
+            `unexpected ${event} hook command: ${hook.command}`,
+          ).toBeTruthy();
+          const relative = match?.[1] ?? "";
+          expect(
+            fs.existsSync(path.join(packageRoot, relative)),
+            `${event} hook target ${relative} must exist without a build`,
+          ).toBe(true);
         }
       }
     }
@@ -96,23 +120,40 @@ describe("kibi-zcode hooks.json", () => {
     }
   });
 
-  test("PreToolUse targets edit-like tools and Kibi MCP tools only", () => {
+  test("PreToolUse targets edit-like, read, search and shell tools and Kibi MCP tools only", () => {
     const preToolUse = config.hooks?.PreToolUse ?? [];
     expect(preToolUse).toHaveLength(1);
     const matcher = preToolUse[0]?.matcher;
-    expect(matcher).toBe("Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*");
+    // ZCode tests a matcher against the whole tool name as a regular
+    // expression, so the alternatives are anchored: unanchored, `Write` also
+    // matched `TodoWrite` and started the hook runner for it.
+    expect(matcher).toBe(
+      "^(Edit|MultiEdit|Write|apply_patch|Read|Grep|Bash|mcp__.*__kb_.*)$",
+    );
     for (const tool of [
       "Edit",
       "MultiEdit",
       "Write",
       "apply_patch",
-      // Kibi MCP calls get the session workspace stamped on them.
+      // Reads, searches and shell calls get the rows of the code in view.
+      "Read",
+      "Grep",
+      "Bash",
+      // Kibi MCP calls get the session workspace stamped when they name none.
       "mcp__kibi__kb_search",
       "mcp__plugin_kibi__kb_check",
+      "mcp__plugin_kibi-zcode_kibi__kb_status",
     ]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(true);
     }
-    for (const tool of ["Read", "Bash", "Agent", "edit", "mcp__other__tool"]) {
+    for (const tool of [
+      "Agent",
+      "edit",
+      // A tool whose name merely ends in an edit tool's name.
+      "TodoWrite",
+      "mcp__other__tool",
+      "mcp__kibi__other",
+    ]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(false);
     }
   });

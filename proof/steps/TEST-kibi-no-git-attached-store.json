@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-kibi-no-git-attached-store",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/outside-git.test.ts",
+      "./packages/cli/tests/vcs/workspace-vcs.test.ts"
+    ]
+  ]
+}

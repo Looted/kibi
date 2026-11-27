@@ -36,15 +36,21 @@ jobs:
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   # Decides once, before any runner provisions, whether this run can reuse a
-  # proof of the same snapshot: a PR reuses develop's, and a develop push that
-  # merged a merge train reuses the train's. Every proof job below reads it.
+  # proof of the same snapshot: a PR reuses develop's, a develop push that
+  # merged a merge train reuses the train's, and a train of one pull request
+  # reuses that pull request's proof when the git tree is identical. Every
+  # proof job below reads it.
   reuse:
     name: Decide whether the PR can reuse develop proof
     runs-on: ubuntu-latest
     outputs:
-      execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}
+      execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') && (steps.member.outcome != 'success' || steps.member.outputs.reuse != 'true') }}
       train-run-id: ${{ steps.train.outputs.source_run_id }}
+      train-report-run-id: ${{ steps.train.outputs.report_run_id }}
       train-run-url: ${{ steps.train.outputs.source_run_url }}
+      member: ${{ steps.member.outputs.reuse }}
+      member-run-id: ${{ steps.member.outputs.source_run_id }}
+      member-run-url: ${{ steps.member.outputs.source_run_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -94,8 +100,34 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bun scripts/ci-proof-reuse.ts decide-train "$RUNNER_TEMP/kibi-proof-decision.json"
 
+      # A train of one pull request, whose merge did not change the member's
+      # tree, reuses the proof that already passed on that tree. The
+      # attestation uploaded below is what the develop push reuses in turn.
+      # It does not run when the step above already reused develop's proof.
+      - name: Check whether a single-pull-request train can reuse its member's proof
+        id: member
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && steps.reuse.outputs.reuse != 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BASE_REF: ${{ github.base_ref }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: bun scripts/ci-proof-reuse.ts decide-member "$RUNNER_TEMP/kibi-proof-decision.json"
+
+      - name: Upload the attestation of the reused member proof
+        if: ${{ steps.member.outputs.reuse == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-proof-attestation
+          path: ${{ runner.temp }}/kibi-proof-attestation/attestation.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload proof reuse decision
-        if: ${{ steps.reuse.outcome == 'success' || steps.train.outcome == 'success' }}
+        if: ${{ steps.reuse.outcome == 'success' || steps.train.outcome == 'success' || steps.member.outcome == 'success' }}
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -105,12 +137,186 @@ jobs:
           retention-days: 7
 
 
+  # Recall, hint and pre-proof floor gates. They need a synced KB and a quiet
+  # runner (a concurrent prove skews the latency threshold) and they do not
+  # produce receipts, so they run beside the shards instead of in front of
+  # one of them. proof-required still fails when any of them fails.
+  search-gates:
+    name: Gate kb_search and pre-proof evidence floors
+    needs: [swipl-bundle, reuse]
+    runs-on: ubuntu-latest
+    # Cancel needs actions: write. Job permissions replace the workflow set.
+    permissions:
+      contents: read
+      actions: write
+    env:
+      KIBI_PROOF_EXECUTE: ${{ needs.reuse.outputs.execute }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.4"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26.7.0"
+
+      - name: Install dependencies for canonical snapshot
+        run: bun install --frozen-lockfile
+
+      - name: Bootstrap Ubuntu packages
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3 swi-prolog-nox
+
+      - name: Install SWI-Prolog
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        uses: ./.github/actions/use-bundled-swipl
+        with:
+          verify-resolver: 'true'
+
+      - name: Provision strict-proof host prerequisites
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        env:
+          UV_VERSION: "0.9.26"
+          CODEX_CLI_VERSION: "0.144.6"
+          # Same pnpm as ci.yml's packed MCP job; the newest pnpm fails the
+          # offline upgrade in mcp-pnpm-upgrade-stale-path.test.ts.
+          PNPM_VERSION: "10.24.0"
+          ELAN_VERSION: "v4.1.2"
+          ELAN_INIT_SHA256: "4bacca9502cb89736fe63d2685abc2947cfbf34dc87673504f1bb4c43eda9264"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
+          npm install --global "pnpm@${PNPM_VERSION}"
+          # Lean for the intervals.pl proofs. The proof step runs `lake --dir
+          # proof/lean` from the repository root, where no lean-toolchain file
+          # applies, so proof/lean's toolchain is also the default.
+          curl --fail --silent --show-error --location --output elan-init.sh \
+            "https://raw.githubusercontent.com/leanprover/elan/${ELAN_VERSION}/elan-init.sh"
+          echo "${ELAN_INIT_SHA256}  elan-init.sh" | sha256sum --check
+          sh elan-init.sh -y --default-toolchain "$(cat proof/lean/lean-toolchain)"
+          rm elan-init.sh
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          uv --version
+          codex --version
+          test "$(pnpm --version)" = "$PNPM_VERSION"
+          bwrap --version
+          z3 --version
+          /usr/bin/swipl -g "use_module(library(clpq))" -t halt
+          lake --version
+          uv sync --project tools/skillopt --frozen
+          uv run --project tools/skillopt python tools/skillopt/verify_pin.py
+
+      - name: Install proof-only dependencies
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: cd .opencode && bun install --frozen-lockfile
+
+      - name: Build packages used by packed proof contracts
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: bun run build
+
+      - name: Reject generated manifest drift in committed snapshot
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: bun packages/cli/bin/kibi check-generated --staged
+
+      - name: Sync and validate integrity of the proof snapshot
+        id: integrity
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: |
+          bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
+          if ! git diff --quiet -- .kb/symbols.yaml; then
+            echo '::error::Kibi rewrote .kb/symbols.yaml during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
+            exit 1
+          fi
+          # A fresh load of the store must hold every triple once.
+          swipl scripts/check-store-snapshot.pl .kb/branches
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
+
+      # Asks the repository's own KB the versioned gold questions through the
+      # built CLI and fails on recall@3, superseded results, abstention or warm
+      # latency below the committed thresholds. They run alone on this runner,
+      # because a concurrent prove would skew the latency.
+      - name: Gate kb_search answers on the repository gold set
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
+
+      # Reworded questions the lexical ranker misses: with the bundled
+      # search-hints plugin active by default, the expected requirement must be in the
+      # top three or among the hints.
+      - name: Gate kb_search hints on reworded questions
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
+
+      # Every current requirement's floor, before re-proving: receipts that
+      # are only older than the code count as pending re-proof, so grounding,
+      # contradiction and link regressions fail before the long proof run.
+      - name: Reject evidence-floor regressions before executing contracts
+        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' }}
+        run: sh scripts/proof-gate.sh
+
+      - name: Collect the branch store after a failed sync or validation
+        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        run: |
+          out="${RUNNER_TEMP}/kibi-branch-store"
+          mkdir -p "$out/runtime"
+          if [ -d .kb/branches ]; then cp -a .kb/branches "$out/branches"; fi
+          for dir in "${KIBI_RUNTIME_DIR:-}" "${XDG_RUNTIME_DIR:-}" /tmp/kibi-runtime; do
+            if [ -n "$dir" ] && [ -d "$dir" ]; then
+              find "$dir" -maxdepth 1 -type f -name 'kibi-*' -exec cp -p {} "$out/runtime/" \;
+            fi
+          done
+
+      - name: Upload the branch store after a failed sync or validation
+        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-branch-store-search-gates
+          path: ${{ runner.temp }}/kibi-branch-store
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+      # The required check waits for every job. A gate that has already failed
+      # cancels the shards so the failure is reported without the rest of the
+      # proof run. This runs after the store upload. Cancelling is best-effort:
+      # a fork token cannot, and the failed gate still fails proof-required.
+      - name: Cancel the proof run after a failed gate
+        if: ${{ failure() && env.KIBI_PROOF_EXECUTE == 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run cancel "${GITHUB_RUN_ID}"
+
   # `kibi prove --all` split over three runners. Each shard proves a disjoint
   # part on the same commit; the proof job below refuses unless the parts add
-  # up to exactly one full run. A failed shard cancels the others.
+  # up to exactly one full run. A failed shard cancels the others. The count
+  # stays three: `--shard` deals tests out by id, so an identical command runs
+  # again on every shard that inherits one of its tests, and the slowest packed
+  # command already waits on the CI unit-results ledger. Five or six shards
+  # copy that command onto more runners and do not shorten the longest one.
   prove:
     name: Prove shard ${{ matrix.shard }} of 3
     needs: [swipl-bundle, reuse]
+    # A reused proof has nothing to shard. The job is skipped, not passed
+    # through, and proof-required allows that skip only for a recorded reuse.
+    if: ${{ needs.reuse.outputs.execute == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -218,35 +424,6 @@ jobs:
           swipl scripts/check-store-snapshot.pl .kb/branches
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
-      # Asks the repository's own KB the versioned gold questions through the
-      # built CLI and fails on recall@3, superseded results, abstention or warm
-      # latency below the committed thresholds. They need only the synced KB,
-      # so they run before the long proof run and fail fast; they run alone
-      # on the runner, because concurrent proof steps would skew the latency.
-      - name: Gate kb_search answers on the repository gold set
-        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' && matrix.shard == 1 }}
-        run: >-
-          bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
-          --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
-
-      # Reworded questions the lexical ranker misses: with the repository's
-      # search-hints plugin active, the expected requirement must be in the
-      # top three or among the hints.
-      - name: Gate kb_search hints on reworded questions
-        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' && matrix.shard == 1 }}
-        run: >-
-          bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
-          --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
-
-      # Every current requirement's floor, before re-proving: receipts that
-      # are only older than the code count as pending re-proof, so grounding,
-      # contradiction and link regressions fail before the long proof run.
-      - name: Reject evidence-floor regressions before executing contracts
-        if: ${{ env.KIBI_PROOF_EXECUTE == 'true' && matrix.shard == 1 }}
-        run: sh scripts/proof-gate.sh
-
       # Each shard proves the K-th of three disjoint parts of the contracted
       # tests, then saves what it selected, its prove output and every file
       # the run changed, for the join job to check and merge.
@@ -319,7 +496,9 @@ jobs:
     name: Contracted proof and health report
     needs: [swipl-bundle, reuse, prove]
     # Runs after a failed shard too, so the report still shows the KB state.
-    if: ${{ !cancelled() && needs.reuse.result == 'success' }}
+    # A single-PR train that reused its member's proof attests from the reuse
+    # job instead, and skips this one.
+    if: ${{ always() && !cancelled() && needs.reuse.result == 'success' && needs.reuse.outputs.member != 'true' }}
     runs-on: ubuntu-latest
     env:
       KIBI_PROOF_EXECUTE: ${{ needs.reuse.outputs.execute }}
@@ -530,17 +709,19 @@ jobs:
       # merge train pull request attests its own, so the develop push that
       # merges it can reuse it.
       - name: Attest successful develop proof
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && (startsWith(github.head_ref, 'merge-train/') || needs.reuse.outputs.execute == 'true')) }}
         env:
+          PR_BASE_REF: ${{ github.base_ref }}
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           KIBI_PROOF_DERIVED_FROM: ${{ needs.reuse.outputs.train-run-url }}
+          KIBI_PROOF_EXECUTE: ${{ needs.reuse.outputs.execute }}
         run: bun scripts/ci-proof-reuse.ts attest "$RUNNER_TEMP/kibi-proof-attestation"
 
       - name: Upload develop proof attestation
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'develop' && (startsWith(github.head_ref, 'merge-train/') || needs.reuse.outputs.execute == 'true')) }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kibi-proof-attestation
@@ -548,14 +729,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # A develop push that reused a train's proof publishes that train's
-      # report: it describes this exact snapshot.
+      # A develop push that reused a train's proof keeps that train's
+      # report (or the member run's report when a single-PR train reused it):
+      # it describes this exact snapshot.
       - name: Download the reused train's proof report
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: kibi-requirement-proof
-          run-id: ${{ needs.reuse.outputs.train-run-id }}
+          run-id: ${{ needs.reuse.outputs.train-report-run-id || needs.reuse.outputs.train-run-id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/kibi-train-proof
 
@@ -564,39 +746,18 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
         run: cp -R "$RUNNER_TEMP/kibi-train-proof/kibi-report" kibi-report
 
-      - name: Build documentation site at the Pages root
+      # Pages deploys from master (pages.yml), so the public site matches the
+      # release. Master holds a tree this develop run proved, so keep the
+      # report of that tree for the master deploy to publish under
+      # /kibi-report/, whether this run proved it or reused a train's proof.
+      - name: Upload the proof report for the master Pages deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        env:
-          KIBI_UMAMI_WEBSITE_ID: 197fb489-cdd4-4d95-ae8a-119dc6422a45
-        run: bun run docs:site -- --out pages
-
-      - name: Namespace the proof report under /kibi-report/
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        run: |
-          mkdir -p pages/kibi-report
-          cp -R kibi-report/. pages/kibi-report/
-
-      - name: Upload Kibi Pages artifact
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          path: pages
-
-  deploy:
-    name: Deploy proof report and documentation
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
-    needs: proof
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy proof report and documentation to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+          name: kibi-pages-report
+          path: kibi-report
+          if-no-files-found: error
+          retention-days: 90
 
   # The one CI check a ruleset requires. It needs every other job, runs even
   # when one fails or is skipped, and passes only when all of them succeeded,
@@ -605,15 +766,34 @@ jobs:
   proof-required:
     name: proof-required
     if: ${{ always() && github.actor != 'nektos/act' }}
-    needs: [swipl-bundle, reuse, prove, proof]
+    needs: [swipl-bundle, reuse, search-gates, prove, proof]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Require every proof job to succeed
         env:
           RESULTS: ${{ toJSON(needs) }}
+          EXECUTE: ${{ needs.reuse.outputs.execute }}
+          MEMBER: ${{ needs.reuse.outputs.member }}
+          REUSE_RESULT: ${{ needs.reuse.result }}
         run: |
-          failed="$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"' <<<"$RESULTS")"
+          # A skipped job is a failure, except a prove shard skipped because a
+          # recorded reuse said this tree was already proved, and the proof
+          # job skipped because that reuse was the member's own proof. Any
+          # other skip, and every failure or cancellation, fails the check.
+          execute="${EXECUTE:-true}"
+          member="${MEMBER:-}"
+          reuse_result="${REUSE_RESULT:-}"
+          failed="$(jq -r --arg execute "$execute" --arg member "$member" --arg reuse_result "$reuse_result" '
+            to_entries[]
+            | .key as $k
+            | .value.result as $r
+            | if $r == "success" then empty
+              elif $reuse_result == "success" and $execute == "false" and $k == "prove" and $r == "skipped" then empty
+              elif $reuse_result == "success" and $member == "true" and $k == "proof" and $r == "skipped" then empty
+              else "\($k): \($r)"
+              end
+          ' <<<"$RESULTS")"
           if [ -n "$failed" ]; then
             echo "::error::These proof jobs did not succeed:"
             echo "$failed"

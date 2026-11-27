@@ -1,0 +1,50 @@
+{
+  "name": "kibi-vibe",
+  "version": "0.2.0",
+  "description": "Kibi Mistral Vibe plugin - Agent Plugins 1.0 package with the kibi MCP server (automatic WSL/Windows runtime detection), bundled skills, and context hooks",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/vibe"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "files": [
+    "plugin.json",
+    "mcp.json",
+    "bin",
+    "ai.mistral.vibe",
+    "skills",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "bun run scripts/build-guard.ts && node --check bin/hooks/kibi-guard.mjs && node --check bin/kibi-runtime.mjs && node --check bin/kibi.mjs && node --check bin/launch-kibi-mcp.mjs && node --check bin/hooks/kibi-common.mjs && node --check bin/hooks/kibi-file-context.mjs && node --check bin/hooks/kibi-prompt-context.mjs && node --check bin/hooks/kibi-session-context.mjs && bun run ../../scripts/sync-agent-skills.ts --write --target vibe",
+    "test": "node --test tests/*.test.mjs",
+    "check:skills": "bun run ../../scripts/sync-agent-skills.ts --check --target vibe",
+    "check:hook-bundle": "bun run --cwd ../agent-core build && bun run scripts/build-guard.ts && git diff --exit-code -- bin/hooks/kibi-guard.mjs"
+  },
+  "peerDependencies": {
+    "kibi-cli": ">=1.0.0",
+    "kibi-mcp": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "kibi-cli": {
+      "optional": true
+    },
+    "kibi-mcp": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "kibi-agent-core": "^0.16.0"
+  }
+}

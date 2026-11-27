@@ -22,6 +22,12 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  KIBI_LEVELS,
+  kibiLevelSettingName,
+  readKibiLevel,
+} from "kibi-agent-core/kibi-level";
+import { noGitAdvisory } from "kibi-agent-core/version-control";
+import {
   type BootstrapKibiEnvironmentResult,
   type EnvValueSource,
   bootstrapKibiEnvironment,
@@ -77,9 +83,10 @@ import {
   mergeDriverSetup,
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
+import { probeWorkspaceVcs } from "../vcs/workspace-vcs.js";
 import {
   AGENTS_FILE,
-  KIBI_AGENT_INSTRUCTIONS,
+  agentInstructionsFor,
   managedSectionState,
 } from "./agent-instructions.js";
 import { GITHUB_CHECK_WORKFLOW_RELPATH } from "./github-init.js";
@@ -92,6 +99,7 @@ import {
 import { hasKibiPrepareScript } from "./hooks-install.js";
 import {
   KIBI_HOOK_BEGIN,
+  MANAGED_HOOK_NAMES,
   type ManagedHookName,
   hasManagedHooks,
   outdatedManagedHooks,
@@ -177,6 +185,10 @@ export async function doctorCommand(
     {
       name: ".kb/ manifest",
       check: checkKbManifest,
+    },
+    {
+      name: "Kibi level",
+      check: checkKibiLevel,
     },
     {
       name: "Canonical storage",
@@ -1002,11 +1014,12 @@ function checkLegacyStorage(): {
   };
 }
 
-function checkGitRepository(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+/**
+ * Kibi works without Git on one knowledge store, so a workspace outside any
+ * repository is a warning with the advisory, not a failure. A repository Git
+ * cannot read still fails.
+ */
+function checkGitRepository(): DoctorCheckResult {
   try {
     execSync("git status", { stdio: "pipe", cwd: process.cwd() });
 
@@ -1014,11 +1027,23 @@ function checkGitRepository(): {
       passed: true,
       message: "Found",
     };
-  } catch (error) {
+  } catch {
+    const vcs = probeWorkspaceVcs(process.cwd());
+    if (vcs.kind === "none") {
+      return {
+        passed: true,
+        warning: true,
+        message: noGitAdvisory(vcs.reason),
+        remediation: "Run: git init, then kibi init",
+      };
+    }
     return {
       passed: false,
-      message: "Not a git repository",
-      remediation: "Run: git init",
+      message:
+        vcs.kind === "unresolved"
+          ? `Git cannot read this repository: ${vcs.reason}`
+          : "git status failed in this repository",
+      remediation: "Run: git status, and fix what it reports",
     };
   }
 }
@@ -1158,6 +1183,16 @@ function checkBranchStore(): DoctorCheckResult {
   };
 }
 
+function fileMentionsKibi(filePath: string): boolean {
+  try {
+    return (
+      existsSync(filePath) && /\bkibi\b/i.test(readFileSync(filePath, "utf-8"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * What a fresh clone of this repository gets without anyone running
  * `kibi init`, against the setup choices the project recorded: the agent
@@ -1165,23 +1200,33 @@ function checkBranchStore(): DoctorCheckResult {
  * and the pull-request gate. Each gap is a warning; `kibi init` repairs it.
  */
 function checkFreshCloneSetup(): DoctorCheckResult {
-  const root = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
+  const repository = doctorRepositoryContext();
+  const root = repository?.worktreeRoot ?? process.cwd();
   if (!existsSync(path.join(root, ".kb", "manifest.json"))) {
     return { passed: true, message: "Skipped: Kibi is not initialized here" };
   }
+  // Without Git the instructions name `kibi check` instead of the gate.
+  const noGit = repository === null && probeWorkspaceVcs(root).kind === "none";
   const choices = readSetupChoices(root);
   const gaps: string[] = [];
+  let customAgentsMentionsKibi = false;
   if (choices.agentInstructions) {
-    const state = managedSectionState(
-      path.join(root, AGENTS_FILE),
-      KIBI_AGENT_INSTRUCTIONS,
-    );
-    if (state !== "current")
-      gaps.push(
-        state === "missing"
-          ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
-          : "the Kibi section of AGENTS.md is outdated",
-      );
+    const agentsPath = path.join(root, AGENTS_FILE);
+    const state = managedSectionState(agentsPath, agentInstructionsFor(noGit));
+    if (state !== "current") {
+      if (state === "missing" && fileMentionsKibi(agentsPath)) {
+        customAgentsMentionsKibi = true;
+        gaps.push(
+          "AGENTS.md mentions Kibi but has no kibi-managed markers (<!-- BEGIN kibi-managed ... -->)",
+        );
+      } else {
+        gaps.push(
+          state === "missing"
+            ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
+            : "the Kibi section of AGENTS.md is outdated",
+        );
+      }
+    }
   }
   if (
     choices.prepareHooks &&
@@ -1219,7 +1264,9 @@ function checkFreshCloneSetup(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `${gaps.join("; ")}`,
-    remediation: "Run: kibi init (applies the recorded choices)",
+    remediation: customAgentsMentionsKibi
+      ? "Run: kibi init to add the managed section, or kibi init --no-agent-instructions to keep your own AGENTS.md text"
+      : "Run: kibi init (applies the recorded choices)",
     details,
   };
 }
@@ -1228,19 +1275,28 @@ function checkFreshCloneSetup(): DoctorCheckResult {
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
 let cachedRepositoryContext:
-  | { cwd: string; context: GitRepositoryContext | null }
+  | { cwd: string; status: string; context: GitRepositoryContext | null }
   | undefined;
 
-function doctorRepositoryContext(): GitRepositoryContext | null {
+function doctorRepositoryResolution(): {
+  cwd: string;
+  status: string;
+  context: GitRepositoryContext | null;
+} {
   const cwd = process.cwd();
   if (cachedRepositoryContext?.cwd !== cwd) {
     const resolution = resolveGitRepository(cwd);
     cachedRepositoryContext = {
       cwd,
+      status: resolution.status,
       context: resolution.status === "ok" ? resolution.context : null,
     };
   }
-  return cachedRepositoryContext.context;
+  return cachedRepositoryContext;
+}
+
+function doctorRepositoryContext(): GitRepositoryContext | null {
+  return doctorRepositoryResolution().context;
 }
 
 function effectiveHooksDir(): string {
@@ -1333,18 +1389,55 @@ function checkHookManagerDelegation(
   };
 }
 
+function installedManagedHooks(hooksDir: string): ManagedHookName[] {
+  return MANAGED_HOOK_NAMES.filter((hook) => {
+    const hookPath = path.join(hooksDir, hook);
+    return (
+      existsSync(hookPath) &&
+      readFileSync(hookPath, "utf-8").includes(KIBI_HOOK_BEGIN)
+    );
+  });
+}
+
 /**
  * Kibi-managed hook sections must match what this CLI installs. A section
  * written by an older CLI keeps running while silently lacking newer gates
  * (the pre-commit `check-generated` step, for example), and the other hook
- * checks only confirm that kibi is invoked at all.
+ * checks only confirm that kibi is invoked at all. When a third-party hook
+ * manager owns Git hooks, `kibi init` leaves hook files alone, so leftover
+ * kibi-managed sections are reported as a warning to remove rather than a
+ * failure asking the user to run `kibi init`.
  */
-function checkManagedHookSections(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkManagedHookSections(): DoctorCheckResult {
+  const detected = doctorHookManager();
   const hooksDir = effectiveHooksDir();
+  if (detected) {
+    const { manager } = detected;
+    const owner = `Managed by ${manager.name} (${manager.configPath})`;
+    let leftover: ManagedHookName[];
+    let outdated: string[];
+    try {
+      leftover = installedManagedHooks(hooksDir);
+      if (leftover.length === 0) {
+        return { passed: true, message: owner };
+      }
+      outdated = outdatedManagedHooks(hooksDir);
+    } catch {
+      return {
+        passed: false,
+        message: `${owner}; unable to read hook content`,
+        remediation: `Check permissions in ${hooksDir}, remove any leftover '# BEGIN kibi-managed' ... '# END kibi-managed' sections, and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+      };
+    }
+    const outdatedNote =
+      outdated.length > 0 ? ` (outdated: ${outdated.join(", ")})` : "";
+    return {
+      passed: true,
+      warning: true,
+      message: `${owner}; leftover kibi-managed hook sections remain in ${leftover.join(", ")}${outdatedNote}${hooksPathSuffix()}`,
+      remediation: `Remove the '# BEGIN kibi-managed' ... '# END kibi-managed' sections from ${leftover.join(", ")} in ${hooksDir} and keep Kibi's commands in ${manager.configPath} (print them with: kibi init --print-hook all --format ${manager.name})`,
+    };
+  }
   let outdated: string[];
   try {
     if (!hasManagedHooks(hooksDir)) {
@@ -1361,14 +1454,55 @@ function checkManagedHookSections(): {
   if (outdated.length > 0) {
     return {
       passed: false,
-      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (installed by a different version; newer gates may be missing)${hooksPathSuffix()}`,
-      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (they differ from the template this CLI installs, whatever version wrote them; newer gates may be missing)${hooksPathSuffix()}`,
+      remediation:
+        "Run: kibi migrate --yes (or kibi init) to refresh the kibi-managed hook sections",
     };
   }
   return { passed: true, message: "Current for this Kibi CLI" };
 }
 
+function checkKibiLevel(): DoctorCheckResult {
+  const cwd = process.cwd();
+  const resolved = readKibiLevel(cwd);
+  const where = kibiLevelSettingName(cwd);
+  if (resolved.invalid !== undefined) {
+    return {
+      passed: true,
+      warning: true,
+      message: `${where} is ${JSON.stringify(resolved.invalid)}, which is not a Kibi level (expected ${KIBI_LEVELS.join(" or ")}); running at ${resolved.level}`,
+      remediation: `Set ${where} to ${KIBI_LEVELS.join(" or ")}`,
+    };
+  }
+  const source = resolved.source === "default" ? "default" : where;
+  return {
+    passed: true,
+    message: `${resolved.level} (${source})`,
+  };
+}
+
+/**
+ * Windows NTFS has no POSIX execute bits; Node reports mode 0o666 for
+ * extensionless hook scripts that Git for Windows executes via sh.
+ */
+export function isHookExecutable(
+  mode: number,
+  platform: NodeJS.Platform = process.platform,
+): boolean {
+  return platform === "win32" || (mode & 0o111) !== 0;
+}
+
 function checkGitHooks(): DoctorCheckResult {
+  const repoStatus = doctorRepositoryResolution().status;
+  if (
+    (repoStatus === "not-a-repository" || repoStatus === "git-unavailable") &&
+    !existsSync(path.join(process.cwd(), ".git"))
+  ) {
+    return {
+      passed: true,
+      message: "Not applicable (no Git repository)",
+    };
+  }
   const manager = doctorHookManager();
   if (manager) {
     return checkHookManagerDelegation(
@@ -1402,8 +1536,8 @@ function checkGitHooks(): DoctorCheckResult {
       const checkoutStats = statSync(postCheckoutPath);
       const mergeStats = statSync(postMergePath);
 
-      const checkoutExecutable = (checkoutStats.mode & 0o111) !== 0;
-      const mergeExecutable = (mergeStats.mode & 0o111) !== 0;
+      const checkoutExecutable = isHookExecutable(checkoutStats.mode);
+      const mergeExecutable = isHookExecutable(mergeStats.mode);
 
       if (checkoutExecutable && mergeExecutable) {
         return {
@@ -1498,7 +1632,7 @@ function checkPreCommitHook(): DoctorCheckResult {
 
   try {
     const preCommitStats = statSync(preCommitPath);
-    const preCommitExecutable = (preCommitStats.mode & 0o111) !== 0;
+    const preCommitExecutable = isHookExecutable(preCommitStats.mode);
 
     // Read hook content to determine whether it's using the new staged check
     const content = readFileSync(preCommitPath, "utf-8");
@@ -1607,7 +1741,7 @@ function checkPostRewriteHook(): DoctorCheckResult {
 
   try {
     const postRewriteStats = statSync(postRewritePath);
-    const postRewriteExecutable = (postRewriteStats.mode & 0o111) !== 0;
+    const postRewriteExecutable = isHookExecutable(postRewriteStats.mode);
 
     // Read hook content to verify it invokes kibi. Current templates invoke
     // the resolved KIBI_BIN; legacy templates invoked bare `kibi sync`.

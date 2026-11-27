@@ -354,7 +354,7 @@ the action's merge commit or push; the `check` input is the gate.
 | `branches` | every open pull request | Head branches to consider: newline or space separated, or a JSON array. |
 | `list-only` | `false` | `true` only lists the branches whose sole conflicts are Kibi manifests (output `branches`) and changes nothing. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. A relative path resolves from the workspace. |
-| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the tree holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the tree's copy never runs. `""` runs none. |
+| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `MERGE_TRAIN_CHECKS_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the tree holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the tree's copy never runs. `""` runs none. |
 | `attempts` | `3` | Tries per branch when the branch moves while it is being merged. |
 | `skip-label` | `""` | Pull requests with this label are left alone. Set it to your merge train's label (`train`): the train merges the manifests itself, and a push to a boarded pull request would restart its checks. |
 | `github-token` | `github.token` | Token `gh` uses to list pull requests. |
@@ -427,6 +427,40 @@ Otherwise the push runs the full proof. A push that reuses the train's proof
 publishes the train's report and attests it, naming the train run it came
 from, so a later pull request can reuse it in turn.
 
+### A train of one pull request that is already up to date
+
+Most trains hold a single pull request whose head already contains the
+current tip of the default branch, so the merge commit the train creates has
+the same git tree the pull request's checks just tested. Kibi's own CI, proof
+and release-pack workflows reuse those results instead of spending another
+twenty minutes on them. The train pull request still opens, and its required
+checks still report, but they finish in about two minutes.
+
+Reuse happens only when every one of these holds. Anything else runs the
+workflow in full:
+
+- the train body and the merge commit agree that the train holds exactly one
+  pull request, and the commit is that pull request merged into the base the
+  train recorded;
+- the train commit's tree, the member commit's tree, and the tree the
+  workflow would actually test (the pull request's merge with the current
+  base) are the same git tree. A rebase onto a newer base, or any other
+  change of content, makes the trees differ and the checks run;
+- the member's latest run of that same workflow, on that exact commit, from
+  this repository and not from another train, completed successfully, and its
+  attestation names that commit and that tree;
+- for CI and proof, the aggregate check (`ci-required`, `proof-required`) is
+  a completed success on that commit;
+- for proof, the canonical workspace snapshot matches as well. The train then
+  attests that snapshot and names the member run, so the push to the default
+  branch can still reuse the proof. A snapshot that does not match is proved
+  again. There is no path that reports a proof without one of those two.
+
+A failed lookup, a missing attestation, or an ambiguous run listing is a full
+run, never a pass. Pull requests merged by this change start attesting the
+tree they tested; a train whose member was proved before that attestation
+existed runs the proof.
+
 ### Set it up
 
 1. Copy [docs/examples/github/kibi-merge-train.yml](examples/github/kibi-merge-train.yml)
@@ -440,7 +474,9 @@ from, so a later pull request can reuse it in turn.
    GitHub App token limited to the repository, with **Contents**,
    **Pull requests**, **Issues**, **Actions** and **Workflows** set to read
    and write. Pull requests and pushes made with the default `GITHUB_TOKEN`
-   start no workflows, so the train's checks would never run.
+   start no workflows, so the train's checks would never run. A fine-grained
+   token cannot read check runs, so the train reads them with the
+   workflow's own token: give the job `checks: read`.
 4. In the default branch's ruleset, require the checks, but do not enable
    "Require branches to be up to date before merging": the train already
    proves the exact tree that lands. To make the train the only way in,
@@ -453,14 +489,15 @@ from, so a later pull request can reuse it in turn.
 | Input | Default | Meaning |
 | --- | --- | --- |
 | `base` | repository default branch | Branch the trains merge into. |
-| `checks` | required | Required check names, comma or newline separated. |
+| `checks` | required | Required check names, one per line, or comma separated on a single line. A check name with a comma needs one name per line. |
 | `train-checks` | `""` | Checks a train must also pass before it lands, but a pull request does not need to board. |
 | `label` | `train` | Label that boards a pull request. |
 | `max` | `8` | Most pull requests in one train. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. `""` skips `kibi sync`. |
 | `check` | `$KIBI check` | Shell command run in the train after each merge. `$KIBI` and `$KIBI_BRANCH` are set; `GH_TOKEN`, `GITHUB_TOKEN` and the Actions runtime tokens are not, since the train holds pull request content. Point a script at the base checkout (`sh ${{ github.workspace }}/scripts/gate.sh`) so the train's copy never runs. `""` runs none. |
 | `prefix` | `merge-train/` | Branch prefix of train branches. |
-| `github-token` | `github.token` | Token `gh` uses. |
+| `github-token` | `github.token` | Token `gh` uses, except to read check runs. |
+| `checks-token` | `github.token` | Token `gh` reads check runs with. Fine-grained personal access tokens cannot read them; the job needs `checks: read`. |
 
 The action needs Node.js 22.6 or newer, `git` and `gh`. Outside GitHub
 Actions the same logic is `actions/merge-train/merge-train.mts`, configured
@@ -495,7 +532,7 @@ optional dependencies (`--omit=optional`, `--no-optional`, pnpm
 `supportedArchitectures` that excludes the runner's platform) or the lockfile
 lacks the platform package. Install with the package manager's defaults, or add
 `kibi-swipl-linux-x64-gnu` explicitly. On a runner without a bundled build
-(Alpine/musl containers, self-hosted Windows), install SWI-Prolog 9.0+ from the
+(Alpine/musl containers, self-hosted Windows arm64 runners), install SWI-Prolog 9.0+ from the
 [SWI-Prolog PPA](install.md#ubuntu-recommended) or your platform package
 manager and put `swipl` on `PATH`; see
 [Installation](install.md#which-swi-prolog-kibi-uses).

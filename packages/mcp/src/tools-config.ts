@@ -19,6 +19,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import type { KibiLevel } from "kibi-agent-core/kibi-level";
 import { advertisedInputSchema, getSpec } from "kibi-runtime";
 import type { OperationName } from "kibi-runtime";
 
@@ -58,6 +59,7 @@ const MCP_TOOL_ORDER = [
   "kb_check",
   "kb_review_firm_edit",
   "kb_prepare_impact_review",
+  "kb_author_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
@@ -179,19 +181,78 @@ export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
 }
 
 /**
- * The catalog tools a session lists: every one in the `full` profile; the
- * core eight in the `core` profile, plus the bootstrap tools while the
- * knowledge base is empty.
+ * The catalog tools a session lists. At Kibi level test: every one in the
+ * `full` profile; the core eight in the `core` profile, plus the bootstrap
+ * tools while the knowledge base is empty. At level remember neither lists
+ * the verification tools (REMEMBER_UNLISTED_TOOLS), and `full` lists the
+ * knowledge tools (REMEMBER_KNOWLEDGE_TOOLS), the bootstrap tools and
+ * kb_compile_intent while the knowledge base is empty, and the impact-review
+ * tools while the project has an impact policy.
  */
 export function profileToolNames(
   profile: ToolProfile,
   kbEmpty: boolean,
+  level: KibiLevel = "test",
+  impactPolicy = false,
 ): ReadonlySet<string> | undefined {
-  if (profile === "full") return undefined;
-  return new Set<string>([
-    ...DEFAULT_PROFILE_TOOLS,
-    ...(kbEmpty ? BOOTSTRAP_TOOLS : []),
-  ]);
+  if (profile === "full") {
+    if (level === "test") return undefined;
+    const listed = new Set<string>([
+      ...REMEMBER_KNOWLEDGE_TOOLS,
+      ...(kbEmpty ? [...BOOTSTRAP_TOOLS, "kb_compile_intent"] : []),
+      ...(impactPolicy ? IMPACT_REVIEW_TOOLS : []),
+    ]);
+    return new Set<string>(MCP_TOOL_ORDER.filter((name) => listed.has(name)));
+  }
+  return new Set<string>(
+    [...DEFAULT_PROFILE_TOOLS, ...(kbEmpty ? BOOTSTRAP_TOOLS : [])].filter(
+      (name) => level === "test" || !REMEMBER_UNLISTED_TOOLS.has(name),
+    ),
+  );
+}
+
+/**
+ * The tools a session at Kibi level remember does not list or offer through
+ * the CLI: they record verification evidence, which that level does not ask
+ * for.
+ */
+export const REMEMBER_UNLISTED_TOOLS: ReadonlySet<string> = new Set([
+  "kb_ingest_proof",
+]);
+
+/**
+ * The tools the `full` profile lists at Kibi level remember: the core
+ * tools, plus the ones their results hand work to (kb_model for unmodeled
+ * claims, kb_apply_plan for kb_model and kb_delete plans, kb_delete) and
+ * kb_graph to follow links. The other tools (kb_find_gaps, kb_coverage,
+ * kb_compile_intent, kb_plan_bootstrap outside onboarding, the impact-review
+ * pair without an impact policy) stay reachable through the CLI peer route,
+ * which the server instructions name.
+ */
+export const REMEMBER_KNOWLEDGE_TOOLS = [
+  ...DEFAULT_PROFILE_TOOLS,
+  "kb_graph",
+  "kb_model",
+  "kb_delete",
+  "kb_apply_plan",
+] as const satisfies readonly OperationName[];
+
+/** The tools that prepare and write the staged impact review. */
+export const IMPACT_REVIEW_TOOLS = [
+  "kb_prepare_impact_review",
+  "kb_author_impact_review",
+] as const satisfies readonly OperationName[];
+
+/**
+ * Whether the workspace has an impact policy (.kibi/impact-policy.json), so
+ * that kb_check can ask for an impact review of a staged change.
+ */
+export function hasImpactPolicy(workspaceRoot: string): boolean {
+  return (
+    statSync(path.join(workspaceRoot, ".kibi", "impact-policy.json"), {
+      throwIfNoEntry: false,
+    })?.isFile() === true
+  );
 }
 
 /** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
@@ -239,6 +300,7 @@ const TOOL_TITLES: Readonly<
   kb_check: "Validate Kibi knowledge base",
   kb_review_firm_edit: "Record a firm-edit review",
   kb_prepare_impact_review: "Prepare an impact review",
+  kb_author_impact_review: "Write an impact-review record",
   kb_compile_intent: "Compile Kibi change intent",
   kb_plan_bootstrap: "Plan Kibi bootstrap",
   kb_apply_plan: "Apply an approved Kibi plan",

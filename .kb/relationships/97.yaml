@@ -286,3 +286,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-477da05fcb93
+  - type: constrains
+    from: REQ-ci-merge-train-checks-token
+    to: FACT-SUBJECT-kibi-ci-merge-train
+    created_at: 2026-11-18T14:19:22.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174c579190f0
+  - type: requires_property
+    from: REQ-ci-merge-train-checks-token
+    to: FACT-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:22.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0779dfcf38
+  - type: specified_by
+    from: REQ-ci-merge-train-checks-token
+    to: SCEN-ci-merge-train-checks-token
+    created_at: 2026-11-18T14:19:22.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9fbcfa89bc7
+  - type: specified_by
+    from: REQ-ci-merge-train-checks-token
+    to: SCEN-NEG-ci-merge-train-checks-token-VIOLATED
+    created_at: 2026-11-18T14:19:22.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bc7c6494592
+  - type: specified_by
+    from: REQ-result-budget-chars
+    to: SCEN-result-budget-chars
+    created_at: 2026-11-19T15:25:42.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-970f437e0383
+  - type: specified_by
+    from: REQ-result-budget-chars
+    to: SCEN-NEG-result-budget-chars-OVER-BUDGET
+    created_at: 2026-11-19T15:25:42.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42bdf95abce5
+  - type: verified_by
+    from: REQ-result-budget-chars
+    to: TEST-kibi-result-budget
+    created_at: 2026-11-19T15:25:42.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ed7212366a2
+  - type: constrains
+    from: REQ-result-budget-chars
+    to: FACT-SUBJECT-kibi-operation-result
+    created_at: 2026-11-19T15:25:42.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cf58621f7f4
+  - type: requires_property
+    from: REQ-result-budget-chars
+    to: FACT-result-budget-chars
+    created_at: 2026-11-19T15:25:42.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c924c71b7c93
+  - type: assumes
+    from: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    to: FACT-NEG-hook-read-rows-in-view-NO-ROW
+    created_at: 2026-11-25T14:26:52.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54cf87e62721
+  - type: verified_by
+    from: SCEN-NEG-hook-read-rows-in-view-NO-ROW
+    to: TEST-agent-hooks-read-rows
+    created_at: 2026-11-25T14:26:52.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6240100215d6
+  - type: implements
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: REQ-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:04.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dc94e20766c
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: TEST-kibi-check-rule-selection-by-level
+    created_at: 2026-11-25T10:18:04.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08e12d303b55

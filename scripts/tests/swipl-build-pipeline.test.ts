@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS } from "../swipl-archive-cache.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const TARGETS = [
@@ -10,6 +11,10 @@ const TARGETS = [
   "darwin-arm64",
   "darwin-x64",
 ] as const;
+// The win32 target is repackaged from the pinned upstream installer by
+// scripts/swipl-windows-repack.py, not source-built, but it has the same
+// build + clean-consumer job shape in the workflow.
+const ALL_TARGETS = [...TARGETS, "win32-x64"] as const;
 
 // These controls exercise real archives and validation boundaries. The small
 // binary headers and tool responses deliberately do not claim native execution.
@@ -523,12 +528,14 @@ function pipelineJobs(workflow: PipelineWorkflow, command: string) {
 }
 
 describe("SWI build pipeline workflow contract", () => {
-  test("builds and independently consumes exactly the four launch targets", () => {
+  test("builds and independently consumes exactly the five launch targets", () => {
     const workflow = pipelineWorkflow();
     for (const command of ["build-archive", "smoke-archive"]) {
       const jobs = pipelineJobs(workflow, command);
       const rows = jobs.flatMap(([, job]) => job.strategy.matrix.include);
-      expect(rows.map((row) => row.target).sort()).toEqual([...TARGETS].sort());
+      expect(rows.map((row) => row.target).sort()).toEqual(
+        [...ALL_TARGETS].sort(),
+      );
       for (const [, job] of jobs) {
         for (const row of job.strategy.matrix.include) {
           const runner = matrixValue(job["runs-on"], row);
@@ -546,6 +553,10 @@ describe("SWI build pipeline workflow contract", () => {
           if (row.target === "darwin-x64")
             expect(runner).toBe("macos-15-intel");
           if (row.target === "darwin-arm64") expect(runner).toBe("macos-15");
+          if (row.target === "win32-x64") {
+            expect(runner).toBe("windows-2025");
+            expect(job.container).toBeUndefined();
+          }
         }
       }
     }
@@ -622,6 +633,116 @@ describe("SWI build pipeline workflow contract", () => {
           matrixValue(job.steps[downloadIndex]?.with?.name ?? "", row),
         ).toBe(producer?.name);
       }
+    }
+  });
+});
+
+type CacheStep = {
+  name?: string;
+  uses?: string;
+  if?: string;
+  run?: string;
+  env?: Record<string, string>;
+  "continue-on-error"?: string;
+  with?: Record<string, string>;
+};
+
+describe("release archive cache", () => {
+  const parsed = Bun.YAML.parse(
+    readFileSync(join(ROOT, ".github/workflows/swipl-build.yml"), "utf8"),
+  ) as {
+    on: {
+      workflow_call: { inputs: { "archive-cache": { default: string } } };
+    };
+    jobs: Record<string, { steps: CacheStep[] }>;
+  };
+
+  test("defaults to off, so a caller that omits the input builds from source", () => {
+    expect(parsed.on.workflow_call.inputs["archive-cache"].default).toBe("off");
+  });
+
+  test("each producer restores and saves under one exact per-target key", () => {
+    for (const id of ["build-linux", "build-macos", "build-windows"]) {
+      const steps = parsed.jobs[id]?.steps ?? [];
+      const restore = steps.find(
+        (step) => step.name === "Restore a cached archive",
+      );
+      const save = steps.find((step) => step.name === "Save the archive cache");
+      expect(restore?.uses).toMatch(/^actions\/cache\/restore@/);
+      expect(save?.uses).toMatch(/^actions\/cache\/save@/);
+      expect(restore?.with?.["lookup-only"]).toBe(
+        "${{ inputs.archive-cache == 'write' }}",
+      );
+      expect(restore?.if).toContain("inputs.archive-cache == 'read'");
+      expect(restore?.if).toContain("inputs.archive-cache == 'write'");
+      expect(restore?.with).not.toHaveProperty("restore-keys");
+      expect(save?.with).not.toHaveProperty("restore-keys");
+      const key = restore?.with?.key ?? "";
+      expect(key).toBe(save?.with?.key);
+      expect(
+        key.startsWith("swipl-release-archive-${{ matrix.target }}-"),
+      ).toBe(true);
+      for (const input of SWIPL_RELEASE_ARCHIVE_CACHE_INPUTS) {
+        expect(key, input).toContain(`'${input}'`);
+      }
+      expect(save?.if).toContain("steps.cache.outputs.cache-hit != 'true'");
+      expect(save?.["continue-on-error"]).toBe(
+        "${{ inputs.archive-cache == 'read' }}",
+      );
+      expect(save?.with?.path).toBe(
+        "${{ runner.temp }}/swipl-release-cache/${{ matrix.target }}",
+      );
+      expect(restore?.with?.path).toBe(save?.with?.path);
+      const stage = steps.find(
+        (step) => step.name === "Stage the archive cache",
+      );
+      expect(stage?.run).toContain("swipl-*.tar.gz.sha256");
+      expect(stage?.run).toContain('test "${#sidecars[@]}" -eq 1');
+      const restored = steps.find(
+        (step) => step.name === "Use the restored archive",
+      );
+      expect(restored?.run).toContain('test "${#sidecars[@]}" -eq 1');
+      const build = steps.find((step) => step.run?.includes(" build-archive "));
+      expect(build?.if).toBe(
+        "success() && (inputs.archive-cache != 'read' || steps.cache.outputs.cache-hit != 'true')",
+      );
+      const record = steps.find(
+        (step) => step.name === "Record archive cache status",
+      );
+      expect(record?.env?.ARCHIVE_CACHE_MODE).toBe(
+        "${{ inputs.archive-cache }}",
+      );
+      expect(record?.env?.ARCHIVE_CACHE_HIT).toBe(
+        "${{ steps.cache.outputs.cache-hit }}",
+      );
+      expect(record?.run).toContain(
+        '[[ "$ARCHIVE_CACHE_MODE" == "read" && "$ARCHIVE_CACHE_HIT" == "true" ]]',
+      );
+      expect(record?.run).toContain("printf 'hit\\n'");
+      expect(record?.run).toContain("printf 'miss\\n'");
+      const upload = steps.find(
+        (step) =>
+          step.uses?.startsWith("actions/upload-artifact@") &&
+          step.with?.path?.includes("cache-status"),
+      );
+      expect(upload?.with?.path).toContain("cache-status");
+      expect(upload?.with?.path).toContain(".tar.gz");
+    }
+  });
+
+  test("smoke drops the run binding only when the artifact says the cache hit", () => {
+    for (const id of ["smoke-linux", "smoke-macos", "smoke-windows"]) {
+      const smoke = (parsed.jobs[id]?.steps ?? []).find((step) =>
+        step.run?.includes("cache-status"),
+      );
+      const run = smoke?.run ?? "";
+      expect(run).toContain(
+        '[[ "$(cat "$ARTIFACT_DIR/cache-status")" == "hit" ]]',
+      );
+      expect(run).toContain("unset GITHUB_SHA GITHUB_RUN_ID");
+      expect(run.indexOf("unset GITHUB_SHA")).toBeLessThan(
+        run.indexOf("smoke-archive"),
+      );
     }
   });
 });

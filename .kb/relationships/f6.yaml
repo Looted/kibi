@@ -461,3 +461,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b48507d5f998
+  - type: assumes
+    from: SCEN-NEG-coverage-report-reuse-RECOMPUTED
+    to: FACT-NEG-coverage-report-reuse-RECOMPUTED
+    created_at: 2026-11-19T15:28:28.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8daf9375ce22
+  - type: implements
+    from: SYM-package-catalog-PACKAGE_CATALOG
+    to: REQ-kibi-distribution-parity-matrix
+    created_at: 2026-11-22T05:08:00.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b754f4e095d
+  - type: covered_by
+    from: SYM-package-catalog-PACKAGE_CATALOG
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-11-22T05:08:00.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3017509bbf5
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:01:34.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-227e415167c1
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-capture-every-step-up-front
+    created_at: 2026-11-24T20:01:34.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e4b476f7dbe
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-capture-every-step-up-front-MISSING-STEP
+    created_at: 2026-11-24T20:01:34.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff02791209c4
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:01:44.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-424f24de6996
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-capture-proof-setup-named
+    created_at: 2026-11-24T20:01:44.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd246f7a2f4
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-capture-proof-setup-named-UNNAMED
+    created_at: 2026-11-24T20:01:44.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc7eef63f7f9
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-approvals-needed
+    created_at: 2026-11-24T20:01:53.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b0619738e3c
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-approvals-needed
+    created_at: 2026-11-24T20:01:53.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a13edae3fa
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-approvals-needed-MISSING-DECISION
+    created_at: 2026-11-24T20:01:53.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8027cf8b650
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-capture-at-remember
+    created_at: 2026-11-25T09:42:31.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9824bc903c1
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-capture-no-verification-at-remember-gt-0
+    created_at: 2026-11-25T10:21:37.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18b5098b4d3a

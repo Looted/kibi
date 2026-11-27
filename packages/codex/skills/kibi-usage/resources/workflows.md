@@ -1,37 +1,14 @@
 # Workflows
 
-## Closeout contract
+## Finishing a change
 
-End every task with these five independent fields (not a single inferred
-success flag):
-
-```text
-taskOutcome: complete | interim | blocked
-kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
-verificationState: fresh | dirty | unavailable | not_evaluated
-proofState: tested | mixed | unresolved | not_evaluated
-limitationDisposition: none | accepted | unaccepted | not_applicable
-```
-
-`taskOutcome` describes whether the requested objective was completed. The
-other fields describe observed system state. A clean check can coexist with a
-stale or dirty KB; unresolved proof can coexist with a complete maintenance
-task. An accepted limitation is an auditable operator decision, never logical
-grounding, receipt editing, or proof. For every quality diagnostic, record its
-ID, one of `fixed`, `accepted`, or `deferred`, and a rationale. Keep accepted
-ontology gaps and historical telemetry limitations explicit.
-
-Receipt reuse is safe only when the live verification snapshot, contract hash,
-freshness window, and every required case result still match. Otherwise rerun
-the contracted command. If the contract changed, retain every older receipt
-unchanged, append evidence for the current contract, and keep proof unresolved
-with `proof_contract_mismatch` until that current receipt exists.
-Obsolete symbols require current extraction or Git evidence before
-remap/deletion; transfer coverage only when existing test evidence supports it,
-then sync and read back status. Same-version packages with different export
-surfaces are a release defect: require a new package version and label any
-project override temporary. This skill never selects a package manager or
-edits dependency configuration.
+Before your final message: run the tests linked to the code you changed,
+then one `kb_check` with `changed: true` and the `sourceFiles` (CLI:
+`kibi check --changed <files>`), and fix what it reports about your change.
+Report what you recorded and changed, which tests ran, and anything left
+for the person (a conflict, a choice, an approval only they can give).
+Maintenance and migration work also reports, per quality diagnostic, its
+ID, one of `fixed`, `accepted` or `deferred`, and a rationale.
 
 ## Choosing a discovery mode
 
@@ -72,21 +49,39 @@ name, decide how results are ranked.
 ```
 
 Supply facets only from the request, the code, or prior results. Inventing
-facets fabricates evidence and biases ranking. Intent mode abstains below
-`minScore` instead of returning weak matches; an abstention is an explicit
-no-answer, so widen the query or drop to lexical search rather than treating it
-as "nothing exists". A literal identifier lookup is still best served
-lexically.
+facets fabricates evidence and biases ranking. A literal identifier lookup is
+still best served lexically.
 
-When the project activates a `kibi.search-hints.v1` plugin (for example
-`kibi-plugin-search-hints`), a weak or abstained intent answer also carries
-`queryAnalysis.hints`: up to ten current requirements the question may mean,
-found by meaning rather than shared words, each with a `score` and, when it
-was reached through a scenario, test or fact, that entity as `via`. Hints are
-suggestions, never governing requirements, and they never change the results
-or the answer layer. Re-ask `kb_search` in the words of a hint that fits, or
-pass them as `semanticFacets.aliases`, then read the requirement with
-`kb_query`; never cite a hint as the rule. `hints: false` turns them off.
+Without a `type`, or with `type` `req` or `adr`, intent mode answers with
+decision cards: requirements and ADRs ranked by the question's words and the
+words of the facts they link and the symbols that implement them, five by
+default. Each row in `data.results` is a card with its `line` (id, firmness,
+title, statement and strongest evidence in at most 300 characters), `scope`
+(`in` this workspace, `unscoped` or `distant`) and the decisions `folded` into
+it (a superseded or near-identical decision). Decisions linked only to files
+this workspace lacks are only counted in `queryAnalysis.otherScopes`. Pass a
+scenario, test, fact or symbol `type` to rank rows of that type instead; those
+rows abstain below `minScore`.
+
+The meaning ranking is on by default (the bundled `kibi-plugin-search-hints`,
+unless the project configured another `kibi.search-hints.v1` provider or
+listed the package in `kibi.declinedPlugins`): the provider scores each
+decision and the scenarios, tests and facts it links, its ranking is fused
+into the cards, and the first page's `queryAnalysis.hints.items` lists up to
+seven more decisions related by meaning that are not cards. They are
+suggestions, never governing requirements: read one with `kb_query` before
+relying on it, and never cite it as the rule. `hints: false` ranks by words
+alone.
+
+An answer none of whose cards covers half the question is weak
+(`queryAnalysis.weak`): it names no governing requirement, lists the question's
+words no card holds in `queryAnalysis.uncoveredTerms`, and carries `notes`
+saying the missing match is not evidence that nothing governs the question.
+When a weak answer lists no decision related by meaning, its `nextActions`
+names the `kb_query` that lists the requirement titles: list them to find the
+words the KB uses, then search again in those words. A path written in the
+question and a question about contradictions add their own next action
+(`kb_search` with `sourceLocations`, `kb_check` with `domain-contradictions`).
 
 On the first page, intent mode also returns an answer layer in `data.answer`
 (`kibi.search-answer.v1`; turn it off with `answer: false`):
@@ -133,12 +128,12 @@ The canonical workflow for any KB operation follows this pattern:
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
 10. **Prove execution**: read `kb_status.proofSnapshot`, run `kibi prove` so each configured integration executes once and its `kibi.proof-run.v1` artifact is evaluated against every selected test's `kibi.proof-contract.v1` obligations, appending idempotent `kibi.proof-receipt.v2` receipts; then re-run `kb_coverage` and read each requirement's `evidenceLevel` and `evidenceFloor`. Never promote durable test status into fresh evidence.
-11. **Repair incrementally**: require `kb_coverage.repairPlan.scope.complete`, apply only one `ready` dependency batch per requirement, validate before every sequential write, and rerun coverage before selecting the next batch
+11. **Repair incrementally**: require `scope.complete` on `kb_coverage`'s repair plan (`repairPlanSummary`; `fields: "full"` with a narrow filter returns `repairPlan` and its batches), apply only one `ready` dependency batch per requirement, validate before every sequential write, and rerun coverage before selecting the next batch
 12. **Gate workflow evidence**: when `.kb/usage.log` exists, run `kibi usage-metrics --format json --require-acceptance`; repair ranked telemetry diagnostics and never treat stale or insufficient evidence as a pass
 
 Every current requirement without `logic_claims` remains visible as non-blocking backfill debt. Once a manifest and `semantic_inventory` exist, the unfiltered check enforces correspondence to linked ground facts/rules and rejects silently missing assertive propositions.
 
-`kibi.repair-plan.v1` is a deterministic read-only plan, not a mutation script. Its phase order keeps source and proposition analysis ahead of ground endpoints, endpoints ahead of manifests/links, logic ahead of contradictions, scenarios ahead of tests and receipts, and production ownership ahead of coverage and coordinate refresh. A `blocked` batch is waiting on every listed `dependsOn` batch. If pagination makes the plan partial, increase the requirement coverage limit rather than applying an incomplete project view.
+`kibi.repair-plan.v1` is a deterministic read-only plan, not a mutation script. Its phase order keeps source and proposition analysis ahead of ground endpoints, endpoints ahead of manifests/links, logic ahead of contradictions, scenarios ahead of tests and receipts, and production ownership ahead of coverage and coordinate refresh. A `blocked` batch is waiting on every listed `dependsOn` batch. If pagination makes the plan partial, read the following pages with `offset` (each result names the next one) rather than applying an incomplete project view.
 
 `kibi.telemetry-acceptance.v1` evaluates the latest 200 usage events and keeps process health separate from graph correctness. It requires at least 95% complete diagnostic telemetry and, when applicable, exact recent validation before every upsert and a same-requirement/current-hash advisor pass before requirement writes. It also evaluates source lookup misses, comparable complete-scope proof-gap recovery, receipt-specific coverage gaps, and mutation targets retried three or more times. Failed metrics become ranked `category: telemetry` quality diagnostics; missing current coverage fields or evidence older than seven days stays `insufficient_evidence`.
 
@@ -164,22 +159,20 @@ For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run 
 
 ## Creating a New Feature
 ```
-1. kb_search to discover existing requirements and related knowledge
-2. kb_query to confirm exact IDs and source-linked context
-3. kb_upsert for new or updated requirements (include relationship rows)
-4. kb_check with targeted rules
+1. kb_search for existing requirements and related knowledge; kb_query the hits.
+2. Record each rule the person stated with kb_record, in the same turn as the code.
+3. Send each nextActions input as returned, in order (fill only <placeholders>).
+4. Run the linked tests, then kb_check with changed: true and the sourceFiles.
 ```
 
 ## Small Behavior Fix With No Existing Requirement
 ```
-1. kb_search and kb_query by the changed source file and test file.
-2. If no requirement exists, create a REQ for the corrected behavior.
-3. Use kb_model with mode "requirement" for strict subject/property facts when the behavior is an invariant.
-4. Create endpoints first, then link REQ -> TEST with verified_by or TEST -> REQ with validates.
-5. Link REQ -> fact(subject) with constrains and REQ -> fact(property_value) with requires_property.
-6. Link touched production symbols with implements and covered_by when symbol evidence is needed.
-7. Author and stage tracked markdown/symbol evidence; MCP writes do not stage those files automatically.
-8. Run kb_check with targeted rules, then a final full check.
+1. kb_search, and kb_query by the changed source file and test file.
+2. If no requirement governs the corrected behaviour, record it with kb_record
+   (saidBy: "user" when the person stated it, else "agent"), naming the code
+   and an existing test.
+3. Send each nextActions input as returned, in order.
+4. Run the linked tests, then kb_check with changed: true and the sourceFiles.
 ```
 
 Do not create a test-fact pair. Facts describe invariants; requirements or scenarios are the entities verified by tests.

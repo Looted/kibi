@@ -1,4 +1,7 @@
-import { coverageSpec } from "../public/operations/specs/reporting.js";
+import {
+  coverageSpec,
+  withFullListing,
+} from "../public/operations/specs/reporting.js";
 import {
   executeReportingSpec,
   printDiscoveryResult,
@@ -22,35 +25,39 @@ interface CoverageOptions {
 }
 
 export async function coverageCommand(options: CoverageOptions): Promise<void> {
-  const result = await executeReportingSpec(coverageSpec, {
-    by: options.by ?? "req",
-    tags: options.tag
-      ? options.tag
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean)
-      : [],
-    includePassing: options.includePassing ?? false,
-    statuses: options.status
-      ? options.status
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean)
-      : [],
-    includeTransitive: options.includeTransitive ?? true,
-    limit: Number.parseInt(options.limit || "100", 10),
-    offset: Number.parseInt(options.offset || "0", 10),
-    includeMigrationPreview: options.includeMigrationPreview ?? false,
-    migrationLimit: Number.parseInt(options.migrationLimit || "1", 10),
-    migrationOffset: Number.parseInt(options.migrationOffset || "0", 10),
-    migrationPredicateLimit: Number.parseInt(
-      options.migrationPredicateLimit || "5",
-      10,
-    ),
-    migrationPredicateMinScore: Number.parseFloat(
-      options.migrationPredicateMinScore || "0.35",
-    ),
-  });
+  // The command prints the whole report; kb_coverage keeps to its budget.
+  const result = await executeReportingSpec(
+    coverageSpec,
+    withFullListing({
+      by: options.by ?? "req",
+      tags: options.tag
+        ? options.tag
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [],
+      includePassing: options.includePassing ?? false,
+      statuses: options.status
+        ? options.status
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [],
+      includeTransitive: options.includeTransitive ?? true,
+      limit: Number.parseInt(options.limit || "100", 10),
+      offset: Number.parseInt(options.offset || "0", 10),
+      includeMigrationPreview: options.includeMigrationPreview ?? false,
+      migrationLimit: Number.parseInt(options.migrationLimit || "1", 10),
+      migrationOffset: Number.parseInt(options.migrationOffset || "0", 10),
+      migrationPredicateLimit: Number.parseInt(
+        options.migrationPredicateLimit || "5",
+        10,
+      ),
+      migrationPredicateMinScore: Number.parseFloat(
+        options.migrationPredicateMinScore || "0.35",
+      ),
+    }),
+  );
   if (options.cases === true) {
     printCaseTable(options.format, result.structuredContent);
     return;

@@ -45,6 +45,8 @@ function store(
     gaps?: ClaimSubjectGap[];
     current?: { id: string; title: string; semanticText: string }[];
     currentFails?: boolean;
+    neighbours?: { id: string; title: string }[];
+    integration?: boolean;
   } = {},
 ): CaptureReads & { reads: string[] } {
   const reads: string[] = [];
@@ -64,6 +66,11 @@ function store(
       if (options.currentFails === true) throw new Error("engine down");
       return options.current ?? [];
     },
+    neighbours: async (id, subjectKeys) => {
+      reads.push(`neighbours:${id}:${subjectKeys.join(",")}`);
+      return options.neighbours ?? [];
+    },
+    proofIntegration: async () => options.integration !== false,
   };
 }
 
@@ -339,7 +346,11 @@ describe("withRequirementCapture", () => {
       ...context(),
       prolog,
     } as OperationContext);
-    expect(result).toEqual({ warnings: ["kept"], nextActions: [] });
+    expect(result).toEqual({
+      warnings: ["kept"],
+      nextActions: [],
+      approvalsNeeded: [],
+    });
     expect(goals).toHaveLength(1);
   });
 
@@ -455,10 +466,11 @@ describe("captureFollowUp", () => {
     ] as const)
       expect(
         await captureFollowUp(input, payload(warnings), context(), reads),
-      ).toEqual({ warnings: ["kept"], nextActions: [] });
+      ).toEqual({ warnings: ["kept"], nextActions: [], approvalsNeeded: [] });
     expect(await captureFollowUp(req(), payload(warnings), context())).toEqual({
       warnings: ["kept"],
       nextActions: [],
+      approvalsNeeded: [],
     });
   });
 
@@ -638,6 +650,19 @@ describe("captureFollowUp", () => {
           'kb_check blocks REQ-snippet-cap until claims C1, C2 name the subjects they are about. subjects holds the closest existing subject by its words; use hooks.snippets ("Edit snippets") instead if one fits better, or a subject you define first as a subject fact.',
         required: true,
       },
+      // Unmodeled claims are grounded at every level, with or without a floor.
+      {
+        operation: "kb_model",
+        code: "missing_logic_grounding",
+        input: {
+          mode: "requirement",
+          requirementId: "REQ-snippet-cap",
+          text: "REQ-snippet-cap",
+        },
+        reason:
+          "Each claim of REQ-snippet-cap (C1, C2, C3) is still unmodeled, so kb_check cannot tell when another requirement contradicts it: kb_model returns the facts to upsert.",
+        required: true,
+      },
     ]);
     const lone = await captureFollowUp(
       req(),
@@ -699,7 +724,7 @@ describe("captureFollowUp", () => {
     );
   });
 
-  test("a firm requirement without a test gets the scenario, test, link, coverage and proof steps", async () => {
+  test("a firm requirement without a test gets both scenarios, the test, link, coverage and proof steps", async () => {
     const coverage = symbolCoverageWarning("SYM-cap")[0] as string;
     const result = await captureFollowUp(
       req(),
@@ -739,6 +764,25 @@ describe("captureFollowUp", () => {
         operation: "kb_upsert",
         code: "evidence-floor",
         input: {
+          type: "scenario",
+          id: "SCEN-snippet-cap-rejected",
+          properties: {
+            title: "<a value REQ-snippet-cap forbids is refused>",
+            status: "active",
+            expects: "rejection",
+          },
+          document: {
+            body: "<given a value or situation REQ-snippet-cap forbids, when ..., then it is refused>\n",
+          },
+        },
+        reason:
+          "Once its claims are grounded, REQ-snippet-cap is not tested while only its happy path is: this failure-side scenario expects rejection and assumes a value the requirement forbids; the same test verifies it. If REQ-snippet-cap has no input to refuse (it states a capability or an output shape), a person may approve a failure_side_waiver instead, listed in approvalsNeeded.",
+        required: true,
+      },
+      {
+        operation: "kb_upsert",
+        code: "evidence-floor",
+        input: {
           type: "test",
           id: "TEST-snippet-cap-check",
           properties: {
@@ -753,6 +797,11 @@ describe("captureFollowUp", () => {
               type: "validates",
               from: "TEST-snippet-cap-check",
               to: "SCEN-snippet-cap",
+            },
+            {
+              type: "validates",
+              from: "TEST-snippet-cap-check",
+              to: "SCEN-snippet-cap-rejected",
             },
           ],
         },
@@ -775,9 +824,15 @@ describe("captureFollowUp", () => {
               from: "REQ-snippet-cap",
               to: "SCEN-snippet-cap",
             },
+            {
+              type: "specified_by",
+              from: "REQ-snippet-cap",
+              to: "SCEN-snippet-cap-rejected",
+            },
           ],
         },
-        reason: "Links REQ-snippet-cap to SCEN-snippet-cap.",
+        reason:
+          "Links REQ-snippet-cap to SCEN-snippet-cap and SCEN-snippet-cap-rejected.",
         required: true,
       },
       {
@@ -808,6 +863,203 @@ describe("captureFollowUp", () => {
         required: true,
       },
     ]);
+    // The person's own words approve the statement, so it is not put back
+    // to them; the waiver is listed only as the alternative to the
+    // failure-side scenario.
+    expect(result.approvalsNeeded).toEqual([
+      {
+        kind: "failure_side_waiver",
+        about: "REQ-snippet-cap",
+        ask: "Only if REQ-snippet-cap has no input to refuse: may its failure side be waived (failure_side_waiver_approved_by)?",
+        alternative: true,
+      },
+    ]);
+  });
+
+  test("unmodeled claims list the pair reviews, the model step and the proof setup in the same answer", async () => {
+    const reads = store({
+      entities: {
+        "REQ-snippet-cap": {
+          title: "Snippets show at most seven lines",
+          status: "open",
+          firmness: "default",
+          required_evidence: "tested",
+          semantic_text: "Snippets show at most seven lines.",
+          semantic_inventory: [
+            { claim_key: "C1", status: "missing", subjects: ["snippet"] },
+            { claim_key: "C2", status: "modeled", subjects: ["snippet"] },
+          ],
+          pair_reviews: [{ with: "REQ-reviewed", verdict: "no_conflict" }],
+        },
+        "REQ-firm": { firmness: "firm" },
+        "REQ-soft": { firmness: "default" },
+      },
+      neighbours: [
+        { id: "REQ-reviewed", title: "Already reviewed" },
+        { id: "REQ-firm", title: "Firm rule" },
+        { id: "REQ-soft", title: "Soft rule" },
+      ],
+      integration: false,
+    });
+    const result = await captureFollowUp(req(), payload(), context(), reads);
+    expect(
+      result.nextActions.map((step) => [step.operation, step.code]),
+    ).toEqual([
+      ["kb_upsert", "related-requirement-unmodeled"],
+      ["kb_model", "evidence-floor"],
+      ["kb_upsert", "evidence-floor"],
+      ["kb_upsert", "evidence-floor"],
+      ["kb_upsert", "evidence-floor"],
+      ["kb_upsert", "evidence-floor"],
+      ["kibi proof inspect", "evidence-floor"],
+      ["kibi prove", "evidence-floor"],
+    ]);
+    expect(reads.reads).toContain("neighbours:REQ-snippet-cap:snippet");
+    // A partner already reviewed is left out; only the unmodeled claim pairs.
+    expect(result.nextActions[0]?.input).toEqual({
+      type: "req",
+      id: "REQ-snippet-cap",
+      properties: {
+        title: "Snippets show at most seven lines",
+        status: "open",
+        pair_reviews: ["REQ-firm", "REQ-soft"].map((partner) => ({
+          with: partner,
+          verdict: "<no_conflict | interacts | conflict>",
+          separated_by:
+            "<for no_conflict: the condition or term that separates the two rules>",
+          claims: ["C1"],
+          origin: { kind: "agent" },
+        })),
+      },
+    });
+    expect(result.nextActions[0]?.reason).toContain(
+      'pairs REQ-snippet-cap with REQ-firm ("Firm rule"), REQ-soft ("Soft rule")',
+    );
+    expect(result.nextActions[0]?.reason).toContain(
+      "those pairs are in approvalsNeeded",
+    );
+    expect(result.nextActions[1]?.input).toEqual({
+      mode: "requirement",
+      requirementId: "REQ-snippet-cap",
+      text: "Snippets show at most seven lines.",
+    });
+    expect(result.nextActions[6]?.input).toEqual({
+      command: "kibi proof run-steps",
+      json: true,
+    });
+    expect(result.approvalsNeeded.map((approval) => approval.kind)).toEqual([
+      "pair_review",
+      "failure_side_waiver",
+      "proof_integration",
+    ]);
+    expect(result.approvalsNeeded[0]?.about).toBe(
+      "REQ-snippet-cap and REQ-firm",
+    );
+    expect(result.approvalsNeeded[2]?.about).toBe(
+      ".kb/proof/integrations.json",
+    );
+  });
+
+  test("at level remember the same write lists the pair reviews and the model step, and no scenario, test or proof", async () => {
+    const root = tempWorkspace({
+      "package.json": JSON.stringify({ kibi: { level: "remember" } }),
+    });
+    const reads = store({
+      entities: {
+        "REQ-snippet-cap": {
+          title: "Snippets show at most seven lines",
+          status: "open",
+          firmness: "default",
+          required_evidence: "tested",
+          semantic_text: "Snippets show at most seven lines.",
+          semantic_inventory: [
+            { claim_key: "C1", status: "missing", subjects: ["snippet"] },
+          ],
+        },
+        "REQ-soft": { firmness: "default" },
+      },
+      neighbours: [{ id: "REQ-soft", title: "Soft rule" }],
+      implementing: ["SYM-snippet"],
+      integration: false,
+    });
+    const result = await captureFollowUp(
+      req(),
+      payload([...symbolCoverageWarning("SYM-snippet")]),
+      context(root),
+      reads,
+    );
+    // Its symbol's missing test is neither a step nor a warning.
+    expect(result.warnings).toEqual([]);
+    expect(
+      result.nextActions.map((step) => [step.operation, step.code]),
+    ).toEqual([
+      ["kb_upsert", "related-requirement-unmodeled"],
+      ["kb_model", "missing_logic_grounding"],
+    ]);
+    // Neither requirement is firm, so nothing needs the person.
+    expect(result.approvalsNeeded).toEqual([]);
+    // The same write at level test asks for the floor's steps too.
+    const tested = await captureFollowUp(
+      req(),
+      payload(),
+      context(
+        tempWorkspace({
+          "package.json": JSON.stringify({ kibi: { level: "test" } }),
+        }),
+      ),
+      reads,
+    );
+    expect(tested.nextActions.map((step) => step.code)).toContain(
+      "evidence-floor",
+    );
+    expect(tested.nextActions.map((step) => step.operation)).toContain(
+      "kibi prove",
+    );
+  });
+
+  test("a firm requirement pairs every partner for approval, and modeled claims ask for no pair review", async () => {
+    const firm = await captureFollowUp(
+      req(),
+      payload(),
+      context(),
+      store({
+        entities: {
+          "REQ-snippet-cap": {
+            ...ENTITY,
+            semantic_inventory: [
+              { claim_key: "C1", status: "ambiguous", subjects: ["snippet"] },
+            ],
+          },
+        },
+        neighbours: [{ id: "REQ-soft", title: "Soft rule" }],
+        tested: true,
+      }),
+    );
+    expect(firm.nextActions.map((step) => step.code)).toEqual([
+      "related-requirement-unmodeled",
+      "missing_logic_grounding",
+    ]);
+    expect(firm.approvalsNeeded.map((approval) => approval.about)).toEqual([
+      "REQ-snippet-cap and REQ-soft",
+    ]);
+    const modeled = store({
+      entities: {
+        "REQ-snippet-cap": {
+          ...ENTITY,
+          semantic_inventory: [
+            { claim_key: "C1", status: "modeled", subjects: ["snippet"] },
+          ],
+        },
+      },
+      neighbours: [{ id: "REQ-soft", title: "Soft rule" }],
+      tested: true,
+    });
+    expect(await captureFollowUp(req(), payload(), context(), modeled)).toEqual(
+      { warnings: [], nextActions: [], approvalsNeeded: [] },
+    );
+    expect(modeled.reads.some((read) => read.startsWith("neighbours:"))).toBe(
+      false,
+    );
   });
 
   test("an uncovered symbol of a requirement with no floor gets a test but no proof step", async () => {

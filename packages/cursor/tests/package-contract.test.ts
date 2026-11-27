@@ -33,6 +33,7 @@ describe("kibi-cursor package contract", () => {
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.files).toEqual([
       ".cursor-plugin",
+      "assets",
       "mcp.json",
       "bin",
       "hooks",
@@ -42,6 +43,7 @@ describe("kibi-cursor package contract", () => {
       "agent-plugin",
       "dist",
       "CHANGELOG.md",
+      "LICENSE",
     ]);
     expect(packageJson.publishConfig?.access).toBe("public");
     expect(packageJson.peerDependencies).toMatchObject({

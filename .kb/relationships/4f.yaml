@@ -374,3 +374,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36fe8f490bd5
+  - type: assumes
+    from: SCEN-coverage-report-reuse
+    to: FACT-coverage-report-reuse
+    created_at: 2026-11-19T15:28:27.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b178b265253
+  - type: implements
+    from: SYM-sync-agent-skills-parseArgs
+    to: REQ-antigravity-plugin-package
+    created_at: 2026-11-22T05:08:40.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43455348a33
+  - type: covered_by
+    from: SYM-sync-agent-skills-parseArgs
+    to: TEST-antigravity-plugin
+    created_at: 2026-11-22T05:08:40.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f637fcfcdd0
+  - type: implements
+    from: SYM-vibe-runKibi
+    to: REQ-vibe-hooks-fail-open
+    created_at: 2026-11-19T21:37:16.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ede1d46dd088
+  - type: covered_by
+    from: SYM-vibe-runKibi
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-19T21:37:16.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-597044a6d5d5
+  - type: assumes
+    from: SCEN-vibe-win32-routing-force-direct
+    to: FACT-PROP-VIBE-WIN32-ROUTING-N04
+    created_at: 2026-11-21T18:28:17.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7439e329bf03
+  - type: verified_by
+    from: SCEN-vibe-win32-routing-force-direct
+    to: TEST-vibe-plugin-contract-v1
+    created_at: 2026-11-21T18:28:17.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e772881021c
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    to: TEST-kibi-search-next-steps
+    created_at: 2026-11-24T08:39:01.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e8bc1677e78
+  - type: assumes
+    from: SCEN-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    to: FACT-NEG-kibi-search-next-step-PATH-ONLY-IN-TEXT
+    created_at: 2026-11-24T08:39:01.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caafaae73b62
+  - type: assumes
+    from: SCEN-CASE-kb-check-impact-advice-once-CHECK-ADVICE-COPIED
+    to: FACT-CASE-kb-check-impact-advice-once-CHECK-ADVICE-COPIED
+    created_at: 2026-11-24T19:26:41.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ba1107032f6
+  - type: verified_by
+    from: SCEN-CASE-kb-check-impact-advice-once-CHECK-ADVICE-COPIED
+    to: TEST-kibi-compact-results
+    created_at: 2026-11-24T19:26:41.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ba0c9cd849
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-init-level-choice
+    created_at: 2026-11-25T10:41:51.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7555a09c0661
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-level-setting
+    created_at: 2026-11-25T10:41:51.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18e91c90a632
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-remember-level-surface
+    created_at: 2026-11-25T10:41:51.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860a8ac8ffa3
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-required-evidence-at-remember
+    created_at: 2026-11-25T10:41:51.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25d0ed6c8091
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-schema-20-level
+    created_at: 2026-11-25T10:41:51.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e83f45f62f6e
+  - type: executable_for
+    from: SYM-test-kibi-levels-cleanup-level-workspaces
+    to: TEST-kibi-staged-floor-reports-new-requirement
+    created_at: 2026-11-25T10:41:51.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c38945b6efb
+  - type: relates_to
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: ADR-kibi-workspaces-without-git
+    created_at: 2026-11-25T09:08:55.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05fa0fa41898
+  - type: constrains
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: FACT-SUBJ-kibi-branch-attachment-outside-git
+    created_at: 2026-11-25T09:08:55.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-343e72da28c2
+  - type: requires_property
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: FACT-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:09:23.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54cd842bbd17
+  - type: specified_by
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: SCEN-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:08.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83da933e4220
+  - type: specified_by
+    from: REQ-kibi-no-git-workspace-attaches-reserved-store
+    to: SCEN-NEG-kibi-no-git-attached-store
+    created_at: 2026-11-25T09:16:08.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3db917bdc1c8

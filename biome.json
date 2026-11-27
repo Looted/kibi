@@ -12,6 +12,9 @@
       "packages/cursor/bin/hook-runner.mjs",
       "packages/claude/bin/hook-runner.mjs",
       "packages/claude/bin/signoff-display.mjs",
+      "packages/vibe/bin/hooks/kibi-guard.mjs",
+      "packages/antigravity/bin/hook-runner.mjs",
+      "packages/zcode/bin/hook-runner.mjs",
       "proof/**"
     ]
   },
