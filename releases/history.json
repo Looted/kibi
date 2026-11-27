@@ -60,7 +60,6 @@
       "kibi-swipl-linux-arm64-gnu": "1.0.2",
       "kibi-swipl-darwin-arm64": "1.0.2",
       "kibi-swipl-darwin-x64": "1.0.2",
-      "kibi-swipl-win32-x64": "1.0.2",
       "kibi-swipl": "1.0.2",
       "kibi-lang-go": "1.0.0",
       "kibi-lang-rust": "1.0.0",

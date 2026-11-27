@@ -245,6 +245,23 @@ describe("sync-agent-skills planning and drift", () => {
     expect(checked.driftedTargets).toEqual([]);
   });
 
+  test("win32 mirror sync runs unlocked without native flock", async () => {
+    const root = tempRoot();
+    writeCanonical(root);
+    const wrote = await syncAgentSkills(
+      root,
+      { mode: "write", targets: ["codex"] },
+      "win32",
+    );
+    expect(wrote.driftedTargets).toEqual([]);
+    const checked = await syncAgentSkills(
+      root,
+      { mode: "check", targets: ["codex"] },
+      "win32",
+    );
+    expect(checked.driftedTargets).toEqual([]);
+  });
+
   test("diffMirror reports missing and drifted hash manifests", () => {
     const root = tempRoot();
     writeCanonical(root);

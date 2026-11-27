@@ -1481,6 +1481,17 @@ function checkKibiLevel(): DoctorCheckResult {
   };
 }
 
+/**
+ * Windows NTFS has no POSIX execute bits; Node reports mode 0o666 for
+ * extensionless hook scripts that Git for Windows executes via sh.
+ */
+export function isHookExecutable(
+  mode: number,
+  platform: NodeJS.Platform = process.platform,
+): boolean {
+  return platform === "win32" || (mode & 0o111) !== 0;
+}
+
 function checkGitHooks(): DoctorCheckResult {
   const repoStatus = doctorRepositoryResolution().status;
   if (
@@ -1525,8 +1536,8 @@ function checkGitHooks(): DoctorCheckResult {
       const checkoutStats = statSync(postCheckoutPath);
       const mergeStats = statSync(postMergePath);
 
-      const checkoutExecutable = (checkoutStats.mode & 0o111) !== 0;
-      const mergeExecutable = (mergeStats.mode & 0o111) !== 0;
+      const checkoutExecutable = isHookExecutable(checkoutStats.mode);
+      const mergeExecutable = isHookExecutable(mergeStats.mode);
 
       if (checkoutExecutable && mergeExecutable) {
         return {
@@ -1621,7 +1632,7 @@ function checkPreCommitHook(): DoctorCheckResult {
 
   try {
     const preCommitStats = statSync(preCommitPath);
-    const preCommitExecutable = (preCommitStats.mode & 0o111) !== 0;
+    const preCommitExecutable = isHookExecutable(preCommitStats.mode);
 
     // Read hook content to determine whether it's using the new staged check
     const content = readFileSync(preCommitPath, "utf-8");
@@ -1730,7 +1741,7 @@ function checkPostRewriteHook(): DoctorCheckResult {
 
   try {
     const postRewriteStats = statSync(postRewritePath);
-    const postRewriteExecutable = (postRewriteStats.mode & 0o111) !== 0;
+    const postRewriteExecutable = isHookExecutable(postRewriteStats.mode);
 
     // Read hook content to verify it invokes kibi. Current templates invoke
     // the resolved KIBI_BIN; legacy templates invoked bare `kibi sync`.
