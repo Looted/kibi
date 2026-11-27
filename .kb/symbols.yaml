@@ -52161,3 +52161,29 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-opencode-enforcement-surface
+  - id: SYM-doctor-is-hook-executable
+    title: isHookExecutable
+    sourceFile: packages/cli/src/commands/doctor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T23:49:17.563Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-sync-agent-skills-sync-agent-skills
+    title: syncAgentSkills
+    sourceFile: scripts/sync-agent-skills.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-26T23:49:24.800Z
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem

@@ -487,7 +487,7 @@ export async function executeUpsertRequest(
             {
               type: "text" as const,
               text: [
-                `Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):`,
+                "Only the person can settle these; put them to the person in one question, not one per check result (also in approvalsNeeded):",
                 ...followUp.approvalsNeeded.map(
                   (approval, index) =>
                     `${index + 1}. ${approval.ask}${approval.alternative ? " (only instead of the step it replaces)" : ""}`,

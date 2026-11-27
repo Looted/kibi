@@ -595,7 +595,11 @@ export function syncAgentSkillsUnlocked(
 export function syncAgentSkills(
   repoRoot: string,
   options: SyncOptions,
+  platform: NodeJS.Platform = process.platform,
 ): Promise<SyncResult> {
+  if (platform === "win32") {
+    return Promise.resolve(syncAgentSkillsUnlocked(repoRoot, options));
+  }
   return withSharedAdoptionLock(repoRoot, async () => {
     if (options.mode === "check") {
       return syncAgentSkillsUnlocked(repoRoot, options);
