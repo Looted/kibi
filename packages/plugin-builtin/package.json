@@ -37,11 +37,14 @@
     "access": "public"
   },
   "dependencies": {
-    "kibi-plugin-sdk": "^0.9.0",
     "ts-morph": "^23.0.0"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "kibi-plugin-sdk": "^0.9.0",
     "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "kibi-plugin-sdk": "^0.9.0"
   }
 }

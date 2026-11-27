@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56b704ae74ff
+  - type: implements
+    from: SYM-release-state-plan-staged-publish
+    to: REQ-kibi-release-master-publishes-only
+    created_at: 2026-11-27T08:22:51.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-100073566b3b
+  - type: covered_by
+    from: SYM-release-state-plan-staged-publish
+    to: TEST-014
+    created_at: 2026-11-27T08:22:51.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b29314686c7

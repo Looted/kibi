@@ -12,6 +12,7 @@ concurrency:
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   check-release:
@@ -19,6 +20,8 @@ jobs:
     outputs:
       release_action: ${{ steps.decide.outputs.action }}
       toPublish: ${{ steps.decide.outputs.toPublish }}
+      toUpload: ${{ steps.decide.outputs.toUpload }}
+      toPromote: ${{ steps.decide.outputs.toPromote }}
     permissions:
       contents: read
     steps:
@@ -38,9 +41,17 @@ jobs:
           DECISION=$(bun run scripts/run-release-state.ts)
           ACTION=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write(d.action)")
           TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
+          TO_UPLOAD=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));(d.toUpload||[]).forEach(x=>console.log(x))")
+          TO_PROMOTE=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));(d.toPromote||[]).forEach(x=>console.log(x))")
           echo "action=$ACTION" >> $GITHUB_OUTPUT
           echo "toPublish<<EOF" >> $GITHUB_OUTPUT
           echo "$TO_PUBLISH" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "toUpload<<EOF" >> $GITHUB_OUTPUT
+          echo "$TO_UPLOAD" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "toPromote<<EOF" >> $GITHUB_OUTPUT
+          echo "$TO_PROMOTE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "Release action: $ACTION"
           echo "$DECISION"
@@ -64,6 +75,8 @@ jobs:
     if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
     outputs:
       toPublish: ${{ steps.check-packages.outputs.toPublish }}
+      toUpload: ${{ steps.check-packages.outputs.toUpload }}
+      toPromote: ${{ steps.check-packages.outputs.toPromote }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -205,6 +218,12 @@ jobs:
           cat >> $GITHUB_OUTPUT <<'EOFMARKER'
           toPublish<<EOF
           ${{ needs.check-release.outputs.toPublish }}
+          EOF
+          toUpload<<EOF
+          ${{ needs.check-release.outputs.toUpload }}
+          EOF
+          toPromote<<EOF
+          ${{ needs.check-release.outputs.toPromote }}
           EOF
           EOFMARKER
 
@@ -348,9 +367,10 @@ jobs:
             fi
             echo "verified $(basename "$tarball") binary $actual"
           done
-      - name: Publish packages
+      - name: Stage packages to npm (new packages first)
         run: |
-          to_publish="${{ needs.build-and-check.outputs.toPublish }}"
+          set -euo pipefail
+          to_upload="${{ needs.build-and-check.outputs.toUpload }}"
           while IFS= read -r output; do
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
@@ -360,9 +380,33 @@ jobs:
               echo "No tarball found for ${pkg_name} in packages/${pkg_dir}/"
               exit 1
             fi
-            echo "Publishing ${pkg_name} from tarball: $(basename "$tarball")..."
-            npm publish "$tarball" --provenance --access public
-          done <<< "$to_publish"
+            echo "Staging ${pkg_name} from tarball: $(basename "$tarball")..."
+            npm publish "$tarball" --provenance --access public --tag staging
+          done <<< "$to_upload"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Promote staged packages to latest
+        run: |
+          set -euo pipefail
+          to_promote="${{ needs.build-and-check.outputs.toPromote }}"
+          while IFS= read -r output; do
+            [ -z "$output" ] && continue
+            pkg_spec="${output#*=}"
+            pkg_name="${pkg_spec%@*}"
+            echo "Promoting ${pkg_spec} to latest..."
+            for attempt in 1 2 3 4 5; do
+              if npm dist-tag add "${pkg_spec}" latest; then
+                break
+              fi
+              if [ "$attempt" -eq 5 ]; then
+                echo "Failed to promote ${pkg_spec} to latest after 5 attempts"
+                exit 1
+              fi
+              echo "Waiting for ${pkg_spec} visibility before retry (${attempt}/5)..."
+              sleep 5
+            done
+            npm dist-tag rm "${pkg_name}" staging >/dev/null 2>&1 || true
+          done <<< "$to_promote"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

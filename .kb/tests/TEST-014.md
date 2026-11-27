@@ -29,21 +29,21 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-33c769a82e4965b575925512
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-5049c380399aa5c4b1c7e097
     test_id: TEST-014
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: 20f81e810de5bee4cd769cdf7682dba0d74217a848e43a8058a234e4ae6ae2ab
-    binding_hash: a8706b0e7faab9d469af9acba8fd365c9aaa0215f14e0a2331b97262421819e2
-    fingerprint: 86012cca393ea9f65c2a56ebe46e37a699d4bd1af4330827a315f632a5a073d1
+    code_snapshot: 82eff1d56d373f50508c977f0a39bceb515d717eaf4356b155d1764f3ed0d6a4
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-11-27T08:22:56.575Z'
+    finished_at: '2026-11-27T08:28:47.666Z'
+    artifact_digest: 12827973f31ddd4f9c558cd8a2d6db5a472e1cd68e584c18c6c2435d8a92c1c6
+    contract_hash: 00728ebf10795ecaff5b8d4869fddfc4ec634a7c3fd1808e0e740582008b22ad
+    binding_hash: 960d367be7a310b08cd4b14f79bbd48f488aac8f77532bf8d39a8cc8678ad086
+    fingerprint: 6501445bb735f80ec0400e9a3b4673bea6862157b74a9cd4f5eee4e8f610a6de
     fingerprint_components:
-      contract: 20f81e810de5bee4cd769cdf7682dba0d74217a848e43a8058a234e4ae6ae2ab
+      contract: 00728ebf10795ecaff5b8d4869fddfc4ec634a7c3fd1808e0e740582008b22ad
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -56,12 +56,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-014
+      - symbol_id: SYM-e2e-release-package-contract
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

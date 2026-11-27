@@ -136,11 +136,37 @@ describe("canonical package catalog", () => {
     const mcp = JSON.parse(
       readFileSync(join(ROOT, "packages/mcp/package.json"), "utf8"),
     ) as { dependencies?: Record<string, string> };
+    const runtime = JSON.parse(
+      readFileSync(join(ROOT, "packages/runtime/package.json"), "utf8"),
+    ) as { dependencies?: Record<string, string> };
     expect(cli.dependencies?.["kibi-plugin-jev"]).toBeUndefined();
     expect(mcp.dependencies?.["kibi-plugin-jev"]).toBeUndefined();
     expect(cli.dependencies?.["kibi-plugin-treesitter"]).toBeUndefined();
     expect(mcp.dependencies?.["kibi-plugin-treesitter"]).toBeUndefined();
     expect(cli.dependencies?.["kibi-plugin-builtin"]).toBeDefined();
+    expect(cli.dependencies?.["kibi-plugin-sdk"]).toBeDefined();
+    expect(runtime.dependencies?.["kibi-plugin-sdk"]).toBeDefined();
+  });
+
+  test("every kibi-plugin-* package declares kibi-plugin-sdk as a peerDependency rather than a runtime dependency", () => {
+    for (const dir of [
+      "plugin-builtin",
+      "plugin-jev",
+      "plugin-ui",
+      "plugin-search-hints",
+      "plugin-treesitter",
+    ]) {
+      const manifest = JSON.parse(
+        readFileSync(join(ROOT, "packages", dir, "package.json"), "utf8"),
+      ) as {
+        dependencies?: Record<string, string>;
+        peerDependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      expect(manifest.dependencies?.["kibi-plugin-sdk"], dir).toBeUndefined();
+      expect(manifest.peerDependencies?.["kibi-plugin-sdk"], dir).toBeDefined();
+      expect(manifest.devDependencies?.["kibi-plugin-sdk"], dir).toBeDefined();
+    }
   });
 
   test("packed default-install manifest matches the catalog and excludes optional plugins", () => {

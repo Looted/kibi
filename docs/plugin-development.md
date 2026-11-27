@@ -57,7 +57,7 @@ export const kibiPlugin = defineKibiPlugin({
 });
 ```
 
-Third-party plugins need only `kibi-plugin-sdk`. They must not depend on
+Third-party plugins need only `kibi-plugin-sdk` (declared in `peerDependencies`, with a matching `devDependencies` entry for local builds, so the host's installed SDK is shared rather than nested). They must not depend on
 `kibi-cli` or `kibi-mcp` internals.
 
 ## Activation

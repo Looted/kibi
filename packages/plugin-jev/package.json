@@ -36,11 +36,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@typesafe-ai/sdk": "^0.7.0",
-    "kibi-plugin-sdk": "^0.9.0"
+    "@typesafe-ai/sdk": "^0.7.0"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "kibi-plugin-sdk": "^0.9.0",
     "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "kibi-plugin-sdk": "^0.9.0"
   }
 }

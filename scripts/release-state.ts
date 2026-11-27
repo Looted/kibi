@@ -37,6 +37,17 @@ export interface PackageInfo {
   dir: string;
   version: string;
   alreadyPublished: boolean;
+  /** True when the package has no prior versions on npm at all (first publish). */
+  isNewPackage?: boolean;
+  /** True when npm's `latest` dist-tag already points to `version`. */
+  latestPublished?: boolean;
+}
+
+export interface StagedPublishPlan {
+  /** Unpublished packages to upload under `--tag staging` (brand-new packages first, then existing, preserving catalog order in each group). */
+  toUpload: PackageInfo[];
+  /** Packages whose target version is not yet on npm's `latest` dist-tag, in canonical dependency order. */
+  toPromote: PackageInfo[];
 }
 
 export interface ReleaseDecision {
@@ -56,8 +67,12 @@ export interface ReleaseContext {
   changesetFiles: string[];
   /** Package info keyed by directory name */
   packages: Record<string, { name: string; version: string }>;
-  /** Callback: returns true if pkgName@version exists on npm */
+  /** Callback: returns true if pkgName@version exists on npm (any dist-tag) */
   isPublishedOnNpm: (pkgName: string, version: string) => boolean;
+  /** Optional callback: returns true if pkgName already has at least one version on npm */
+  isPackageOnNpm?: (pkgName: string) => boolean;
+  /** Optional callback: returns true if npm's `latest` dist-tag already points to pkgName@version. Defaults to `alreadyPublished`. */
+  isLatestOnNpm?: (pkgName: string, version: string) => boolean;
   /** The SHA of the triggering commit */
   sourceSha: string;
 }
@@ -91,16 +106,18 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
 
   // Collect publishable package info
   const allPackages = collectPackages(ctx);
-  const unpublished = allPackages.filter((p) => !p.alreadyPublished);
-  const published = allPackages.filter((p) => p.alreadyPublished);
+  const needsWork = allPackages.filter(
+    (p) => !p.alreadyPublished || !(p.latestPublished ?? p.alreadyPublished),
+  );
+  const anyPublished = allPackages.filter((p) => p.alreadyPublished);
 
   // Detect pending changeset files
   const pendingChangesets = ctx.changesetFiles.filter(
     (f) => f.endsWith(".md") && f !== "README.md",
   );
 
-  // No changesets and all published → true no-op
-  if (pendingChangesets.length === 0 && unpublished.length === 0) {
+  // No changesets and all published on latest → true no-op
+  if (pendingChangesets.length === 0 && needsWork.length === 0) {
     return {
       action: "NOOP",
       packages: [],
@@ -109,28 +126,28 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
     };
   }
 
-  // No changesets but unpublished packages exist
+  // No changesets but unpublished or unpromoted packages exist
   if (pendingChangesets.length === 0) {
-    // Some packages already published → partial rerun
-    if (published.length > 0) {
+    // Some packages already published (on latest or staging) → partial rerun
+    if (anyPublished.length > 0) {
       return {
         action: "PUBLISH_ONLY_RERUN",
-        packages: unpublished,
+        packages: needsWork,
         sourceSha: ctx.sourceSha,
-        reason: `Partial rerun: ${published.length} already published, ${unpublished.length} remaining`,
+        reason: `Partial rerun: ${anyPublished.length} already published, ${needsWork.length} remaining`,
       };
     }
-    // Fresh: nothing published yet but no changesets (consumed on develop)
+    // Fresh: nothing published yet and no changesets (consumed on develop)
     return {
       action: "PREPARE_RELEASE",
-      packages: unpublished,
+      packages: needsWork,
       sourceSha: ctx.sourceSha,
       reason: "Unpublished packages detected without pending changesets",
     };
   }
 
-  // Have pending changesets — all published already?
-  if (unpublished.length === 0) {
+  // Have pending changesets — all published on latest already?
+  if (needsWork.length === 0) {
     return {
       action: "ALREADY_PUBLISHED_NOOP",
       packages: [],
@@ -143,7 +160,34 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
     action: "PREPARE_RELEASE",
     packages: allPackages,
     sourceSha: ctx.sourceSha,
-    reason: `${pendingChangesets.length} pending changeset(s), ${unpublished.length} unpublished package(s)`,
+    reason: `${pendingChangesets.length} pending changeset(s), ${needsWork.length} unpublished package(s)`,
+  };
+}
+
+/**
+ * Plan a two-phase staged npm publish so a failure on a brand-new package name
+ * or mid-release upload never leaves `latest` half-updated:
+ *
+ * 1. `toUpload`: unpublished tarballs, with brand-new packages (never published
+ *    on npm before) placed FIRST so spam-filter or permission errors fail before
+ *    any existing package is touched, preserving canonical dependency order
+ *    within each group.
+ * 2. `toPromote`: every package whose target version is not yet on `latest`
+ *    (including tarballs uploaded in an earlier interrupted staging run), in
+ *    canonical dependency order.
+ */
+export function planStagedPublish(
+  packages: readonly PackageInfo[],
+): StagedPublishPlan {
+  const unpublished = packages.filter((p) => !p.alreadyPublished);
+  const newFirst = unpublished.filter((p) => p.isNewPackage === true);
+  const existing = unpublished.filter((p) => p.isNewPackage !== true);
+  const toPromote = packages.filter(
+    (p) => !(p.latestPublished ?? p.alreadyPublished),
+  );
+  return {
+    toUpload: [...newFirst, ...existing],
+    toPromote,
   };
 }
 
@@ -156,11 +200,22 @@ function collectPackages(ctx: ReleaseContext): PackageInfo[] {
     const pkg = ctx.packages[dir];
     if (!pkg) continue;
 
+    const alreadyPublished = ctx.isPublishedOnNpm(pkg.name, pkg.version);
+    const isNewPackage =
+      !alreadyPublished && ctx.isPackageOnNpm
+        ? !ctx.isPackageOnNpm(pkg.name)
+        : false;
+    const latestPublished = alreadyPublished
+      ? (ctx.isLatestOnNpm?.(pkg.name, pkg.version) ?? true)
+      : false;
+
     result.push({
       name: pkg.name,
       dir,
       version: pkg.version,
-      alreadyPublished: ctx.isPublishedOnNpm(pkg.name, pkg.version),
+      alreadyPublished,
+      isNewPackage,
+      latestPublished,
     });
   }
 
